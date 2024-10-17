@@ -32,6 +32,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <whim.version>0.0.1-SNAPSHOT</whim.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <jbcrypt.version>0.4</jbcrypt.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
     </properties>
 
     <dependencyManagement>
@@ -41,6 +43,18 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+            </dependency>
+            <!--jbcrypt密码加密-->
+            <dependency>
+                <groupId>org.mindrot</groupId>
+                <artifactId>jbcrypt</artifactId>
+                <version>${jbcrypt.version}</version>
+            </dependency>
+            <!--commons-lang3-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
             <!--核心模块-->
             <dependency>
