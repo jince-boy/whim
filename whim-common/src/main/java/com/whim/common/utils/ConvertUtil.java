@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,7 +16,7 @@ import java.util.Set;
  * date: 2024/10/4 22:54
  * description: 类型转换工具类
  */
-public class ConvertUtils {
+public class ConvertUtil {
     /**
      * 将对象转换为字符串
      *

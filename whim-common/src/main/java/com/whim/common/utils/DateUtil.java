@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,7 +14,7 @@ import java.util.Date;
 /**
  * 日期工具类，提供常用的日期处理方法。
  */
-public class DateUtils {
+public class DateUtil {
 
     public static final String FORMAT_01 = "yyyy-MM-dd";
     public static final String FORMAT_02 = "HH:mm:ss";

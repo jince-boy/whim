@@ -1,4 +1,4 @@
-package base;
+package com.whim.common.base;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;

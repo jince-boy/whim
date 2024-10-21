@@ -1,4 +1,4 @@
-package web;
+package com.whim.common.web;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;

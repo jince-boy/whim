@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
  * 转义\： format("this is \\\\{} for {}", "a", "b") -> this is \a for b
  * </p>
  */
-public class StringFormatUtils {
+public class StringFormatUtil {
     public static final String EMPTY_JSON = "{}";
     public static final char C_BACKSLASH = '\\';
     public static final char C_DELIM_START = '{';
@@ -58,7 +58,7 @@ public class StringFormatUtils {
                 if (delimIndex > 0 && strPattern.charAt(delimIndex - 1) == C_BACKSLASH) {
                     if (delimIndex > 1 && strPattern.charAt(delimIndex - 2) == C_BACKSLASH) {
                         stringBuilder.append(strPattern, handledPosition, delimIndex - 1);
-                        stringBuilder.append(ConvertUtils.toString(argArray[argIndex]));
+                        stringBuilder.append(ConvertUtil.toString(argArray[argIndex]));
                         handledPosition = delimIndex + 2;
                     } else {
                         argIndex--;
@@ -68,7 +68,7 @@ public class StringFormatUtils {
                     }
                 } else {
                     stringBuilder.append(strPattern, handledPosition, delimIndex);
-                    stringBuilder.append(ConvertUtils.toString(argArray[argIndex]));
+                    stringBuilder.append(ConvertUtil.toString(argArray[argIndex]));
                     handledPosition = delimIndex + 2;
                 }
             }

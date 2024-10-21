@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import java.security.SecureRandom;
 
@@ -8,7 +8,7 @@ import java.security.SecureRandom;
  * description: 随机字符串生成工具类
  * 提供生成包含大写字母、小写字母和数字的随机字符串的方法。
  */
-public class RandomStringUtils {
+public class RandomStringUtil {
     private static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
     private static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String NUMBERS = "0123456789";

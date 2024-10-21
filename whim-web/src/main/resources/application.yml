@@ -1,0 +1,21 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: whim
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+  # 开发环境
+  profiles:
+    active: ${PROFILES_ACTIVE:dev}
+  # 热部署
+  devtools:
+    restart:
+      additional-paths: ../whim-common,../whim-core,../whim-system,../whim-model
+    livereload:
+      enabled: false
+
+

@@ -1,4 +1,4 @@
-package web;
+package com.whim.common.web;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

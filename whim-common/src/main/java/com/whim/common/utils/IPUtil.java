@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * date: 2024/10/5 00:19
  * description: IP工具类
  */
-public class IPUtils {
+public class IPUtil {
 
     /**
      * 获取客户端IP地址
@@ -26,7 +26,7 @@ public class IPUtils {
      */
     public static String getClientIpAddress(HttpServletRequest request) {
         if (request == null) {
-            request = ServletUtils.getRequest();
+            request = ServletUtil.getRequest();
         }
 
         String ip = getHeaderIp(request,

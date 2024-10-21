@@ -1,4 +1,4 @@
-package utils;
+package com.whim.common.utils;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ import java.util.Map;
  * description: Servlet工具类
  */
 @Slf4j
-public class ServletUtils {
+public class ServletUtil {
 
     /**
      * 获取请求属性
@@ -79,7 +79,7 @@ public class ServletUtils {
      * @return 参数值
      */
     public static String getParameter(String name, String defaultValue) {
-        return ConvertUtils.toString(getParameter(name), defaultValue);
+        return ConvertUtil.toString(getParameter(name), defaultValue);
     }
 
     /**
@@ -103,7 +103,7 @@ public class ServletUtils {
      * @return 参数值
      */
     public static Integer getParameterToInt(String name) {
-        return ConvertUtils.toInt(getParameter(name));
+        return ConvertUtil.toInt(getParameter(name));
     }
 
     /**
@@ -114,7 +114,7 @@ public class ServletUtils {
      * @return 参数值
      */
     public static Integer getParameterToInt(String name, Integer defaultValue) {
-        return ConvertUtils.toInt(getParameter(name), defaultValue);
+        return ConvertUtil.toInt(getParameter(name), defaultValue);
     }
 
     /**
@@ -124,7 +124,7 @@ public class ServletUtils {
      * @return 参数值
      */
     public static Boolean getParameterToBoolean(String name) {
-        return ConvertUtils.toBoolean(getParameter(name));
+        return ConvertUtil.toBoolean(getParameter(name));
     }
 
     /**
@@ -135,7 +135,7 @@ public class ServletUtils {
      * @return 参数值
      */
     public static Boolean getParameterToBoolean(String name, Boolean defaultValue) {
-        return ConvertUtils.toBoolean(getParameter(name), defaultValue);
+        return ConvertUtil.toBoolean(getParameter(name), defaultValue);
     }
 
     /**

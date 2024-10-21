@@ -10,11 +10,12 @@
     </parent>
 
     <artifactId>whim-model</artifactId>
-
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <dependencies>
+        <!--通用模块-->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-common</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>
