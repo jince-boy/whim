@@ -12,9 +12,20 @@
     <artifactId>whim-system</artifactId>
 
     <dependencies>
+        <!--模型模块-->
         <dependency>
             <groupId>com.whim</groupId>
             <artifactId>whim-model</artifactId>
+        </dependency>
+        <!--saToken-->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+        </dependency>
+        <!--sa-token-redis-jackson-->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-redis-jackson</artifactId>
         </dependency>
     </dependencies>
 
