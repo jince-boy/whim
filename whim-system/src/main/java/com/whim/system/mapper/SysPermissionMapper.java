@@ -3,6 +3,9 @@ package com.whim.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.whim.model.entity.SysPermission;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author Jince
@@ -11,6 +14,12 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface SysPermissionMapper extends BaseMapper<SysPermission> {
-
+    /**
+     * 通过用户id获取权限标识列表
+     *
+     * @param userId 用户id
+     * @return 权限标识列表
+     */
+    List<String> getPermissionCodeByUserId(@Param("userId") Long userId);
 }
 

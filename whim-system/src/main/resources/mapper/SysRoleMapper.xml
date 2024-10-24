@@ -11,6 +11,12 @@
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
+    <select id="getRoleCodeByUserId" resultType="java.lang.String">
+        select sr.code
+        from sys_role as sr
+                 join sys_user_role as sur on sr.id = sur.role_id
+        where sur.user_id = ${userId}
+    </select>
 
 </mapper>
 
