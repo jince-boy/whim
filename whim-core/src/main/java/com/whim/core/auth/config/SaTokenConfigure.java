@@ -14,7 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * description: SaToken配置类，权限拦截器
  */
 @Configuration
-public class SaTokenConfiguration implements WebMvcConfigurer {
+public class SaTokenConfigure implements WebMvcConfigurer {
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle-> StpUtil.checkLogin()))

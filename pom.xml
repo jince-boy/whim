@@ -36,6 +36,8 @@
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <druid.version>1.2.20</druid.version>
         <saToken.version>1.39.0</saToken.version>
+        <easy-captcha.version>1.6.2</easy-captcha.version>
+        <nashorn-core.version>15.4</nashorn-core.version>
     </properties>
 
     <dependencyManagement>
@@ -69,6 +71,18 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <!--验证码-->
+            <dependency>
+                <groupId>com.github.whvcse</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${easy-captcha.version}</version>
+            </dependency>
+            <!--NashornJavaScript引擎 解决easy-captcha算术验证码报错问题-->
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>${nashorn-core.version}</version>
             </dependency>
             <!--阿里云数据库连接池-->
             <dependency>

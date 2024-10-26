@@ -1,7 +1,9 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.whim.model.dto.LoginDTO;
 import com.whim.model.entity.SysUser;
+import com.whim.model.vo.CaptchaVO;
 
 /**
  * @author Jince
@@ -10,4 +12,12 @@ import com.whim.model.entity.SysUser;
  */
 public interface ISysUserService extends IService<SysUser> {
 
+    String login(LoginDTO loginDTO);
+
+    /**
+     * 获取验证码
+     *
+     * @return 验证码响应实体
+     */
+    CaptchaVO getCaptcha();
 }

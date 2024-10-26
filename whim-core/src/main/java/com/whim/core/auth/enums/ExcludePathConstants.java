@@ -12,7 +12,9 @@ import java.util.List;
  */
 @Getter
 public enum ExcludePathConstants {
-    AUTH_LOGIN("/auth/login", "用户登录");
+    AUTH_LOGIN("/auth/login", "用户登录"),
+    AUTH_CAPTCHA("/auth/captcha","登录验证码"),
+    ERROR_PATH("/error","登录验证码");
     private final String path;
     private final String description;
 
