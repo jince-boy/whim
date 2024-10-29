@@ -1,5 +1,6 @@
 package com.whim.model.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -11,15 +12,15 @@ import lombok.Data;
  */
 @Data
 public class LoginDTO {
-    @NotNull(message = "用户名不能为空")
+    @NotBlank(message = "用户名不能为空")
     @Size(min = 5, max = 18, message = "用户名长度在5~18位之间")
     private String username;
-    @NotNull(message = "密码不能为空")
+    @NotBlank(message = "密码不能为空")
     @Size(min = 8, max = 18, message = "密码长度在8~18位之间")
     private String password;
-    @NotNull(message = "uuid不能为空")
+    @NotBlank(message = "uuid不能为空")
     private String uuid;
-    @NotNull(message = "验证码不能为空")
+    @NotBlank(message = "验证码不能为空")
     private String captcha;
     @NotNull(message = "记住我不能为空")
     private Boolean rememberMe;

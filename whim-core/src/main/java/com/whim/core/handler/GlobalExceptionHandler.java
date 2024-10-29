@@ -3,9 +3,11 @@ package com.whim.core.handler;
 import cn.dev33.satoken.exception.NotLoginException;
 import com.whim.common.exception.ServiceException;
 import com.whim.common.web.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -27,19 +30,19 @@ public class GlobalExceptionHandler {
     /**
      * 兜底异常处理器
      */
-    @ExceptionHandler(Throwable.class)
-    public Result<String> handleGeneralException(Throwable e) {
-        log.error("发生了一个未预期的异常", e);
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部错误，请稍后再试");
+    @ExceptionHandler(Exception.class)
+    public Result<String> handleGeneralException(Exception e, HttpServletRequest request) {
+        log.error("请求地址:{},发生了一个未预期的异常", request.getRequestURI(), e);
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     /**
      * 请求方式错误
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public Result<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
-        log.error("不支持'{}'请求", e.getMethod());
-        return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式错误");
+    public Result<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
+        log.error("请求地址:{},不支持'{}'请求", request.getRequestURI(), e.getMethod());
+        return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式错误,不支持该请求方式");
     }
 
     /**
@@ -52,35 +55,47 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 非法参数异常
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Result<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("非法参数异常:{}", e.getMessage());
+        return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    /**
      * 参数验证异常
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        List<String> collect = exception.getFieldErrors().stream()
+    public Result<List<Map<String, String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+//        Class<?> zone = exception.getParameter().getParameterType();
+//
+//        List<String> fieldOrder = Arrays.stream(zone.getDeclaredFields()).map(Field::getName).toList();
+//
+//        List<Map<String, String>> collect = exception.getFieldErrors().stream()
+//                .sorted(Comparator.comparingInt(fieldError -> fieldOrder.indexOf(fieldError.getField())))
+//                .map(fieldError -> {
+//                    Map<String, String> errorDetail = new HashMap<>();
+//                    errorDetail.put("field", fieldError.getField());
+//                    errorDetail.put("message", fieldError.getDefaultMessage());
+//                    return errorDetail;
+//                })
+//                .toList();
+        String message = exception.getBindingResult().getFieldError().getDefaultMessage();
+        return Result.error(message);
+    }
+
+    /**
+     * 参数验证异常
+     */
+    @ExceptionHandler(BindException.class)
+    public Result<String> handleBindException(BindException exception) {
+        List<String> collect = exception.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
         log.error(String.join("; ", collect));
         return Result.error(StringUtils.join(collect, ";"));
     }
-//    /**
-//     * 非法参数异常
-//     */
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public Result<String> handleIllegalArgumentException(IllegalArgumentException e) {
-//        log.error("非法参数异常:{}", e.getMessage());
-//        return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
-//    }
-//    /**
-//     * 参数验证异常
-//     */
-//    @ExceptionHandler(BindException.class)
-//    public Result<String> handleBindException(BindException exception) {
-//        List<String> collect = exception.getBindingResult().getFieldErrors().stream()
-//                .map(FieldError::getDefaultMessage)
-//                .collect(Collectors.toList());
-//        log.error(String.join("; ", collect));
-//        return Result.error(StringUtils.join(collect, ";"));
-//    }
 
 //    /**
 //     * 参数验证异常

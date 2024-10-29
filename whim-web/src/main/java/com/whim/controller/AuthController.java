@@ -4,8 +4,8 @@ import com.whim.common.web.Result;
 import com.whim.model.dto.LoginDTO;
 import com.whim.model.vo.CaptchaVO;
 import com.whim.system.service.ISysUserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +24,7 @@ public class AuthController {
     private final ISysUserService userService;
 
     @PostMapping("/login")
-    public Result<String> login(@RequestBody @Validated LoginDTO loginDTO) {
+    public Result<String> login(@RequestBody @Valid LoginDTO loginDTO) {
         return Result.success(userService.login(loginDTO));
     }
 
