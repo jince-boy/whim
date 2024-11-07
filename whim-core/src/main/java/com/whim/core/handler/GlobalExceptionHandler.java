@@ -4,11 +4,10 @@ import cn.dev33.satoken.exception.NotLoginException;
 import com.whim.common.exception.ServiceException;
 import com.whim.common.web.Result;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +16,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
     /**
-     * 兜底异常处理器
+     * 全局异常处理器
      */
     @ExceptionHandler(Exception.class)
     public Result<String> handleGeneralException(Exception e, HttpServletRequest request) {
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 请求方式错误
+     * 请求方式错误异常
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public Result<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
@@ -64,50 +64,67 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 参数验证异常
+     * 处理方法参数验证异常。
+     * <p>
+     * 当使用 @Valid 注解进行参数验证时，如果参数不符合要求，将抛出此异常。
+     * 通常用于控制器方法参数的验证，适用于 Spring MVC 的请求体和请求参数。
+     * </p>
+     *
+     * @param exception MethodArgumentNotValidException 异常对象
+     * @return 包含错误信息的 Result 对象
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<List<Map<String, String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-//        Class<?> zone = exception.getParameter().getParameterType();
-//
-//        List<String> fieldOrder = Arrays.stream(zone.getDeclaredFields()).map(Field::getName).toList();
-//
-//        List<Map<String, String>> collect = exception.getFieldErrors().stream()
-//                .sorted(Comparator.comparingInt(fieldError -> fieldOrder.indexOf(fieldError.getField())))
-//                .map(fieldError -> {
-//                    Map<String, String> errorDetail = new HashMap<>();
-//                    errorDetail.put("field", fieldError.getField());
-//                    errorDetail.put("message", fieldError.getDefaultMessage());
-//                    return errorDetail;
-//                })
-//                .toList();
-        String message = exception.getBindingResult().getFieldError().getDefaultMessage();
-        return Result.error(message);
+        List<Map<String, String>> errors = exception.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> Map.of(
+                        "field", fieldError.getField(),
+                        "error", Objects.requireNonNull(fieldError.getDefaultMessage())
+                ))
+                .collect(Collectors.toList());
+        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
     }
 
     /**
-     * 参数验证异常
+     * 处理绑定异常。
+     * <p>
+     * 当请求参数绑定到 Java 对象时，如果存在验证失败的情况，将抛出此异常。
+     * 适用于 Spring MVC 中的表单提交和数据绑定场景。
+     * </p>
+     *
+     * @param exception BindException 异常对象
+     * @return 包含错误信息的 Result 对象
      */
     @ExceptionHandler(BindException.class)
-    public Result<String> handleBindException(BindException exception) {
-        List<String> collect = exception.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
+    public Result<List<Map<String, String>>> handleBindException(BindException exception) {
+        List<Map<String, String>> errors = exception.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> Map.of(
+                        "field", fieldError.getField(),
+                        "error", Objects.requireNonNull(fieldError.getDefaultMessage())
+                ))
                 .collect(Collectors.toList());
-        log.error(String.join("; ", collect));
-        return Result.error(StringUtils.join(collect, ";"));
+        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
     }
 
-//    /**
-//     * 参数验证异常
-//     */
-//    @ExceptionHandler(ConstraintViolationException.class)
-//    public Result<String> handleConstraintViolationException(ConstraintViolationException exception) {
-//        List<String> collect = exception.getConstraintViolations().stream()
-//                .map(ConstraintViolation::getMessage)
-//                .collect(Collectors.toList());
-//        log.error(String.join("; ", collect));
-//        return Result.error(StringUtils.join(collect, ";"));
-//    }
+    /**
+     * 处理约束验证异常。
+     * <p>
+     * 当使用 JSR-303/JSR-380 注解（如 @NotNull、@Size 等）进行字段验证时，如果字段不符合约束条件，将抛出此异常。
+     * 适用于在服务层或持久层对实体类进行验证时。
+     * </p>
+     *
+     * @param exception ConstraintViolationException 异常对象
+     * @return 包含错误信息的 Result 对象
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public Result<List<Map<String, String>>> handleConstraintViolationException(ConstraintViolationException exception) {
+        List<Map<String, String>> errors = exception.getConstraintViolations().stream()
+                .map(violation -> Map.of(
+                        "field", violation.getPropertyPath().toString(),
+                        "error", violation.getMessage()
+                ))
+                .collect(Collectors.toList());
+        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
+    }
 
     /**
      * 业务异常处理
