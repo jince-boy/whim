@@ -3,6 +3,7 @@ package com.whim.controller;
 import com.whim.common.web.Result;
 import com.whim.model.dto.LoginDTO;
 import com.whim.model.vo.CaptchaVO;
+import com.whim.model.vo.LoginVO;
 import com.whim.system.service.ISysUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,8 @@ public class AuthController {
     private final ISysUserService userService;
 
     @PostMapping("/login")
-    public Result<String> login(@RequestBody @Valid LoginDTO loginDTO) {
-        return Result.success(userService.login(loginDTO));
+    public Result<LoginVO> login(@RequestBody @Valid LoginDTO loginDTO) {
+        return Result.success("登录成功", userService.login(loginDTO));
     }
 
     /**

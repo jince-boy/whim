@@ -13,7 +13,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Jince
@@ -159,7 +160,7 @@ public class Result<T> implements Serializable {
      * @param <T> 数据类型
      * @return Result<LinkedHashMap < String, String>>
      */
-    public static <T> Result<LinkedHashMap<String, String>> validationError(LinkedHashMap<String, String> errorInfo) {
+    public static <T> Result<List<Map<String, String>>>validationError(List<Map<String, String>> errorInfo) {
         return new Result<>(errorInfo).setResult(HttpStatus.BAD_REQUEST, "参数错误");
     }
 
@@ -172,7 +173,7 @@ public class Result<T> implements Serializable {
      * @param <T>       数据类型
      * @return Result<LinkedHashMap < String, String>>
      */
-    public static <T> Result<LinkedHashMap<String, String>> validationError(String message, LinkedHashMap<String, String> errorInfo) {
+    public static <T> Result<List<Map<String, String>>> validationError(String message, List<Map<String, String>> errorInfo) {
         return new Result<>(errorInfo).setResult(HttpStatus.BAD_REQUEST, message);
     }
 

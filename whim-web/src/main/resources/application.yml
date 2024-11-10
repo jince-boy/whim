@@ -12,10 +12,10 @@ spring:
   profiles:
     active: ${PROFILES_ACTIVE:dev}
   # 热部署
-#  devtools:
-#    restart:
-#      additional-paths: ../whim-common,../whim-core,../whim-system,../whim-model
-#    livereload:
-#      enabled: false
-
+  devtools:
+    restart:
+      additional-paths: ../whim-common,../whim-core,../whim-system,../whim-model
+      enabled: true
+    livereload:
+      enabled: false
 

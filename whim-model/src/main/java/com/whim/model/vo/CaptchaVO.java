@@ -1,7 +1,7 @@
 package com.whim.model.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 /**
  * @author Jince
@@ -9,8 +9,14 @@ import lombok.experimental.Accessors;
  * description: 验证码响应实体类
  */
 @Data
-@Accessors(chain = true)
+@AllArgsConstructor
 public class CaptchaVO {
+    /**
+     * uuid
+     */
     private String uuid;
+    /**
+     * base64 图片
+     */
     private String base64;
 }

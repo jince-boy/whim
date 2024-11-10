@@ -1,16 +1,21 @@
 package com.whim.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import com.whim.common.exception.CheckCaptchaException;
 import com.whim.common.exception.ServiceException;
+import com.whim.common.exception.UserNotFoundException;
+import com.whim.common.exception.UserPasswordNotMatchException;
 import com.whim.common.web.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -28,20 +33,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
     /**
-     * 全局异常处理器
+     * 兜底异常处理器
      */
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<String> handleGeneralException(Exception e, HttpServletRequest request) {
         log.error("请求地址:{},发生了一个未预期的异常", request.getRequestURI(), e);
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器异常,请稍后重试,或联系业务人员处理.");
     }
 
     /**
      * 请求方式错误异常
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public Result<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
-        log.error("请求地址:{},不支持'{}'请求", request.getRequestURI(), e.getMethod());
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public Result<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception, HttpServletRequest request) {
+        log.warn("请求地址:{},不支持'{}'请求", request.getRequestURI(), exception.getMethod(), exception);
         return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式错误,不支持该请求方式");
     }
 
@@ -49,8 +56,8 @@ public class GlobalExceptionHandler {
      * 404异常
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public Result<String> handleNoResourceFoundException(NoResourceFoundException e) {
-        log.error("404 找不到该资源:{}", e.getMessage());
+    public Result<String> handleNoResourceFoundException(NoResourceFoundException exception) {
+        log.warn("404 找不到该资源:{}", exception.getMessage(), exception);
         return Result.error(HttpStatus.NOT_FOUND, "找不到该资源");
     }
 
@@ -58,9 +65,9 @@ public class GlobalExceptionHandler {
      * 非法参数异常
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public Result<String> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error("非法参数异常:{}", e.getMessage());
-        return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
+    public Result<String> handleIllegalArgumentException(IllegalArgumentException exception) {
+        log.error("非法参数异常:{}", exception.getMessage(), exception);
+        return Result.error(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     /**
@@ -81,7 +88,7 @@ public class GlobalExceptionHandler {
                         "error", Objects.requireNonNull(fieldError.getDefaultMessage())
                 ))
                 .collect(Collectors.toList());
-        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
+        return Result.validationError("参数验证错误", errors);
     }
 
     /**
@@ -102,7 +109,7 @@ public class GlobalExceptionHandler {
                         "error", Objects.requireNonNull(fieldError.getDefaultMessage())
                 ))
                 .collect(Collectors.toList());
-        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
+        return Result.validationError("参数验证错误", errors);
     }
 
     /**
@@ -123,7 +130,17 @@ public class GlobalExceptionHandler {
                         "error", violation.getMessage()
                 ))
                 .collect(Collectors.toList());
-        return Result.error(HttpStatus.BAD_REQUEST, "参数验证错误", errors);
+        return Result.validationError("参数验证错误", errors);
+    }
+
+    /**
+     * HTTP消息不可读异常
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        log.warn("HTTP消息不可读异常: {}", exception.getMessage(), exception);
+        return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺失");
     }
 
     /**
@@ -131,8 +148,35 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ServiceException.class)
     public Result<String> handleServiceExceptionHandler(ServiceException exception) {
-        log.error("业务异常信息:{}", exception.getMessage());
+        log.error("业务异常信息:{}", exception.getMessage(), exception);
         return Result.error(exception.getMessage());
+    }
+
+    /**
+     * 验证码错误异常
+     */
+    @ExceptionHandler(CheckCaptchaException.class)
+    public Result<String> handleCheckCaptchaException(CheckCaptchaException exception) {
+        log.warn(exception.getMessage(), exception);
+        return Result.validationError(exception.getMessage());
+    }
+
+    /**
+     * 用户不存在异常
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public Result<String> handleUserNotFoundException(UserNotFoundException exception) {
+        log.warn(exception.getMessage(), exception);
+        return Result.error(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    /**
+     * 用户名或密码错误异常
+     */
+    @ExceptionHandler(UserPasswordNotMatchException.class)
+    public Result<String> handleUserPasswordNotMatchException(UserPasswordNotMatchException exception) {
+        log.warn(exception.getMessage(), exception);
+        return Result.unauthorized(exception.getMessage());
     }
 
     /**
@@ -140,7 +184,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NotLoginException.class)
     public Result<String> handleNotLoginException(NotLoginException exception) {
-        log.error("认证异常:{}", exception.getMessage());
+        log.warn("认证异常:{}", exception.getMessage(), exception);
         return Result.unauthorized("用户未认证");
     }
+
+
 }
