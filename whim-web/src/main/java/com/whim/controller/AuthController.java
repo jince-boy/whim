@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final ISysUserService userService;
 
+    /**
+     * 用户登录
+     */
     @PostMapping("/login")
     public Result<LoginVO> login(@RequestBody @Valid LoginDTO loginDTO) {
         return Result.success("登录成功", userService.login(loginDTO));
