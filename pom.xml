@@ -24,6 +24,7 @@
         <module>whim-system</module>
         <module>whim-model</module>
         <module>whim-common</module>
+        <module>whim-file</module>
     </modules>
     <properties>
         <java.version>21</java.version>
