@@ -11,11 +11,4 @@ spring:
   # 开发环境
   profiles:
     active: ${PROFILES_ACTIVE:dev}
-  # 热部署
-  devtools:
-    restart:
-      additional-paths: ../whim-common,../whim-core,../whim-system,../whim-model
-      enabled: true
-    livereload:
-      enabled: false
 

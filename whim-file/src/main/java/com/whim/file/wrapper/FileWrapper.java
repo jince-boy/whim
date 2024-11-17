@@ -1,18 +1,17 @@
 package com.whim.file.wrapper;
 
-import org.springframework.web.multipart.MultipartFile;
-
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * @author Jince
- * date: 2024/11/14 23:13
- * description: MultipartFile 包装器
+ * date: 2024/11/16 21:50
+ * description:
  */
-public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
+public class FileWrapper extends BaseFileWrapper<File>{
 
-    public MultipartFileWrapper(MultipartFile file) {
+    public FileWrapper(File file) {
         super(file);
     }
 

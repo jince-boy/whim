@@ -1,7 +1,9 @@
 package com.whim.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
 import com.whim.common.exception.CheckCaptchaException;
+import com.whim.common.exception.FileStorageException;
 import com.whim.common.exception.ServiceException;
 import com.whim.common.exception.UserNotFoundException;
 import com.whim.common.exception.UserPasswordNotMatchException;
@@ -186,6 +188,24 @@ public class GlobalExceptionHandler {
     public Result<String> handleNotLoginException(NotLoginException exception) {
         log.warn("认证异常:{}", exception.getMessage(), exception);
         return Result.unauthorized("用户未认证");
+    }
+
+    /**
+     * 用户没有权限异常
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    public Result<String> handleNotPermissionException(NotPermissionException exception) {
+        log.warn("权限不足:{}", exception.getMessage(), exception);
+        return Result.permissionDenied("用户没有权限");
+    }
+
+    /**
+     * 文件存储异常
+     */
+    @ExceptionHandler(FileStorageException.class)
+    public Result<String> handleFileStorageException(FileStorageException exception) {
+        log.error("文件存储异常:{}", exception.getMessage(), exception);
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "文件存储异常");
     }
 
 

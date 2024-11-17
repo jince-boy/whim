@@ -103,3 +103,9 @@ sa-token:
   auto-renew: true
   # 是否在初始化配置时打印版本字符画
   is-print: false
+# 文件配置
+file:
+  storage:
+    default-storage: local
+    local:
+      storage-path: whim/file1

@@ -17,6 +17,10 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-model</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-file</artifactId>
+        </dependency>
         <!--saToken-->
         <dependency>
             <groupId>cn.dev33</groupId>
