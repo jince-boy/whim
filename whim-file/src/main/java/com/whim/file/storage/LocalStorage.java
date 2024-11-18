@@ -1,5 +1,7 @@
 package com.whim.file.storage;
 
+import com.whim.file.FileInfo;
+import com.whim.file.wrapper.IFileWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("local")
 public class LocalStorage implements IFileStorage {
+    @Override
+    public Boolean upload(IFileWrapper fileWrapper, FileInfo fileInfo) {
 
-
+        return null;
+    }
 }
