@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class LocalStorage implements IFileStorage {
     @Override
     public Boolean upload(IFileWrapper fileWrapper, FileInfo fileInfo) {
-
+//        Path basePath= FileUtils.
         return null;
     }
 }

@@ -25,6 +25,21 @@ public class FileInfo {
      * 存储路径
      */
     private String storagePath;
-
+    /**
+     * 文件大小
+     */
+    private Long fileSize;
+    /**
+     * 文件后缀
+     */
+    private String extension;
+    /**
+     * 文件类型
+     */
+    private String contentType;
+    /**
+     * 存储平台
+     */
+    private String storagePlatform;
 
 }
