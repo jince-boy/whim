@@ -18,17 +18,17 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
 
     @Override
     protected String setFileName() {
-        return "";
+        return file.getOriginalFilename();
     }
 
     @Override
     protected Long setFileSize() {
-        return 0L;
+        return file.getSize();
     }
 
     @Override
     protected String setFileContentType() {
-        return "";
+        return file.getContentType();
     }
 
     @Override
@@ -38,6 +38,6 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
 
     @Override
     protected InputStream setInputStream() throws IOException {
-        return null;
+        return file.getInputStream();
     }
 }
