@@ -1,11 +1,11 @@
 package com.whim.file;
 
 import com.whim.common.exception.FileStorageException;
+import com.whim.common.utils.FileUtil;
 import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.storage.IFileStorage;
 import com.whim.file.wrapper.IFileWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -110,10 +110,11 @@ public class FileHandler {
     /**
      * 给FileInfo填充基本信息
      */
-    private void setFileInfo() {
+    private void fillFileInfo() {
         // 设置基本属性
         this.fileInfo.setOriginalFileName(this.wrapper.getFileName());
-        this.fileInfo.setFileSize(FileUtils.byteCountToDisplaySize(this.wrapper.getFileSize()));
+//        FileUtils.byteCountToDisplaySize()
+        this.fileInfo.setFileSize(FileUtil.formatFileSize(this.wrapper.getFileSize()));
         this.fileInfo.setExtension(this.wrapper.getFileExtension());
         this.fileInfo.setContentType(this.wrapper.getFileContentType());
         this.fileInfo.setStoragePlatform(Objects.requireNonNullElse(this.fileInfo.getStoragePlatform(), this.fileStorageProperties.getDefaultStorage()));
@@ -127,7 +128,7 @@ public class FileHandler {
      * @return FileInfo 上传文件信息
      */
     public FileInfo upload() {
-        this.setFileInfo();
+        this.fillFileInfo();
         if (this.fileStorage.upload(this.wrapper, this.fileInfo)) {
             log.info(this.fileInfo.toString());
             return this.fileInfo;

@@ -19,6 +19,7 @@ public class LocalStorage implements IFileStorage {
     private final FileStorageProperties fileStorageProperties;
     @Override
     public Boolean upload(IFileWrapper fileWrapper, FileInfo fileInfo) {
+
 //        Path basePath= FileUtils.generateAbsolutePath(fileInfo.)
         return true;
     }
