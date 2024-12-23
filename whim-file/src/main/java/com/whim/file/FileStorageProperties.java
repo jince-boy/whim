@@ -22,7 +22,7 @@ public class FileStorageProperties {
     /**
      * 本地存储配置
      */
-    private LocalStorageProperties local = new LocalStorageProperties("whim/file");
+    private LocalStorageProperties local = new LocalStorageProperties("whim/fil112112e");
 
     @Data
     @AllArgsConstructor

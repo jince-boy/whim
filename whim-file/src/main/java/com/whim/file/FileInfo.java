@@ -28,7 +28,7 @@ public class FileInfo {
     /**
      * 文件大小
      */
-    private Long fileSize;
+    private String fileSize;
     /**
      * 文件后缀
      */

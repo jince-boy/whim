@@ -1,7 +1,9 @@
 package com.whim.file.storage;
 
 import com.whim.file.FileInfo;
+import com.whim.file.FileStorageProperties;
 import com.whim.file.wrapper.IFileWrapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +14,12 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component("local")
+@RequiredArgsConstructor
 public class LocalStorage implements IFileStorage {
+    private final FileStorageProperties fileStorageProperties;
     @Override
     public Boolean upload(IFileWrapper fileWrapper, FileInfo fileInfo) {
 //        Path basePath= FileUtils.generateAbsolutePath(fileInfo.)
-        return null;
+        return true;
     }
 }

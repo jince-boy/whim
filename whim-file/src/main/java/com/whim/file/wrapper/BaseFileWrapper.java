@@ -22,35 +22,44 @@ public abstract class BaseFileWrapper<T> implements IFileWrapper {
 
     protected BaseFileWrapper(T file) {
         this.file = Objects.requireNonNull(file, "文件不能为空");
+        this.fileName = setFileName(file);
+        this.fileSize = setFileSize(file);
+        this.fileContentType = setFileContentType(file);
+        this.fileExtension = setFileExtension(file);
+        try {
+            this.inputStream = setInputStream(file);
+        } catch (IOException e) {
+            throw new RuntimeException("无法获取文件输入流", e);
+        }
     }
 
     /**
      * 设置文件名称
      *
-     * @return 文件名称
+     * @return 文件名称（不包含扩展名）
      */
-    protected abstract String setFileName();
+    protected abstract String setFileName(T file);
 
     /**
      * 设置文件大小
      *
      * @return 文件大小
      */
-    protected abstract Long setFileSize();
+    protected abstract Long setFileSize(T file);
 
     /**
      * 设置文件类型
      *
      * @return 文件类型
      */
-    protected abstract String setFileContentType();
+    protected abstract String setFileContentType(T file);
 
     /**
      * 设置文件扩展名
      *
      * @return 文件扩展名
      */
-    protected abstract String setFileExtension();
+    protected abstract String setFileExtension(T file);
 
     /**
      * 设置文件输入流
@@ -58,5 +67,5 @@ public abstract class BaseFileWrapper<T> implements IFileWrapper {
      * @return 文件输入流
      * @throws IOException IO异常
      */
-    protected abstract InputStream setInputStream() throws IOException;
+    protected abstract InputStream setInputStream(T file) throws IOException;
 }

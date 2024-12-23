@@ -1,5 +1,6 @@
 package com.whim.file.wrapper;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,27 +18,27 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
     }
 
     @Override
-    protected String setFileName() {
-        return file.getOriginalFilename();
+    protected String setFileName(MultipartFile file) {
+        return FilenameUtils.getBaseName(file.getOriginalFilename());
     }
 
     @Override
-    protected Long setFileSize() {
+    protected Long setFileSize(MultipartFile file) {
         return file.getSize();
     }
 
     @Override
-    protected String setFileContentType() {
+    protected String setFileContentType(MultipartFile file) {
         return file.getContentType();
     }
 
     @Override
-    protected String setFileExtension() {
-        return "";
+    protected String setFileExtension(MultipartFile file) {
+        return FilenameUtils.getExtension(file.getOriginalFilename());
     }
 
     @Override
-    protected InputStream setInputStream() throws IOException {
+    protected InputStream setInputStream(MultipartFile file) throws IOException {
         return file.getInputStream();
     }
 }

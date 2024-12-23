@@ -25,11 +25,11 @@ public class FileStorageService {
 
     /**
      * 创建文件处理器
+     *
      * @param file 文件
      * @return FileHandler 文件处理器
      */
     public FileHandler createFileHandler(Object file) {
-        log.info(fileStorageProperties.getLocal().getStoragePath());
         return new FileHandler(fileStorageProperties, allFileStorage, allFileAdapter).warpFile(file);
     }
 }

@@ -16,27 +16,27 @@ public class FileWrapper extends BaseFileWrapper<File>{
     }
 
     @Override
-    protected String setFileName() {
+    protected String setFileName(File file) {
         return "";
     }
 
     @Override
-    protected Long setFileSize() {
+    protected Long setFileSize(File file) {
         return 0L;
     }
 
     @Override
-    protected String setFileContentType() {
+    protected String setFileContentType(File file) {
         return "";
     }
 
     @Override
-    protected String setFileExtension() {
+    protected String setFileExtension(File file) {
         return "";
     }
 
     @Override
-    protected InputStream setInputStream() throws IOException {
+    protected InputStream setInputStream(File file) throws IOException {
         return null;
     }
 }
