@@ -27,7 +27,7 @@ public class FileStorageProperties {
     @Data
     @AllArgsConstructor
     public static class LocalStorageProperties {
-        private String storagePath;
+        private String basePath;
     }
 
 }

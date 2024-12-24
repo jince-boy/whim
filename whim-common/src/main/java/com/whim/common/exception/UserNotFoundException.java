@@ -6,6 +6,10 @@ package com.whim.common.exception;
  * description: 用户不存在异常
  */
 public final class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
     public UserNotFoundException(String message) {
         super(message);
     }

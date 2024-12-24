@@ -6,6 +6,10 @@ package com.whim.common.exception;
  * description: 文件存储异常
  */
 public final class FileStorageException extends RuntimeException {
+    public FileStorageException(Throwable cause) {
+        super(cause);
+    }
+
     public FileStorageException(String message) {
         super(message);
     }

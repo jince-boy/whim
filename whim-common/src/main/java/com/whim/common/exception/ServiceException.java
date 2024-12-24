@@ -6,6 +6,10 @@ package com.whim.common.exception;
  * description: 业务异常类
  */
 public final class ServiceException extends RuntimeException {
+    public ServiceException(Throwable cause) {
+        super(cause);
+    }
+
     public ServiceException(String message) {
         super(message);
     }

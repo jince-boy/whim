@@ -29,6 +29,7 @@ public class TestController {
     public Result<FileInfo> test(@RequestParam("file") MultipartFile file) {
         return Result.success("上传成功", fileStorageService.createFileHandler(file)
                 .setFileName("hello")
+                        .setStoragePath("/test/aaa")
                 .upload());
     }
 

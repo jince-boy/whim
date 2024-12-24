@@ -108,4 +108,4 @@ file:
   storage:
     default-storage: local
     local:
-      storage-path: whim/file
+      base-path: /whim/file/

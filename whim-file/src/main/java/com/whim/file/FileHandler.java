@@ -6,7 +6,9 @@ import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.storage.IFileStorage;
 import com.whim.file.wrapper.IFileWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -113,12 +115,11 @@ public class FileHandler {
     private void fillFileInfo() {
         // 设置基本属性
         this.fileInfo.setOriginalFileName(this.wrapper.getFileName());
-//        FileUtils.byteCountToDisplaySize()
         this.fileInfo.setFileSize(FileUtil.formatFileSize(this.wrapper.getFileSize()));
         this.fileInfo.setExtension(this.wrapper.getFileExtension());
         this.fileInfo.setContentType(this.wrapper.getFileContentType());
         this.fileInfo.setStoragePlatform(Objects.requireNonNullElse(this.fileInfo.getStoragePlatform(), this.fileStorageProperties.getDefaultStorage()));
-        this.fileInfo.setStoragePath(Objects.requireNonNullElse(this.fileInfo.getStoragePath(), "/"));
+        this.fileInfo.setStoragePath(Paths.get(StringUtils.defaultIfEmpty(StringUtils.strip(fileInfo.getStoragePath(), "/"), "")).toString());
         this.fileInfo.setFileName(Objects.requireNonNullElse(this.fileInfo.getFileName(), this.wrapper.getFileName()));
     }
 
