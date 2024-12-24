@@ -10,6 +10,31 @@ import java.io.InputStream;
  */
 public interface IFileWrapper {
     /**
+     * 设置文件名称
+     */
+    void setFileName(String fileName);
+
+    /**
+     * 设置文件大小
+     */
+    void setFileSize(Long fileSize);
+
+    /**
+     * 设置文件内容类型
+     */
+    void setFileContentType(String fileContentType);
+
+    /**
+     * 设置文件扩展名
+     */
+    void setFileExtension(String fileExtension);
+
+    /**
+     * 设置文件输入流
+     */
+    void setInputStream(InputStream inputStream);
+
+    /**
      * 获取文件名称
      *
      * @return 文件名称

@@ -33,39 +33,40 @@ public abstract class BaseFileWrapper<T> implements IFileWrapper {
         }
     }
 
-    /**
-     * 设置文件名称
-     *
-     * @return 文件名称（不包含扩展名）
-     */
+    // 内部用来初始化的 set 方法，不暴露给外部
     protected abstract String setFileName(T file);
 
-    /**
-     * 设置文件大小
-     *
-     * @return 文件大小
-     */
     protected abstract Long setFileSize(T file);
 
-    /**
-     * 设置文件类型
-     *
-     * @return 文件类型
-     */
     protected abstract String setFileContentType(T file);
 
-    /**
-     * 设置文件扩展名
-     *
-     * @return 文件扩展名
-     */
     protected abstract String setFileExtension(T file);
 
-    /**
-     * 设置文件输入流
-     *
-     * @return 文件输入流
-     * @throws IOException IO异常
-     */
     protected abstract InputStream setInputStream(T file) throws IOException;
+
+    // 允许外部修改属性的 set 方法
+    @Override
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    @Override
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    @Override
+    public void setFileContentType(String fileContentType) {
+        this.fileContentType = fileContentType;
+    }
+
+    @Override
+    public void setFileExtension(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
+
+    @Override
+    public void setInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
+    }
 }

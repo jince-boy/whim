@@ -5,13 +5,20 @@ import com.whim.common.utils.FileUtil;
 import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.storage.IFileStorage;
 import com.whim.file.wrapper.IFileWrapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author Jince
@@ -19,6 +26,7 @@ import java.util.Objects;
  * description: 文件处理器
  */
 @Slf4j
+@Getter
 public class FileHandler {
     private final FileStorageProperties fileStorageProperties;
     private final Map<String, IFileStorage> allFileStorage;
@@ -63,36 +71,6 @@ public class FileHandler {
     }
 
     /**
-     * 设置存储路径
-     *
-     * @param storagePath 存储路径
-     * @return FileHandler 文件处理器
-     */
-    public FileHandler setStoragePath(String storagePath) {
-        if (storagePath == null || storagePath.trim().isBlank()) {
-            throw new FileStorageException("文件路径不能为空");
-        }
-        this.fileInfo.setStoragePath(storagePath);
-        return this;
-    }
-
-    /**
-     * 设置存储平台
-     *
-     * @param storagePlatform 存储平台
-     * @return FileHandler 文件处理器
-     */
-    public FileHandler setStoragePlatform(String storagePlatform) {
-        IFileStorage iFileStorage = allFileStorage.get(storagePlatform);
-        if (iFileStorage == null) {
-            throw new FileStorageException("未找到对应的存储平台");
-        }
-        this.fileStorage = iFileStorage;
-        this.fileInfo.setStoragePlatform(storagePlatform);
-        return this;
-    }
-
-    /**
      * 设置文件名称
      *
      * @param fileName 文件名称
@@ -110,6 +88,57 @@ public class FileHandler {
     }
 
     /**
+     * 设置存储路径
+     *
+     * @param storagePath 存储路径
+     * @return FileHandler 文件处理器
+     */
+    public FileHandler setPath(String storagePath) {
+        if (storagePath == null || storagePath.trim().isBlank()) {
+            throw new FileStorageException("文件路径不能为空");
+        }
+        this.fileInfo.setPath(storagePath);
+        return this;
+    }
+
+    /**
+     * 设置存储平台
+     *
+     * @param platform 存储平台
+     * @return FileHandler 文件处理器
+     */
+    public FileHandler setPlatform(String platform) {
+        IFileStorage iFileStorage = allFileStorage.get(platform);
+        if (iFileStorage == null) {
+            throw new FileStorageException("未找到对应的存储平台");
+        }
+        this.fileStorage = iFileStorage;
+        this.fileInfo.setPlatform(platform);
+        return this;
+    }
+
+    public FileHandler image(Consumer<Thumbnails.Builder<? extends InputStream>> consumer) {
+        if (this.wrapper.getFileContentType().startsWith("image/")) {
+            try {
+                InputStream inputStream = this.wrapper.getInputStream();
+                Thumbnails.Builder<? extends InputStream> builder = Thumbnails.of(inputStream);
+                consumer.accept(builder);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                builder.toOutputStream(outputStream);
+                InputStream processedInputStream = new ByteArrayInputStream(outputStream.toByteArray());
+                this.wrapper.setFileSize((long) outputStream.size());
+                this.wrapper.setInputStream(processedInputStream);
+            } catch (IOException e) {
+                throw new FileStorageException("图片处理失败", e);
+            }
+        } else {
+            throw new FileStorageException("不是图片类型的对象，无法处理进行图像处理");
+        }
+        return this;
+    }
+
+
+    /**
      * 给FileInfo填充基本信息
      */
     private void fillFileInfo() {
@@ -118,8 +147,8 @@ public class FileHandler {
         this.fileInfo.setFileSize(FileUtil.formatFileSize(this.wrapper.getFileSize()));
         this.fileInfo.setExtension(this.wrapper.getFileExtension());
         this.fileInfo.setContentType(this.wrapper.getFileContentType());
-        this.fileInfo.setStoragePlatform(Objects.requireNonNullElse(this.fileInfo.getStoragePlatform(), this.fileStorageProperties.getDefaultStorage()));
-        this.fileInfo.setStoragePath(Paths.get(StringUtils.defaultIfEmpty(StringUtils.strip(fileInfo.getStoragePath(), "/"), "")).toString());
+        this.fileInfo.setPlatform(Objects.requireNonNullElse(this.fileInfo.getPlatform(), this.fileStorageProperties.getDefaultStorage()));
+        this.fileInfo.setPath(Paths.get(StringUtils.defaultIfEmpty(StringUtils.strip(fileInfo.getPath(), "/"), "")).toString());
         this.fileInfo.setFileName(Objects.requireNonNullElse(this.fileInfo.getFileName(), this.wrapper.getFileName()));
     }
 
@@ -130,7 +159,7 @@ public class FileHandler {
      */
     public FileInfo upload() {
         this.fillFileInfo();
-        if (this.fileStorage.upload(this.wrapper, this.fileInfo)) {
+        if (this.fileStorage.upload(this)) {
             log.info(this.fileInfo.toString());
             return this.fileInfo;
         } else {

@@ -205,7 +205,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileStorageException.class)
     public Result<String> handleFileStorageException(FileStorageException exception) {
         log.error("文件存储异常:{}", exception.getMessage(), exception);
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "文件存储异常");
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
 

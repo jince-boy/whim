@@ -24,7 +24,7 @@ public class FileInfo {
     /**
      * 存储路径
      */
-    private String storagePath;
+    private String path;
     /**
      * 文件大小
      */
@@ -40,6 +40,6 @@ public class FileInfo {
     /**
      * 存储平台
      */
-    private String storagePlatform;
+    private String platform;
 
 }

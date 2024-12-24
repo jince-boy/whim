@@ -32,7 +32,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <whim.version>0.0.1-SNAPSHOT</whim.version>
-        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <mybatis-plus.version>3.5.8</mybatis-plus.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <commons-io.version>2.17.0</commons-io.version>
@@ -40,6 +40,7 @@
         <sa-token.version>1.39.0</sa-token.version>
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <nashorn-core.version>15.4</nashorn-core.version>
+        <thumbnailator.version>0.4.20</thumbnailator.version>
     </properties>
 
     <dependencyManagement>
@@ -80,6 +81,12 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <!--图片处理-->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
             </dependency>
             <!--验证码-->
             <dependency>

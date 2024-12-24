@@ -16,5 +16,10 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-common</artifactId>
         </dependency>
+        <!--图片处理-->
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+        </dependency>
     </dependencies>
 </project>
