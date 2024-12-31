@@ -1,6 +1,6 @@
 package com.whim.file.storage;
 
-import com.whim.file.FileHandler;
+import com.whim.file.FileHandler2;
 
 /**
  * @author Jince
@@ -11,8 +11,8 @@ public interface IFileStorage {
     /**
      * 上传文件
      *
-     * @param fileHandler 文件处理器
+     * @param fileHandler2 文件处理器
      * @return 上传结果 true 成功,false 失败
      */
-    Boolean upload(FileHandler fileHandler);
+    Boolean upload(FileHandler2 fileHandler2);
 }

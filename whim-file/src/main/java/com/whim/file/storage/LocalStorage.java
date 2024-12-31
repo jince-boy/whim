@@ -2,7 +2,7 @@ package com.whim.file.storage;
 
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.FileUtil;
-import com.whim.file.FileHandler;
+import com.whim.file.FileHandler2;
 import com.whim.file.FileStorageProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,20 +25,20 @@ public class LocalStorage implements IFileStorage {
     private final FileStorageProperties fileStorageProperties;
 
     @Override
-    public Boolean upload(FileHandler fileHandler) {
+    public Boolean upload(FileHandler2 fileHandler2) {
         // 生成基础路径
         Path basePath = FileUtil.generateAbsolutePath(this.fileStorageProperties.getLocal().getBasePath());
         // 完整路径
-        Path fullUploadPath = basePath.resolve(fileHandler.getFileInfo().getPath()).normalize();
-        fileHandler.getFileInfo().setBasePath(basePath.toString());
+        Path fullUploadPath = basePath.resolve(fileHandler2.getFileInfo().getPath()).normalize();
+        fileHandler2.getFileInfo().setBasePath(basePath.toString());
         try {
             Files.createDirectories(fullUploadPath);
         } catch (IOException e) {
             throw new FileStorageException(e);
         }
-        Path filePath = fullUploadPath.resolve(fileHandler.getFileInfo().getFileName() + "." + fileHandler.getFileInfo().getExtension()).normalize();
+        Path filePath = fullUploadPath.resolve(fileHandler2.getFileInfo().getFileName() + "." + fileHandler2.getFileInfo().getExtension()).normalize();
         try {
-            Files.copy(fileHandler.getWrapper().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(fileHandler2.getWrapper().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new FileStorageException(e);
         }
