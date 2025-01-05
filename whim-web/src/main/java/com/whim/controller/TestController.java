@@ -27,18 +27,17 @@ public class TestController {
     @GetMapping
     @SaIgnore
     public Result<FileInfo> test(@RequestParam("file") MultipartFile file) {
-        fileStorageService.wrap(file)
+        FileInfo test = fileStorageService.wrap(file)
                 .createFileHandler(fileConfig -> {
-                    fileConfig.setPath("/123");
-                });
-
-        fileStorageService.createFileHandler(file -> {
-                    file.setPath("/").setFileName("123").setPlatform("local")
-                }).
-                createImageHandler(img -> {
-                    img.size(100, 200);
+                    fileConfig.setFileName("test")
+                            .setStoragePath("/test")
+                            .setPlatform("/local");
+                })
+                .createImageHandler(imageConfig -> {
+                    imageConfig.size(200, 200);
                 })
                 .upload();
+        return Result.success("成功", test);
     }
 
 }
