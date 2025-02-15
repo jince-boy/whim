@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.whim.common.web.Result;
 import com.whim.file.FileInfo;
 import com.whim.file.FileStorageService;
+import com.whim.file.FileStorageService2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +23,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @RequiredArgsConstructor
 public class TestController {
+    private final FileStorageService2 fileStorageService2;
     private final FileStorageService fileStorageService;
 
     @GetMapping
     @SaIgnore
     public Result<FileInfo> test(@RequestParam("file") MultipartFile file) {
-        FileInfo test = fileStorageService.wrap(file)
+        fileStorageService.wrap(file);
+        FileInfo test = fileStorageService2.wrap(file)
                 .createFileHandler(fileConfig -> {
                     fileConfig.setFileName("test")
                             .setStoragePath("/test")

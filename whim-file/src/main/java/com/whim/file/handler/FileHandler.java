@@ -2,7 +2,6 @@ package com.whim.file.handler;
 
 import com.whim.common.exception.FileStorageException;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
@@ -16,7 +15,6 @@ import java.nio.file.Paths;
 public class FileHandler {
     private String fileName;
     private String storagePath;
-    @Setter
     private String platform;
 
     /**
