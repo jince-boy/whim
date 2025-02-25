@@ -40,7 +40,7 @@
         <sa-token.version>1.40.0</sa-token.version>
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <nashorn-core.version>15.4</nashorn-core.version>
-        <thumbnailator.version>0.4.20</thumbnailator.version>
+        <minio.version>8.5.17</minio.version>
     </properties>
 
     <dependencyManagement>
@@ -81,12 +81,6 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
             </dependency>
-            <!--图片处理-->
-            <dependency>
-                <groupId>net.coobird</groupId>
-                <artifactId>thumbnailator</artifactId>
-                <version>${thumbnailator.version}</version>
-            </dependency>
             <!--验证码-->
             <dependency>
                 <groupId>com.github.whvcse</groupId>
@@ -104,6 +98,11 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid-spring-boot-3-starter</artifactId>
                 <version>${druid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
             </dependency>
             <!--核心模块-->
             <dependency>

@@ -1,37 +1,36 @@
 package com.whim.file;
 
-import com.whim.common.exception.FileStorageException;
-import com.whim.file.adapter.IFileAdapter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
- * @author Jince
- * date: 2025/2/10 21:57
- * description:
+ * @author jince
+ * date: 2025/2/18 13:47
+ * description: 文件存储服务
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileStorageService {
+    private final FileStorageProperties fileStorageProperties;
     private final List<IFileAdapter> allFileAdapter;
+    private final Map<String, IFileStorage> allFileStorage;
 
-    public FileStorageService wrap(Object file) {
-        if (Objects.isNull(file)) {
-            throw new FileStorageException("上传的文件不能为空");
-        }
-        for (IFileAdapter iFileAdapter : allFileAdapter) {
-            if (iFileAdapter.isSupport(file)) {
-                iFileAdapter.getFileWrapper(file);
-                return this;
-            }
-        }
-        throw new FileStorageException("没有找到支持的文件适配器");
+    public void upload(Object file) {
+        this.upload(file, null);
     }
 
-
+    public void upload(Object file, Consumer<FileHandler.Builder> configurator) {
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        builder.fileWrapper(file);
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+        FileHandler fileHandler = builder.build();
+        allFileStorage.get(fileHandler.getPlatform()).upload(fileHandler);
+    }
 }

@@ -108,4 +108,18 @@ file:
   storage:
     default-storage: local
     local:
-      base-path: /whim/file/
+      - name: local
+        base-path: /whim/file2/
+    minio:
+      - name: minio1
+        url: http://127.0.0.1:9000
+        access-key: minio
+        secret-key: minio123
+        bucket: public-whim
+        base-path: /whim/file2/
+      - name: minio2
+        url: http://127.0.0.1:9000
+        access-key: minio
+        secret-key: minio123
+        bucket: private-whim
+        base-path: /whim/file2/

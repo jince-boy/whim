@@ -16,10 +16,10 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-common</artifactId>
         </dependency>
-        <!--图片处理-->
+        <!-- minio -->
         <dependency>
-            <groupId>net.coobird</groupId>
-            <artifactId>thumbnailator</artifactId>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
         </dependency>
     </dependencies>
 </project>
