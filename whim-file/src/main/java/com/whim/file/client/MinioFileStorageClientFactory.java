@@ -1,9 +1,8 @@
 package com.whim.file.client;
 
-import com.whim.file.FileStorageProperties;
+import com.whim.file.config.FileStorageProperties.MinioStorageProperties;
 import io.minio.MinioClient;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author jince
@@ -11,21 +10,22 @@ import lombok.RequiredArgsConstructor;
  * description:
  */
 @Getter
-@RequiredArgsConstructor
 public class MinioFileStorageClientFactory implements IFileStorageClientFactory<MinioClient> {
     private final String name;
     private final String url;
     private final String accessKey;
     private final String secretKey;
     private final String bucket;
+    private final String basePath;
     private volatile MinioClient client;
 
-    public MinioFileStorageClientFactory(FileStorageProperties.MinioStorageProperties minioStorageProperties) {
+    public MinioFileStorageClientFactory(MinioStorageProperties minioStorageProperties) {
         name = minioStorageProperties.getName();
         url = minioStorageProperties.getUrl();
         accessKey = minioStorageProperties.getAccessKey();
         secretKey = minioStorageProperties.getSecretKey();
         bucket = minioStorageProperties.getBucket();
+        basePath = minioStorageProperties.getBasePath();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MinioFileStorageClientFactory implements IFileStorageClientFactory<
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (client != null) {
             client = null;
         }

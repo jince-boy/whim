@@ -1,5 +1,7 @@
-package com.whim.file;
+package com.whim.file.adapter;
 
+import com.whim.file.adapter.wrapper.MultipartFileWrapper;
+import com.whim.file.adapter.wrapper.IFileWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 

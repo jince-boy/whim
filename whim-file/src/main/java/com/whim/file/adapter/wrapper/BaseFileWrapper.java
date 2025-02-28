@@ -1,4 +1,4 @@
-package com.whim.file;
+package com.whim.file.adapter.wrapper;
 
 import lombok.RequiredArgsConstructor;
 

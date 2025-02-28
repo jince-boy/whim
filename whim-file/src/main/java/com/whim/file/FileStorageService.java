@@ -1,5 +1,8 @@
 package com.whim.file;
 
+import com.whim.file.adapter.IFileAdapter;
+import com.whim.file.config.FileStorageProperties;
+import com.whim.file.storage.IFileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +27,13 @@ public class FileStorageService {
         this.upload(file, null);
     }
 
-    public void upload(Object file, Consumer<FileHandler.Builder> configurator) {
-        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+    public void upload(Object file, Consumer<FileOptions.Builder> configurator) {
+        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
         builder.fileWrapper(file);
         if (Objects.nonNull(configurator)) {
             configurator.accept(builder);
         }
-        FileHandler fileHandler = builder.build();
-        allFileStorage.get(fileHandler.getPlatform()).upload(fileHandler);
+        FileOptions fileOptions = builder.build();
+        allFileStorage.get(fileOptions.getPlatform()).upload(fileOptions);
     }
 }

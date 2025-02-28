@@ -1,6 +1,5 @@
-package com.whim.file;
+package com.whim.file.adapter.wrapper;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -11,11 +10,11 @@ import java.io.InputStream;
 public interface IFileWrapper extends AutoCloseable {
     String getFileName();
 
-    Long getFileSize() throws IOException;
+    Long getFileSize();
 
     String getContentType();
 
-    InputStream getInputStream() throws IOException;
+    InputStream getInputStream();
 
     @Override
     void close() throws Exception;

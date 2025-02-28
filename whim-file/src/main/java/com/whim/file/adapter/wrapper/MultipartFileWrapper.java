@@ -1,5 +1,6 @@
-package com.whim.file;
+package com.whim.file.adapter.wrapper;
 
+import com.whim.common.exception.FileStorageException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedInputStream;
@@ -18,9 +19,13 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream getInputStream() {
         if (inputStream == null) {
-            inputStream = new BufferedInputStream(file.getInputStream());
+            try {
+                inputStream = new BufferedInputStream(file.getInputStream());
+            } catch (IOException e) {
+                throw new FileStorageException(e);
+            }
         }
         return inputStream;
     }

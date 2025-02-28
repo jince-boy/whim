@@ -1,4 +1,6 @@
-package com.whim.file;
+package com.whim.file.storage;
+
+import com.whim.file.FileOptions;
 
 /**
  * @author jince
@@ -6,5 +8,5 @@ package com.whim.file;
  * description: 文件存储服务
  */
 public interface IFileStorage {
-    void upload(FileHandler fileHandler);
+    void upload(FileOptions fileOptions);
 }

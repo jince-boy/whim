@@ -1,7 +1,10 @@
-package com.whim.file;
+package com.whim.file.storage.impl;
 
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.FileUtil;
+import com.whim.file.FileOptions;
+import com.whim.file.config.FileStorageProperties.LocalStorageProperties;
+import com.whim.file.storage.IFileStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +23,19 @@ import java.nio.file.StandardCopyOption;
 @Slf4j
 public class LocalFileStorageImpl implements IFileStorage {
     @Override
-    public void upload(FileHandler fileHandler) {
-        Path basePath = FileUtil.generateAbsolutePath(fileHandler.getFileStorageProperties().getLocal().getBasePath());
-        Path storagePath = Paths.get(fileHandler.getStoragePath());
+    public void upload(FileOptions fileOptions) {
+        LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
+        Path basePath = FileUtil.generateAbsolutePath(localStorageProperties.getBasePath());
+        Path storagePath = Paths.get(fileOptions.getStoragePath());
         if (!storagePath.isAbsolute()) {
             storagePath = basePath.resolve(storagePath);
         }
         Path fullUploadPath = basePath.resolve(storagePath);
         try {
             Files.createDirectories(fullUploadPath);
-            Path filePath = fullUploadPath.resolve(fileHandler.getFileName()).normalize();
-            Files.copy(fileHandler.getFileWrapper().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            log.info(fileHandler.getFileStorageProperties().toString());
+            Path filePath = fullUploadPath.resolve(fileOptions.getFileName()).normalize();
+            Files.copy(fileOptions.getFileWrapper().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            log.info(localStorageProperties.toString());
         } catch (IOException e) {
             throw new FileStorageException(e);
         }

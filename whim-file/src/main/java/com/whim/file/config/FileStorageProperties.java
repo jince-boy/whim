@@ -1,4 +1,4 @@
-package com.whim.file;
+package com.whim.file.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,6 +29,8 @@ public class FileStorageProperties {
 
     public interface StorageConfig {
         String getName();
+
+        String getBasePath();
     }
 
     @Data

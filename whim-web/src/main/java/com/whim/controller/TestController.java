@@ -25,9 +25,7 @@ public class TestController {
     @GetMapping
     @SaIgnore
     public void test(@RequestParam("file") MultipartFile file) {
-        fileStorageService.upload(file, builder -> {
-            builder.platform("minio").platformConfigName("minio1");
-        });
+        fileStorageService.upload(file, builder -> builder.platform("minio").storagePath("/aaa"));
     }
 
 }
