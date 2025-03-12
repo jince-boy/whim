@@ -40,7 +40,9 @@
         <sa-token.version>1.40.0</sa-token.version>
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <nashorn-core.version>15.4</nashorn-core.version>
+        <tika-core.version>3.1.0</tika-core.version>
         <minio.version>8.5.17</minio.version>
+
     </properties>
 
     <dependencyManagement>
@@ -103,6 +105,12 @@
                 <groupId>io.minio</groupId>
                 <artifactId>minio</artifactId>
                 <version>${minio.version}</version>
+            </dependency>
+            <!-- Apache Tika 是一个功能强大的内容分析工具库，特别擅长文件内容解析和元数据提取。-->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.version}</version>
             </dependency>
             <!--核心模块-->
             <dependency>

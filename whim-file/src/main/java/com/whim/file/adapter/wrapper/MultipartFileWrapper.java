@@ -1,6 +1,7 @@
 package com.whim.file.adapter.wrapper;
 
 import com.whim.common.exception.FileStorageException;
+import org.apache.tika.Tika;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedInputStream;
@@ -14,8 +15,8 @@ import java.io.InputStream;
  */
 public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
 
-    public MultipartFileWrapper(MultipartFile file) {
-        super(file);
+    public MultipartFileWrapper(MultipartFile file, Tika tika) {
+        super(file, tika);
     }
 
     @Override

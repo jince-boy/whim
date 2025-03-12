@@ -109,7 +109,7 @@ file:
     default-storage: local
     local:
       - name: local
-        base-path: /whim/file2/
+        base-path: whim/file2
     minio:
       - name: minio1
         url: http://127.0.0.1:9000

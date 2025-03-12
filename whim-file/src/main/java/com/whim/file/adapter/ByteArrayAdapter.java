@@ -1,30 +1,29 @@
 package com.whim.file.adapter;
 
+import com.whim.file.adapter.wrapper.ByteArrayWrapper;
 import com.whim.file.adapter.wrapper.IFileWrapper;
-import com.whim.file.adapter.wrapper.MultipartFileWrapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author jince
- * date: 2025/2/17 21:51
- * description: MultipartFile适配器
+ * date: 2025/3/12 19:46
+ * description: byte数组适配器
  */
 @Component
 @RequiredArgsConstructor
-public class MultipartFileAdapter implements IFileAdapter {
+public class ByteArrayAdapter implements IFileAdapter {
     private final Tika tika;
 
     @Override
     public boolean isSupport(Object file) {
-        return file instanceof MultipartFile;
+        return file instanceof byte[];
     }
 
     @Override
     public IFileWrapper getFileWrapper(Object file) {
-        MultipartFile multipartFile = (MultipartFile) file;
-        return new MultipartFileWrapper(multipartFile, tika);
+        byte[] byteArray = (byte[]) file;
+        return new ByteArrayWrapper(byteArray, tika);
     }
 }

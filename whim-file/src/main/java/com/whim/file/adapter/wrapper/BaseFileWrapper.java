@@ -1,6 +1,7 @@
 package com.whim.file.adapter.wrapper;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.tika.Tika;
 
 import java.io.InputStream;
 
@@ -12,5 +13,6 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public abstract class BaseFileWrapper<T> implements IFileWrapper {
     protected final T file;
+    protected final Tika tika;
     protected InputStream inputStream;
 }
