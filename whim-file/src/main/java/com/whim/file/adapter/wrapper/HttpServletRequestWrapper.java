@@ -2,12 +2,11 @@ package com.whim.file.adapter.wrapper;
 
 import com.whim.common.exception.FileStorageException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.tika.Tika;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
 /**
  * @author jince
@@ -16,29 +15,19 @@ import java.util.UUID;
  */
 public class HttpServletRequestWrapper extends BaseFileWrapper<HttpServletRequest> {
 
-    public HttpServletRequestWrapper(HttpServletRequest file, Tika tika) {
-        super(file, tika);
+    public HttpServletRequestWrapper(HttpServletRequest file) {
+        super(file);
     }
 
     @Override
-    public String getFileName() {
+    public String getExtension() {
         String contentDisposition = file.getHeader("Content-Disposition");
         if (contentDisposition != null && contentDisposition.contains("filename=")) {
-            return contentDisposition
+            return FilenameUtils.getExtension(contentDisposition
                     .substring(contentDisposition.indexOf("filename=") + 9)
-                    .replace("\"", "");
+                    .replace("\"", ""));
         }
-        return UUID.randomUUID().toString();
-    }
-
-    @Override
-    public Long getFileSize() {
-        return file.getContentLengthLong();
-    }
-
-    @Override
-    public String getContentType() {
-        return file.getContentType();
+        return "";
     }
 
     @Override

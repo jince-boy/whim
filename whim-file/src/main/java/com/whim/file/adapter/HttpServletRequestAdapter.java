@@ -4,7 +4,6 @@ import com.whim.file.adapter.wrapper.HttpServletRequestWrapper;
 import com.whim.file.adapter.wrapper.IFileWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class HttpServletRequestAdapter implements IFileAdapter {
-    private final Tika tika;
 
     @Override
     public boolean isSupport(Object file) {
@@ -25,6 +23,6 @@ public class HttpServletRequestAdapter implements IFileAdapter {
     @Override
     public IFileWrapper getFileWrapper(Object file) {
         HttpServletRequest request = (HttpServletRequest) file;
-        return new HttpServletRequestWrapper(request, tika);
+        return new HttpServletRequestWrapper(request);
     }
 }

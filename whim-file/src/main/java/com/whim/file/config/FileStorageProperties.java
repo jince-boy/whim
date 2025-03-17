@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author jince
  * date: 2025/2/18 15:46
- * description:
+ * description: 文件存储配置
  */
 @Component
 @ConfigurationProperties(prefix = "file.storage")

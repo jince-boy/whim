@@ -108,7 +108,7 @@ file:
   storage:
     default-storage: local
     local:
-      - name: local
+      - name: local1
         base-path: whim/file2
     minio:
       - name: minio1

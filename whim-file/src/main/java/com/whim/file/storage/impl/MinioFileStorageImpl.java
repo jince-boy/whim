@@ -5,7 +5,7 @@ import com.whim.common.utils.FileUtil;
 import com.whim.file.FileOptions;
 import com.whim.file.client.MinioFileStorageClientFactory;
 import com.whim.file.config.FileStorageProperties.MinioStorageProperties;
-import com.whim.file.model.vo.FileInfoVO;
+import com.whim.file.model.FileInfo;
 import com.whim.file.storage.IFileStorage;
 import io.minio.GetObjectArgs;
 import io.minio.PutObjectArgs;
@@ -16,7 +16,6 @@ import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -34,6 +33,36 @@ import java.security.NoSuchAlgorithmException;
 @Slf4j
 @Component("minio")
 public class MinioFileStorageImpl implements IFileStorage {
+    @Override
+    public Boolean upload(FileOptions fileOptions) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+        try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
+//            Path path = Paths.get();
+            String s = FileUtil.joinPath(storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+//            Path resolve = path.resolve(fileOptions.getFileName());
+            fileStorageClientFactory.getClient().putObject(
+                    PutObjectArgs.builder()
+                            .bucket(storageProperties.getBucket())
+                            .object(s)
+                            .stream(fileOptions.getFileWrapper().getInputStream(), -1, 5 * 1024 * 1024)
+                            .build()
+            );
+            return true;
+        } catch (Exception e) {
+            throw new FileStorageException("文件上传失败", e);
+        }
+    }
+
+    @Override
+    public FileInfo getFileInfo(FileOptions fileOptions) {
+        return null;
+    }
+
+    @Override
+    public Boolean deleteFile(FileOptions fileOptions) {
+        return null;
+    }
+
     /**
      * 上传文件到Minio存储服务
      *
@@ -44,8 +73,8 @@ public class MinioFileStorageImpl implements IFileStorage {
      *                    - 文件包装对象(fileWrapper)包含文件流、大小和类型信息
      * @throws FileStorageException 当Minio上传过程中发生异常时抛出
      */
-    @Override
-    public FileInfoVO upload(FileOptions fileOptions) {
+//    @Override
+    public Boolean upload1(FileOptions fileOptions) {
         // 获取Minio专用存储配置并创建自动关闭的客户端工厂
         MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
@@ -54,15 +83,16 @@ public class MinioFileStorageImpl implements IFileStorage {
             Path resolve = path.resolve(fileOptions.getFileName());
             try {
                 // 执行Minio文件上传操作
-                fileStorageClientFactory.getClient().putObject(
-                        PutObjectArgs.builder()
-                                .bucket(storageProperties.getBucket())
-                                .object(resolve.toString())
-                                .stream(fileOptions.getFileWrapper().getInputStream(), fileOptions.getFileWrapper().getFileSize(), -1)
-                                .contentType(fileOptions.getFileWrapper().getContentType())
-                                .build()
-                );
-                return new FileInfoVO(fileOptions.getFileName(), path.toString(), fileOptions.getPlatform(), FileUtils.byteCountToDisplaySize(fileOptions.getFileWrapper().getFileSize()), fileOptions.getFileWrapper().getContentType());
+//                fileStorageClientFactory.getClient().putObject(
+//                        PutObjectArgs.builder()
+//                                .bucket(storageProperties.getBucket())
+//                                .object(resolve.toString())
+//                                .stream(fileOptions.getFileWrapper().getInputStream(), fileOptions.getFileWrapper().getFileSize(), -1)
+//                                .contentType(fileOptions.getFileWrapper().getContentType())
+//                                .build()
+//                );
+                return true;
+//                fileOptions.getFileName(), path.toString(), fileOptions.getPlatform(), FileUtils.byteCountToDisplaySize(fileOptions.getFileWrapper().getFileSize()), fileOptions.getFileWrapper().getContentType()
             } catch (Exception e) {
                 // 将Minio客户端异常转换为统一的存储异常
                 throw new FileStorageException("minio保存文件发生错误", e);
@@ -70,7 +100,7 @@ public class MinioFileStorageImpl implements IFileStorage {
         }
     }
 
-    @Override
+
     public InputStream getFile(FileOptions fileOptions) {
         MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
 

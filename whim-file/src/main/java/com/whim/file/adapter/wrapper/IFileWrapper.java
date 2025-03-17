@@ -8,13 +8,10 @@ import java.io.InputStream;
  * description: 文件包装器接口
  */
 public interface IFileWrapper extends AutoCloseable {
-    String getFileName();
-
-    Long getFileSize();
-
-    String getContentType();
 
     InputStream getInputStream();
+
+    String getExtension();
 
     @Override
     void close() throws Exception;

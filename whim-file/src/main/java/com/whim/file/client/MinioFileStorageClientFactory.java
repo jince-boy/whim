@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * @author jince
  * date: 2025/2/23 16:58
- * description:
+ * description: minio文件存储客户端工厂
  */
 @Getter
 public class MinioFileStorageClientFactory implements IFileStorageClientFactory<MinioClient> {

@@ -1,12 +1,9 @@
 package com.whim.file.adapter.wrapper;
 
-import org.apache.tika.Tika;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 /**
  * @author jince
@@ -14,23 +11,13 @@ import java.util.UUID;
  * description: 字符串文件包装类
  */
 public class StringWrapper extends BaseFileWrapper<String> {
-    public StringWrapper(String file, Tika tika) {
-        super(file, tika);
+    public StringWrapper(String file) {
+        super(file);
     }
 
     @Override
-    public String getFileName() {
-        return UUID.randomUUID().toString();
-    }
-
-    @Override
-    public Long getFileSize() {
-        return (long) file.getBytes(StandardCharsets.UTF_8).length;
-    }
-
-    @Override
-    public String getContentType() {
-        return tika.detect(file.getBytes(StandardCharsets.UTF_8));
+    public String getExtension() {
+        return "";
     }
 
     @Override

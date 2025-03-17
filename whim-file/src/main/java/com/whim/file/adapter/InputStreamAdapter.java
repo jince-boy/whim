@@ -3,7 +3,6 @@ package com.whim.file.adapter;
 import com.whim.file.adapter.wrapper.IFileWrapper;
 import com.whim.file.adapter.wrapper.InputStreamWrapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -16,7 +15,6 @@ import java.io.InputStream;
 @Component
 @RequiredArgsConstructor
 public class InputStreamAdapter implements IFileAdapter {
-    private final Tika tika;
 
     @Override
     public boolean isSupport(Object file) {
@@ -26,6 +24,6 @@ public class InputStreamAdapter implements IFileAdapter {
     @Override
     public IFileWrapper getFileWrapper(Object file) {
         InputStream inputStream = (InputStream) file;
-        return new InputStreamWrapper(inputStream, tika);
+        return new InputStreamWrapper(inputStream);
     }
 }

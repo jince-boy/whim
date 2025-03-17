@@ -1,7 +1,7 @@
 package com.whim.file.adapter.wrapper;
 
 import com.whim.common.exception.FileStorageException;
-import org.apache.tika.Tika;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedInputStream;
@@ -15,8 +15,13 @@ import java.io.InputStream;
  */
 public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
 
-    public MultipartFileWrapper(MultipartFile file, Tika tika) {
-        super(file, tika);
+    public MultipartFileWrapper(MultipartFile file) {
+        super(file);
+    }
+
+    @Override
+    public String getExtension() {
+        return FilenameUtils.getExtension(file.getOriginalFilename());
     }
 
     @Override
@@ -29,21 +34,6 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
             }
         }
         return inputStream;
-    }
-
-    @Override
-    public String getFileName() {
-        return file.getOriginalFilename();
-    }
-
-    @Override
-    public Long getFileSize() {
-        return file.getSize();
-    }
-
-    @Override
-    public String getContentType() {
-        return file.getContentType();
     }
 
     @Override

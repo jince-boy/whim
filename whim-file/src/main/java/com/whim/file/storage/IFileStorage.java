@@ -1,9 +1,7 @@
 package com.whim.file.storage;
 
 import com.whim.file.FileOptions;
-import com.whim.file.model.vo.FileInfoVO;
-
-import java.io.InputStream;
+import com.whim.file.model.FileInfo;
 
 /**
  * @author jince
@@ -15,14 +13,22 @@ public interface IFileStorage {
      * 上传文件
      *
      * @param fileOptions 文件选项
-     * @return FileInfoVO
+     * @return Boolean
      */
-    FileInfoVO upload(FileOptions fileOptions);
+    Boolean upload(FileOptions fileOptions);
 
     /**
      * 获取文件
+     *
      * @param fileOptions 文件选项
      * @return InputStream
      */
-    InputStream getFile(FileOptions fileOptions);
+    FileInfo getFileInfo(FileOptions fileOptions);
+
+    /**
+     * 删除文件
+     * @param fileOptions 文件选项
+     * @return Boolean
+     */
+    Boolean deleteFile(FileOptions fileOptions);
 }

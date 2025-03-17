@@ -4,33 +4,34 @@ import com.whim.common.exception.FileStorageException;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 
 /**
  * @author jince
- * date: 2025/3/12 19:40
- * description: File文件包装器
+ * date: 2025/3/13 15:54
+ * description: URI文件
  */
-public class FileWrapper extends BaseFileWrapper<File> {
-    public FileWrapper(File file) {
+public class URIWrapper extends BaseFileWrapper<URI> {
+    public URIWrapper(URI file) {
         super(file);
     }
 
     @Override
     public String getExtension() {
-        return FilenameUtils.getExtension(file.getName());
+        return FilenameUtils.getExtension(file.getPath().substring(file.getPath().lastIndexOf("/") + 1));
     }
 
     @Override
     public InputStream getInputStream() {
         if (inputStream == null) {
             try {
-                inputStream = new BufferedInputStream(new FileInputStream(file));
-            } catch (FileNotFoundException e) {
-                throw new FileStorageException("文件未找到", e);
+                URL url = file.toURL();
+                inputStream = new BufferedInputStream(url.openStream());
+            } catch (IOException e) {
+                throw new FileStorageException("无法打开URI的输入流", e);
             }
         }
         return inputStream;

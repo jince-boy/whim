@@ -1,8 +1,8 @@
 package com.whim.common.utils;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -16,30 +16,6 @@ import java.util.stream.Collectors;
  * description: 文件工具类
  */
 public class FileUtil {
-    /**
-     * 将文件大小转换成可视化格式字符串
-     *
-     * @param fileSize 文件大小
-     * @return 可视化文件大小
-     */
-    public static String formatFileSize(Long fileSize) {
-        if (fileSize < FileUtils.ONE_KB) {
-            // 小于 1 KB 显示为字节
-            return fileSize + " B";
-        } else if (fileSize < FileUtils.ONE_MB) {
-            // 小于 1 MB 显示为 KB
-            return String.format("%.2f KB", fileSize / (double) FileUtils.ONE_KB);
-        } else if (fileSize < FileUtils.ONE_GB) {
-            // 小于 1 GB 显示为 MB
-            return String.format("%.2f MB", fileSize / (double) FileUtils.ONE_MB);
-        } else if (fileSize < FileUtils.ONE_TB) {
-            // 小于 1 TB 显示为 GB
-            return String.format("%.2f GB", fileSize / (double) FileUtils.ONE_GB);
-        } else {
-            // 1 TB 或更大显示为 TB
-            return String.format("%.2f TB", fileSize / (double) FileUtils.ONE_TB);
-        }
-    }
 
     /**
      * 根据操作系统和提供的basePath生成绝对路径
@@ -56,16 +32,16 @@ public class FileUtil {
      *
      * @param components 可变数量的路径组件参数（允许null和空白字符串）
      * @return 拼接后的路径字符串（自动处理多余斜杠，保留开头的根斜杠）
-     *
+     * <p>
      * 实现逻辑：
      * 1. 过滤并预处理有效组件
-     *    - 忽略null和纯空白组件
-     *    - 去除组件首尾空白
+     * - 忽略null和纯空白组件
+     * - 去除组件首尾空白
      * 2. 特殊处理第一个组件
-     *    - 保留原始开头的斜杠标识
-     *    - 清理首尾多余斜杠
+     * - 保留原始开头的斜杠标识
+     * - 清理首尾多余斜杠
      * 3. 拼接后续组件
-     *    - 每个组件去除首尾斜杠后追加
+     * - 每个组件去除首尾斜杠后追加
      */
     public static String joinPath(String... components) {
         // 过滤并处理有效组件
@@ -83,5 +59,9 @@ public class FileUtil {
         if (processed.isEmpty()) return isAbsolute ? "/" : "";
         String path = String.join("/", processed);
         return isAbsolute ? "/" + path : path;
+    }
+
+    public static String joinPath2(boolean useSlash, String... path) {
+        return File.separator;
     }
 }

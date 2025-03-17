@@ -1,12 +1,11 @@
 package com.whim.file.adapter;
 
 import com.whim.file.adapter.wrapper.IFileWrapper;
-import com.whim.file.adapter.wrapper.URLWrapper;
+import com.whim.file.adapter.wrapper.URIWrapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
  * @author jince
@@ -15,17 +14,16 @@ import java.net.URL;
  */
 @Component
 @RequiredArgsConstructor
-public class URLAdapter implements IFileAdapter {
-    private final Tika tika;
+public class URIAdapter implements IFileAdapter {
 
     @Override
     public boolean isSupport(Object file) {
-        return file instanceof URL;
+        return file instanceof URI;
     }
 
     @Override
     public IFileWrapper getFileWrapper(Object file) {
-        URL url = (URL) file;
-        return new URLWrapper(url, tika);
+        URI uri = (URI) file;
+        return new URIWrapper(uri);
     }
 }

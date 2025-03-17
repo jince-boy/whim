@@ -13,11 +13,12 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author jince
  * date: 2025/2/18 14:25
- * description: 文件处理器
+ * description: 文件选项类
  */
 @Getter
 public class FileOptions {
@@ -131,7 +132,11 @@ public class FileOptions {
             for (IFileAdapter fileAdapter : allFileAdapter) {
                 if (fileAdapter.isSupport(file)) {
                     this.fileWrapper = fileAdapter.getFileWrapper(file);
-                    this.fileName = this.fileWrapper.getFileName();
+                    if (!fileWrapper.getExtension().isEmpty()) {
+                        this.fileName = UUID.randomUUID() + "." + fileWrapper.getExtension();
+                    } else {
+                        this.fileName = UUID.randomUUID().toString();
+                    }
                     return;
                 }
             }

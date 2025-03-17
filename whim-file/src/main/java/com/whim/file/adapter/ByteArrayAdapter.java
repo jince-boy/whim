@@ -3,7 +3,6 @@ package com.whim.file.adapter;
 import com.whim.file.adapter.wrapper.ByteArrayWrapper;
 import com.whim.file.adapter.wrapper.IFileWrapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ByteArrayAdapter implements IFileAdapter {
-    private final Tika tika;
 
     @Override
     public boolean isSupport(Object file) {
@@ -24,6 +22,6 @@ public class ByteArrayAdapter implements IFileAdapter {
     @Override
     public IFileWrapper getFileWrapper(Object file) {
         byte[] byteArray = (byte[]) file;
-        return new ByteArrayWrapper(byteArray, tika);
+        return new ByteArrayWrapper(byteArray);
     }
 }
