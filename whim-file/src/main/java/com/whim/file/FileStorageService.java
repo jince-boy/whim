@@ -180,4 +180,27 @@ public class FileStorageService {
     }
 
 
+    /**
+     * 通过预签名URL上传文件
+     *
+     * @param configurator 文件选项的配置器，用于定制文件上传的选项
+     * @param expire 预签名URL的过期时间
+     * @param timeUnit 过期时间的时间单位
+     * @return 上传文件的预签名URL
+     */
+    public String uploadFilePreSignedUrl(Consumer<FileOptions.Builder> configurator, Integer expire, TimeUnit timeUnit) {
+        // 创建文件选项构建器，用于配置文件查询参数
+        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        // 如果配置器不为空，则应用配置器以设置文件选项
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+        // 构建最终的文件选项实例
+        FileOptions fileOptions = builder.build();
+        // 使用配置好的文件选项来获取并返回文件列表
+        return allFileStorage.get(fileOptions.getPlatform()).uploadFilePreSignedUrl(fileOptions, expire, timeUnit);
+    }
+
+
+
 }

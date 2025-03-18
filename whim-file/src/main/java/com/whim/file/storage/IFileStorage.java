@@ -67,4 +67,14 @@ public interface IFileStorage {
      * @return 预签名url
      */
     String getFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit);
+
+    /**
+     * 获取文件上传预签名URL
+     *
+     * @param fileOptions 文件选项
+     * @param expire      有效期
+     * @param timeUnit    时间单位
+     * @return 预签名url
+     */
+    String uploadFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit);
 }

@@ -26,6 +26,7 @@ public class FileStorageProperties {
      */
     private List<LocalStorageProperties> local = new ArrayList<>();
     private List<MinioStorageProperties> minio = new ArrayList<>();
+    private List<AliYunOssStorageProperties> aliyunOss = new ArrayList<>();
 
     public interface StorageConfig {
         String getName();
@@ -47,5 +48,15 @@ public class FileStorageProperties {
         private String secretKey;
         private String bucket;
         private String basePath;
+    }
+
+    @Data
+    public static class AliYunOssStorageProperties implements StorageConfig {
+        private String name;
+        private String url;
+        private String basePath;
+        private String accessKey;
+        private String secretKey;
+        private String bucket;
     }
 }

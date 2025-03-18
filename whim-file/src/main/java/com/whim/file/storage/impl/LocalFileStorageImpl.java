@@ -207,4 +207,17 @@ public class LocalFileStorageImpl implements IFileStorage {
     public String getFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
         throw new FileStorageException("此存储不支持获取文件预签名URL");
     }
+
+    /**
+     * 获取上传文件预签名URL
+     *
+     * @param fileOptions 文件选项
+     * @param expire      有效期
+     * @param timeUnit    有效期单位
+     * @return 文件预签名URL
+     */
+    @Override
+    public String uploadFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
+        throw new FileStorageException("此存储不支持获取文件预签名URL");
+    }
 }

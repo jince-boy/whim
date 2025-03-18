@@ -87,4 +87,11 @@ public class TestController extends BaseController {
         return Result.success("获取文件预签名地址成功", filePreSignedUrl);
     }
 
+    @GetMapping("/uploadFilePreSignedUrl")
+    @SaIgnore
+    public Result<String> uploadFilePreSignedUrl(@RequestParam("platform") String platform, @RequestParam("name") String name) {
+        String filePreSignedUrl = fileStorageService.uploadFilePreSignedUrl(builder -> builder.platform(platform).storagePath("ccc").fileName(name), 60, TimeUnit.SECONDS);
+        return Result.success("获取文件预签名地址成功", filePreSignedUrl);
+    }
+
 }

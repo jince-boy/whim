@@ -229,4 +229,30 @@ public class MinioFileStorageImpl implements IFileStorage {
             throw new FileStorageException("获取文件信息失败", e);
         }
     }
+
+    /**
+     * 获取上传文件预签名URL
+     *
+     * @param fileOptions 文件选项
+     * @param expire      有效期
+     * @param timeUnit    有效期单位
+     * @return 文件预签名URL
+     */
+    @Override
+    public String uploadFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+        try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            return fileStorageClientFactory.getClient().getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .bucket(storageProperties.getBucket())
+                            .expiry(expire, timeUnit)
+                            .object(path)
+                            .method(Method.PUT)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new FileStorageException("获取上传文件预签名url失败", e);
+        }
+    }
 }

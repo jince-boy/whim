@@ -10,22 +10,10 @@ import lombok.Getter;
  * description: minio文件存储客户端工厂
  */
 @Getter
-public class MinioFileStorageClientFactory implements IFileStorageClientFactory<MinioClient> {
-    private final String name;
-    private final String url;
-    private final String accessKey;
-    private final String secretKey;
-    private final String bucket;
-    private final String basePath;
-    private volatile MinioClient client;
+public class MinioFileStorageClientFactory extends BaseFileStorageClientFactory<MinioClient> {
 
     public MinioFileStorageClientFactory(MinioStorageProperties minioStorageProperties) {
-        name = minioStorageProperties.getName();
-        url = minioStorageProperties.getUrl();
-        accessKey = minioStorageProperties.getAccessKey();
-        secretKey = minioStorageProperties.getSecretKey();
-        bucket = minioStorageProperties.getBucket();
-        basePath = minioStorageProperties.getBasePath();
+        super(minioStorageProperties.getName(),minioStorageProperties.getUrl(),minioStorageProperties.getAccessKey(),minioStorageProperties.getSecretKey(),minioStorageProperties.getBucket(),minioStorageProperties.getBasePath());
     }
 
     @Override
