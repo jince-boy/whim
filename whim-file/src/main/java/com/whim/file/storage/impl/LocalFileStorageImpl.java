@@ -1,7 +1,7 @@
 package com.whim.file.storage.impl;
 
 import com.whim.common.exception.FileStorageException;
-import com.whim.common.utils.FileUtil;
+import com.whim.common.utils.PathUtil;
 import com.whim.file.FileOptions;
 import com.whim.file.config.FileStorageProperties.LocalStorageProperties;
 import com.whim.file.model.FileInfo;
@@ -18,11 +18,15 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 /**
  * @author jince
@@ -49,7 +53,7 @@ public class LocalFileStorageImpl implements IFileStorage {
     public Boolean upload(FileOptions fileOptions) {
         // 解析本地存储配置并构建基础路径
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
-        Path basePath = FileUtil.generateAbsolutePath(FileUtil.joinPath(localStorageProperties.getBasePath(), fileOptions.getStoragePath()));
+        Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileOptions.getStoragePath())).toAbsolutePath();
         try {
             // 创建目标目录（若不存在）
             if (!Files.exists(basePath)) {
@@ -78,9 +82,7 @@ public class LocalFileStorageImpl implements IFileStorage {
         // 获取文件存储属性
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
         // 构造文件的绝对路径
-        Path path = FileUtil.generateAbsolutePath(
-                FileUtil.joinPath(localStorageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName())
-        );
+        Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName())).toAbsolutePath();
         try {
             // 一次性获取文件属性，减少系统调用
             BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
@@ -127,9 +129,7 @@ public class LocalFileStorageImpl implements IFileStorage {
         // 获取存储配置
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
         // 生成文件的绝对路径
-        Path path = FileUtil.generateAbsolutePath(
-                FileUtil.joinPath(localStorageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName())
-        );
+        Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName())).toAbsolutePath();
         try {
             // 尝试删除文件，如果文件不存在，则抛出异常
             if (!Files.deleteIfExists(path)) {
@@ -143,4 +143,68 @@ public class LocalFileStorageImpl implements IFileStorage {
         }
     }
 
+    /**
+     * 判断文件是否存在于本地存储中
+     *
+     * @param fileOptions 文件选项，包含文件路径和名称等信息
+     * @return 如果文件存在且不是一个目录，则返回true；否则返回false
+     */
+    @Override
+    public Boolean exists(FileOptions fileOptions) {
+        // 获取文件存储属性
+        LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
+        // 构建文件的绝对路径
+        Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName())).toAbsolutePath();
+        // 检查文件是否存在且不是一个目录
+        return Files.exists(path) && !Files.isDirectory(path);
+    }
+
+    /**
+     * 获取文件夹下的文件名列表
+     *
+     * @param fileOptions 文件选项，包含文件路径和名称等信息
+     * @return 文件名称列表
+     */
+    @Override
+    public List<String> list(FileOptions fileOptions) {
+        // 获取文件存储属性
+        LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileOptions.getStorageProperties();
+        // 构建文件的绝对路径
+        Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileOptions.getStoragePath())).toAbsolutePath();
+        if (!Files.exists(path) || !Files.isDirectory(path)) {
+            throw new FileStorageException("文件夹不存在或路径不是文件夹");
+        }
+        try (Stream<Path> list = Files.list(path)) {
+            return list.filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .toList();
+        } catch (IOException e) {
+            throw new FileStorageException("文件列表获取失败", e);
+        }
+    }
+
+    /**
+     * 获取文件预签名URL
+     *
+     * @param fileOptions 文件选项
+     * @return 文件预签名URL
+     */
+    @Override
+    public String getFilePreSignedUrl(FileOptions fileOptions) {
+        throw new FileStorageException("此存储不支持获取文件预签名URL");
+    }
+
+    /**
+     * 获取文件预签名URL
+     *
+     * @param fileOptions 文件选项
+     * @param expire      有效期
+     * @param timeUnit    有效期单位
+     * @return 文件预签名URL
+     */
+    @Override
+    public String getFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
+        throw new FileStorageException("此存储不支持获取文件预签名URL");
+    }
 }

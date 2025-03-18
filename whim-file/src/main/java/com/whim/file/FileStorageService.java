@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -99,5 +100,84 @@ public class FileStorageService {
         // 根据文件选项中的平台信息，获取对应的文件存储服务，并尝试删除文件
         return allFileStorage.get(fileOptions.getPlatform()).deleteFile(fileOptions);
     }
+
+    /**
+     * 检查文件是否存在
+     * 通过配置器配置文件选项，并根据这些选项检查文件是否存在
+     *
+     * @param configurator 文件选项的配置器，用于定制文件选项
+     * @return 文件是否存在如果文件存在返回true，否则返回false
+     */
+    public Boolean exists(Consumer<FileOptions.Builder> configurator) {
+        // 创建文件选项构建器，用于配置文件选项
+        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+
+        // 如果配置器不为空，应用配置器以配置文件选项
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+
+        // 构建最终的文件选项
+        FileOptions fileOptions = builder.build();
+
+        // 根据文件选项检查文件是否存在
+        return allFileStorage.get(fileOptions.getPlatform()).exists(fileOptions);
+    }
+
+    /**
+     * 使用给定的配置器列出文件
+     *
+     * @param configurator 文件选项的配置器，用于定制文件查询条件
+     * @return 包含文件名称的列表
+     */
+    public List<String> list(Consumer<FileOptions.Builder> configurator) {
+        // 创建文件选项构建器，用于配置文件查询参数
+        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+
+        // 如果配置器不为空，则应用配置器以设置文件选项
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+
+        // 构建最终的文件选项实例
+        FileOptions fileOptions = builder.build();
+
+        // 使用配置好的文件选项来获取并返回文件列表
+        return allFileStorage.get(fileOptions.getPlatform()).list(fileOptions);
+    }
+
+    /**
+     * 生成预签名的文件URL，允许通过配置器设置文件查询参数
+     * 此方法重载允许省略过期时间参数
+     *
+     * @param configurator 配置器，用于设置文件查询参数
+     * @see #getFilePreSignedUrl(Consumer, Integer, TimeUnit)
+     */
+    public String getFilePreSignedUrl(Consumer<FileOptions.Builder> configurator) {
+        return this.getFilePreSignedUrl(configurator, null, null);
+    }
+
+    /**
+     * 生成预签名的文件URL，允许通过配置器设置文件查询参数，并指定URL的过期时间
+     * 此方法允许用户自定义文件查询参数，以及设置URL的过期时间，提供更灵活的文件访问控制
+     *
+     * @param configurator 配置器，用于设置文件查询参数
+     * @param expire       URL的过期时间
+     * @param timeUnit     过期时间的时间单位
+     * @return 预签名的文件URL
+     */
+    public String getFilePreSignedUrl(Consumer<FileOptions.Builder> configurator, Integer expire, TimeUnit timeUnit) {
+        // 创建文件选项构建器，用于配置文件查询参数
+        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        // 如果配置器不为空，则应用配置器以设置文件选项
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+        // 构建最终的文件选项实例
+        FileOptions fileOptions = builder.build();
+        // 使用配置好的文件选项来获取并返回文件列表
+        return allFileStorage.get(fileOptions.getPlatform()).getFilePreSignedUrl(fileOptions, expire, timeUnit);
+    }
+
 
 }
