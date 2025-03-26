@@ -127,7 +127,6 @@
                 <artifactId>activation</artifactId>
                 <version>${activation.version}</version>
             </dependency>
-            <!-- no more than 2.3.3-->
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
@@ -171,5 +170,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
 </project>

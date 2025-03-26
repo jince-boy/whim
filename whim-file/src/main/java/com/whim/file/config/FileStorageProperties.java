@@ -35,28 +35,25 @@ public class FileStorageProperties {
     }
 
     @Data
+    public static abstract class BaseStorageProperties implements StorageConfig {
+        String name;
+        String url;
+        String accessKey;
+        String secretKey;
+        String bucket;
+        String basePath;
+        String region;
+    }
+
+    @Data
     public static class LocalStorageProperties implements StorageConfig {
         private String name;
         private String basePath;
     }
 
-    @Data
-    public static class MinioStorageProperties implements StorageConfig {
-        private String name;
-        private String url;
-        private String accessKey;
-        private String secretKey;
-        private String bucket;
-        private String basePath;
+    public static class MinioStorageProperties extends BaseStorageProperties implements StorageConfig {
     }
 
-    @Data
-    public static class AliYunOssStorageProperties implements StorageConfig {
-        private String name;
-        private String url;
-        private String basePath;
-        private String accessKey;
-        private String secretKey;
-        private String bucket;
+    public static class AliYunOssStorageProperties extends BaseStorageProperties implements StorageConfig {
     }
 }

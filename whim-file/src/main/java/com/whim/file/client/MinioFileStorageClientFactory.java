@@ -3,6 +3,7 @@ package com.whim.file.client;
 import com.whim.file.config.FileStorageProperties.MinioStorageProperties;
 import io.minio.MinioClient;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author jince
@@ -10,10 +11,11 @@ import lombok.Getter;
  * description: minio文件存储客户端工厂
  */
 @Getter
+@Slf4j
 public class MinioFileStorageClientFactory extends BaseFileStorageClientFactory<MinioClient> {
 
     public MinioFileStorageClientFactory(MinioStorageProperties minioStorageProperties) {
-        super(minioStorageProperties.getName(),minioStorageProperties.getUrl(),minioStorageProperties.getAccessKey(),minioStorageProperties.getSecretKey(),minioStorageProperties.getBucket(),minioStorageProperties.getBasePath());
+        super(minioStorageProperties.getUrl(), minioStorageProperties.getAccessKey(), minioStorageProperties.getSecretKey(), minioStorageProperties.getRegion());
     }
 
     @Override
@@ -34,7 +36,13 @@ public class MinioFileStorageClientFactory extends BaseFileStorageClientFactory<
     @Override
     public void close() {
         if (client != null) {
-            client = null;
+            try {
+                client.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            log.info("minio客户端工厂关闭了");
+//            client = null;
         }
     }
 }

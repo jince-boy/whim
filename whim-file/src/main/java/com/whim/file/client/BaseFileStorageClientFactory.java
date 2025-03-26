@@ -9,20 +9,16 @@ import lombok.Getter;
  */
 @Getter
 public abstract class BaseFileStorageClientFactory<T> implements IFileStorageClientFactory<T> {
-    protected final String name;
     protected final String url;
     protected final String accessKey;
     protected final String secretKey;
-    protected final String bucket;
-    protected final String basePath;
+    protected final String region;
     protected volatile T client;
 
-    public BaseFileStorageClientFactory(String name, String url, String accessKey, String secretKey, String bucket, String basePath) {
-        this.name = name;
+    public BaseFileStorageClientFactory(String url, String accessKey, String secretKey, String region) {
         this.url = url;
         this.accessKey = accessKey;
         this.secretKey = secretKey;
-        this.bucket = bucket;
-        this.basePath = basePath;
+        this.region = region;
     }
 }

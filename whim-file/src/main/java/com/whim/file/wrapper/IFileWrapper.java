@@ -1,4 +1,4 @@
-package com.whim.file.adapter.wrapper;
+package com.whim.file.wrapper;
 
 import java.io.InputStream;
 
@@ -10,9 +10,7 @@ import java.io.InputStream;
 public interface IFileWrapper extends AutoCloseable {
 
     InputStream getInputStream();
-
-    String getExtension();
-
+    
     @Override
     void close() throws Exception;
 }

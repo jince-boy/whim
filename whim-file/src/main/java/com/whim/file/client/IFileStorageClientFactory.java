@@ -10,5 +10,5 @@ public interface IFileStorageClientFactory<T> extends AutoCloseable {
     T getClient();
 
     @Override
-    void close() throws Exception;
+    void close();
 }

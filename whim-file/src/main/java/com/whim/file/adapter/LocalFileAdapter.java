@@ -1,7 +1,7 @@
 package com.whim.file.adapter;
 
-import com.whim.file.adapter.wrapper.FileWrapper;
-import com.whim.file.adapter.wrapper.IFileWrapper;
+import com.whim.file.wrapper.LocalFileWrapper;
+import com.whim.file.wrapper.IFileWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ import java.io.File;
  */
 @Component
 @RequiredArgsConstructor
-public class FileAdapter implements IFileAdapter {
+public class LocalFileAdapter implements IFileAdapter {
 
     @Override
     public boolean isSupport(Object file) {
@@ -24,6 +24,6 @@ public class FileAdapter implements IFileAdapter {
     @Override
     public IFileWrapper getFileWrapper(Object file) {
         File fileObj = (File) file;
-        return new FileWrapper(fileObj);
+        return new LocalFileWrapper(fileObj);
     }
 }

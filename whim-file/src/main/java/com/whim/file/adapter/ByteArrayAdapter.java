@@ -1,7 +1,7 @@
 package com.whim.file.adapter;
 
-import com.whim.file.adapter.wrapper.ByteArrayWrapper;
-import com.whim.file.adapter.wrapper.IFileWrapper;
+import com.whim.file.wrapper.ByteArrayWrapper;
+import com.whim.file.wrapper.IFileWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

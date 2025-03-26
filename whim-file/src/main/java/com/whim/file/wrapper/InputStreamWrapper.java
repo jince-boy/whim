@@ -1,7 +1,8 @@
-package com.whim.file.adapter.wrapper;
+package com.whim.file.wrapper;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.UUID;
 
 /**
  * @author jince
@@ -15,8 +16,13 @@ public class InputStreamWrapper extends BaseFileWrapper<InputStream> {
     }
 
     @Override
-    public String getExtension() {
-        return "";
+    public String getDefaultFileName() {
+        return UUID.randomUUID() + ".bin";
+    }
+
+    @Override
+    public String getDefaultContentType() {
+        return "application/octet-stream";
     }
 
     @Override
@@ -25,12 +31,5 @@ public class InputStreamWrapper extends BaseFileWrapper<InputStream> {
             inputStream = new BufferedInputStream(file);
         }
         return inputStream;
-    }
-
-    @Override
-    public void close() throws Exception {
-        if (inputStream != null) {
-            inputStream.close();
-        }
     }
 }

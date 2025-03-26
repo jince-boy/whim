@@ -1,4 +1,4 @@
-package com.whim.file.adapter.wrapper;
+package com.whim.file.wrapper;
 
 import com.whim.common.exception.FileStorageException;
 import org.apache.commons.io.FilenameUtils;
@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.UUID;
 
 /**
  * @author jince
@@ -20,8 +22,19 @@ public class URIWrapper extends BaseFileWrapper<URI> {
     }
 
     @Override
-    public String getExtension() {
-        return FilenameUtils.getExtension(file.getPath().substring(file.getPath().lastIndexOf("/") + 1));
+    public String getDefaultFileName() {
+        String path = file.getPath();
+        return UUID.randomUUID() + "." + FilenameUtils.getExtension(path.substring(path.lastIndexOf('/') + 1));
+    }
+
+    @Override
+    public String getDefaultContentType() {
+        try {
+            URLConnection connection = file.toURL().openConnection();
+            return connection.getContentType();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -35,12 +48,5 @@ public class URIWrapper extends BaseFileWrapper<URI> {
             }
         }
         return inputStream;
-    }
-
-    @Override
-    public void close() throws Exception {
-        if (inputStream != null) {
-            inputStream.close();
-        }
     }
 }

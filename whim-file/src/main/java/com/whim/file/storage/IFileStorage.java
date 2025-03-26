@@ -1,9 +1,9 @@
 package com.whim.file.storage;
 
 import com.whim.file.FileOptions;
-import com.whim.file.model.FileInfo;
+import com.whim.file.model.MetaData;
 
-import java.util.List;
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,7 +18,7 @@ public interface IFileStorage {
      * @param fileOptions 文件选项
      * @return true 上传成功，false 上传失败
      */
-    Boolean upload(FileOptions fileOptions);
+    MetaData upload(FileOptions fileOptions);
 
     /**
      * 获取文件
@@ -26,7 +26,7 @@ public interface IFileStorage {
      * @param fileOptions 文件选项
      * @return 文件信息
      */
-    FileInfo getFileInfo(FileOptions fileOptions);
+    InputStream getFileInfo(FileOptions fileOptions);
 
     /**
      * 删除文件
@@ -43,21 +43,6 @@ public interface IFileStorage {
      * @return true 存在 false 不存在
      */
     Boolean exists(FileOptions fileOptions);
-
-    /**
-     * 列出所有文件
-     *
-     * @return 文件列表
-     */
-    List<String> list(FileOptions fileOptions);
-
-    /**
-     * 获取文件预签名URL
-     *
-     * @param fileOptions 文件选项
-     * @return 预签名url
-     */
-    String getFilePreSignedUrl(FileOptions fileOptions);
 
     /**
      * 获取文件预签名URL

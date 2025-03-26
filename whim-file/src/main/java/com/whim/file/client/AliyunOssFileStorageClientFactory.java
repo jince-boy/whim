@@ -6,6 +6,7 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import com.aliyun.oss.common.comm.SignVersion;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.whim.file.config.FileStorageProperties.AliYunOssStorageProperties;
 
@@ -16,9 +17,10 @@ import static com.whim.file.config.FileStorageProperties.AliYunOssStoragePropert
  * description: 阿里云oss文件存储客户端工厂
  */
 @Getter
+@Slf4j
 public class AliyunOssFileStorageClientFactory extends BaseFileStorageClientFactory<OSS> {
     public AliyunOssFileStorageClientFactory(AliYunOssStorageProperties aliYunOssStorageProperties) {
-        super(aliYunOssStorageProperties.getName(), aliYunOssStorageProperties.getUrl(), aliYunOssStorageProperties.getAccessKey(), aliYunOssStorageProperties.getSecretKey(), aliYunOssStorageProperties.getBucket(), aliYunOssStorageProperties.getBasePath());
+        super(aliYunOssStorageProperties.getUrl(), aliYunOssStorageProperties.getAccessKey(), aliYunOssStorageProperties.getSecretKey(), aliYunOssStorageProperties.getRegion());
     }
 
     @Override
@@ -32,6 +34,7 @@ public class AliyunOssFileStorageClientFactory extends BaseFileStorageClientFact
                     clientBuilderConfiguration.setSignatureVersion(SignVersion.V4);
                     client = OSSClientBuilder.create()
                             .endpoint(url)
+                            .region(region)
                             .credentialsProvider(new DefaultCredentialProvider(accessKey, secretKey))
                             .clientConfiguration(clientBuilderConfiguration)
                             .build();
@@ -43,8 +46,9 @@ public class AliyunOssFileStorageClientFactory extends BaseFileStorageClientFact
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (client != null) {
+            log.info("阿里云oss客户端工厂关闭了");
             client.shutdown();
         }
     }

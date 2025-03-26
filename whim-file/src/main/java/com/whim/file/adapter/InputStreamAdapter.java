@@ -1,7 +1,7 @@
 package com.whim.file.adapter;
 
-import com.whim.file.adapter.wrapper.IFileWrapper;
-import com.whim.file.adapter.wrapper.InputStreamWrapper;
+import com.whim.file.wrapper.IFileWrapper;
+import com.whim.file.wrapper.InputStreamWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

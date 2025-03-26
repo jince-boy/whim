@@ -3,35 +3,27 @@ package com.whim.file.storage.impl;
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.PathUtil;
 import com.whim.file.FileOptions;
+import com.whim.file.wrapper.IFileWrapper;
 import com.whim.file.client.MinioFileStorageClientFactory;
 import com.whim.file.config.FileStorageProperties.MinioStorageProperties;
-import com.whim.file.model.FileInfo;
+import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.ListObjectsArgs;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
-import io.minio.Result;
 import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
 import io.minio.http.Method;
-import io.minio.messages.Item;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
 
 /**
  * @author jince
@@ -40,70 +32,84 @@ import java.util.stream.StreamSupport;
  */
 @Slf4j
 @Component("minio")
-@RequiredArgsConstructor
 public class MinioFileStorageImpl implements IFileStorage {
-    private final Tika tika;
-
     /**
-     * 上传文件到Minio
+     * 上传文件
      *
      * @param fileOptions 文件选项
-     * @return true 上传成功，false 上传失败
+     * @return MetaData
      */
     @Override
-    public Boolean upload(FileOptions fileOptions) {
+    public MetaData upload(FileOptions fileOptions) {
         MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
-            fileStorageClientFactory.getClient().putObject(
-                    PutObjectArgs.builder()
-                            .bucket(storageProperties.getBucket())
-                            .object(path)
-                            .stream(fileOptions.getFileWrapper().getInputStream(), -1, 5 * 1024 * 1024)
-                            .build()
-            );
-            return true;
+            try (IFileWrapper fileWrapper = fileOptions.getFileWrapper()) {
+                String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+                InputStream inputStream = fileWrapper.getInputStream();
+                fileStorageClientFactory.getClient().putObject(
+                        PutObjectArgs.builder()
+                                .bucket(storageProperties.getBucket())
+                                .object(path)
+                                .contentType(fileOptions.getContentType())
+                                .stream(inputStream, -1, 5 * 1024 * 1024)
+                                .build()
+                );
+                // 获取文件信息以获取更多元数据
+                StatObjectResponse stat = fileStorageClientFactory.getClient().statObject(
+                        StatObjectArgs.builder()
+                                .bucket(storageProperties.getBucket())
+                                .object(path)
+                                .build()
+                );
+                // 创建并填充元数据对象
+                MetaData metaData = new MetaData();
+                metaData.setFileName(fileOptions.getFileName());
+                metaData.setStoragePath(path);
+                metaData.setFileSize(FileUtils.byteCountToDisplaySize(stat.size()));
+                metaData.setContentType(stat.contentType());
+                return metaData;
+            }
         } catch (Exception e) {
-            throw new FileStorageException("文件上传失败", e);
+            throw new FileStorageException("文件上传失败:" + e.getMessage(), e);
         }
     }
 
+
     /**
-     * 获取Minio中的文件信息
+     * 获取文件信息
+     * 该方法根据文件选项（FileOptions）参数，连接到Minio存储系统并尝试获取指定文件的流信息
+     * 主要用于文件下载或直接访问的场景
      *
-     * @param fileOptions 文件选项
-     * @return 文件信息
+     * @param fileOptions 文件选项，包含文件的存储属性和封装的文件信息
+     * @return 返回一个InputStream输入流，用于读取文件内容
+     * @throws FileStorageException 如果文件不存在或获取文件时发生错误，抛出自定义的文件存储异常
      */
     @Override
-    public FileInfo getFileInfo(FileOptions fileOptions) {
+    public InputStream getFileInfo(FileOptions fileOptions) {
+        // 获取文件存储属性，这里是Minio存储系统的配置
         MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
+            // 构造文件的完整路径，确保路径格式使用正斜杠
             String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            // 使用Minio客户端获取文件对象
             GetObjectResponse object = fileStorageClientFactory.getClient()
                     .getObject(
                             GetObjectArgs.builder()
-                                    .bucket(storageProperties.getBucket())
-                                    .object(path)
+                                    .bucket(storageProperties.getBucket()) // 指定存储桶
+                                    .object(path) // 指定文件路径
                                     .build()
                     );
-            InputStream inputStream = new BufferedInputStream(object);
-            String contentType = tika.detect(inputStream);
-            inputStream.reset();
-            return new FileInfo()
-                    .setFileName(fileOptions.getFileName())
-                    .setFileSize(FileUtils.byteCountToDisplaySize(Long.valueOf(Objects.requireNonNull(object.headers().get("Content-Length")))))
-                    .setStoragePath(path)
-                    .setPlatform(fileOptions.getPlatform())
-                    .setPlatformConfigName(fileOptions.getPlatformConfigName())
-                    .setInputStream(inputStream)
-                    .setContentType(contentType)
-                    .setUploadTime(LocalDateTime.ofInstant(Objects.requireNonNull(object.headers().getDate("Date")).toInstant(), ZoneId.systemDefault()));
+            // 返回文件内容的输入流
+            return new BufferedInputStream(object);
         } catch (ErrorResponseException e) {
+            // 当Minio服务器返回错误响应时，抛出文件不存在的异常
             throw new FileStorageException("文件不存在", e);
         } catch (Exception e) {
-            throw new FileStorageException("文件获取失败", e);
+            // 当发生其他异常时，抛出文件获取失败的异常
+            throw new FileStorageException("文件获取失败:" + e.getMessage(), e);
         }
     }
+
 
     /**
      * 删除Minio中的文件
@@ -152,53 +158,8 @@ public class MinioFileStorageImpl implements IFileStorage {
         } catch (ErrorResponseException e) {
             return false;
         } catch (Exception e) {
-            throw new FileStorageException("获取文件信息失败", e);
+            throw new FileStorageException("查找文件异常", e);
         }
-    }
-
-    /**
-     * 获取Minio中的文件列表
-     *
-     * @param fileOptions 文件选项
-     * @return 文件名称列表
-     */
-    @Override
-    public List<String> list(FileOptions fileOptions) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
-        try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath());
-            Iterable<Result<Item>> results = fileStorageClientFactory.getClient().listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(storageProperties.getBucket())
-                            .prefix(path)  // 指定文件夹路径（可选）
-                            .recursive(true)     // 递归获取所有文件（包括子文件夹）
-                            .build()
-            );
-            // 获取所有文件名
-            return StreamSupport.stream(results.spliterator(), false)
-                    .map(result -> {
-                        try {
-                            return result.get().objectName();
-                        } catch (Exception e) {
-                            throw new RuntimeException("获取文件失败", e);
-                        }
-                    })
-                    .sorted() // 按字母排序
-                    .toList();
-        } catch (Exception e) {
-            throw new FileStorageException("获取文件列表失败", e);
-        }
-    }
-
-    /**
-     * 获取Minio中的文件预签名URL
-     *
-     * @param fileOptions 文件选项
-     * @return 文件预签名URL
-     */
-    @Override
-    public String getFilePreSignedUrl(FileOptions fileOptions) {
-        return getFilePreSignedUrl(fileOptions, null, null); // 默认不设置有效时间
     }
 
     /**
@@ -214,17 +175,14 @@ public class MinioFileStorageImpl implements IFileStorage {
         MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
             String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
-            GetPresignedObjectUrlArgs.Builder builder = GetPresignedObjectUrlArgs.builder()
-                    .bucket(storageProperties.getBucket())
-                    .object(path)
-                    .method(Method.GET);
-            // 如果设置了有效时间，则添加到参数中
-            if (expire != null && timeUnit != null) {
-                builder.expiry(expire, timeUnit);
-            }
-            return fileStorageClientFactory.getClient().getPresignedObjectUrl(builder.build());
-        } catch (ErrorResponseException e) {
-            throw new FileStorageException("文件不存在", e);
+            return fileStorageClientFactory.getClient().getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .bucket(storageProperties.getBucket())
+                            .object(path)
+                            .expiry(expire, timeUnit)
+                            .method(Method.GET)
+                            .build()
+            );
         } catch (Exception e) {
             throw new FileStorageException("获取文件信息失败", e);
         }

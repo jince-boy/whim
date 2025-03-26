@@ -1,4 +1,4 @@
-package com.whim.file.adapter.wrapper;
+package com.whim.file.wrapper;
 
 import com.whim.common.exception.FileStorageException;
 import org.apache.commons.io.FilenameUtils;
@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
 /**
  * @author jince
@@ -20,8 +21,13 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
     }
 
     @Override
-    public String getExtension() {
-        return FilenameUtils.getExtension(file.getOriginalFilename());
+    public String getDefaultFileName() {
+        return UUID.randomUUID() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+    }
+
+    @Override
+    public String getDefaultContentType() {
+        return file.getContentType();
     }
 
     @Override
@@ -34,12 +40,5 @@ public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
             }
         }
         return inputStream;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (inputStream != null) {
-            inputStream.close();
-        }
     }
 }

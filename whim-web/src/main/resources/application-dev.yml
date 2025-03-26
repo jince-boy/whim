@@ -1,3 +1,8 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -130,3 +135,4 @@ file:
         secret-key: ${ALIYUN_OSS_SECRET_KEY:123123123}
         bucket: public-whim
         base-path: /whim/file2/
+        region : cn-beijing

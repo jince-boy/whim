@@ -1,19 +1,20 @@
 package com.whim.file;
 
 import com.whim.common.exception.FileStorageException;
+import com.whim.file.adapter.IFileAdapter;
+import com.whim.file.wrapper.BaseFileWrapper;
+import com.whim.file.wrapper.IFileWrapper;
 import com.whim.file.config.FileStorageProperties;
 import com.whim.file.config.FileStorageProperties.StorageConfig;
-import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.storage.IFileStorage;
-import com.whim.file.adapter.wrapper.IFileWrapper;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author jince
@@ -21,33 +22,37 @@ import java.util.UUID;
  * description: 文件选项类
  */
 @Getter
+@Slf4j
 public class FileOptions {
-    private final String fileName;
-    private final String storagePath;
     private final String platform;
     private final String platformConfigName;
+    private final String fileName;
+    private final String storagePath;
+    private final String contentType;
     private final IFileWrapper fileWrapper;
     private final Object storageProperties;
 
     private FileOptions(Builder builder) {
-        this.fileName = builder.fileName;
-        this.storagePath = builder.storagePath;
         this.platform = builder.platform;
         this.platformConfigName = builder.platformConfigName;
         this.fileWrapper = builder.fileWrapper;
         this.storageProperties = builder.storageProperties;
+        this.fileName = builder.fileName;
+        this.storagePath = builder.storagePath;
+        this.contentType = builder.contentType;
     }
 
     public static class Builder {
         private final FileStorageProperties fileStorageProperties;
         private final List<IFileAdapter> allFileAdapter;
         private final Map<String, IFileStorage> allFileStorage;
-        private String fileName;
-        private String storagePath;
         private String platform;
         private String platformConfigName;
         private IFileWrapper fileWrapper;
         private Object storageProperties;
+        private String fileName;
+        private String storagePath;
+        private String contentType;
 
         public Builder(FileStorageProperties fileStorageProperties, List<IFileAdapter> allFileAdapter, Map<String, IFileStorage> allFileStorage) {
             this.fileStorageProperties = fileStorageProperties;
@@ -74,6 +79,19 @@ public class FileOptions {
             throw new FileStorageException("文件名称格式不正确");
         }
 
+        /**
+         * 设置文件内容类型
+         *
+         * @param contentType 内容类型
+         * @return Builder
+         */
+        public Builder contentType(String contentType) {
+            if (contentType == null || contentType.trim().isBlank()) {
+                throw new FileStorageException("文件内容类型不能为空");
+            }
+            this.contentType = contentType;
+            return this;
+        }
 
         /**
          * 设置存储地址
@@ -93,6 +111,7 @@ public class FileOptions {
             this.storagePath = storagePath;
             return this;
         }
+
 
         /**
          * 设置存储平台
@@ -132,11 +151,8 @@ public class FileOptions {
             for (IFileAdapter fileAdapter : allFileAdapter) {
                 if (fileAdapter.isSupport(file)) {
                     this.fileWrapper = fileAdapter.getFileWrapper(file);
-                    if (!fileWrapper.getExtension().isEmpty()) {
-                        this.fileName = UUID.randomUUID() + "." + fileWrapper.getExtension();
-                    } else {
-                        this.fileName = UUID.randomUUID().toString();
-                    }
+                    this.contentType = ((BaseFileWrapper<?>) this.fileWrapper).getDefaultContentType();
+                    this.fileName = ((BaseFileWrapper<?>) this.fileWrapper).getDefaultFileName();
                     return;
                 }
             }

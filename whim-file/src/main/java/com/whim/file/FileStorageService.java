@@ -2,11 +2,13 @@ package com.whim.file;
 
 import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.config.FileStorageProperties;
-import com.whim.file.model.FileInfo;
+import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,63 +22,72 @@ import java.util.function.Consumer;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileStorageService {
     private final FileStorageProperties fileStorageProperties;
     private final List<IFileAdapter> allFileAdapter;
     private final Map<String, IFileStorage> allFileStorage;
 
+
     /**
-     * 上传文件基础方法（简化版）
+     * 上传文件并返回元数据
+     * 此方法简化了上传流程，使用默认的上传选项
      *
-     * @param file 要上传的文件对象，支持多种文件类型包装
-     * @return Boolean 上传结果，true表示成功
+     * @param file 要上传的文件对象
+     * @return 文件上传后的元数据对象
      */
-    public Boolean upload(Object file) {
+    public MetaData upload(Object file) {
         return this.upload(file, null);
     }
 
+
     /**
-     * 完整文件上传方法
+     * 上传文件并返回元数据
      *
-     * @param file         要上传的文件对象，支持多种文件类型包装
-     * @param configurator 文件配置构建器（可选），用于自定义配置项
-     * @return Boolean 上传结果，true表示成功
-     * 实现逻辑：
-     * 1. 初始化配置构建器并包装文件对象
-     * 2. 应用自定义配置（如果存在）
-     * 3. 构建最终文件配置选项
-     * 4. 根据平台选择对应存储实现执行上传
+     * @param file         要上传的文件对象
+     * @param configurator 文件上传的配置器，用于定制上传选项
+     * @return 文件上传后的元数据
      */
-    public Boolean upload(Object file, Consumer<FileOptions.Builder> configurator) {
+    public MetaData upload(Object file, Consumer<FileOptions.Builder> configurator) {
+        // 创建文件选项构建器
         FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        // 设置文件包装
         builder.fileWrapper(file);
         // 应用自定义配置
         if (Objects.nonNull(configurator)) {
             configurator.accept(builder);
         }
+        // 构建文件选项
         FileOptions fileOptions = builder.build();
         // 根据平台选择存储实现执行上传
         return allFileStorage.get(fileOptions.getPlatform()).upload(fileOptions);
     }
 
+
     /**
      * 获取文件信息
+     * 该方法通过接受一个消费者函数接口（Consumer）来配置文件选项，然后根据这些选项获取文件信息
+     * 它主要用于以一种灵活的方式获取文件的详细信息，比如元数据或者文件的某个特定部分
      *
-     * @param configurator 文件配置构建器，用于指定要获取信息的文件参数
-     * @return FileInfo 包含文件详细信息的数据对象
-     * 实现逻辑：
-     * 1. 初始化配置构建器
-     * 2. 应用自定义文件参数配置
-     * 3. 根据平台选择对应存储实现获取文件信息
+     * @param configurator 文件选项的配置器，用于定制化文件选项
+     * @return InputStream 文件信息的输入流，可以用于读取文件内容
      */
-    public FileInfo getFileInfo(Consumer<FileOptions.Builder> configurator) {
+    public InputStream getFileInfo(Consumer<FileOptions.Builder> configurator) {
+        // 创建一个文件选项构建器，初始化包含文件存储属性、文件适配器和文件存储
         FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+
+        // 如果配置器不为空，则使用配置器配置文件选项构建器
         if (Objects.nonNull(configurator)) {
             configurator.accept(builder);
         }
+
+        // 构建最终的文件选项实例
         FileOptions fileOptions = builder.build();
+
+        // 根据文件选项中的平台信息，获取对应平台的文件信息
         return allFileStorage.get(fileOptions.getPlatform()).getFileInfo(fileOptions);
     }
+
 
     /**
      * 删除文件方法
@@ -101,6 +112,7 @@ public class FileStorageService {
         return allFileStorage.get(fileOptions.getPlatform()).deleteFile(fileOptions);
     }
 
+
     /**
      * 检查文件是否存在
      * 通过配置器配置文件选项，并根据这些选项检查文件是否存在
@@ -122,39 +134,6 @@ public class FileStorageService {
 
         // 根据文件选项检查文件是否存在
         return allFileStorage.get(fileOptions.getPlatform()).exists(fileOptions);
-    }
-
-    /**
-     * 使用给定的配置器列出文件
-     *
-     * @param configurator 文件选项的配置器，用于定制文件查询条件
-     * @return 包含文件名称的列表
-     */
-    public List<String> list(Consumer<FileOptions.Builder> configurator) {
-        // 创建文件选项构建器，用于配置文件查询参数
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
-
-        // 如果配置器不为空，则应用配置器以设置文件选项
-        if (Objects.nonNull(configurator)) {
-            configurator.accept(builder);
-        }
-
-        // 构建最终的文件选项实例
-        FileOptions fileOptions = builder.build();
-
-        // 使用配置好的文件选项来获取并返回文件列表
-        return allFileStorage.get(fileOptions.getPlatform()).list(fileOptions);
-    }
-
-    /**
-     * 生成预签名的文件URL，允许通过配置器设置文件查询参数
-     * 此方法重载允许省略过期时间参数
-     *
-     * @param configurator 配置器，用于设置文件查询参数
-     * @see #getFilePreSignedUrl(Consumer, Integer, TimeUnit)
-     */
-    public String getFilePreSignedUrl(Consumer<FileOptions.Builder> configurator) {
-        return this.getFilePreSignedUrl(configurator, null, null);
     }
 
     /**
@@ -184,8 +163,8 @@ public class FileStorageService {
      * 通过预签名URL上传文件
      *
      * @param configurator 文件选项的配置器，用于定制文件上传的选项
-     * @param expire 预签名URL的过期时间
-     * @param timeUnit 过期时间的时间单位
+     * @param expire       预签名URL的过期时间
+     * @param timeUnit     过期时间的时间单位
      * @return 上传文件的预签名URL
      */
     public String uploadFilePreSignedUrl(Consumer<FileOptions.Builder> configurator, Integer expire, TimeUnit timeUnit) {
@@ -200,7 +179,5 @@ public class FileStorageService {
         // 使用配置好的文件选项来获取并返回文件列表
         return allFileStorage.get(fileOptions.getPlatform()).uploadFilePreSignedUrl(fileOptions, expire, timeUnit);
     }
-
-
 
 }

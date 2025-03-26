@@ -17,6 +17,7 @@ public enum ExcludePathConstants {
     AUTH_CAPTCHA("/auth/captcha", "登录验证码"),
     ERROR_PATH("/error", "springboot框架Error路径"),
     DRUID_PATH("/druid/**", "druid监控页面"),
+//    ACTUATOR_PATH("/actuator/**", "actuator监控页面")
     ;
     private final String path;
     private final String description;

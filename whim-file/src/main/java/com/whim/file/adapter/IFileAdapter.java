@@ -1,6 +1,6 @@
 package com.whim.file.adapter;
 
-import com.whim.file.adapter.wrapper.IFileWrapper;
+import com.whim.file.wrapper.IFileWrapper;
 
 /**
  * @author jince
