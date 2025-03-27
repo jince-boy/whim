@@ -2,13 +2,14 @@ package com.whim.file;
 
 import com.whim.file.adapter.IFileAdapter;
 import com.whim.file.config.FileStorageProperties;
+import com.whim.file.handler.DownloadHandler;
+import com.whim.file.handler.FileHandler;
 import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,6 @@ public class FileStorageService {
     private final FileStorageProperties fileStorageProperties;
     private final List<IFileAdapter> allFileAdapter;
     private final Map<String, IFileStorage> allFileStorage;
-
 
     /**
      * 上传文件并返回元数据
@@ -48,9 +48,10 @@ public class FileStorageService {
      * @param configurator 文件上传的配置器，用于定制上传选项
      * @return 文件上传后的元数据
      */
-    public MetaData upload(Object file, Consumer<FileOptions.Builder> configurator) {
+    public MetaData upload(Object file, Consumer<FileHandler.Builder> configurator) {
         // 创建文件选项构建器
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+
         // 设置文件包装
         builder.fileWrapper(file);
         // 应用自定义配置
@@ -58,9 +59,9 @@ public class FileStorageService {
             configurator.accept(builder);
         }
         // 构建文件选项
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
         // 根据平台选择存储实现执行上传
-        return allFileStorage.get(fileOptions.getPlatform()).upload(fileOptions);
+        return allFileStorage.get(fileHandler.getPlatform()).upload(fileHandler);
     }
 
 
@@ -72,9 +73,9 @@ public class FileStorageService {
      * @param configurator 文件选项的配置器，用于定制化文件选项
      * @return InputStream 文件信息的输入流，可以用于读取文件内容
      */
-    public InputStream getFileInfo(Consumer<FileOptions.Builder> configurator) {
+    public DownloadHandler download(Consumer<FileHandler.Builder> configurator) {
         // 创建一个文件选项构建器，初始化包含文件存储属性、文件适配器和文件存储
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
 
         // 如果配置器不为空，则使用配置器配置文件选项构建器
         if (Objects.nonNull(configurator)) {
@@ -82,10 +83,10 @@ public class FileStorageService {
         }
 
         // 构建最终的文件选项实例
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
 
         // 根据文件选项中的平台信息，获取对应平台的文件信息
-        return allFileStorage.get(fileOptions.getPlatform()).getFileInfo(fileOptions);
+        return allFileStorage.get(fileHandler.getPlatform()).download(fileHandler);
     }
 
 
@@ -96,9 +97,9 @@ public class FileStorageService {
      * @param configurator 文件选项的配置器，用于定制文件删除操作的参数，如平台、文件路径等
      * @return 返回一个布尔值，表示文件是否删除成功
      */
-    public Boolean deleteFile(Consumer<FileOptions.Builder> configurator) {
+    public Boolean deleteFile(Consumer<FileHandler.Builder> configurator) {
         // 创建一个文件选项构建器，用于配置文件操作的参数
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
 
         // 如果配置器不为空，则使用配置器对构建器进行配置
         if (Objects.nonNull(configurator)) {
@@ -106,10 +107,10 @@ public class FileStorageService {
         }
 
         // 根据配置好的构建器创建一个文件选项实例
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
 
         // 根据文件选项中的平台信息，获取对应的文件存储服务，并尝试删除文件
-        return allFileStorage.get(fileOptions.getPlatform()).deleteFile(fileOptions);
+        return allFileStorage.get(fileHandler.getPlatform()).deleteFile(fileHandler);
     }
 
 
@@ -120,9 +121,9 @@ public class FileStorageService {
      * @param configurator 文件选项的配置器，用于定制文件选项
      * @return 文件是否存在如果文件存在返回true，否则返回false
      */
-    public Boolean exists(Consumer<FileOptions.Builder> configurator) {
+    public Boolean exists(Consumer<FileHandler.Builder> configurator) {
         // 创建文件选项构建器，用于配置文件选项
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
 
         // 如果配置器不为空，应用配置器以配置文件选项
         if (Objects.nonNull(configurator)) {
@@ -130,10 +131,10 @@ public class FileStorageService {
         }
 
         // 构建最终的文件选项
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
 
         // 根据文件选项检查文件是否存在
-        return allFileStorage.get(fileOptions.getPlatform()).exists(fileOptions);
+        return allFileStorage.get(fileHandler.getPlatform()).exists(fileHandler);
     }
 
     /**
@@ -145,17 +146,17 @@ public class FileStorageService {
      * @param timeUnit     过期时间的时间单位
      * @return 预签名的文件URL
      */
-    public String getFilePreSignedUrl(Consumer<FileOptions.Builder> configurator, Integer expire, TimeUnit timeUnit) {
+    public String getFilePreSignedUrl(Consumer<FileHandler.Builder> configurator, Integer expire, TimeUnit timeUnit) {
         // 创建文件选项构建器，用于配置文件查询参数
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
         // 如果配置器不为空，则应用配置器以设置文件选项
         if (Objects.nonNull(configurator)) {
             configurator.accept(builder);
         }
         // 构建最终的文件选项实例
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
         // 使用配置好的文件选项来获取并返回文件列表
-        return allFileStorage.get(fileOptions.getPlatform()).getFilePreSignedUrl(fileOptions, expire, timeUnit);
+        return allFileStorage.get(fileHandler.getPlatform()).getFilePreSignedUrl(fileHandler, expire, timeUnit);
     }
 
 
@@ -167,17 +168,17 @@ public class FileStorageService {
      * @param timeUnit     过期时间的时间单位
      * @return 上传文件的预签名URL
      */
-    public String uploadFilePreSignedUrl(Consumer<FileOptions.Builder> configurator, Integer expire, TimeUnit timeUnit) {
+    public String uploadFilePreSignedUrl(Consumer<FileHandler.Builder> configurator, Integer expire, TimeUnit timeUnit) {
         // 创建文件选项构建器，用于配置文件查询参数
-        FileOptions.Builder builder = new FileOptions.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
         // 如果配置器不为空，则应用配置器以设置文件选项
         if (Objects.nonNull(configurator)) {
             configurator.accept(builder);
         }
         // 构建最终的文件选项实例
-        FileOptions fileOptions = builder.build();
+        FileHandler fileHandler = builder.build();
         // 使用配置好的文件选项来获取并返回文件列表
-        return allFileStorage.get(fileOptions.getPlatform()).uploadFilePreSignedUrl(fileOptions, expire, timeUnit);
+        return allFileStorage.get(fileHandler.getPlatform()).uploadFilePreSignedUrl(fileHandler, expire, timeUnit);
     }
 
 }

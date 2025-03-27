@@ -8,10 +8,7 @@ import com.whim.file.model.MetaData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author Jince
@@ -38,9 +34,7 @@ public class TestController extends BaseController {
     @GetMapping("/upload")
     @SaIgnore
     public Result<MetaData> upload(@RequestParam("platform") String platform, @RequestParam("file") MultipartFile file) {
-        MetaData metaData = fileStorageService.upload(file, builder -> {
-            builder.platform(platform).storagePath("/ccc").fileName("123.jpg");
-        });
+        MetaData metaData = fileStorageService.upload(file,builder -> builder.platform(platform).storagePath("/ccc").fileName("123.jpg"));
         return Result.success("上传成功", metaData);
     }
 
@@ -48,20 +42,30 @@ public class TestController extends BaseController {
     @SaIgnore
     public ResponseEntity<Resource> getFile(@RequestParam("platform") String platform, @RequestParam("name") String name) {
 
-        InputStream inputStream = fileStorageService.getFileInfo(builder -> builder.platform(platform).storagePath("ccc").fileName(name));
-        InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
-        String detect = null;
-        try {
-            detect = tika.detect(inputStream);
-            inputStream.reset();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.valueOf(detect));
-        return ResponseEntity.ok()
-                .headers(httpHeaders)
-                .body(inputStreamResource);
+        fileStorageService.download(builder -> builder.platform(platform).storagePath("ccc").fileName(name)).inputStream(in -> {
+            // 处理流（自动关闭）
+            byte[] data = null;
+            try {
+                data = in.readAllBytes();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("文件大小: " + data.length);
+        });
+//        InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+//        String detect = null;
+//        try {
+//            detect = tika.detect(inputStream);
+//            inputStream.reset();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        HttpHeaders httpHeaders = new HttpHeaders();
+//        httpHeaders.setContentType(MediaType.valueOf(detect));
+//        return ResponseEntity.ok()
+//                .headers(httpHeaders)
+//                .body(inputStreamResource);
+        return null;
 
 
     }

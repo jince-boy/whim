@@ -2,7 +2,8 @@ package com.whim.file.storage.impl;
 
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.PathUtil;
-import com.whim.file.FileOptions;
+import com.whim.file.handler.FileHandler;
+import com.whim.file.handler.DownloadHandler;
 import com.whim.file.wrapper.IFileWrapper;
 import com.whim.file.client.MinioFileStorageClientFactory;
 import com.whim.file.config.FileStorageProperties.MinioStorageProperties;
@@ -36,21 +37,21 @@ public class MinioFileStorageImpl implements IFileStorage {
     /**
      * 上传文件
      *
-     * @param fileOptions 文件选项
+     * @param fileHandler 文件选项
      * @return MetaData
      */
     @Override
-    public MetaData upload(FileOptions fileOptions) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+    public MetaData upload(FileHandler fileHandler) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            try (IFileWrapper fileWrapper = fileOptions.getFileWrapper()) {
-                String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            try (IFileWrapper fileWrapper = fileHandler.getFileWrapper()) {
+                String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
                 InputStream inputStream = fileWrapper.getInputStream();
                 fileStorageClientFactory.getClient().putObject(
                         PutObjectArgs.builder()
                                 .bucket(storageProperties.getBucket())
                                 .object(path)
-                                .contentType(fileOptions.getContentType())
+                                .contentType(fileHandler.getContentType())
                                 .stream(inputStream, -1, 5 * 1024 * 1024)
                                 .build()
                 );
@@ -63,7 +64,7 @@ public class MinioFileStorageImpl implements IFileStorage {
                 );
                 // 创建并填充元数据对象
                 MetaData metaData = new MetaData();
-                metaData.setFileName(fileOptions.getFileName());
+                metaData.setFileName(fileHandler.getFileName());
                 metaData.setStoragePath(path);
                 metaData.setFileSize(FileUtils.byteCountToDisplaySize(stat.size()));
                 metaData.setContentType(stat.contentType());
@@ -74,23 +75,27 @@ public class MinioFileStorageImpl implements IFileStorage {
         }
     }
 
+    @Override
+    public DownloadHandler download(FileHandler fileHandler) {
+        return null;
+    }
 
     /**
      * 获取文件信息
      * 该方法根据文件选项（FileOptions）参数，连接到Minio存储系统并尝试获取指定文件的流信息
      * 主要用于文件下载或直接访问的场景
      *
-     * @param fileOptions 文件选项，包含文件的存储属性和封装的文件信息
+     * @param fileHandler 文件选项，包含文件的存储属性和封装的文件信息
      * @return 返回一个InputStream输入流，用于读取文件内容
      * @throws FileStorageException 如果文件不存在或获取文件时发生错误，抛出自定义的文件存储异常
      */
     @Override
-    public InputStream getFileInfo(FileOptions fileOptions) {
+    public InputStream getFileInfo(FileHandler fileHandler) {
         // 获取文件存储属性，这里是Minio存储系统的配置
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
             // 构造文件的完整路径，确保路径格式使用正斜杠
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             // 使用Minio客户端获取文件对象
             GetObjectResponse object = fileStorageClientFactory.getClient()
                     .getObject(
@@ -114,15 +119,15 @@ public class MinioFileStorageImpl implements IFileStorage {
     /**
      * 删除Minio中的文件
      *
-     * @param fileOptions 文件选项
+     * @param fileHandler 文件选项
      * @return true 删除成功，false 删除失败
      */
     @Override
-    public Boolean deleteFile(FileOptions fileOptions) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+    public Boolean deleteFile(FileHandler fileHandler) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
             String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH,
-                    false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+                    false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             fileStorageClientFactory.getClient().removeObject(
                     RemoveObjectArgs.builder()
                             .bucket(storageProperties.getBucket())
@@ -140,14 +145,14 @@ public class MinioFileStorageImpl implements IFileStorage {
     /**
      * 判断文件是否存在
      *
-     * @param fileOptions 文件选项
+     * @param fileHandler 文件选项
      * @return true 文件存在，false 文件不存在
      */
     @Override
-    public Boolean exists(FileOptions fileOptions) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+    public Boolean exists(FileHandler fileHandler) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             fileStorageClientFactory.getClient().statObject(
                     StatObjectArgs.builder()
                             .bucket(storageProperties.getBucket())
@@ -165,16 +170,16 @@ public class MinioFileStorageImpl implements IFileStorage {
     /**
      * 获取Minio中的文件预签名URL
      *
-     * @param fileOptions 文件选项
+     * @param fileHandler 文件选项
      * @param expire      有效期
      * @param timeUnit    有效期单位
      * @return 文件预签名URL
      */
     @Override
-    public String getFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+    public String getFilePreSignedUrl(FileHandler fileHandler, Integer expire, TimeUnit timeUnit) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             return fileStorageClientFactory.getClient().getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .bucket(storageProperties.getBucket())
@@ -191,16 +196,16 @@ public class MinioFileStorageImpl implements IFileStorage {
     /**
      * 获取上传文件预签名URL
      *
-     * @param fileOptions 文件选项
+     * @param fileHandler 文件选项
      * @param expire      有效期
      * @param timeUnit    有效期单位
      * @return 文件预签名URL
      */
     @Override
-    public String uploadFilePreSignedUrl(FileOptions fileOptions, Integer expire, TimeUnit timeUnit) {
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileOptions.getStorageProperties();
+    public String uploadFilePreSignedUrl(FileHandler fileHandler, Integer expire, TimeUnit timeUnit) {
+        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
         try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileOptions.getStoragePath(), fileOptions.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             return fileStorageClientFactory.getClient().getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .bucket(storageProperties.getBucket())
