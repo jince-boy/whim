@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -74,27 +75,20 @@ public class LocalFileStorageImpl implements IFileStorage {
 
     @Override
     public DownloadHandler download(FileHandler fileHandler) {
-        return null;
-    }
-
-    /**
-     * 获取文件信息
-     * 该方法根据文件选项构建文件包装器，并从本地存储中获取文件流
-     * 主要用于处理文件上传、下载等操作中的文件信息获取
-     *
-     * @param fileHandler 文件选项对象，包含文件存储属性和文件包装器
-     * @return 返回文件的输入流，用于读取文件内容
-     * @throws FileStorageException 当文件不存在或获取文件时发生异常时抛出
-     */
-    @Override
-    public InputStream getFileInfo(FileHandler fileHandler) {
         // 获取文件存储属性
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
         try {
             // 构建文件路径并获取绝对路径
             Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
             // 返回文件输入流
-            return new BufferedInputStream(Files.newInputStream(path));
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(Files.newInputStream(path));
+            return DownloadHandler.of(bufferedInputStream, () -> {
+                try {
+                    bufferedInputStream.close();
+                } catch (IOException e) {
+                    throw new FileStorageException("资源关闭失败", e);
+                }
+            });
         } catch (NoSuchFileException e) {
             // 当文件不存在时抛出异常
             throw new FileStorageException("文件不存在", e);
@@ -104,6 +98,32 @@ public class LocalFileStorageImpl implements IFileStorage {
         }
     }
 
+    @Override
+    public MetaData getFileMetaData(FileHandler fileHandler) {
+        // 获取本地存储属性
+        LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
+        try (IFileWrapper fileWrapper = fileHandler.getFileWrapper()) {
+            // 构建文件的绝对路径
+            Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath())).toAbsolutePath();
+
+            if (Files.exists(basePath) && !Files.isDirectory(basePath)) {
+                MetaData metaData = new MetaData();
+                metaData.setFileName(basePath.getFileName().toString());
+                metaData.setStoragePath(basePath.toString());
+                metaData.setFileSize(String.valueOf(Files.size(basePath)));
+
+                // 获取文件 MIME 类型，若获取失败，默认 application/octet-stream
+                String contentType = Files.probeContentType(basePath);
+                metaData.setContentType(contentType != null ? contentType : "application/octet-stream");
+
+                return metaData;
+            }
+            throw new FileStorageException("文件不存在");
+        } catch (Exception e) {
+            // 如果上传过程中发生异常，抛出自定义异常
+            throw new FileStorageException("文件上传失败:" + e.getMessage(), e);
+        }
+    }
 
     /**
      * 删除指定文件

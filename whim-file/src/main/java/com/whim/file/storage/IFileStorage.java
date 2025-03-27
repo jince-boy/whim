@@ -1,10 +1,9 @@
 package com.whim.file.storage;
 
-import com.whim.file.handler.FileHandler;
 import com.whim.file.handler.DownloadHandler;
+import com.whim.file.handler.FileHandler;
 import com.whim.file.model.MetaData;
 
-import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,15 +20,21 @@ public interface IFileStorage {
      */
     MetaData upload(FileHandler fileHandler);
 
+    /**
+     * 下载文件
+     *
+     * @param fileHandler 文件选项
+     * @return DownloadHandler
+     */
     DownloadHandler download(FileHandler fileHandler);
 
     /**
-     * 获取文件
+     * 获取文件元数据
      *
      * @param fileHandler 文件选项
-     * @return 文件信息
+     * @return MetaData
      */
-    InputStream getFileInfo(FileHandler fileHandler);
+    MetaData getFileMetaData(FileHandler fileHandler);
 
     /**
      * 删除文件

@@ -77,35 +77,28 @@ public class MinioFileStorageImpl implements IFileStorage {
 
     @Override
     public DownloadHandler download(FileHandler fileHandler) {
-        return null;
-    }
-
-    /**
-     * 获取文件信息
-     * 该方法根据文件选项（FileOptions）参数，连接到Minio存储系统并尝试获取指定文件的流信息
-     * 主要用于文件下载或直接访问的场景
-     *
-     * @param fileHandler 文件选项，包含文件的存储属性和封装的文件信息
-     * @return 返回一个InputStream输入流，用于读取文件内容
-     * @throws FileStorageException 如果文件不存在或获取文件时发生错误，抛出自定义的文件存储异常
-     */
-    @Override
-    public InputStream getFileInfo(FileHandler fileHandler) {
         // 获取文件存储属性，这里是Minio存储系统的配置
-        MinioStorageProperties storageProperties = (MinioStorageProperties) fileHandler.getStorageProperties();
-        try (MinioFileStorageClientFactory fileStorageClientFactory = new MinioFileStorageClientFactory(storageProperties)) {
+        MinioStorageProperties properties = (MinioStorageProperties) fileHandler.getStorageProperties();
+        try (MinioFileStorageClientFactory factory = new MinioFileStorageClientFactory(properties)) {
             // 构造文件的完整路径，确保路径格式使用正斜杠
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, storageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, properties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             // 使用Minio客户端获取文件对象
-            GetObjectResponse object = fileStorageClientFactory.getClient()
+            GetObjectResponse object = factory.getClient()
                     .getObject(
                             GetObjectArgs.builder()
-                                    .bucket(storageProperties.getBucket()) // 指定存储桶
+                                    .bucket(properties.getBucket()) // 指定存储桶
                                     .object(path) // 指定文件路径
                                     .build()
                     );
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(object);
             // 返回文件内容的输入流
-            return new BufferedInputStream(object);
+            return DownloadHandler.of(bufferedInputStream, () -> {
+                try {
+                    bufferedInputStream.close();
+                } catch (Exception e) {
+                    throw new FileStorageException("资源关闭失败", e);
+                }
+            });
         } catch (ErrorResponseException e) {
             // 当Minio服务器返回错误响应时，抛出文件不存在的异常
             throw new FileStorageException("文件不存在", e);
@@ -115,6 +108,10 @@ public class MinioFileStorageImpl implements IFileStorage {
         }
     }
 
+    @Override
+    public MetaData getFileMetaData(FileHandler fileHandler) {
+        return null;
+    }
 
     /**
      * 删除Minio中的文件

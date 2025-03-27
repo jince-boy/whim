@@ -78,11 +78,6 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         }
     }
 
-    @Override
-    public InputStream getFileInfo(FileHandler fileHandler) {
-        return null;
-    }
-
     /**
      * 获取文件信息
      * 通过文件选项对象获取阿里云OSS存储属性，进而获取文件信息
@@ -103,7 +98,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         if (factory.getClient().doesObjectExist(properties.getBucket(), path)) {
             // 获取文件对象
             OSSObject ossObject = factory.getClient().getObject(properties.getBucket(), path);
-            InputStream objectContent = new BufferedInputStream(ossObject.getObjectContent());
+            BufferedInputStream objectContent = new BufferedInputStream(ossObject.getObjectContent());
             return DownloadHandler.of(objectContent, () -> {
                 try {
                     objectContent.close();
@@ -118,6 +113,10 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         }
     }
 
+    @Override
+    public MetaData getFileMetaData(FileHandler fileHandler) {
+        return null;
+    }
 
     /**
      * 删除文件方法

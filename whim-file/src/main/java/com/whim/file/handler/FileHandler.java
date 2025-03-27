@@ -70,6 +70,7 @@ public class FileHandler {
             this.allFileAdapter = allFileAdapter;
             this.allFileStorage = allFileStorage;
             this.platform = fileStorageProperties.getDefaultStorage();
+            this.contentType = "application/octet-stream";
             initializePlatformConfig();
         }
 
