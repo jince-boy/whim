@@ -90,12 +90,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      * 通过用户名查询用户
      *
      * @param username 用户名
-     * @return SysUser
+     * @return SysUser 系统用户对象
      */
     @Override
     public SysUser getSysUserByUsername(String username) {
-        if (username == null) {
-            throw new NullPointerException("username 不能为 null");
+        if (username == null || username.isBlank()) {
+            throw new NullPointerException("username 不能为空");
         }
         return this.lambdaQuery().eq(SysUser::getUsername, username).one();
     }

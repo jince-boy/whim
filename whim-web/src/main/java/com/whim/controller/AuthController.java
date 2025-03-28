@@ -1,5 +1,6 @@
 package com.whim.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.whim.common.web.Result;
 import com.whim.model.dto.LoginDTO;
 import com.whim.model.vo.CaptchaVO;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * description: 用户认证控制器
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/system/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final ISysUserService userService;
@@ -38,5 +39,11 @@ public class AuthController {
     @GetMapping("/captcha")
     public Result<CaptchaVO> getCaptcha() {
         return Result.success("验证码获取成功", userService.getCaptcha());
+    }
+
+    @GetMapping("/test")
+    @SaCheckPermission("aaa")
+    public Result<Void> test() {
+        return Result.success("测试成功");
     }
 }

@@ -21,17 +21,35 @@ public class StpInterfaceImpl implements StpInterface {
     private final ISysPermissionService sysPermissionService;
     private final ISysRoleService sysRoleService;
 
+
     @Override
     public List<String> getPermissionList(Object userId, String loginType) {
-        long sysUserId = Long.parseLong(userId.toString());
-        if (sysUserId == 1L) {
-            return List.of("*");
+        // 后台用户权限认证
+        if (loginType.equals("admin")) {
+            long sysUserId = Long.parseLong(userId.toString());
+            if (sysUserId == 1L) {
+                return List.of("*");
+            }
+            return sysPermissionService.getPermissionCodeByUserId(sysUserId);
         }
-        return sysPermissionService.getPermissionCodeByUserId(sysUserId);
+        // 此处可根据用户类型进行权限获取
+        if (loginType.equals("user")) {
+            return List.of();
+        }
+        return List.of();
     }
 
     @Override
-    public List<String> getRoleList(Object userId, String s) {
-        return sysRoleService.getRoleCodeByUserId((Long) userId);
+    public List<String> getRoleList(Object userId, String loginType) {
+        // 后台用户权限认证
+        if (loginType.equals("admin")) {
+            return sysRoleService.getRoleCodeByUserId((Long) userId);
+        }
+        // 此处可根据用户类型进行权限获取
+        if (loginType.equals("user")) {
+            return List.of();
+        }
+        return List.of();
+
     }
 }
