@@ -27,10 +27,20 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-3-starter</artifactId>
         </dependency>
-        <!--系统模块-->
+        <!--saToken-->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-redis-template</artifactId>
+            <version>${sa-token.version}</version>
+        </dependency>
+        <!--通用模块-->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-system</artifactId>
+            <artifactId>whim-common</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -1,10 +1,10 @@
-package com.whim.controller;
+package com.whim.controller.system;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.whim.common.web.Result;
-import com.whim.model.dto.LoginDTO;
-import com.whim.model.vo.CaptchaVO;
-import com.whim.model.vo.LoginVO;
+import com.whim.core.auth.annotation.SystemCheckPermission;
+import com.whim.system.model.dto.LoginDTO;
+import com.whim.system.model.vo.CaptchaVO;
+import com.whim.system.model.vo.LoginVO;
 import com.whim.system.service.ISysUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +42,10 @@ public class AuthController {
     }
 
     @GetMapping("/test")
-    @SaCheckPermission("aaa")
+    @SystemCheckPermission("adc")
+//    @SaCheckPermission(type="system",value = "acsd")
     public Result<Void> test() {
+
         return Result.success("测试成功");
     }
 }

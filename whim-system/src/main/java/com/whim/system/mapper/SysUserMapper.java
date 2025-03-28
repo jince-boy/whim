@@ -1,7 +1,7 @@
 package com.whim.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.whim.model.entity.SysUser;
+import com.whim.system.model.entity.SysUser;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

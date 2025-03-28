@@ -1,10 +1,10 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.model.dto.LoginDTO;
-import com.whim.model.entity.SysUser;
-import com.whim.model.vo.CaptchaVO;
-import com.whim.model.vo.LoginVO;
+import com.whim.system.model.dto.LoginDTO;
+import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.vo.CaptchaVO;
+import com.whim.system.model.vo.LoginVO;
 
 /**
  * @author Jince

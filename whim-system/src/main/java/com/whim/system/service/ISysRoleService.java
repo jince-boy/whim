@@ -1,7 +1,7 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.model.entity.SysRole;
+import com.whim.system.model.entity.SysRole;
 
 import java.util.List;
 

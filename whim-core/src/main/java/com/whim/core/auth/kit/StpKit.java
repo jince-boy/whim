@@ -15,12 +15,11 @@ public class StpKit {
     public static final StpLogic DEFAULT = StpUtil.stpLogic;
 
     /**
-     * Admin 会话对象，管理 Admin 表所有账号的登录、权限认证
+     * System 会话对象，管理 System 表所有账号的登录、权限认证
      */
-    public static final StpLogic ADMIN = new StpLogic("admin");
-
+    public static final StpLogic SYSTEM = new StpLogic("system");
     /**
-     * User 会话对象，管理 User 表所有账号的登录、权限认证
+     * XX 会话对象，（项目中有多少套账号表，就声明几个 StpLogic 会话对象）
      */
-    public static final StpLogic USER = new StpLogic("user");
+    public static final StpLogic XXX = new StpLogic("xx");
 }

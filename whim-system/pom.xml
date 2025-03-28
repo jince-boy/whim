@@ -12,24 +12,15 @@
     <artifactId>whim-system</artifactId>
 
     <dependencies>
-        <!--模型模块-->
+        <!--核心模块-->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-model</artifactId>
+            <artifactId>whim-core</artifactId>
         </dependency>
+        <!--文件模块-->
         <dependency>
             <groupId>com.whim</groupId>
             <artifactId>whim-file</artifactId>
-        </dependency>
-        <!--saToken-->
-        <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot3-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-redis-template</artifactId>
-            <version>${sa-token.version}</version>
         </dependency>
     </dependencies>
 

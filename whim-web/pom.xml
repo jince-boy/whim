@@ -11,9 +11,10 @@
 
     <artifactId>whim-web</artifactId>
     <dependencies>
+        <!--系统业务模块-->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-core</artifactId>
+            <artifactId>whim-system</artifactId>
         </dependency>
         <!--spring-boot-starter-test-->
         <dependency>

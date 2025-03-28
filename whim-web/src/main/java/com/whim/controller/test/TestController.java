@@ -1,4 +1,4 @@
-package com.whim.controller;
+package com.whim.controller.test;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import com.whim.common.base.BaseController;

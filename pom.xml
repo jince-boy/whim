@@ -22,7 +22,6 @@
         <module>whim-web</module>
         <module>whim-core</module>
         <module>whim-system</module>
-        <module>whim-model</module>
         <module>whim-common</module>
         <module>whim-file</module>
     </modules>
@@ -147,12 +146,6 @@
             <dependency>
                 <groupId>com.whim</groupId>
                 <artifactId>whim-common</artifactId>
-                <version>${whim.version}</version>
-            </dependency>
-            <!--model模块-->
-            <dependency>
-                <groupId>com.whim</groupId>
-                <artifactId>whim-model</artifactId>
                 <version>${whim.version}</version>
             </dependency>
             <!--系统模块-->

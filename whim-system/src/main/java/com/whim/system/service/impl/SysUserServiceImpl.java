@@ -1,7 +1,6 @@
 package com.whim.system.service.impl;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wf.captcha.ArithmeticCaptcha;
 import com.whim.common.constant.RedisConstants;
@@ -13,11 +12,12 @@ import com.whim.common.utils.IDGeneratorUtil;
 import com.whim.common.utils.IPUtil;
 import com.whim.common.utils.RedisUtil;
 import com.whim.common.utils.StringFormatUtil;
-import com.whim.model.dto.LoginDTO;
-import com.whim.model.entity.SysUser;
-import com.whim.model.vo.CaptchaVO;
-import com.whim.model.vo.LoginVO;
+import com.whim.core.auth.kit.StpKit;
 import com.whim.system.mapper.SysUserMapper;
+import com.whim.system.model.dto.LoginDTO;
+import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.vo.CaptchaVO;
+import com.whim.system.model.vo.LoginVO;
 import com.whim.system.service.ISysUserService;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -64,11 +64,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // 判断是否选中了记住我
         if (loginDTO.getRememberMe()) {
-            StpUtil.login(sysUser.getId());
+            StpKit.SYSTEM.login(sysUser.getId());
         } else {
-            StpUtil.login(sysUser.getId(), false);
+            StpKit.SYSTEM.login(sysUser.getId(), false);
         }
-        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
+        SaTokenInfo tokenInfo = StpKit.SYSTEM.getTokenInfo();
         return new LoginVO("Bearer", tokenInfo.getTokenValue(), tokenInfo.getTokenTimeout());
     }
 

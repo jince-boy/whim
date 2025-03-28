@@ -1,4 +1,4 @@
-package com.whim.model.vo;
+package com.whim.system.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

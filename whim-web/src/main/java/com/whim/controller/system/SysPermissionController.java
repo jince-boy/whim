@@ -1,4 +1,4 @@
-package com.whim.controller;
+package com.whim.controller.system;
 
 
 import com.whim.common.base.BaseController;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * description: 菜单权限(SysPermission)表控制层
  */
 @RestController
-@RequestMapping("/sysPermission")
+@RequestMapping("/system/sysPermission")
 @RequiredArgsConstructor
 public class SysPermissionController extends BaseController {
     private final ISysPermissionService sysPermissionService;
