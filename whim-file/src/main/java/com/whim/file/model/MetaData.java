@@ -22,7 +22,7 @@ public class MetaData {
     /**
      * 文件大小，用于描述文件的字节大小
      */
-    private String fileSize;
+    private Long fileSize;
 
     /**
      * 文件内容类型，表示文件的MIME类型，用于在网络传输时标识文件类型

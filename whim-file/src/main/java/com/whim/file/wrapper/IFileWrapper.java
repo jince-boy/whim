@@ -10,7 +10,7 @@ import java.io.InputStream;
 public interface IFileWrapper extends AutoCloseable {
 
     InputStream getInputStream();
-    
+
     @Override
     void close() throws Exception;
 }

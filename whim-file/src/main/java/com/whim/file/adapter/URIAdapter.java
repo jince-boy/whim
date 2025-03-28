@@ -10,20 +10,33 @@ import java.net.URI;
 /**
  * @author jince
  * date: 2025/3/12 19:58
- * description: url适配器
+ * description: URL适配器，用于处理URI类型的文件
  */
 @Component
 @RequiredArgsConstructor
 public class URIAdapter implements IFileAdapter {
 
+    /**
+     * 判断是否支持给定的文件对象
+     *
+     * @param file 待判断的文件对象
+     * @return 如果文件对象是URI类型，则返回true，否则返回false
+     */
     @Override
     public boolean isSupport(Object file) {
         return file instanceof URI;
     }
 
+    /**
+     * 获取文件包装器
+     *
+     * @param file 需要包装的文件对象
+     * @return 返回一个实现了IFileWrapper接口的URIWrapper实例
+     */
     @Override
     public IFileWrapper getFileWrapper(Object file) {
         URI uri = (URI) file;
         return new URIWrapper(uri);
     }
 }
+

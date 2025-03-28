@@ -39,7 +39,7 @@ public class TestController extends BaseController {
     @GetMapping("/upload")
     @SaIgnore
     public Result<MetaData> upload(@RequestParam("platform") String platform, @RequestParam("file") MultipartFile file) {
-        MetaData metaData = fileStorageService.upload(file, builder -> builder.platform(platform).storagePath("/ccc").fileName("123.jpg"));
+        MetaData metaData = fileStorageService.upload(file, builder -> builder.platform(platform).storagePath("ccc").fileName("123.jpg"));
         return Result.success("上传成功", metaData);
     }
 
@@ -92,6 +92,13 @@ public class TestController extends BaseController {
     public Result<String> uploadFilePreSignedUrl(@RequestParam("platform") String platform, @RequestParam("name") String name) {
         String filePreSignedUrl = fileStorageService.uploadFilePreSignedUrl(builder -> builder.platform(platform).storagePath("ccc").fileName(name).contentType("image/jpeg"), 3, TimeUnit.HOURS);
         return Result.success("获取文件预签名地址成功", filePreSignedUrl);
+    }
+
+    @GetMapping("/getFileMetaData")
+    @SaIgnore
+    public Result<MetaData> getFileMetaData(@RequestParam("platform") String platform, @RequestParam("name") String name) {
+        MetaData fileMetaData = fileStorageService.getFileMetaData(builder -> builder.platform(platform).storagePath("ccc").fileName(name));
+        return Result.success("获取文件元数据成功", fileMetaData);
     }
 
 }

@@ -181,4 +181,29 @@ public class FileStorageService {
         return allFileStorage.get(fileHandler.getPlatform()).uploadFilePreSignedUrl(fileHandler, expire, timeUnit);
     }
 
+    /**
+     * 获取文件元数据
+     * <p>
+     * 该方法通过接受一个消费者函数接口（Consumer）来配置文件处理的选项，然后根据这些选项获取文件的元数据
+     *
+     * @param configurator 文件处理选项的配置器，通过Consumer接口允许调用者在文件处理前配置处理选项
+     * @return MetaData 返回文件的元数据对象，包含文件的相关信息
+     */
+    public MetaData getFileMetaData(Consumer<FileHandler.Builder> configurator) {
+        // 创建文件选项构建器，用于配置文件选项
+        FileHandler.Builder builder = new FileHandler.Builder(fileStorageProperties, allFileAdapter, allFileStorage);
+
+        // 如果配置器不为空，则应用配置器以设置文件选项
+        if (Objects.nonNull(configurator)) {
+            configurator.accept(builder);
+        }
+
+        // 构建最终的文件选项实例
+        FileHandler fileHandler = builder.build();
+
+        // 根据构建的文件选项实例获取并返回文件元数据
+        return allFileStorage.get(fileHandler.getPlatform()).getFileMetaData(fileHandler);
+    }
+
+
 }

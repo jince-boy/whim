@@ -131,17 +131,31 @@ public class FileHandler {
             return this;
         }
 
+        /**
+         * 文件包装方法，用于根据文件类型动态选择合适的文件适配器进行文件处理
+         *
+         * @param file 需要被包装的文件对象，可以是不同类型的文件
+         * @throws FileStorageException 如果没有找到支持该文件类型的适配器，则抛出此异常
+         */
         public void fileWrapper(Object file) {
+            // 遍历所有文件适配器，寻找支持当前文件类型的适配器
             for (IFileAdapter fileAdapter : allFileAdapter) {
+                // 检查当前文件适配器是否支持该文件
                 if (fileAdapter.isSupport(file)) {
+                    // 找到支持的适配器后，使用它来包装文件
                     this.fileWrapper = fileAdapter.getFileWrapper(file);
+                    // 获取并设置文件包装器的默认内容类型
                     this.contentType = ((BaseFileWrapper<?>) this.fileWrapper).getDefaultContentType();
+                    // 获取并设置文件包装器的默认文件名
                     this.fileName = ((BaseFileWrapper<?>) this.fileWrapper).getDefaultFileName();
+                    // 完成文件包装后，结束方法执行
                     return;
                 }
             }
+            // 如果没有适配器支持该文件类型，抛出异常
             throw new FileStorageException("未找到对应的文件适配器");
         }
+
 
         public FileHandler build() {
             return new FileHandler(this);
@@ -167,6 +181,14 @@ public class FileHandler {
             this.storageProperties = defaultConfig;
         }
 
+        /**
+         * 获取当前平台的配置信息
+         * 该方法通过反射从FileStorageProperties对象中提取与当前平台相关的配置列表
+         * 使用泛型List来处理不同类型的存储配置，以提高代码的可扩展性和灵活性
+         *
+         * @return 返回一个包含当前平台存储配置的List，配置类型为FileStorageProperties.StorageConfig的子类
+         * @throws FileStorageException 如果反射操作失败，抛出此自定义异常，指示存储平台配置存在问题
+         */
         @SuppressWarnings("unchecked")
         private List<? extends FileStorageProperties.StorageConfig> getCurrentPlatformConfigs() {
             try {
@@ -181,5 +203,6 @@ public class FileHandler {
                 throw new FileStorageException("无效的存储平台配置: " + platform, e);
             }
         }
+
     }
 }

@@ -2,14 +2,13 @@ package com.whim.file.storage.impl;
 
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.PathUtil;
-import com.whim.file.handler.FileHandler;
-import com.whim.file.handler.DownloadHandler;
-import com.whim.file.wrapper.IFileWrapper;
 import com.whim.file.config.FileStorageProperties.LocalStorageProperties;
+import com.whim.file.handler.DownloadHandler;
+import com.whim.file.handler.FileHandler;
 import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
+import com.whim.file.wrapper.IFileWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
@@ -46,7 +45,7 @@ public class LocalFileStorageImpl implements IFileStorage {
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
         try (IFileWrapper fileWrapper = fileHandler.getFileWrapper()) {
             // 构建文件的绝对路径
-            Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath())).toAbsolutePath();
+            Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath())).toAbsolutePath();
             // 如果路径不存在，则创建目录
             if (!Files.exists(basePath)) {
                 Files.createDirectories(basePath);
@@ -63,7 +62,7 @@ public class LocalFileStorageImpl implements IFileStorage {
             MetaData metaData = new MetaData();
             metaData.setFileName(fileHandler.getFileName());
             metaData.setStoragePath(filePath.toString());
-            metaData.setFileSize(FileUtils.byteCountToDisplaySize(copy));
+            metaData.setFileSize(copy);
             metaData.setContentType(mimeType);
             // 返回元数据
             return metaData;
@@ -73,13 +72,19 @@ public class LocalFileStorageImpl implements IFileStorage {
         }
     }
 
+    /**
+     * 下载文件
+     *
+     * @param fileHandler 文件选项
+     * @return DownloadHandler 文件下载处理器
+     */
     @Override
     public DownloadHandler download(FileHandler fileHandler) {
         // 获取文件存储属性
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
         try {
             // 构建文件路径并获取绝对路径
-            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
+            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, false, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
             // 返回文件输入流
             BufferedInputStream bufferedInputStream = new BufferedInputStream(Files.newInputStream(path));
             return DownloadHandler.of(bufferedInputStream, () -> {
@@ -98,32 +103,42 @@ public class LocalFileStorageImpl implements IFileStorage {
         }
     }
 
+    /**
+     * 获取文件的元数据信息
+     *
+     * @param fileHandler 文件处理器，包含文件存储路径和文件名等信息
+     * @return 文件的元数据信息，包括文件名、存储路径、文件大小和MIME类型
+     * @throws FileStorageException 如果文件不存在或无法获取文件元信息时抛出异常
+     */
     @Override
     public MetaData getFileMetaData(FileHandler fileHandler) {
         // 获取本地存储属性
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
-        try (IFileWrapper fileWrapper = fileHandler.getFileWrapper()) {
-            // 构建文件的绝对路径
-            Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath())).toAbsolutePath();
 
-            if (Files.exists(basePath) && !Files.isDirectory(basePath)) {
+        // 构建文件的绝对路径
+        Path basePath = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, false, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
+
+        // 检查文件是否存在且不是目录
+        if (Files.exists(basePath) && !Files.isDirectory(basePath)) {
+            try {
+                // 创建MetaData对象以存储文件元信息
                 MetaData metaData = new MetaData();
                 metaData.setFileName(basePath.getFileName().toString());
                 metaData.setStoragePath(basePath.toString());
-                metaData.setFileSize(String.valueOf(Files.size(basePath)));
-
+                metaData.setFileSize(Files.size(basePath));
                 // 获取文件 MIME 类型，若获取失败，默认 application/octet-stream
                 String contentType = Files.probeContentType(basePath);
                 metaData.setContentType(contentType != null ? contentType : "application/octet-stream");
-
                 return metaData;
+            } catch (Exception e) {
+                // 处理在获取文件元信息过程中可能发生的异常
+                throw new FileStorageException("获取文件元信息失败", e);
             }
-            throw new FileStorageException("文件不存在");
-        } catch (Exception e) {
-            // 如果上传过程中发生异常，抛出自定义异常
-            throw new FileStorageException("文件上传失败:" + e.getMessage(), e);
         }
+        // 如果文件不存在，抛出异常
+        throw new FileStorageException("文件不存在");
     }
+
 
     /**
      * 删除指定文件
@@ -138,7 +153,7 @@ public class LocalFileStorageImpl implements IFileStorage {
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
         try {
             // 构建文件的绝对路径
-            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
+            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, false, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
             // 如果是目录，则禁止删除
             if (Files.isDirectory(path)) {
                 throw new FileStorageException("此方法不支持删除文件夹");
@@ -149,7 +164,7 @@ public class LocalFileStorageImpl implements IFileStorage {
             }
             return true;
         } catch (Exception e) {
-            throw new FileStorageException("文件删除失败", e);
+            throw new FileStorageException("文件删除失败:" + e.getMessage(), e);
         }
     }
 
@@ -166,7 +181,7 @@ public class LocalFileStorageImpl implements IFileStorage {
         LocalStorageProperties localStorageProperties = (LocalStorageProperties) fileHandler.getStorageProperties();
         try {
             // 构建文件的绝对路径
-            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
+            Path path = Paths.get(PathUtil.mergePath(PathUtil.SlashType.BACK_SLASH, true, false, localStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName())).toAbsolutePath();
             // 检查文件是否存在且不是一个目录
             return Files.exists(path) && !Files.isDirectory(path);
         } catch (Exception e) {

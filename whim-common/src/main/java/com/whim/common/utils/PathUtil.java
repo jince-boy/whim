@@ -21,26 +21,17 @@ public class PathUtil {
      * @param paths          路径数组
      * @return 合并后的路径
      */
-    public static String mergePath(SlashType slashType, boolean isAbsolutePath, String... paths) {
+    public static String mergePath(SlashType slashType, boolean isAbsolutePath, boolean isDirectory, String... paths) {
         if (paths == null || paths.length == 0) {
             return "";
         }
 
         final char separator = slashType == SlashType.FORWARD_SLASH ? '/' : '\\';
-        boolean startsWithSlash = false;
-        boolean firstNonEmptyFound = false;
         StringBuilder result = new StringBuilder();
 
         for (String path : paths) {
             if (path == null || path.isEmpty()) {
                 continue;
-            }
-
-            // 确定首个非空路径是否以斜杠开头
-            if (!firstNonEmptyFound) {
-                char firstChar = path.charAt(0);
-                startsWithSlash = firstChar == '/' || firstChar == '\\';
-                firstNonEmptyFound = true;
             }
 
             // 去除首尾的斜杠/反斜杠
@@ -68,6 +59,10 @@ public class PathUtil {
         // 仅当 isAbsolutePath 为 true 时，确保结果以斜杠开头
         if (isAbsolutePath && !result.isEmpty() && result.charAt(0) != separator) {
             result.insert(0, separator);
+        }
+        // 如果 isDirectory 为 true，并且当前路径不是空的，并且不是以分隔符结尾，则添加分隔符
+        if (isDirectory && !result.isEmpty() && result.charAt(result.length() - 1) != separator) {
+            result.append(separator);
         }
         return result.toString();
     }

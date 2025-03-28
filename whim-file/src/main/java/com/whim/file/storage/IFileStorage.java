@@ -20,11 +20,12 @@ public interface IFileStorage {
      */
     MetaData upload(FileHandler fileHandler);
 
+
     /**
      * 下载文件
      *
      * @param fileHandler 文件选项
-     * @return DownloadHandler
+     * @return DownloadHandler 文件下载处理器
      */
     DownloadHandler download(FileHandler fileHandler);
 
@@ -32,7 +33,7 @@ public interface IFileStorage {
      * 获取文件元数据
      *
      * @param fileHandler 文件选项
-     * @return MetaData
+     * @return MetaData 元信息
      */
     MetaData getFileMetaData(FileHandler fileHandler);
 

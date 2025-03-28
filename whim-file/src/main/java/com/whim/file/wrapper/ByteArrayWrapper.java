@@ -24,7 +24,7 @@ public class ByteArrayWrapper extends BaseFileWrapper<byte[]> {
     public String getDefaultContentType() {
         return "application/octet-stream";
     }
-    
+
     @Override
     public InputStream getInputStream() {
         if (inputStream == null) {

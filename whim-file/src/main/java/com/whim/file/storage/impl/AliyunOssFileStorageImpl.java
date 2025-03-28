@@ -7,15 +7,14 @@ import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.whim.common.exception.FileStorageException;
 import com.whim.common.utils.PathUtil;
-import com.whim.file.handler.FileHandler;
 import com.whim.file.client.AliyunOssFileStorageClientFactory;
 import com.whim.file.config.FileStorageProperties.AliYunOssStorageProperties;
 import com.whim.file.handler.DownloadHandler;
+import com.whim.file.handler.FileHandler;
 import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
 import com.whim.file.wrapper.IFileWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
@@ -35,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 @Component("aliyunOss")
 public class AliyunOssFileStorageImpl implements IFileStorage {
 
-
     /**
      * 上传文件到阿里云OSS服务
      *
@@ -50,7 +48,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         try (AliyunOssFileStorageClientFactory storageClientFactory = new AliyunOssFileStorageClientFactory(aliYunOssStorageProperties)) {
             try (IFileWrapper fileWrapper = fileHandler.getFileWrapper()) {
                 // 构造文件在OSS中的完整路径
-                String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+                String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
                 // 获取文件输入流
                 InputStream inputStream = fileWrapper.getInputStream();
                 // 创建并设置对象元数据
@@ -67,7 +65,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
                 MetaData metaData = new MetaData();
                 metaData.setFileName(fileHandler.getFileName());
                 metaData.setStoragePath(path);
-                metaData.setFileSize(FileUtils.byteCountToDisplaySize(fullMetadata.getContentLength()));
+                metaData.setFileSize(fullMetadata.getContentLength());
                 metaData.setContentType(fullMetadata.getContentType());
                 // 返回元数据
                 return metaData;
@@ -79,12 +77,10 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
     }
 
     /**
-     * 获取文件信息
-     * 通过文件选项对象获取阿里云OSS存储属性，进而获取文件信息
+     * 下载文件
      *
-     * @param fileHandler 文件选项对象，包含文件存储属性和文件包装器
-     * @return 返回文件内容的输入流
-     * @throws FileStorageException 当文件不存在时抛出此异常
+     * @param fileHandler 文件选项
+     * @return DownloadHandler 文件下载处理器
      */
     @Override
     @SuppressWarnings("resource")
@@ -93,7 +89,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         AliYunOssStorageProperties properties = (AliYunOssStorageProperties) fileHandler.getStorageProperties();
         AliyunOssFileStorageClientFactory factory = new AliyunOssFileStorageClientFactory(properties);
         // 构造文件在OSS中的完整路径
-        String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, properties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+        String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, properties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
         // 检查文件是否存在
         if (factory.getClient().doesObjectExist(properties.getBucket(), path)) {
             // 获取文件对象
@@ -113,10 +109,38 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         }
     }
 
+    /**
+     * 获取文件的元数据信息
+     *
+     * @param fileHandler 文件处理器，包含文件的存储路径和名称等信息
+     * @return 返回文件的元数据对象，包括文件名、存储路径、文件大小和内容类型
+     * @throws FileStorageException 如果文件不存在，则抛出文件存储异常
+     */
     @Override
     public MetaData getFileMetaData(FileHandler fileHandler) {
-        return null;
+        // 获取阿里云OSS存储属性
+        AliYunOssStorageProperties properties = (AliYunOssStorageProperties) fileHandler.getStorageProperties();
+        try (AliyunOssFileStorageClientFactory factory = new AliyunOssFileStorageClientFactory(properties)) {
+            // 构造文件在OSS中的完整路径
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, properties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            // 检查文件是否存在
+            if (factory.getClient().doesObjectExist(properties.getBucket(), path)) {
+                // 获取上传后的文件完整元数据
+                ObjectMetadata fullMetadata = factory.getClient().getObjectMetadata(properties.getBucket(), path);
+                // 创建并填充元数据对象
+                MetaData metaData = new MetaData();
+                metaData.setFileName(fileHandler.getFileName());
+                metaData.setStoragePath(path);
+                metaData.setFileSize(fullMetadata.getContentLength());
+                metaData.setContentType(fullMetadata.getContentType());
+                // 返回元数据
+                return metaData;
+            }
+            // 如果文件不存在，抛出异常
+            throw new FileStorageException("文件不存在");
+        }
     }
+
 
     /**
      * 删除文件方法
@@ -132,11 +156,14 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         // 创建阿里云OSS文件存储客户端工厂，并确保资源在使用后被正确关闭
         try (AliyunOssFileStorageClientFactory storageClientFactory = new AliyunOssFileStorageClientFactory(aliYunOssStorageProperties)) {
             // 构造文件的完整路径
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
-            // 使用阿里云OSS客户端删除指定桶中的对象
-            storageClientFactory.getClient().deleteObject(aliYunOssStorageProperties.getBucket(), path);
-            // 文件删除成功，返回true
-            return true;
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            if (storageClientFactory.getClient().doesObjectExist(aliYunOssStorageProperties.getBucket(), path)) {
+                // 使用阿里云OSS客户端删除指定桶中的对象
+                storageClientFactory.getClient().deleteObject(aliYunOssStorageProperties.getBucket(), path);
+                // 文件删除成功，返回true
+                return true;
+            }
+            throw new FileStorageException("文件不存在");
         } catch (FileStorageException e) {
             // 如果文件存储操作中出现已知异常，直接抛出
             throw e;
@@ -160,7 +187,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         AliYunOssStorageProperties aliYunOssStorageProperties = (AliYunOssStorageProperties) fileHandler.getStorageProperties();
         try (AliyunOssFileStorageClientFactory storageClientFactory = new AliyunOssFileStorageClientFactory(aliYunOssStorageProperties)) {
             // 构造文件的完整路径
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             // 检查文件是否存在于指定的桶和路径中
             return storageClientFactory.getClient().doesObjectExist(aliYunOssStorageProperties.getBucket(), path);
         } catch (Exception e) {
@@ -184,15 +211,19 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         // 获取文件存储属性，这里是阿里云OSS的存储属性
         AliYunOssStorageProperties aliYunOssStorageProperties = (AliYunOssStorageProperties) fileHandler.getStorageProperties();
         try (AliyunOssFileStorageClientFactory storageClientFactory = new AliyunOssFileStorageClientFactory(aliYunOssStorageProperties)) {
+
             // 合并基础路径、文件存储路径和文件名，生成完整路径
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
-            // 计算过期时间：当前时间 + 指定的 expire 时间
-            long expirationMillis = System.currentTimeMillis() + timeUnit.toMillis(expire);
-            Date expiration = new Date(expirationMillis); // 转换为 Date 对象
-            // 生成预签名 URL
-            URL url = storageClientFactory.getClient().generatePresignedUrl(aliYunOssStorageProperties.getBucket(), path, expiration);
-            // 对 URL 进行 UTF-8 解码，确保 URL 中包含特殊字符时能够正确处理
-            return URLDecoder.decode(url.toString(), StandardCharsets.UTF_8);
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            if (storageClientFactory.getClient().doesObjectExist(aliYunOssStorageProperties.getBucket(), path)) {
+                // 计算过期时间：当前时间 + 指定的 expire 时间
+                long expirationMillis = System.currentTimeMillis() + timeUnit.toMillis(expire);
+                Date expiration = new Date(expirationMillis); // 转换为 Date 对象
+                // 生成预签名 URL
+                URL url = storageClientFactory.getClient().generatePresignedUrl(aliYunOssStorageProperties.getBucket(), path, expiration);
+                // 对 URL 进行 UTF-8 解码，确保 URL 中包含特殊字符时能够正确处理
+                return URLDecoder.decode(url.toString(), StandardCharsets.UTF_8);
+            }
+            throw new FileStorageException("文件不存在");
         } catch (Exception e) {
             // 如果获取预签名URL失败，抛出自定义异常
             throw new FileStorageException("文件预签名URL获取失败:" + e.getMessage(), e);
@@ -215,7 +246,7 @@ public class AliyunOssFileStorageImpl implements IFileStorage {
         AliYunOssStorageProperties aliYunOssStorageProperties = (AliYunOssStorageProperties) fileHandler.getStorageProperties();
         try (AliyunOssFileStorageClientFactory storageClientFactory = new AliyunOssFileStorageClientFactory(aliYunOssStorageProperties)) {
             // 构建文件路径
-            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
+            String path = PathUtil.mergePath(PathUtil.SlashType.FORWARD_SLASH, false, false, aliYunOssStorageProperties.getBasePath(), fileHandler.getStoragePath(), fileHandler.getFileName());
             // 计算过期时间：当前时间 + 指定的 expire 时间
             long expirationMillis = System.currentTimeMillis() + timeUnit.toMillis(expire);
             Date expiration = new Date(expirationMillis); // 转换为 Date 对象
