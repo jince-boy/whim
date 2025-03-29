@@ -7,7 +7,7 @@ import java.util.List;
  * date: 2025/3/28 22:33
  * description: 权限提供者，用来给不同业务模块提供权限
  */
-public interface IPermissionProvider {
+public interface IAccountAuthProvider {
     /**
      * 根据用户id获取权限列表
      *

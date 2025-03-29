@@ -1,7 +1,7 @@
 package com.whim.core.auth.service;
 
 import cn.dev33.satoken.stp.StpInterface;
-import com.whim.core.auth.provider.IPermissionProvider;
+import com.whim.core.auth.provider.IAccountAuthProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class StpInterfaceImpl implements StpInterface {
-    private final Map<String, IPermissionProvider> permissionProvider;
+    private final Map<String, IAccountAuthProvider> permissionProvider;
 
     @Override
     public List<String> getPermissionList(Object userId, String loginType) {

@@ -2,6 +2,7 @@ package com.whim.core.auth.annotation;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
+import com.whim.core.auth.kit.StpKit;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -12,9 +13,9 @@ import java.lang.annotation.Target;
 /**
  * @author jince
  * date: 2025/3/28 23:42
- * description: 多账号认证下的自定义注解，合并Satoken默认注解
+ * description: 系统用户权限认证：必须具有指定权限才能进入该方法
  */
-@SaCheckPermission(type = "system")
+@SaCheckPermission(type = StpKit.AccountType.SYSTEM)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface SystemCheckPermission {

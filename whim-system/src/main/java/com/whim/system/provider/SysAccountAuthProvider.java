@@ -1,6 +1,6 @@
 package com.whim.system.provider;
 
-import com.whim.core.auth.provider.IPermissionProvider;
+import com.whim.core.auth.provider.IAccountAuthProvider;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Component("system")
 @RequiredArgsConstructor
-public class SysPermissionProvider implements IPermissionProvider {
+public class SysAccountAuthProvider implements IAccountAuthProvider {
     private final ISysPermissionService sysPermissionService;
     private final ISysRoleService sysRoleService;
 

@@ -45,7 +45,6 @@ public class AuthController {
     @SystemCheckPermission("adc")
 //    @SaCheckPermission(type="system",value = "acsd")
     public Result<Void> test() {
-
         return Result.success("测试成功");
     }
 }
