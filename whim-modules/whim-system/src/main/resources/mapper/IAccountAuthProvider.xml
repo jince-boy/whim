@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whim.system.mapper.SysRoleMapper">
+
+    <resultMap type="com.whim.system.model.entity.SysRole" id="SysRoleMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <select id="getRoleCodeByUserId" resultType="java.lang.String">
+        select sr.code
+        from sys_role as sr
+                 join sys_user_role as sur on sr.id = sur.role_id
+        where sur.user_id = ${userId}
+    </select>
+
+</mapper>
+

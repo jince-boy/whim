@@ -1,0 +1,9 @@
+ Spring Boot 版本: ${spring-boot.version}
+ Spring Boot 项目名称: ${spring.application.name}
+          _     _
+         | |   (_)
+__      _| |__  _ _ __ ___
+\ \ /\ / / '_ \| | '_ ` _ \
+ \ V  V /| | | | | | | | | |
+  \_/\_/ |_| |_|_|_| |_| |_|
+

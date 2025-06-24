@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>com.whim</groupId>
+    <artifactId>whim</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <name>whim</name>
+    <description>whim插件化管理系统</description>
+    <url/>
+
+    <modules>
+        <module>whim-start</module>
+        <module>whim-framework</module>
+        <module>whim-modules</module>
+    </modules>
+
+    <properties>
+        <revision>1.0.0</revision>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mybatis-plus.version>3.5.12</mybatis-plus.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <commons-io.version>2.17.0</commons-io.version>
+        <jbcrypt.version>0.4</jbcrypt.version>
+        <p6spy.version>1.11.0</p6spy.version>
+        <satoken.version>1.44.0</satoken.version>
+        <redisson.version>3.45.1</redisson.version>
+        <lock4j.version>2.2.7</lock4j.version>
+        <caffeine.version>3.1.8</caffeine.version>
+        <easy-captcha.version>1.6.2</easy-captcha.version>
+        <nashorn-core.version>15.4</nashorn-core.version>
+        <tika.version>3.2.0</tika.version>
+        <minio.version>8.5.17</minio.version>
+        <aliyun.oss.version>3.18.1</aliyun.oss.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <activation.version>1.1.1</activation.version>
+        <jaxb-runtime.version>2.3.3</jaxb-runtime.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--mybatis-plus-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatis-plus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--redisson-->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+            <!--lock 4j-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+                <version>${lock4j.version}</version>
+            </dependency>
+            <!--caffeine缓存-->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+            <!--commons-lang3-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <!--commons-io-->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <!--jbcrypt密码加密-->
+            <dependency>
+                <groupId>org.mindrot</groupId>
+                <artifactId>jbcrypt</artifactId>
+                <version>${jbcrypt.version}</version>
+            </dependency>
+            <!-- sql性能分析插件 -->
+            <dependency>
+                <groupId>com.github.gavlyukovskiy</groupId>
+                <artifactId>p6spy-spring-boot-starter</artifactId>
+                <version>${p6spy.version}</version>
+            </dependency>
+            <!--sa-token 权限认证-->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
+            <!-- Sa-Token 持久层 Redis -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redisson-spring-boot-starter</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
+            <!-- Sa-Token 整合 jwt -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-jwt</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
+            <!--验证码-->
+            <dependency>
+                <groupId>com.github.whvcse</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${easy-captcha.version}</version>
+            </dependency>
+            <!--NashornJavaScript引擎 解决easy-captcha算术验证码报错问题-->
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>${nashorn-core.version}</version>
+            </dependency>
+            <!-- Apache Tika 是一个功能强大的内容分析工具库，特别擅长文件内容解析和元数据提取。-->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+            <!-- minio -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+            <!-- 阿里云oss -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun.oss.version}</version>
+            </dependency>
+            <!-- 阿里云oss java9版本以上使用下方3个依赖 -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${activation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb-runtime.version}</version>
+            </dependency>
+            <!--whim-bom-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-bom</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--system 系统模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-system</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

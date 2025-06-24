@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.whim</groupId>
+        <artifactId>whim-framework</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>whim-satoken</artifactId>
+    <description>sa-token 权限认证</description>
+
+    <dependencies>
+        <!--sa-token 权限认证-->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+        </dependency>
+        <!-- Sa-Token 持久层 Redis -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-redisson-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Sa-Token 整合 jwt -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-jwt</artifactId>
+        </dependency>
+        <!-- redisson -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-redis</artifactId>
+        </dependency>
+
+    </dependencies>
+</project>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.whim</groupId>
+    <artifactId>whim-bom</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <description>
+        whim-framework各模块的版本管理
+    </description>
+
+    <properties>
+        <revision>1.0.0</revision>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 核心模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--json模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-json</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--mybatis-plus模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-mybatis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--sa-token权限认证模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-satoken</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--redis模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--file模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-file</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--web服务-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-web</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

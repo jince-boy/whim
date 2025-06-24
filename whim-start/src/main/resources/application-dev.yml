@@ -1,0 +1,97 @@
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:whim}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    hikari:
+      # 最大连接池数量
+      maximum-pool-size: 20
+      # 最小空闲线程数量
+      minimum-idle: 10
+      # 配置获取连接等待超时的时间
+      connection-timeout: 30000
+      # 校验超时时间
+      validation-timeout: 5000
+      # 空闲连接存活最大时间，默认10分钟
+      idle-timeout: 600000
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认30分钟
+      max-lifetime: 1800000
+      # 多久检查一次连接的活性
+      keepalive-time: 30000
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      #      password: ${REDIS_PASSWD:}
+      database: ${REDIS_DB:0}
+
+# redisson 配置
+redisson:
+  # redis key前缀
+  keyPrefix:
+  # 线程池数量
+  threads: 4
+  # Netty线程池数量
+  nettyThreads: 8
+  # 单节点配置
+  singleServerConfig:
+    # 客户端名称 不能用中文
+    clientName: whim
+    # 最小空闲连接数
+    connectionMinimumIdleSize: 8
+    # 连接池大小
+    connectionPoolSize: 32
+    # 连接空闲超时，单位：毫秒
+    idleConnectionTimeout: 10000
+    # 命令等待超时，单位：毫秒
+    timeout: 3000
+    # 发布和订阅连接池大小
+    subscriptionConnectionPoolSize: 50
+
+#p6spy sql日志监控
+decorator:
+  datasource:
+    enabled: true
+    p6spy:
+      logging: slf4j
+      log-format: "SQL耗时：%(executionTime)ms | 执行语句：%(sqlSingleLine)"
+      enable-logging: true
+# 防止XSS攻击
+xss:
+  # 过滤开关
+  enabled: true
+  # 排除链接（多个用逗号分隔）
+  excludeUrls:
+    - /system/notice
+# 文件配置
+file:
+  storage:
+    default-storage: local
+    local:
+      - name: local1
+        base-path: /whim/file2/
+    minio:
+      - name: minio1
+        url: http://127.0.0.1:9000
+        access-key: minio
+        secret-key: minio123
+        bucket: public-whim
+        base-path: /whim/file2/
+      - name: minio2
+        url: http://127.0.0.1:9000
+        access-key: minio
+        secret-key: minio123
+        bucket: private-whim
+        base-path: /whim/file2/
+    aliyun-oss:
+      - name: aliyun-oss1
+        url: oss-cn-beijing.aliyuncs.com
+        access-key: ${ALIYUN_OSS_ACCESS_KEY:123123123}
+        secret-key: ${ALIYUN_OSS_SECRET_KEY:123123123}
+        bucket: public-whim
+        base-path: /whim/file2/
+        region: cn-beijing
+
