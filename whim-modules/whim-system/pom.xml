@@ -18,10 +18,10 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-mybatis</artifactId>
         </dependency>
-        <!-- sa-token 权限认证 -->
+        <!-- whim-file 模块 -->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-satoken</artifactId>
+            <artifactId>whim-file</artifactId>
         </dependency>
     </dependencies>
 

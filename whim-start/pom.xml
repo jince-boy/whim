@@ -20,10 +20,6 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-system</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-file</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

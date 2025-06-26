@@ -37,4 +37,13 @@ public class SysRole extends BaseEntity implements Serializable {
      * 状态
      */
     private String status;
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 逻辑删除字段
+     */
+    private Integer deleted;
 }

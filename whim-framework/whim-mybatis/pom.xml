@@ -33,10 +33,10 @@
             <groupId>com.github.gavlyukovskiy</groupId>
             <artifactId>p6spy-spring-boot-starter</artifactId>
         </dependency>
-        <!-- 核心模块 -->
+        <!-- sa-token 模块 -->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-core</artifactId>
+            <artifactId>whim-satoken</artifactId>
         </dependency>
     </dependencies>
 </project>

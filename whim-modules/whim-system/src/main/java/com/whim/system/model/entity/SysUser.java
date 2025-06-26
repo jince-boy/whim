@@ -22,6 +22,10 @@ public class SysUser extends BaseEntity implements Serializable {
      */
     private Long id;
     /**
+     * 部门ID
+     */
+    private Long deptId;
+    /**
      * 用户名
      */
     private String username;
@@ -53,4 +57,8 @@ public class SysUser extends BaseEntity implements Serializable {
      * 状态
      */
     private String status;
+    /**
+     * 备注
+     */
+    private String remark;
 }
