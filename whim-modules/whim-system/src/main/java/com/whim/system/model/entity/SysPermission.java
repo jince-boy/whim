@@ -3,6 +3,7 @@ package com.whim.system.model.entity;
 import com.whim.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -29,9 +30,9 @@ public class SysPermission extends BaseEntity implements Serializable {
      */
     private Long parentId;
     /**
-     * 菜单类型（1.菜单 2.目录 3.外链 4按钮）
+     * 类型(1-目录 2-菜单 3-按钮 4-外链)
      */
-    private String type;
+    private Integer type;
     /**
      * 前端路由路径
      */
@@ -47,21 +48,29 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 权限标识
      */
-    private String permissionCode;
+    private String code;
     /**
      * 显示状态
      */
-    private String visible;
+    private Integer visible;
     /**
      * 状态
      */
-    private String status;
+    private Integer status;
     /**
      * 菜单图标
      */
     private String icon;
     /**
+     * 跳转地址
+     */
+    private String redirect;
+    /**
      * 备注
      */
     private String remark;
+    /**
+     * 逻辑删除
+     */
+    private Integer deleted;
 }

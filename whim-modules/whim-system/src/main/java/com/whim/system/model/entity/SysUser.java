@@ -48,17 +48,21 @@ public class SysUser extends BaseEntity implements Serializable {
     /**
      * 手机号
      */
-    private String mobile;
+    private String phone;
     /**
      * 性别
      */
-    private String gender;
+    private Integer gender;
     /**
      * 状态
      */
-    private String status;
+    private Integer status;
     /**
      * 备注
      */
     private String remark;
+    /**
+     * 删除状态
+     */
+    private Integer deleted;
 }

@@ -6,17 +6,22 @@
         <result property="id" column="id" jdbcType="INTEGER"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="dataScope" column="data_scope" jdbcType="INTEGER"/>
         <result property="description" column="description" jdbcType="VARCHAR"/>
-        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="INTEGER"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="deleted" column="deleted" jdbcType="INTEGER"/>
     </resultMap>
+
     <select id="getRoleCodeByUserId" resultType="java.lang.String">
         select sr.code
         from sys_role as sr
                  join sys_user_role as sur on sr.id = sur.role_id
         where sur.user_id = ${userId}
     </select>
-
 </mapper>
 

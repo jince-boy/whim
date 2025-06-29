@@ -6,27 +6,32 @@
         <result property="id" column="id" jdbcType="INTEGER"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
-        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
         <result property="path" column="path" jdbcType="VARCHAR"/>
         <result property="component" column="component" jdbcType="VARCHAR"/>
         <result property="sort" column="sort" jdbcType="INTEGER"/>
-        <result property="permissionCode" column="permission_code" jdbcType="VARCHAR"/>
-        <result property="visible" column="visible" jdbcType="VARCHAR"/>
-        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="visible" column="visible" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
         <result property="icon" column="icon" jdbcType="VARCHAR"/>
+        <result property="redirect" column="redirect" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="INTEGER"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="deleted" column="deleted" jdbcType="INTEGER"/>
     </resultMap>
-    
+
     <select id="getPermissionCodeByUserId" resultType="java.lang.String">
-        select sp.permission_code
+        select sp.code
         from sys_permission as sp
                  join sys_role_permission as srp on sp.id = srp.permission_id
                  join sys_role as sr on srp.role_id = sr.id
                  join sys_user_role as sur on sr.id = sur.role_id
         where sur.user_id = ${userId}
     </select>
+
 
 </mapper>
 

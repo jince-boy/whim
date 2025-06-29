@@ -1,5 +1,6 @@
 package com.whim.core.utils;
 
+import io.github.linpeilie.Converter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -8,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -17,6 +20,60 @@ import java.util.Set;
  * description: 类型转换工具类
  */
 public class ConvertUtils {
+    private final static Converter CONVERTER = SpringUtils.getBean(Converter.class);
+
+    /**
+     * 将对象转换为指定类型
+     *
+     * @param source       被转换的对象
+     * @param desc         转换后的对象类型
+     * @param <T>          转换前的对象类型
+     * @param <V>          转换后的对象类型
+     * @return 转换后的对象
+     */
+    public static <T, V> V convert(T source, Class<V> desc) {
+        return CONVERTER.convert(source, desc);
+    }
+
+    /**
+     * 将对象转换为指定类型
+     *
+     * @param source       被转换的对象
+     * @param desc         转换后的对象类型
+     * @param <T>          转换前的对象类型
+     * @param <V>          转换后的对象类型
+     * @return 转换后的对象
+     */
+    public static <T, V> V convert(T source, V desc) {
+        return CONVERTER.convert(source, desc);
+    }
+
+    /**
+     * 将对象列表转换为指定类型列表
+     *
+     * @param sourceList 被转换的对象列表
+     * @param desc       转换后的对象类型
+     * @param <T>        转换前的对象类型
+     * @param <V>        转换后的对象类型
+     * @return 转换后的对象列表
+     */
+    public static <T, V> List<V> convert(List<T> sourceList, Class<V> desc) {
+        return CONVERTER.convert(sourceList, desc);
+    }
+
+    /**
+     * 将Map转换为指定对象
+     *
+     * @param map          被转换的Map
+     * @param beanClass    转换后的对象类型
+     * @param <T>          转换前的对象类型
+     * @return 转换后的对象
+     */
+    public static <T> T convert(Map<String, Object> map, Class<T> beanClass) {
+        return CONVERTER.convert(map, beanClass);
+    }
+
+
     /**
      * 将对象转换为字符串
      *

@@ -30,18 +30,21 @@ public class SysRole extends BaseEntity implements Serializable {
      */
     private String code;
     /**
+     * 数据权限范围(1-全部 2-本部门及以下 3-本部门 4-自定义 5-仅本人)
+     */
+    private Integer dataScope;
+    /**
      * 角色描述
      */
     private String description;
     /**
      * 状态
      */
-    private String status;
+    private Integer status;
     /**
      * 备注
      */
     private String remark;
-
     /**
      * 逻辑删除字段
      */
