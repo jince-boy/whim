@@ -1,6 +1,8 @@
 package com.whim.system.model.entity;
 
-import com.whim.mybatis.base.BaseEntity;
+import com.whim.mybatis.model.entity.BaseEntity;
+import com.whim.satoken.core.model.RoleInfo;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,6 +14,7 @@ import java.io.Serializable;
  * date 2024-10-23 19:53:10
  * description: 系统角色(SysRole)实体类
  */
+@AutoMapper(target = RoleInfo.class)
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SysRole extends BaseEntity implements Serializable {

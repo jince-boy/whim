@@ -2,7 +2,7 @@ package com.whim.satoken.annotation;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
-import com.whim.satoken.kit.StpKit;
+import com.whim.satoken.core.common.AccountType;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -15,7 +15,8 @@ import java.lang.annotation.Target;
  * date: 2025/3/28 23:42
  * description: 系统用户权限认证：必须具有指定权限才能进入该方法
  */
-@SaCheckPermission(type = StpKit.AccountType.SYSTEM)
+
+@SaCheckPermission(type = AccountType.SYSTEM)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface SystemCheckPermission {

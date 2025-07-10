@@ -195,6 +195,27 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles_active>dev</profiles_active>
+            </properties>
+            <activation>
+                <!-- 默认环境 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profiles_active>prod</profiles_active>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -215,5 +236,21 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 关闭过滤 -->
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 启用变量替换 -->
+                <filtering>true</filtering>
+                <includes>
+                    <include>application.yml</include>
+                    <include>application-${profiles_active}.yml</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 </project>

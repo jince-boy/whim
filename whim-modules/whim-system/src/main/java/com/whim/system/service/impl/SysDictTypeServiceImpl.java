@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.utils.ConvertUtils;
-import com.whim.mybatis.page.PageData;
+import com.whim.mybatis.model.vo.PageDataVO;
 import com.whim.system.mapper.SysDictTypeMapper;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.entity.SysDictType;
@@ -31,12 +31,12 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
      * @return PageData<SysDictTypeVO>
      */
     @Override
-    public PageData<SysDictTypeVO> getDictTypePage(DictTypePageQueryDTO queryDTO) {
+    public PageDataVO<SysDictTypeVO> getDictTypePage(DictTypePageQueryDTO queryDTO) {
         LambdaQueryWrapper<SysDictType> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(queryDTO.getName()), SysDictType::getName, queryDTO.getName())
                 .like(StringUtils.isNotBlank(queryDTO.getType()), SysDictType::getType, queryDTO.getType());
         IPage<SysDictTypeVO> page = this.page(queryDTO.getPage(), wrapper).convert(item -> ConvertUtils.convert(item, SysDictTypeVO.class));
-        return new PageData<>(page);
+        return new PageDataVO<>(page);
     }
 
 

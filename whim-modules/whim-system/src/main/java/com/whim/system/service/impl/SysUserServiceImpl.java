@@ -1,6 +1,8 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.mybatis.annotation.DataColumn;
+import com.whim.mybatis.annotation.DataPermission;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.service.ISysUserService;
@@ -30,6 +32,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new NullPointerException("username 不能为空");
         }
         return this.lambdaQuery().eq(SysUser::getUsername, username).one();
+    }
+
+    @DataPermission({
+            @DataColumn(key = "deptName", value = "dept_id")
+    })
+    @Override
+    public SysUser test() {
+        return this.lambdaQuery().eq(SysUser::getUsername, "test").one();
     }
 }
 

@@ -3,12 +3,13 @@ package com.whim.satoken.config;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpInterface;
+import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.factory.YmlPropertySourceFactory;
-import com.whim.satoken.enums.ExcludePathConstants;
+import com.whim.satoken.core.common.ExcludePathEnum;
+import com.whim.satoken.core.logic.StpAuthManager;
 import com.whim.satoken.handler.SaTokenExceptionHandler;
-import com.whim.satoken.kit.StpKit;
-import com.whim.satoken.service.StpInterfaceImpl;
+import com.whim.satoken.service.impl.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,9 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author jince
@@ -29,10 +33,10 @@ public class SaTokenConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> {
-                    SaRouter.match("/system/**").check(r -> StpKit.SYSTEM.checkLogin());
+                    SaRouter.match("/system/**").check(r -> StpAuthManager.SYSTEM.checkLogin());
                 }))
                 .addPathPatterns("/**")
-                .excludePathPatterns(ExcludePathConstants.getAllEnumDetails());
+                .excludePathPatterns(ExcludePathEnum.getAllEnumDetails());
     }
 
     /**
@@ -58,5 +62,15 @@ public class SaTokenConfig implements WebMvcConfigurer {
     @Bean
     public SaTokenExceptionHandler saTokenExceptionHandler() {
         return new SaTokenExceptionHandler();
+    }
+
+    /**
+     * 创建一个 system类型的StpLogic对象，并赋值给静态字段（关键）
+     */
+    @Bean
+    public List<StpLogic> stpSystemLogic() {
+        return Collections.singletonList(
+                StpAuthManager.SYSTEM
+        );
     }
 }

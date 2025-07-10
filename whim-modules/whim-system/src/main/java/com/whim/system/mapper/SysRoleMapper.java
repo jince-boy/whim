@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -20,6 +21,13 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      * @param userId 用户id
      * @return 角色权限标识列表
      */
-    List<String> getRoleCodeByUserId(@Param("userId") Long userId);
+    Set<String> getRoleCodeByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据用户id获取角色信息列表
+     * @param userId 用户id
+     * @return 角色信息列表
+     */
+    List<SysRole> getRoleInfoListByUserId(Long userId);
 }
 

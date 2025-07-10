@@ -1,4 +1,4 @@
-package com.whim.satoken.enums;
+package com.whim.satoken.core.common;
 
 import lombok.Getter;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * description: 排除路径枚举类
  */
 @Getter
-public enum ExcludePathConstants {
+public enum ExcludePathEnum {
     INDEX_PATH("/", "首页"),
     AUTH_LOGIN("/system/auth/login", "用户登录"),
     AUTH_CAPTCHA("/system/auth/captcha", "登录验证码"),
@@ -20,7 +20,7 @@ public enum ExcludePathConstants {
     private final String path;
     private final String description;
 
-    ExcludePathConstants(String path, String description) {
+    ExcludePathEnum(String path, String description) {
         this.path = path;
         this.description = description;
     }
@@ -32,7 +32,7 @@ public enum ExcludePathConstants {
      */
     public static List<String> getAllEnumDetails() {
         List<String> enumDetails = new ArrayList<>();
-        for (ExcludePathConstants value : ExcludePathConstants.values()) {
+        for (ExcludePathEnum value : ExcludePathEnum.values()) {
             enumDetails.add(value.getPath());
         }
         return enumDetails;

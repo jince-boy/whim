@@ -3,11 +3,11 @@ server:
 spring:
   application:
     name: whim
+  # 开发环境
+  profiles:
+    active: @profiles_active@
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
       enabled: true
-  # 开发环境
-  profiles:
-    active: ${PROFILES_ACTIVE:dev}

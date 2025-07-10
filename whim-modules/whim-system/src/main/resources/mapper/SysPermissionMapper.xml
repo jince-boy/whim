@@ -29,7 +29,7 @@
                  join sys_role_permission as srp on sp.id = srp.permission_id
                  join sys_role as sr on srp.role_id = sr.id
                  join sys_user_role as sur on sr.id = sur.role_id
-        where sur.user_id = ${userId}
+        where sur.user_id = #{userId}
     </select>
 
 

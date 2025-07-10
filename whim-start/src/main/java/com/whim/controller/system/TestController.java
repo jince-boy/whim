@@ -5,8 +5,8 @@ import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
 import com.whim.file.FileStorageService;
 import com.whim.file.model.MetaData;
-import com.whim.satoken.kit.StpKit;
 import com.whim.system.model.entity.SysUser;
+import com.whim.system.service.ISysDataScopeService;
 import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class TestController {
     private final FileStorageService fileStorageService;
     private final ISysUserService userService;
+    private final ISysDataScopeService sysDataScopeService;
 
     @GetMapping
     public Result<SysUser> getUser() {
-        log.info(StpKit.SYSTEM.getSession().getId());
-        log.info(StpKit.SYSTEM.getTokenSession().get("loginUserInfo").toString());
-        return Result.success("success", userService.getSysUserByUsername("admin"));
+        return Result.success("success", userService.test());
+//        return Result.success("success", sysDataScopeService.getDeptAndChildDept(1L));
     }
 
     @GetMapping("/upload")

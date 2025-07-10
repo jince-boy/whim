@@ -2,7 +2,7 @@ package com.whim.controller.system;
 
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
-import com.whim.mybatis.page.PageData;
+import com.whim.mybatis.model.vo.PageDataVO;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.vo.SysDictTypeVO;
 import com.whim.system.service.ISysDictTypeService;
@@ -23,7 +23,7 @@ public class SysDictTypeController {
     private final ISysDictTypeService sysDictTypeService;
 
     @RequestMapping("/page")
-    public Result<PageData<SysDictTypeVO>> getDictTypePage(DictTypePageQueryDTO dictTypePageQueryDTO) {
+    public Result<PageDataVO<SysDictTypeVO>> getDictTypePage(DictTypePageQueryDTO dictTypePageQueryDTO) {
         return Result.success("查询成功", sysDictTypeService.getDictTypePage(dictTypePageQueryDTO));
     }
 }

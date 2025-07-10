@@ -1,4 +1,4 @@
-package com.whim.mybatis.page;
+package com.whim.mybatis.model.vo;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.util.List;
  * description: 分页返回对象
  */
 @Data
-public class PageData<T> {
+public class PageDataVO<T> {
     /**
      * 当前页
      */
@@ -33,7 +33,7 @@ public class PageData<T> {
      */
     private Long total;
 
-    public PageData(IPage<T> page) {
+    public PageDataVO(IPage<T> page) {
         this.currentPage = page.getCurrent();
         this.data = page.getRecords();
         this.pages = page.getPages();

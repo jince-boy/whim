@@ -21,7 +21,26 @@
         select sr.code
         from sys_role as sr
                  join sys_user_role as sur on sr.id = sur.role_id
-        where sur.user_id = ${userId}
+        where sur.user_id = #{userId}
+    </select>
+    <select id="getRoleInfoListByUserId" resultType="com.whim.system.model.entity.SysRole"
+            parameterType="java.lang.Long">
+        SELECT
+            sr.id,
+            sr.name,
+            sr.code,
+            sr.status,
+            sr.data_scope,
+            sr.create_time,
+            sr.update_time,
+            sr.create_by,
+            sr.update_by,
+            sr.description,
+            sr.remark,
+            sr.deleted
+        FROM sys_role sr
+                 JOIN sys_user_role sur ON sr.id = sur.role_id
+        WHERE sur.user_id = #{userId}
     </select>
 </mapper>
 

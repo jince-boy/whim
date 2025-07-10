@@ -7,16 +7,20 @@ import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
 import com.whim.core.web.Result;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
@@ -41,6 +45,7 @@ public class GlobalExceptionHandler {
         log.error("请求地址:{},发生了一个未预期的异常", request.getRequestURI(), e);
         return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器异常,请稍后重试,或联系业务人员处理.");
     }
+
     /**
      * 请求方式错误异常
      */
@@ -59,6 +64,7 @@ public class GlobalExceptionHandler {
         log.warn("404 找不到该资源:{}", exception.getMessage(), exception);
         return Result.error(HttpStatus.NOT_FOUND, "找不到该资源");
     }
+
     /**
      * 非法参数异常
      */
@@ -66,6 +72,14 @@ public class GlobalExceptionHandler {
     public Result<String> handleIllegalArgumentException(IllegalArgumentException exception) {
         log.error("非法参数异常:{}", exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    /**
+     * 请求参数类型不匹配
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public Result<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+        return Result.validationError(String.format("请求参数类型不匹配，参数[%s]要求类型为：'%s'，但输入值为：'%s'", exception.getName(), Objects.requireNonNull(exception.getRequiredType()).getName(), exception.getValue()));
     }
 
     /**
@@ -80,13 +94,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<List<Map<String, String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        List<Map<String, String>> errors = exception.getBindingResult().getFieldErrors().stream()
-                .map(fieldError -> Map.of(
-                        "field", fieldError.getField(),
-                        "error", Objects.requireNonNull(fieldError.getDefaultMessage())
-                ))
-                .collect(Collectors.toList());
-        return Result.validationError("参数验证错误", errors);
+        List<ObjectError> allErrors = exception.getBindingResult().getAllErrors();
+        String message = allErrors.stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage) // 提取默认错误消息
+                .filter(Objects::nonNull) // 过滤掉 null 值
+                .collect(Collectors.joining(", ")); // 用逗号拼接
+        return Result.validationError(message);
     }
 
     /**
@@ -101,13 +114,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BindException.class)
     public Result<List<Map<String, String>>> handleBindException(BindException exception) {
-        List<Map<String, String>> errors = exception.getBindingResult().getFieldErrors().stream()
-                .map(fieldError -> Map.of(
-                        "field", fieldError.getField(),
-                        "error", Objects.requireNonNull(fieldError.getDefaultMessage())
-                ))
-                .collect(Collectors.toList());
-        return Result.validationError("参数验证错误", errors);
+        List<ObjectError> allErrors = exception.getBindingResult().getAllErrors();
+        String message = allErrors.stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage) // 提取默认错误消息
+                .filter(Objects::nonNull) // 过滤掉 null 值
+                .collect(Collectors.joining(", ")); // 用逗号拼接
+        return Result.validationError(message);
     }
 
     /**
@@ -122,13 +134,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public Result<List<Map<String, String>>> handleConstraintViolationException(ConstraintViolationException exception) {
-        List<Map<String, String>> errors = exception.getConstraintViolations().stream()
-                .map(violation -> Map.of(
-                        "field", violation.getPropertyPath().toString(),
-                        "error", violation.getMessage()
-                ))
-                .collect(Collectors.toList());
-        return Result.validationError("参数验证错误", errors);
+        String message = exception.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage) // 提取错误消息
+                .filter(Objects::nonNull) // 过滤掉 null 值
+                .collect(Collectors.joining(", ")); // 用逗号拼接
+
+        return Result.validationError(message);
     }
 
     /**
@@ -176,6 +187,7 @@ public class GlobalExceptionHandler {
         log.warn(exception.getMessage(), exception);
         return Result.unauthorized(exception.getMessage());
     }
+
     /**
      * 文件存储异常
      */

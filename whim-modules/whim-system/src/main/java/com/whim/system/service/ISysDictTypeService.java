@@ -1,7 +1,7 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.mybatis.page.PageData;
+import com.whim.mybatis.model.vo.PageDataVO;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.entity.SysDictType;
 import com.whim.system.model.vo.SysDictTypeVO;
@@ -19,5 +19,5 @@ public interface ISysDictTypeService extends IService<SysDictType> {
      * @param dictTypePageQueryDTO 查询参数
      * @return PageData<SysDictType>
      */
-    PageData<SysDictTypeVO> getDictTypePage(DictTypePageQueryDTO dictTypePageQueryDTO);
+    PageDataVO<SysDictTypeVO> getDictTypePage(DictTypePageQueryDTO dictTypePageQueryDTO);
 }

@@ -16,4 +16,6 @@ public interface ISysUserService extends IService<SysUser> {
      * @return SysUser
      */
     SysUser getSysUserByUsername(String username);
+
+    SysUser test();
 }

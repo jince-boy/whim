@@ -1,4 +1,4 @@
-package com.whim.mybatis.page;
+package com.whim.mybatis.model.dto;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
@@ -17,7 +17,6 @@ public class PageQueryDTO {
 
     public <T> Page<T> getPage() {
         Page<T> page = new Page<>(Objects.requireNonNullElse(pageNum, 1), Objects.requireNonNullElse(pageSize, 10));
-//        page.setSearchCount(false);
         return page;
     }
 }
