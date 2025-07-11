@@ -10,6 +10,7 @@ import com.whim.core.factory.YmlPropertySourceFactory;
 import com.whim.mybatis.aspect.DataPermissionAspect;
 import com.whim.mybatis.handler.AutoFillFieldHandler;
 import com.whim.mybatis.handler.CustomDataPermissionHandler;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;

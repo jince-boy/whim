@@ -20,6 +20,9 @@ import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author jince
  * date: 2025/7/3 15:42
@@ -27,12 +30,16 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 @Slf4j
 public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
+
     private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
     BeanFactoryResolver beanFactoryResolver = new BeanFactoryResolver(SpringUtils.getBeanFactory());
     private final ParserContext parserContext = new TemplateParserContext();
 
     @Override
     public Expression getSqlSegment(Table table, Expression where, String mappedStatementId) {
+
+//        StatementType statementType = sqlSessionFactory.getConfiguration().getMappedStatement(mappedStatementId).getStatementType();
+
         DataPermissionHolder permissionHolder = DataPermissionContext.current();
         if (permissionHolder == null || !permissionHolder.hasPermission()) {
             return null;
@@ -57,6 +64,7 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             }
         }
 
+        Set<String> sql = new HashSet<>();
         for (RoleInfo role : userInfo.getRoleInfoList()) {
             DataScopeType scopeType = DataScopeType.findByCode(role.getDataScope());
             if (scopeType == null) continue;
@@ -65,11 +73,11 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             }
             context.setVariable("roleId", role.getId());
 
-            String sql = DataPermissionContext.ignore(() ->
+            String sqlSegment = DataPermissionContext.ignore(() ->
                     spelExpressionParser.parseExpression(
                             scopeType.getSqlTemplate(), parserContext).getValue(context, String.class)
             );
-            log.info(sql);
+            sql.add(sqlSegment);
         }
         return null;
     }
