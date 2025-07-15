@@ -1,7 +1,7 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.mybatis.model.vo.PageDataVO;
+import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.entity.SysDictType;
 import com.whim.system.model.vo.SysDictTypeVO;

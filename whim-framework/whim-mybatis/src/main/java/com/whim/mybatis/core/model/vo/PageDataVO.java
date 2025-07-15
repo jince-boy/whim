@@ -1,4 +1,4 @@
-package com.whim.mybatis.model.vo;
+package com.whim.mybatis.core.model.vo;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.Data;

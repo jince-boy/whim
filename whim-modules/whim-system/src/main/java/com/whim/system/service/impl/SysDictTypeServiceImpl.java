@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.utils.ConvertUtils;
-import com.whim.mybatis.model.vo.PageDataVO;
+import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.system.mapper.SysDictTypeMapper;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.entity.SysDictType;

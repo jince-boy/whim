@@ -1,9 +1,12 @@
-package com.whim.mybatis.enums;
+package com.whim.mybatis.core.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author jince
@@ -40,6 +43,8 @@ public enum DataScopeType {
 
     private final String code;
     private final String sqlTemplate;
+    private static final Map<String, DataScopeType> CODE_MAP = Arrays.stream(values())
+            .collect(Collectors.toMap(DataScopeType::getCode, Function.identity()));
 
     /**
      * 根据code获取枚举
@@ -48,9 +53,7 @@ public enum DataScopeType {
      * @return DataScopeType
      */
     public static DataScopeType findByCode(String code) {
-        return Arrays.stream(values())
-                .filter(item -> item.code.equals(code))
-                .findFirst()
-                .orElse(null);
+        if (code == null) return null;
+        return CODE_MAP.get(code);
     }
 }

@@ -1,4 +1,4 @@
-package com.whim.mybatis.model.entity;
+package com.whim.mybatis.core.model.entity;
 
 
 import com.baomidou.mybatisplus.annotation.FieldFill;

@@ -2,7 +2,6 @@ package com.whim.mybatis.aspect;
 
 import com.whim.mybatis.annotation.DataPermission;
 import com.whim.mybatis.context.DataPermissionContext;
-import com.whim.mybatis.context.DataPermissionHolder;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.core.model.UserInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +22,18 @@ public class DataPermissionAspect {
     @Around("@annotation(dataPermission)")
     public Object applyPermission(ProceedingJoinPoint point, DataPermission dataPermission) throws Throwable {
         try {
-            DataPermissionHolder dataPermissionHolder = new DataPermissionHolder(dataPermission);
+            DataPermissionContext.DataPermissionHolder dataPermissionHolder = new DataPermissionContext.DataPermissionHolder(dataPermission);
             UserInfo userInfo = AuthContext.getUserInfo();
             if (Objects.nonNull(userInfo)) {
-                dataPermissionHolder.addParam("userInfo", userInfo);
+                dataPermissionHolder.addAttribute("userInfo", userInfo);
             }
-            DataPermissionContext.push(dataPermissionHolder);
+            DataPermissionContext.pushPermissionHolder(dataPermissionHolder);
             return point.proceed();
+        } catch (Throwable e) {
+            log.error("数据权限切面异常:{}", e.getMessage(), e);
+            throw e;
         } finally {
-            DataPermissionContext.pop();
+            DataPermissionContext.popPermissionHolder();
         }
     }
 }

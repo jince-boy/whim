@@ -1,27 +1,36 @@
 package com.whim.mybatis.handler;
 
-import com.baomidou.mybatisplus.extension.plugins.handler.MultiDataPermissionHandler;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.SpringUtils;
 import com.whim.mybatis.annotation.DataColumn;
 import com.whim.mybatis.annotation.DataPermission;
 import com.whim.mybatis.context.DataPermissionContext;
-import com.whim.mybatis.context.DataPermissionHolder;
-import com.whim.mybatis.enums.DataScopeType;
-import com.whim.mybatis.factory.NullSafeEvaluationContextFactory;
+import com.whim.mybatis.core.enums.DataScopeType;
 import com.whim.satoken.core.model.RoleInfo;
 import com.whim.satoken.core.model.UserInfo;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author jince
@@ -29,42 +38,51 @@ import java.util.Set;
  * description: 自定义数据权限处理器
  */
 @Slf4j
-public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
+public class CustomDataPermissionHandler {
+    private final Expression DENY_ALL = new EqualsTo(new LongValue(1), new LongValue(0));
+    private final BeanFactoryResolver beanFactoryResolver = new BeanFactoryResolver(SpringUtils.getBeanFactory());
+    // ✅ SpEL Expression 缓存
+    private static final Map<DataScopeType, org.springframework.expression.Expression> EXPRESSION_CACHE;
 
-    private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
-    BeanFactoryResolver beanFactoryResolver = new BeanFactoryResolver(SpringUtils.getBeanFactory());
-    private final ParserContext parserContext = new TemplateParserContext();
+    static {
+        SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+        EXPRESSION_CACHE = Arrays.stream(DataScopeType.values())
+                .filter(type -> StringUtils.isNotBlank(type.getSqlTemplate()))
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        type -> {
+                            try {
+                                return spelExpressionParser.parseExpression(type.getSqlTemplate(), new TemplateParserContext());
+                            } catch (Exception e) {
+                                log.error("解析SpEL失败, scopeType={}, template={}", type.name(), type.getSqlTemplate(), e);
+                                throw e;
+                            }
+                        }
+                ));
+    }
 
-    @Override
-    public Expression getSqlSegment(Table table, Expression where, String mappedStatementId) {
-
-//        StatementType statementType = sqlSessionFactory.getConfiguration().getMappedStatement(mappedStatementId).getStatementType();
-
-        DataPermissionHolder permissionHolder = DataPermissionContext.current();
-        if (permissionHolder == null || !permissionHolder.hasPermission()) {
-            return null;
-        }
-        DataPermission dataPermission = permissionHolder.getPermission();
-        UserInfo userInfo = permissionHolder.getValue("userInfo", UserInfo.class);
+    public Expression getSqlSegment(Expression where, String mappedStatementId, Boolean isSelect) {
+        DataPermissionContext.DataPermissionHolder permissionHolder = DataPermissionContext.currentPermissionHolder();
+        DataPermission dataPermission = permissionHolder.getDataPermission();
+        UserInfo userInfo = permissionHolder.getAttribute("userInfo", UserInfo.class);
         if (userInfo == null) {
             log.warn("数据权限:用户信息为空");
             return null;
         }
-        StandardEvaluationContext context = NullSafeEvaluationContextFactory.create("-1");
+        StandardEvaluationContext context = new NullSafeStandardEvaluationContext("-1");
         context.setVariable("userInfo", userInfo);
         context.setBeanResolver(beanFactoryResolver);
 
         DataColumn[] dataColumns = dataPermission.value();
-        for (DataColumn column : dataColumns) {
+        Arrays.stream(dataColumns).forEach(column -> {
             if (column.key().length != column.value().length) {
                 throw new ServiceException("数据权限的key和value长度不一致");
             }
-            for (int i = 0; i < column.key().length; i++) {
-                context.setVariable(column.key()[i], column.value()[i]);
-            }
-        }
+            IntStream.range(0, column.key().length)
+                    .forEach(i -> context.setVariable(column.key()[i], column.value()[i]));
+        });
 
-        Set<String> sql = new HashSet<>();
+        Set<String> sqlConditions = new HashSet<>();
         for (RoleInfo role : userInfo.getRoleInfoList()) {
             DataScopeType scopeType = DataScopeType.findByCode(role.getDataScope());
             if (scopeType == null) continue;
@@ -73,13 +91,49 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             }
             context.setVariable("roleId", role.getId());
 
-            String sqlSegment = DataPermissionContext.ignore(() ->
-                    spelExpressionParser.parseExpression(
-                            scopeType.getSqlTemplate(), parserContext).getValue(context, String.class)
+            String sqlSegment = DataPermissionContext.runWithIgnoreDataPermission(() -> {
+                        org.springframework.expression.Expression expression = EXPRESSION_CACHE.get(scopeType);
+                        if (expression == null) {
+                            log.error("找不到缓存的 SpEL 表达式 scopeType={}", scopeType.name());
+                            throw new RuntimeException("SpEL Expression 缓存丢失");
+                        }
+                        return expression.getValue(context, String.class);
+                    }
             );
-            sql.add(sqlSegment);
+            if (StringUtils.isNotBlank(sqlSegment)) {
+                sqlConditions.add("(" + sqlSegment + ")");
+            }
         }
-        return null;
+        if (sqlConditions.isEmpty()) {
+            return where == null ? DENY_ALL : new AndExpression(where, DENY_ALL);
+        }
+
+        String joinStr = isSelect ? " OR " : " AND ";
+        if (StringUtils.isNotBlank(dataPermission.joinStr())) {
+            joinStr = " " + dataPermission.joinStr() + " ";
+        }
+        String combinedSql = String.join(joinStr, sqlConditions);
+        Expression permissionExpression;
+        try {
+            permissionExpression = CCJSqlParserUtil.parseCondExpression(combinedSql);
+        } catch (JSQLParserException e) {
+            throw new RuntimeException(e);
+        }
+
+        return where == null ? permissionExpression : new AndExpression(where, permissionExpression);
     }
 
+    /**
+     * 自定义 EvaluationContext，变量不存在时返回默认值
+     */
+    @RequiredArgsConstructor
+    private static final class NullSafeStandardEvaluationContext extends StandardEvaluationContext {
+        private final Object defaultValue;
+
+        @Override
+        public Object lookupVariable(@NonNull String name) {
+            Object obj = super.lookupVariable(name);
+            return obj != null ? obj : defaultValue;
+        }
+    }
 }

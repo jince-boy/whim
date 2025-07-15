@@ -1,6 +1,6 @@
 package com.whim.system.model.entity;
 
-import com.whim.mybatis.model.entity.BaseEntity;
+import com.whim.mybatis.core.model.entity.BaseEntity;
 import com.whim.satoken.core.model.RoleInfo;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;

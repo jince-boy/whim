@@ -2,7 +2,7 @@ package com.whim.controller.system;
 
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
-import com.whim.mybatis.model.vo.PageDataVO;
+import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.system.model.dto.DictTypePageQueryDTO;
 import com.whim.system.model.vo.SysDictTypeVO;
 import com.whim.system.service.ISysDictTypeService;

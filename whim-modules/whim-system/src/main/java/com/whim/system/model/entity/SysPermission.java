@@ -1,6 +1,6 @@
 package com.whim.system.model.entity;
 
-import com.whim.mybatis.model.entity.BaseEntity;
+import com.whim.mybatis.core.model.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

@@ -1,7 +1,7 @@
 package com.whim.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.whim.mybatis.model.entity.BaseEntity;
+import com.whim.mybatis.core.model.entity.BaseEntity;
 import com.whim.satoken.core.logic.StpAuthManager;
 import org.apache.ibatis.reflection.MetaObject;
 

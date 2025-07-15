@@ -10,6 +10,7 @@ import com.whim.core.factory.YmlPropertySourceFactory;
 import com.whim.mybatis.aspect.DataPermissionAspect;
 import com.whim.mybatis.handler.AutoFillFieldHandler;
 import com.whim.mybatis.handler.CustomDataPermissionHandler;
+import com.whim.mybatis.interceptor.CustomDataPermissionInterceptor;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +32,7 @@ public class MybatisPlusConfiguration {
         // 乐观锁插件
         mybatisPlusInterceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
         // 数据权限插件
-        mybatisPlusInterceptor.addInnerInterceptor(new DataPermissionInterceptor(new CustomDataPermissionHandler()));
+        mybatisPlusInterceptor.addInnerInterceptor(new CustomDataPermissionInterceptor(new CustomDataPermissionHandler()));
         // 防全表更新与删除插件
         mybatisPlusInterceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         return mybatisPlusInterceptor;

@@ -1,6 +1,6 @@
 package com.whim.system.model.dto;
 
-import com.whim.mybatis.model.dto.PageQueryDTO;
+import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
