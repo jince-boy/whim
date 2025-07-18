@@ -1,5 +1,6 @@
 package com.whim.redis.config;
 
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -53,7 +54,7 @@ public class RedissonConfig {
             objectMapper.registerModule(javaTimeModule);
             objectMapper.setTimeZone(TimeZone.getDefault());
             objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-            //配置类型信息
+            // 配置类型信息
             objectMapper.activateDefaultTyping(
                     LaissezFaireSubTypeValidator.instance,
                     ObjectMapper.DefaultTyping.NON_FINAL,

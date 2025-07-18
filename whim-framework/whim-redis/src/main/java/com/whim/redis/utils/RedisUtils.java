@@ -156,6 +156,7 @@ public class RedisUtils {
      * @param duration 时间
      */
     public static <T> void setCacheObject(final String key, final T value, final Duration duration) {
+        String[] beanNames = SpringUtils.getBeanNames(RedissonClient.class);
         RBatch batch = CLIENT.createBatch();
         RBucketAsync<T> bucket = batch.getBucket(key);
         bucket.setAsync(value);

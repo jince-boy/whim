@@ -9,6 +9,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.thread.Threading;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -145,13 +146,18 @@ public class SpringUtils implements BeanFactoryPostProcessor, ApplicationContext
 
     /**
      * 检查当前运行环境是否支持并启用了虚拟线程（Virtual Threads）
+     *
      * @return 如果满足以下条件返回true：
-     *         1. JVM版本≥21（支持虚拟线程）
-     *         2. 已显式启用虚拟线程（通过spring.threads.virtual.enabled=true配置）
-     *         3. 未强制禁用虚拟线程（通过jdk.traceVirtualThreads系统属性等）
-     *         否则返回false
+     * 1. JVM版本≥21（支持虚拟线程）
+     * 2. 已显式启用虚拟线程（通过spring.threads.virtual.enabled=true配置）
+     * 3. 未强制禁用虚拟线程（通过jdk.traceVirtualThreads系统属性等）
+     * 否则返回false
      */
     public static boolean isVirtual() {
         return Threading.VIRTUAL.isActive(getBean(Environment.class));
+    }
+
+    public static <T> String[] getBeanNames(Class<T> tClass) {
+        return getBeanFactory().getBeanNamesForType(tClass);
     }
 }

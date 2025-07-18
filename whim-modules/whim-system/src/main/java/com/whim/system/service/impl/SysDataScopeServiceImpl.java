@@ -1,6 +1,7 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.whim.core.constant.CacheKeys;
 import com.whim.system.model.entity.SysDept;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.service.ISysDataScopeService;
@@ -8,6 +9,7 @@ import com.whim.system.service.ISysDeptService;
 import com.whim.system.service.ISysRoleDeptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,6 +33,7 @@ public class SysDataScopeServiceImpl implements ISysDataScopeService {
      * @param roleId 角色id
      * @return 自定义数据权限
      */
+    @Cacheable(cacheNames = CacheKeys.SYS_ROLE_CUSTOM, key = "#roleId", condition = "#roleId != null")
     @Override
     public String getRoleCustomDataPermission(Long roleId) {
         LambdaQueryWrapper<SysRoleDept> wrapper = new LambdaQueryWrapper<>();
@@ -42,9 +45,11 @@ public class SysDataScopeServiceImpl implements ISysDataScopeService {
 
     /**
      * 获取部门及子部门
+     *
      * @param deptId 部门id
      * @return 部门及子部门
      */
+    @Cacheable(cacheNames = CacheKeys.SYS_DEPT_AND_CHILD, key = "#deptId", condition = "#deptId != null")
     @Override
     public String getDeptAndChildDept(Long deptId) {
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<>();

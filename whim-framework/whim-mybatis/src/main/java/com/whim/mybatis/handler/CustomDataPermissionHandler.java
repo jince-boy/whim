@@ -6,6 +6,7 @@ import com.whim.mybatis.annotation.DataColumn;
 import com.whim.mybatis.annotation.DataPermission;
 import com.whim.mybatis.context.DataPermissionContext;
 import com.whim.mybatis.core.enums.DataScopeType;
+import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.core.model.RoleInfo;
 import com.whim.satoken.core.model.UserInfo;
 import lombok.NonNull;
@@ -62,12 +63,16 @@ public class CustomDataPermissionHandler {
     }
 
     public Expression getSqlSegment(Expression where, String mappedStatementId, Boolean isSelect) {
+        // 如果是超级管理员的话，则不过滤数据
+        if (AuthContext.isSuperAdmin()) {
+            return where;
+        }
         DataPermissionContext.DataPermissionHolder permissionHolder = DataPermissionContext.currentPermissionHolder();
         DataPermission dataPermission = permissionHolder.getDataPermission();
         UserInfo userInfo = permissionHolder.getAttribute("userInfo", UserInfo.class);
         if (userInfo == null) {
             log.warn("数据权限:用户信息为空");
-            return null;
+            return where;
         }
         StandardEvaluationContext context = new NullSafeStandardEvaluationContext("-1");
         context.setVariable("userInfo", userInfo);
@@ -87,7 +92,7 @@ public class CustomDataPermissionHandler {
             DataScopeType scopeType = DataScopeType.findByCode(role.getDataScope());
             if (scopeType == null) continue;
             if (scopeType == DataScopeType.ALL) {
-                return null;
+                return where;
             }
             context.setVariable("roleId", role.getId());
 

@@ -40,6 +40,5 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
     }
 
 
-
 }
 

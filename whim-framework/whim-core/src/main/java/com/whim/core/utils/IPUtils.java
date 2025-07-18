@@ -1,13 +1,61 @@
 package com.whim.core.utils;
 
+import com.whim.core.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.lionsoul.ip2region.xdb.Searcher;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
+
+import java.io.InputStream;
 
 /**
  * @author Jince
  * date: 2024/10/5 00:19
  * description: IP工具类
  */
+@Slf4j
 public class IPUtils {
+
+    public final static String IP_DATA = "ip2region.xdb";
+    private static final Searcher SEARCHER;
+
+    static {
+        try {
+            ClassPathResource resource = new ClassPathResource(IP_DATA);
+            try (InputStream inputStream = resource.getInputStream()) {
+                byte[] dbBytes = StreamUtils.copyToByteArray(inputStream);
+                SEARCHER = Searcher.newWithBuffer(dbBytes);
+            }
+        } catch (Exception e) {
+            throw new ServiceException("IPUtils初始化失败，原因：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前请求客户端的IP地址城市信息
+     *
+     * @return 城市信息
+     */
+    public static String getCityInfo() {
+        return getCityInfo(getClientIpAddress());
+    }
+
+    /**
+     * 获取指定IP地址的城市信息
+     *
+     * @param ip IP地址
+     * @return 城市信息
+     */
+    public static String getCityInfo(String ip) {
+        try {
+            String search = SEARCHER.search(ip.trim());
+            return search.replace("0|", "").replace("|0", "");
+        } catch (Exception e) {
+            log.error("IP地址离线获取城市异常 {}", ip);
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 获取客户端IP地址

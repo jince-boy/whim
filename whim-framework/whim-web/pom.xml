@@ -35,6 +35,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- 监控模块 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- json 模块 -->
         <dependency>
             <groupId>com.whim</groupId>
