@@ -7,8 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author jince
- * date: 2025/6/23 16:45
- * description: redisson 配置属性
+ * @date 2025/6/23 16:45
+ * @description redisson 配置属性
  */
 @Data
 @ConfigurationProperties(prefix = "redisson")

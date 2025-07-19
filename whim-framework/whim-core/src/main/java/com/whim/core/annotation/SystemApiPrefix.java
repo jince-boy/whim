@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 
 /**
  * @author jince
- * date: 2025/6/19 16:57
- * description: 系统接口前缀
+ * @date 2025/6/19 16:57
+ * @description 系统接口前缀
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author jince
- * date: 2025/2/23 16:31
- * description: minio文件存储实现
+ * @date 2025/2/23 16:31
+ * @description minio文件存储实现
  */
 @Slf4j
 public class MinioFileStorageImpl implements IFileStorage {

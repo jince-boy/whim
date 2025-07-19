@@ -9,8 +9,8 @@ import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * @author jince
- * date: 2025/7/7 23:22
- * description: 认证上下文
+ * @date 2025/7/7 23:22
+ * @description 认证上下文
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AuthContext {

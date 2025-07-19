@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 
 /**
  * @author jince
- * date: 2025/6/17 17:05
- * description: 基础实体类
+ * @date 2025/6/17 17:05
+ * @description 基础实体类
  */
 @Data
 public class BaseEntity implements Serializable {

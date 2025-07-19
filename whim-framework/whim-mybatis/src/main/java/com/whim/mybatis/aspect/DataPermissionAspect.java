@@ -13,8 +13,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/7/9 14:10
- * description: 数据权限切面
+ * @date 2025/7/9 14:10
+ * @description 数据权限切面
  */
 @Slf4j
 @Aspect

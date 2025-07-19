@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * @author jince
- * date: 2025/7/4 12:37
- * description: 数据权限字段规则
+ * @date 2025/7/4 12:37
+ * @description 数据权限字段规则
  * key      表别名+字段名（如 "u.dept_id"），或SpEL上下文变量名（如 "deptId"）
  * value   对应数据库字段或SpEL表达式（如 "#user.deptId"）
  * 注意：当包含特殊字符（如'.'）时视为直接字段引用，否则解析为SpEL

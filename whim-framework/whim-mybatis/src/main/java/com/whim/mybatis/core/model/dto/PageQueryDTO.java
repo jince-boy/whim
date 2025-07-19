@@ -7,8 +7,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/6/27 17:39
- * description: 分页查询参数
+ * @date 2025/6/27 17:39
+ * @description 分页查询参数
  */
 @Data
 public class PageQueryDTO {

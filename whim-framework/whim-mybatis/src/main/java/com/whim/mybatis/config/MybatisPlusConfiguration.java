@@ -18,8 +18,8 @@ import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author jince
- * date: 2025/6/17 17:12
- * description: mybatis plus 配置
+ * @date 2025/6/17 17:12
+ * @description mybatis plus 配置
  */
 @AutoConfiguration
 @PropertySource(value = "classpath:mybatis-plus.yml", factory = YmlPropertySourceFactory.class)

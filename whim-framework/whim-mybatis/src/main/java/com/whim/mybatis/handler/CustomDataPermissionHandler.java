@@ -35,8 +35,8 @@ import java.util.stream.IntStream;
 
 /**
  * @author jince
- * date: 2025/7/3 15:42
- * description: 自定义数据权限处理器
+ * @date 2025/7/3 15:42
+ * @description 自定义数据权限处理器
  */
 @Slf4j
 public class CustomDataPermissionHandler {

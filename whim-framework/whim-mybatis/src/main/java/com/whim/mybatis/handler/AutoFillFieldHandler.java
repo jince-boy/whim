@@ -10,8 +10,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/6/17 19:31
- * description: 自动填充字段处理器
+ * @date 2025/6/17 19:31
+ * @description 自动填充字段处理器
  */
 public class AutoFillFieldHandler implements MetaObjectHandler {
     @Override

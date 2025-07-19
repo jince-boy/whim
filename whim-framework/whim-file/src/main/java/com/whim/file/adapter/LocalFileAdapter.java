@@ -7,8 +7,8 @@ import java.io.File;
 
 /**
  * @author jince
- * date: 2025/3/12 19:56
- * description: File文件适配器
+ * @date 2025/3/12 19:56
+ * @description File文件适配器
  * 该类实现了IFileAdapter接口，用于适配File对象，将其转换为统一的文件处理接口
  */
 public class LocalFileAdapter implements IFileAdapter {

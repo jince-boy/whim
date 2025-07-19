@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * @author jince
- * date: 2025/6/23 17:29
- * description: 统一处理Redis异常
+ * @date 2025/6/23 17:29
+ * @description 统一处理Redis异常
  */
 @Slf4j
 @RestControllerAdvice

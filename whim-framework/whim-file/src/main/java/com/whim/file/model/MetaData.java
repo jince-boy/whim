@@ -4,8 +4,8 @@ import lombok.Data;
 
 /**
  * @author jince
- * date: 2025/3/24 19:12
- * description: 文件元数据类，用于存储文件的相关信息
+ * @date 2025/3/24 19:12
+ * @description 文件元数据类，用于存储文件的相关信息
  */
 @Data
 public class MetaData {

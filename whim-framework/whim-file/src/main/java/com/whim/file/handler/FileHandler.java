@@ -17,8 +17,8 @@ import java.util.Map;
 
 /**
  * @author jince
- * date: 2025/2/18 14:25
- * description: 文件选项类
+ * @date 2025/2/18 14:25
+ * @description 文件选项类
  */
 @Getter
 @Slf4j

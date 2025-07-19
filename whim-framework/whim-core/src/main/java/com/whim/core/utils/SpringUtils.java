@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Jince
- * date: 2024/10/20 01:11
- * description: Spring工具类，方便在非Spring管理环境中获取Bean。
+ * @date 2024/10/20 01:11
+ * @description Spring工具类，方便在非Spring管理环境中获取Bean。
  * 这个类实现了BeanFactoryPostProcessor和ApplicationContextAware接口，
  * 因此在Spring容器启动时可以获取到BeanFactory和ApplicationContext的引用。
  * 主要提供获取Bean及其他Bean相关信息的方法。

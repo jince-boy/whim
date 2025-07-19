@@ -5,8 +5,8 @@ import java.util.UUID;
 
 /**
  * @author Jince
- * date: 2024/10/5 00:16
- * description: id生成工具类
+ * @date 2024/10/5 00:16
+ * @description id生成工具类
  */
 public class IDGeneratorUtils {
     private static final SecureRandom secureRandom = new SecureRandom();

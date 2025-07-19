@@ -24,8 +24,8 @@ import java.util.List;
 
 /**
  * @author jince
- * date: 2025/6/19 14:34
- * description: Sa-Token 配置
+ * @date 2025/6/19 14:34
+ * @description Sa-Token 配置
  */
 @AutoConfiguration
 @PropertySource(value = "classpath:sa-token.yml", factory = YmlPropertySourceFactory.class)

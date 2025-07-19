@@ -30,8 +30,8 @@ import java.util.TimeZone;
 
 /**
  * @author jince
- * date: 2025/6/23 16:13
- * description: Redisson配置
+ * @date 2025/6/23 16:13
+ * @description Redisson配置
  */
 @Slf4j
 @AutoConfiguration

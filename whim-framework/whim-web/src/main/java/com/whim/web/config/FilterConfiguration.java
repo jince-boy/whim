@@ -14,8 +14,8 @@ import org.springframework.core.Ordered;
 
 /**
  * @author jince
- * date: 2025/6/19 13:43
- * description: 过滤器配置
+ * @date 2025/6/19 13:43
+ * @description 过滤器配置
  */
 @AutoConfiguration
 @EnableConfigurationProperties(XssProperties.class)

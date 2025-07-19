@@ -11,8 +11,8 @@ import java.util.UUID;
 
 /**
  * @author jince
- * date: 2025/2/17 21:46
- * description: MultipartFile包装器
+ * @date 2025/2/17 21:46
+ * @description MultipartFile包装器
  */
 public class MultipartFileWrapper extends BaseFileWrapper<MultipartFile> {
 

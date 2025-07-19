@@ -12,8 +12,8 @@ import java.lang.annotation.Target;
 
 /**
  * @author jince
- * date: 2025/3/28 23:42
- * description: 系统用户权限认证：必须具有指定权限才能进入该方法
+ * @date 2025/3/28 23:42
+ * @description 系统用户权限认证：必须具有指定权限才能进入该方法
  */
 
 @SaCheckPermission(type = AccountType.SYSTEM)

@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Jince
- * date: 2025/7/17 23:06
- * description: 增强版 Spring CacheManager 实现，基于 Redisson 并支持多参数配置
+ * @date 2025/7/17 23:06
+ * @description 增强版 Spring CacheManager 实现，基于 Redisson 并支持多参数配置
  * 主要优化点：
  * 1. 支持更灵活的缓存配置参数
  * 2. 添加了本地缓存和分布式缓存的组合支持

@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 
 /**
  * @author jince
- * date: 2025/3/29 13:21
- * description: 系统用户登录认证：只有登录之后才能进入该方法
+ * @date 2025/3/29 13:21
+ * @description 系统用户登录认证：只有登录之后才能进入该方法
  */
 @SaCheckLogin(type = AccountType.SYSTEM)
 @Retention(RetentionPolicy.RUNTIME)

@@ -14,8 +14,8 @@ import java.util.UUID;
 
 /**
  * @author jince
- * date: 2025/3/12 19:40
- * description: File文件包装器
+ * @date 2025/3/12 19:40
+ * @description File文件包装器
  */
 public class LocalFileWrapper extends BaseFileWrapper<File> {
     public LocalFileWrapper(File file) {

@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 
 /**
  * @author jince
- * date: 2025/3/29 13:24
- * description: 系统用户二级认证校验：客户端必须完成二级认证之后，才能进入该方法，否则将被抛出异常。
+ * @date 2025/3/29 13:24
+ * @description 系统用户二级认证校验：客户端必须完成二级认证之后，才能进入该方法，否则将被抛出异常。
  */
 @SaCheckSafe(type = AccountType.SYSTEM)
 @Retention(RetentionPolicy.RUNTIME)

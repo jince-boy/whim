@@ -4,8 +4,8 @@ import com.whim.file.wrapper.IFileWrapper;
 
 /**
  * @author jince
- * date: 2025/2/17 18:04
- * description: 文件适配器
+ * @date 2025/2/17 18:04
+ * @description 文件适配器
  */
 public interface IFileAdapter {
     /**

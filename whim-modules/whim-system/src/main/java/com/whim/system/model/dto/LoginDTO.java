@@ -7,8 +7,8 @@ import lombok.Data;
 
 /**
  * @author Jince
- * date: 2024/10/26 16:21
- * description: 登录数据传输对象
+ * @date 2024/10/26 16:21
+ * @description 登录数据传输对象
  */
 @Data
 public class LoginDTO {

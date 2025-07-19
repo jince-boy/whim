@@ -8,7 +8,6 @@ import com.whim.system.model.vo.LoginVO;
 import com.whim.system.service.ISysAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Jince
- * date: 2024/10/23 21:46
- * description: 用户认证控制器
+ * @date 2024/10/23 21:46
+ * @description 用户认证
  */
 @SystemApiPrefix
 @RestController

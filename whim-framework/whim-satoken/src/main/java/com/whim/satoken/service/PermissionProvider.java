@@ -4,8 +4,8 @@ import java.util.Set;
 
 /**
  * @author jince
- * date: 2025/6/19 16:11
- * description: 权限提供者，用来给不同业务模块提供权限provider
+ * @date 2025/6/19 16:11
+ * @description 权限提供者，用来给不同业务模块提供权限provider
  */
 public interface PermissionProvider {
     /**

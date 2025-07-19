@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * @author Jince
  * date 2024-10-23 17:45:59
- * description: 系统用户(SysUser)实体类
+ * @description 系统用户(SysUser)实体类
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

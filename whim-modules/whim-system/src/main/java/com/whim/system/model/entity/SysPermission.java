@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * @author Jince
  * date 2024-10-23 19:53:10
- * description: 菜单权限(SysPermission)实体类
+ * @description 菜单权限(SysPermission)实体类
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

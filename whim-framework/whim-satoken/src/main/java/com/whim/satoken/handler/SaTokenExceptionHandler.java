@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * @author jince
- * date: 2025/6/19 16:23
- * description: 认证异常处理
+ * @date 2025/6/19 16:23
+ * @description 认证异常处理
  */
 @Slf4j
 @RestControllerAdvice

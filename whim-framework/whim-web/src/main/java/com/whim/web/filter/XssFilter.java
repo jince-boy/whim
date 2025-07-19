@@ -17,8 +17,8 @@ import java.util.List;
 
 /**
  * @author jince
- * date: 2025/6/24 15:10
- * description: 跨站脚本过滤器
+ * @date 2025/6/24 15:10
+ * @description 跨站脚本过滤器
  */
 public class XssFilter implements Filter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();

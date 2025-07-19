@@ -6,8 +6,8 @@ import com.whim.system.model.vo.LoginVO;
 
 /**
  * @author jince
- * date: 2025/6/26 15:15
- * description: 认证服务
+ * @date 2025/6/26 15:15
+ * @description 认证服务
  */
 public interface ISysAuthService {
     /**

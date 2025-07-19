@@ -7,8 +7,8 @@ import java.io.InputStream;
 
 /**
  * @author jince
- * date: 2025/3/11 13:33
- * description: InputStream文件适配器
+ * @date 2025/3/11 13:33
+ * @description InputStream文件适配器
  * 该类实现了IFileAdapter接口，用于适配InputStream类型的文件对象
  * 它提供了判断是否支持传入的文件对象类型的方法，以及将支持的文件对象包装成IFileWrapper接口实现类的方法
  */

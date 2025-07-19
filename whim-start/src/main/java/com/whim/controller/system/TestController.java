@@ -18,8 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author jince
- * date: 2025/6/18 10:43
- * description:
+ * @date 2025/6/18 10:43
+ * @description
  */
 @SystemApiPrefix
 @RestController

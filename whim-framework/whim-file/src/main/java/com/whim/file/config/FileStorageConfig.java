@@ -25,8 +25,8 @@ import java.util.Map;
 
 /**
  * @author jince
- * date: 2025/6/24 12:44
- * description: 文件存储配置
+ * @date 2025/6/24 12:44
+ * @description 文件存储配置
  */
 @AutoConfiguration
 @EnableConfigurationProperties(FileStorageProperties.class)

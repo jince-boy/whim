@@ -6,8 +6,8 @@ import java.util.Objects;
 
 /**
  * @author Jince
- * date: 2024/10/5 00:39
- * description: 字符串格式化工具类
+ * @date 2024/10/5 00:39
+ * @description 字符串格式化工具类
  * <p>
  * 此类提供一种方法来格式化字符串，将占位符 {} 按照顺序替换为参数。
  * <p>

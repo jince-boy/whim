@@ -34,8 +34,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/6/26 15:15
- * description:
+ * @date 2025/6/26 15:15
+ * @description 系统用户认证
  */
 @Service
 @RequiredArgsConstructor

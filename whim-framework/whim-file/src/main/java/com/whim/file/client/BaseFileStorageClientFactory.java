@@ -4,8 +4,8 @@ import lombok.Getter;
 
 /**
  * @author jince
- * date: 2025/3/18 21:52
- * description: 文件存储客户端工厂
+ * @date 2025/3/18 21:52
+ * @description 文件存储客户端工厂
  */
 @Getter
 public abstract class BaseFileStorageClientFactory<T> implements IFileStorageClientFactory<T> {

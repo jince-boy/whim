@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author jince
- * date: 2025/2/18 17:48
- * description: 本地文件存储实现
+ * @date 2025/2/18 17:48
+ * @description 本地文件存储实现
  */
 @Slf4j
 public class LocalFileStorageImpl implements IFileStorage {

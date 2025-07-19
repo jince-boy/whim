@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author jince
- * date: 2025/6/23 18:20
- * description: caffeine 本地缓存配置
+ * @date 2025/6/23 18:20
+ * @description caffeine 本地缓存配置
  */
 @AutoConfiguration
 @EnableCaching

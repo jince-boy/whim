@@ -11,8 +11,8 @@ import java.util.Date;
 
 /**
  * @author jince
- * date: 2025/6/17 21:29
- * description:
+ * @date 2025/6/17 21:29
+ * @description 时间序列化处理
  */
 public class DateSerializer extends JsonDeserializer<Date> {
 

@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * @author jince
- * date: 2025/6/24 12:13
- * description: 文件存储属性
+ * @date 2025/6/24 12:13
+ * @description 文件存储属性
  */
 @Data
 @ConfigurationProperties(prefix = "file.storage")

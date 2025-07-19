@@ -9,8 +9,8 @@ import java.io.InputStream;
 
 /**
  * @author jince
- * date: 2025/2/17 21:41
- * description: 文件包装器基类
+ * @date 2025/2/17 21:41
+ * @description 文件包装器基类
  */
 @Slf4j
 @RequiredArgsConstructor

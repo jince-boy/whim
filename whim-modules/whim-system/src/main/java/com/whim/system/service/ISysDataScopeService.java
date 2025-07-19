@@ -2,8 +2,8 @@ package com.whim.system.service;
 
 /**
  * @author jince
- * date: 2025/7/10 16:05
- * description: 系统数据权限接口
+ * @date 2025/7/10 16:05
+ * @description 系统数据权限接口
  */
 public interface ISysDataScopeService {
     /**

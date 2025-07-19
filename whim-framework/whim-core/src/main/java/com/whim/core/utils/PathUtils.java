@@ -2,8 +2,8 @@ package com.whim.core.utils;
 
 /**
  * @author jince
- * date: 2025/3/17 21:00
- * description: 路径工具类
+ * @date 2025/3/17 21:00
+ * @description 路径工具类
  */
 public class PathUtils {
 

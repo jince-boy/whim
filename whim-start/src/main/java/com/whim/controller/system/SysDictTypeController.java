@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author jince
- * date: 2025/6/27 18:04
- * description: 字典类型管理
+ * @date 2025/6/27 18:04
+ * @description 字典类型管理
  */
 @SystemApiPrefix
 @RestController

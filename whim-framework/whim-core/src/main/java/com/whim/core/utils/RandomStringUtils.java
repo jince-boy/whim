@@ -4,8 +4,8 @@ import java.security.SecureRandom;
 
 /**
  * @author Jince
- * date: 2024/10/5 00:16
- * description: 随机字符串生成工具类
+ * @date 2024/10/5 00:16
+ * @description 随机字符串生成工具类
  * 提供生成包含大写字母、小写字母和数字的随机字符串的方法。
  */
 public class RandomStringUtils {

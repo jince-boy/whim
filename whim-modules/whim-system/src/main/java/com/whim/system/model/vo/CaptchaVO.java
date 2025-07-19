@@ -5,8 +5,8 @@ import lombok.Data;
 
 /**
  * @author Jince
- * date: 2024/10/26 15:14
- * description: 验证码响应实体类
+ * @date 2024/10/26 15:14
+ * @description 验证码响应实体类
  */
 @Data
 @AllArgsConstructor

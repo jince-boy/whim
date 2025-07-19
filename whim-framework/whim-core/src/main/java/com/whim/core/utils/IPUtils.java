@@ -11,8 +11,8 @@ import java.io.InputStream;
 
 /**
  * @author Jince
- * date: 2024/10/5 00:19
- * description: IP工具类
+ * @date 2024/10/5 00:19
+ * @description IP工具类
  */
 @Slf4j
 public class IPUtils {

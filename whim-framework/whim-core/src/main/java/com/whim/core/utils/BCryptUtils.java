@@ -4,8 +4,8 @@ import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * @author Jince
- * date: 2024/10/4 00:46
- * description: BCryptUtils 是一个用于处理密码加密和验证的工具类。
+ * @date 2024/10/4 00:46
+ * @description BCryptUtils 是一个用于处理密码加密和验证的工具类。
  * 该类提供了使用 BCrypt 算法对密码进行加密和验证的方法。
  * BCrypt 是一种安全的哈希算法，具有加盐和自适应加密机制，能够有效抵御暴力破解和字典攻击。
  */

@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author jince
- * date: 2025/3/18 21:22
- * description: 阿里云oss文件存储实现
+ * @date 2025/3/18 21:22
+ * @description 阿里云oss文件存储实现
  */
 @Slf4j
 public class AliyunOssFileStorageImpl implements IFileStorage {

@@ -10,8 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author jince
- * date: 2025/6/19 16:58
- * description: web 配置
+ * @date 2025/6/19 16:58
+ * @description web 配置
  */
 @AutoConfiguration
 public class WebConfig implements WebMvcConfigurer {

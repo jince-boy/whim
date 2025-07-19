@@ -13,8 +13,8 @@ import java.util.UUID;
 
 /**
  * @author jince
- * date: 2025/3/13 15:54
- * description: URI文件
+ * @date 2025/3/13 15:54
+ * @description URI文件
  */
 public class URIWrapper extends BaseFileWrapper<URI> {
     public URIWrapper(URI file) {

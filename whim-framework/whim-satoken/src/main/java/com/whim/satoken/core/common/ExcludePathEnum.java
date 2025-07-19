@@ -7,8 +7,8 @@ import java.util.List;
 
 /**
  * @author Jince
- * date: 2024/10/24 23:13
- * description: 排除路径枚举类
+ * @date 2024/10/24 23:13
+ * @description 排除路径枚举类
  */
 @Getter
 public enum ExcludePathEnum {

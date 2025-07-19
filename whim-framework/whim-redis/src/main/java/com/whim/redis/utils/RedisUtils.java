@@ -29,8 +29,8 @@ import java.util.stream.Stream;
 
 /**
  * @author jince
- * date: 2025/6/23 17:40
- * description: redis工具类
+ * @date 2025/6/23 17:40
+ * @description redis工具类
  */
 @NoArgsConstructor
 public class RedisUtils {

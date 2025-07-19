@@ -6,8 +6,8 @@ import java.util.UUID;
 
 /**
  * @author jince
- * date: 2025/3/11 13:32
- * description: InputStream包装器
+ * @date 2025/3/11 13:32
+ * @description InputStream包装器
  */
 public class InputStreamWrapper extends BaseFileWrapper<InputStream> {
 

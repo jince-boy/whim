@@ -4,8 +4,8 @@ import org.slf4j.MDC;
 
 /**
  * @author Jince
- * date: 2024/10/19 00:54
- * description: 用于在MDC（映射诊断上下文）中管理Trace ID的工具类。
+ * @date 2024/10/19 00:54
+ * @description 用于在MDC（映射诊断上下文）中管理Trace ID的工具类。
  */
 public class TraceIdUtils {
     public static final String TRACE_ID = "TRACE_ID";

@@ -10,8 +10,8 @@ import java.util.Map;
 
 /**
  * @author jince
- * date: 2025/6/24 15:11
- * description: xss过滤器
+ * @date 2025/6/24 15:11
+ * @description xss过滤器
  */
 public class XssRequestWrapper extends HttpServletRequestWrapper {
     public XssRequestWrapper(HttpServletRequest request) {

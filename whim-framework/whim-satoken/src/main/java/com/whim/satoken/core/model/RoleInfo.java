@@ -4,8 +4,8 @@ import lombok.Data;
 
 /**
  * @author jince
- * date: 2025/7/10 12:40
- * description: 角色信息
+ * @date 2025/7/10 12:40
+ * @description 角色信息
  */
 @Data
 public class RoleInfo {

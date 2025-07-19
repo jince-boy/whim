@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 
 /**
  * @author jince
- * date: 2025/7/10 16:08
- * description: 系统数据权限服务实现类
+ * @date 2025/7/10 16:08
+ * @description 系统数据权限服务实现类
  */
 @Slf4j
 @Service("systemDataScope")

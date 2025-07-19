@@ -7,8 +7,8 @@ import java.util.List;
 
 /**
  * @author jince
- * date: 2025/6/27 17:52
- * description: 分页返回对象
+ * @date 2025/6/27 17:52
+ * @description 分页返回对象
  */
 @Data
 public class PageDataVO<T> {

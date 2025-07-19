@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 
 /**
  * @author jince
- * date: 2025/3/27 11:32
- * description: 下载处理器类，用于处理下载过程中的输入流
+ * @date 2025/3/27 11:32
+ * @description 下载处理器类，用于处理下载过程中的输入流
  * 它提供了一种机制来安全地操作输入流，并在操作完成后执行清理操作
  */
 public class DownloadHandler {

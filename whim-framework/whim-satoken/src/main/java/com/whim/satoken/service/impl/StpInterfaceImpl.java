@@ -13,8 +13,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/6/19 15:48
- * description: 登录权限服务
+ * @date 2025/6/19 15:48
+ * @description 登录权限服务
  */
 public class StpInterfaceImpl implements StpInterface {
     @Override

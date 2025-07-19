@@ -13,8 +13,8 @@ import java.util.function.Supplier;
 
 /**
  * @author jince
- * date: 2025/7/9 15:13
- * description: 数据权限上下文
+ * @date 2025/7/9 15:13
+ * @description 数据权限上下文
  */
 public class DataPermissionContext {
     public static final ThreadLocal<Deque<DataPermissionHolder>> CONTEXT = ThreadLocal.withInitial(ArrayDeque::new);

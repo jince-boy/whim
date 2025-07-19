@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 
 /**
  * @author jince
- * date: 2025/6/24 13:25
- * description: 全局异常处理
+ * @date 2025/6/24 13:25
+ * @description 全局异常处理
  */
 @Slf4j
 @RestControllerAdvice

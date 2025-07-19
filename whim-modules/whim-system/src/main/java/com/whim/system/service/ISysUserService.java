@@ -6,7 +6,7 @@ import com.whim.system.model.entity.SysUser;
 /**
  * @author Jince
  * date 2024-10-23 19:45:05
- * description: 系统用户(SysUser)表服务接口
+ * @description 系统用户(SysUser)表服务接口
  */
 public interface ISysUserService extends IService<SysUser> {
     /**

@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author jince
- * date: 2025/2/23 16:58
- * description: minio文件存储客户端工厂
+ * @date 2025/2/23 16:58
+ * @description minio文件存储客户端工厂
  */
 @Getter
 @Slf4j

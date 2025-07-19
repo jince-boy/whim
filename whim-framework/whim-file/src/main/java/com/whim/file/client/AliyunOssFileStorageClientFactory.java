@@ -13,8 +13,8 @@ import static com.whim.file.config.properties.FileStorageProperties.AliYunOssSto
 
 /**
  * @author jince
- * date: 2025/3/18 21:32
- * description: 阿里云oss文件存储客户端工厂
+ * @date 2025/3/18 21:32
+ * @description 阿里云oss文件存储客户端工厂
  */
 @Getter
 @Slf4j

@@ -2,8 +2,8 @@ package com.whim.core.constant;
 
 /**
  * @author jince
- * date: 2025/6/19 17:00
- * description: web路径前缀常量
+ * @date 2025/6/19 17:00
+ * @description web路径前缀常量
  */
 public class WebPrefixConstants {
     /**

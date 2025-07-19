@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * @author jince
- * date: 2025/6/24 15:14
- * description: xss配置
+ * @date 2025/6/24 15:14
+ * @description xss配置
  */
 @Data
 @ConfigurationProperties(prefix = "xss")

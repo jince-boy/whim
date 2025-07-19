@@ -17,8 +17,8 @@ import java.util.function.Consumer;
 
 /**
  * @author jince
- * date: 2025/2/18 13:47
- * description: 文件存储服务
+ * @date 2025/2/18 13:47
+ * @description 文件存储服务
  */
 @Slf4j
 @RequiredArgsConstructor

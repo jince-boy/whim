@@ -8,8 +8,8 @@ import java.util.concurrent.Callable;
 
 /**
  * @author Jince
- * date: 2025/7/17 23:06
- * description: Cache 装饰器模式(用于扩展 Caffeine 一级缓存)
+ * @date 2025/7/17 23:06
+ * @description Cache 装饰器模式(用于扩展 Caffeine 一级缓存)
  */
 public class CaffeineCacheDecorator implements Cache {
 

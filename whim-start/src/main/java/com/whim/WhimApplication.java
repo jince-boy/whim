@@ -10,11 +10,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.net.InetAddress;
 
-/**
- * @author jince
- * date: 2025/6/13 18:41
- * description:
- */
 @SpringBootApplication
 @Slf4j
 public class WhimApplication {

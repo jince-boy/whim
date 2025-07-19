@@ -15,8 +15,8 @@ import java.io.IOException;
 
 /**
  * @author jince
- * date: 2025/6/19 13:45
- * description: 链路追踪过滤器
+ * @date 2025/6/19 13:45
+ * @description 链路追踪过滤器
  */
 @Slf4j
 public class TraceFilter implements Filter {

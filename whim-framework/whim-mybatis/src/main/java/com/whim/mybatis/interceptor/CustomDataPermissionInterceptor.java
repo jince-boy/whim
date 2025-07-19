@@ -30,8 +30,8 @@ import java.util.List;
 
 /**
  * @author Jince
- * date: 2025/7/15 11:54
- * description: 自定义数据权限拦截器
+ * @date 2025/7/15 11:54
+ * @description 自定义数据权限拦截器
  */
 @Slf4j
 @RequiredArgsConstructor

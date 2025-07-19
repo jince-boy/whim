@@ -17,8 +17,8 @@ import java.util.Map;
 
 /**
  * @author Jince
- * date: 2024/10/4 00:08
- * description: Result统一响应工具类
+ * @date 2024/10/4 00:08
+ * @description Result统一响应工具类
  */
 @Data
 public class Result<T> implements Serializable {

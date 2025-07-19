@@ -7,8 +7,8 @@ import java.util.UUID;
 
 /**
  * @author jince
- * date: 2025/3/12 19:26
- * description: byte数组包装类
+ * @date 2025/3/12 19:26
+ * @description byte数组包装类
  */
 public class ByteArrayWrapper extends BaseFileWrapper<byte[]> {
     public ByteArrayWrapper(byte[] file) {

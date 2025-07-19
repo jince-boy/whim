@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 /**
  * @author jince
- * date: 2025/7/4 12:38
- * description: 数据权限类型枚举
+ * @date 2025/7/4 12:38
+ * @description 数据权限类型枚举
  */
 @Getter
 @AllArgsConstructor

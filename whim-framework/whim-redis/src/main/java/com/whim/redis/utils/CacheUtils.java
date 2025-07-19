@@ -8,8 +8,8 @@ import java.util.Objects;
 
 /**
  * @author jince
- * date: 2025/6/23 18:26
- * description: 缓存工具类
+ * @date 2025/6/23 18:26
+ * @description 缓存工具类
  */
 public class CacheUtils {
     private static final CacheManager CACHE_MANAGER = SpringUtils.getBean(CacheManager.class);

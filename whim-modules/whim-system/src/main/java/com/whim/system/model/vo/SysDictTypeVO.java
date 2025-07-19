@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 /**
  * @author jince
- * date: 2025/6/27 19:31
- * description:
+ * @date 2025/6/27 19:31
+ * @description 字典类型VO
  */
 @Data
 @AutoMapper(target = SysDictType.class)

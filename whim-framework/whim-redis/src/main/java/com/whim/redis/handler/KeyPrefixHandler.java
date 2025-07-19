@@ -5,8 +5,8 @@ import org.redisson.api.NameMapper;
 
 /**
  * @author jince
- * date: 2025/6/23 16:59
- * description: key前缀处理
+ * @date 2025/6/23 16:59
+ * @description key前缀处理
  */
 public class KeyPrefixHandler implements NameMapper {
     private final String keyPrefix;

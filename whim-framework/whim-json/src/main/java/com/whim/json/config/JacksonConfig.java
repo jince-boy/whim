@@ -22,8 +22,8 @@ import java.util.TimeZone;
 
 /**
  * @author jince
- * date: 2025/6/17 20:46
- * description: Jackson 配置
+ * @date 2025/6/17 20:46
+ * @description Jackson 配置
  */
 @Slf4j
 @AutoConfiguration(before = JacksonAutoConfiguration.class)

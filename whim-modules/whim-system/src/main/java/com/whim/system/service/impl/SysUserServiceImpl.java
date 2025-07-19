@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Jince
  * date 2024-10-23 19:45:05
- * description: 系统用户(SysUser)表服务实现类
+ * @description 系统用户(SysUser)表服务实现类
  */
 @Service
 @RequiredArgsConstructor

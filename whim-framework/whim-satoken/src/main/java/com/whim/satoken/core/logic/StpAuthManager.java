@@ -7,8 +7,8 @@ import lombok.Getter;
 
 /**
  * @author jince
- * date: 2025/3/28 18:45
- * description: StpLogic 门面类，管理项目中所有的 StpLogic 账号体系
+ * @date 2025/3/28 18:45
+ * @description StpLogic 门面类，管理项目中所有的 StpLogic 账号体系
  */
 @Getter
 public class StpAuthManager {

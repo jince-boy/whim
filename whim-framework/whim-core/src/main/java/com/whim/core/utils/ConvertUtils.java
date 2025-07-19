@@ -16,8 +16,8 @@ import java.util.Set;
 
 /**
  * @author Jince
- * date: 2024/10/4 22:54
- * description: 类型转换工具类
+ * @date 2024/10/4 22:54
+ * @description 类型转换工具类
  */
 public class ConvertUtils {
     private final static Converter CONVERTER = SpringUtils.getBean(Converter.class);

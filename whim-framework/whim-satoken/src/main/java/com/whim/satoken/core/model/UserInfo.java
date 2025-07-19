@@ -9,8 +9,8 @@ import java.util.Set;
 
 /**
  * @author jince
- * date: 2025/7/8 12:39
- * description: 用户信息
+ * @date 2025/7/8 12:39
+ * @description 用户信息
  */
 @Data
 public class UserInfo implements Serializable {

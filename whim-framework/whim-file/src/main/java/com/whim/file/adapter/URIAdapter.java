@@ -7,8 +7,8 @@ import java.net.URI;
 
 /**
  * @author jince
- * date: 2025/3/12 19:58
- * description: URL适配器，用于处理URI类型的文件
+ * @date 2025/3/12 19:58
+ * @description URL适配器，用于处理URI类型的文件
  */
 public class URIAdapter implements IFileAdapter {
 

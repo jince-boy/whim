@@ -5,8 +5,8 @@ import com.whim.file.wrapper.IFileWrapper;
 
 /**
  * @author jince
- * date: 2025/3/12 19:46
- * description: 适配字节数组的适配器类，实现IFileAdapter接口
+ * @date 2025/3/12 19:46
+ * @description 适配字节数组的适配器类，实现IFileAdapter接口
  * 该类的目的是将字节数组转换为文件包装器，以便统一处理不同类型的文件
  */
 public class ByteArrayAdapter implements IFileAdapter {

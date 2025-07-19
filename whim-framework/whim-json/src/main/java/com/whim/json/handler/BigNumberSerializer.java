@@ -9,8 +9,8 @@ import java.io.IOException;
 
 /**
  * @author jince
- * date: 2025/6/17 21:17
- * description: 自定义 Jackson 序列化器，用于处理大数字（Long/BigInteger）的 JSON 序列化，
+ * @date 2025/6/17 21:17
+ * @description 自定义 Jackson 序列化器，用于处理大数字（Long/BigInteger）的 JSON 序列化，
  * 防止 JavaScript 因精度丢失导致的问题。
  * <p>
  * <b>核心逻辑：</b>
