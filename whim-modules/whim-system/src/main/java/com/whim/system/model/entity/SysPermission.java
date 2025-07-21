@@ -1,19 +1,25 @@
 package com.whim.system.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.whim.mybatis.core.model.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.simpleframework.xml.convert.Convert;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author Jince
- * date 2024-10-23 19:53:10
+ * @date 2024-10-23 19:53:10
  * @description 菜单权限(SysPermission)实体类
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@TableName(autoResultMap = true)
 public class SysPermission extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -18778024102398442L;
@@ -37,6 +43,11 @@ public class SysPermission extends BaseEntity implements Serializable {
      * 前端路由路径
      */
     private String path;
+    /**
+     * 路由参数
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> queryParam;
     /**
      * 前端组件路径
      */

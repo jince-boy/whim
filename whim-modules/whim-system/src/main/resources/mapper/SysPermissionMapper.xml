@@ -31,6 +31,33 @@
                  join sys_user_role as sur on sr.id = sur.role_id
         where sur.user_id = #{userId}
     </select>
+    <select id="getMenuTreeByUserId" resultType="com.whim.system.model.entity.SysPermission"
+            parameterType="java.lang.Long">
+        SELECT DISTINCT sp.id,
+                        sp.name,
+                        sp.parent_id,
+                        sp.type,
+                        sp.path,
+                        sp.component,
+                        sp.sort,
+                        sp.code,
+                        sp.visible,
+                        sp.status,
+                        sp.icon,
+                        sp.redirect,
+                        sp.remark,
+                        sp.create_by,
+                        sp.create_time,
+                        sp.update_by,
+                        sp.update_time,
+                        sp.deleted
+        FROM sys_permission sp
+                 INNER JOIN sys_role_permission srp ON sp.id = srp.permission_id
+                 INNER JOIN sys_role sr ON srp.role_id = sr.id AND sr.status = '0'
+                 INNER JOIN sys_user_role sur ON sr.id = sur.role_id AND sur.user_id = #{userId}
+        WHERE sp.type IN ('1', '2', '4')
+        ORDER BY sp.parent_id, sp.sort
+    </select>
 
 
 </mapper>

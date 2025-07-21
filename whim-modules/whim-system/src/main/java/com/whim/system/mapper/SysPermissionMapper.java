@@ -5,11 +5,12 @@ import com.whim.system.model.entity.SysPermission;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Jince
- * date 2024-10-23 19:53:58
+ * @date 2024-10-23 19:53:58
  * @description 菜单权限(SysPermission)表数据库访问层
  */
 @Mapper
@@ -21,5 +22,12 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      * @return 权限标识列表
      */
     Set<String> getPermissionCodeByUserId(@Param("userId") Long userId);
+
+    /**
+     * 通过用户id获取菜单树
+     * @param userId 用户id
+     * @return 菜单树
+     */
+    List<SysPermission> getMenuTreeByUserId(@Param("userId") Long userId);
 }
 

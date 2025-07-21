@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 /**
  * @author Jince
- * date 2024-10-23 19:53:10
+ * @date 2024-10-23 19:53:10
  * @description 系统角色(SysRole)实体类
  */
 @AutoMapper(target = RoleInfo.class)
