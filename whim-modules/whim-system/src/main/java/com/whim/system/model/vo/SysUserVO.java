@@ -4,6 +4,8 @@ import com.whim.system.model.entity.SysUser;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author Jince
  * @date: 2025/7/21 12:26
@@ -52,4 +54,8 @@ public class SysUserVO {
      * 备注
      */
     private String remark;
+    /**
+     * 角色列表
+     */
+    private List<SysRoleVO> roles;
 }

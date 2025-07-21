@@ -7,14 +7,20 @@ import com.whim.mybatis.annotation.DataPermission;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.core.logic.StpAuthManager;
 import com.whim.system.mapper.SysUserMapper;
+import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.vo.SysRoleVO;
 import com.whim.system.model.vo.SysUserVO;
 import com.whim.system.model.vo.UserInfoVO;
 import com.whim.system.service.ISysPermissionService;
+import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -27,6 +33,7 @@ import org.springframework.stereotype.Service;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService {
 
     private final ISysPermissionService permissionService;
+    private final ISysRoleService roleService;
 
     /**
      * 通过用户名查询用户
@@ -53,6 +60,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Long userId = StpAuthManager.SYSTEM.getLoginIdAsLong();
         SysUser sysUser = this.getSysUserById(userId);
         SysUserVO sysUserVO = ConvertUtils.convert(sysUser, SysUserVO.class);
+        sysUserVO.setRoles(ConvertUtils.convert(roleService.getRoleInfoListByUserId(userId), SysRoleVO.class));
         userInfoVO.setUser(sysUserVO);
         userInfoVO.setPermissionCode(AuthContext.getUserInfo().getPermissionCodeSet());
         userInfoVO.setRoleCode(AuthContext.getUserInfo().getRoleCodeSet());
