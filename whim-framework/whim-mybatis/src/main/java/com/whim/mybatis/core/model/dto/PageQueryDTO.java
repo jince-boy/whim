@@ -16,7 +16,6 @@ public class PageQueryDTO {
     private Integer pageSize;
 
     public <T> Page<T> getPage() {
-        Page<T> page = new Page<>(Objects.requireNonNullElse(pageNum, 1), Objects.requireNonNullElse(pageSize, 10));
-        return page;
+        return new Page<>(Objects.requireNonNullElse(pageNum, 1), Objects.requireNonNullElse(pageSize, 10));
     }
 }

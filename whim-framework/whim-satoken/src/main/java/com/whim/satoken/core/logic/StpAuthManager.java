@@ -15,5 +15,5 @@ public class StpAuthManager {
     /**
      * System 会话对象，管理 System 表所有账号的登录、权限认证
      */
-    public static StpLogic SYSTEM = new StpLogicJwtForSimple(AccountType.SYSTEM);
+    public static final StpLogic SYSTEM = new StpLogicJwtForSimple(AccountType.SYSTEM);
 }

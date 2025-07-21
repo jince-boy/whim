@@ -1,7 +1,5 @@
 package com.whim.system.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.whim.system.model.entity.SysPermission;
 import io.github.linpeilie.annotations.AutoMapper;

@@ -7,7 +7,6 @@ import com.whim.mybatis.annotation.DataPermission;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.core.logic.StpAuthManager;
 import com.whim.system.mapper.SysUserMapper;
-import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.vo.SysRoleVO;
 import com.whim.system.model.vo.SysUserVO;
@@ -18,9 +17,6 @@ import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -80,7 +76,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @DataPermission({
-            @DataColumn(key = "deptName", value = "dept_id")
+            @DataColumn()
     })
     @Override
     public SysUser test() {

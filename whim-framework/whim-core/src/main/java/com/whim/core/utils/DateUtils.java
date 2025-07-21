@@ -89,7 +89,6 @@ public class DateUtils {
                 }
             } catch (IllegalArgumentException e) {
                 // 忽略当前格式的解析错误，继续尝试下一个格式
-                continue;
             }
         }
 

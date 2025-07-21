@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.whim.mybatis.core.model.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.simpleframework.xml.convert.Convert;
 
 import java.io.Serial;
 import java.io.Serializable;

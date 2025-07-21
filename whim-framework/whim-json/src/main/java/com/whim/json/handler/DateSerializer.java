@@ -17,7 +17,7 @@ import java.util.Date;
 public class DateSerializer extends JsonDeserializer<Date> {
 
     @Override
-    public Date deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+    public Date deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         return DateUtils.parse(jsonParser.getText());
     }
 }

@@ -1,7 +1,6 @@
 package com.whim.redis.manager;
 
 import com.whim.redis.utils.RedisUtils;
-import lombok.NonNull;
 import lombok.Setter;
 import org.redisson.api.RMap;
 import org.redisson.api.RMapCache;
@@ -15,7 +14,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,41 +40,19 @@ public class EnhancedSpringCacheManager implements CacheManager {
 
     private boolean dynamic = true;
 
+    @Setter
     private boolean allowNullValues = true;
 
+    @Setter
     private boolean transactionAware = true;
 
-    Map<String, CacheConfig> configMap = new ConcurrentHashMap<>();
-    ConcurrentMap<String, Cache> instanceMap = new ConcurrentHashMap<>();
+    private Map<String, CacheConfig> configMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Cache> instanceMap = new ConcurrentHashMap<>();
 
     /**
      * Creates CacheManager supplied by Redisson instance
      */
     public EnhancedSpringCacheManager() {
-    }
-
-
-    /**
-     * Defines possibility of storing {@code null} values.
-     * <p>
-     * Default is <code>true</code>
-     *
-     * @param allowNullValues stores if <code>true</code>
-     */
-    public void setAllowNullValues(boolean allowNullValues) {
-        this.allowNullValues = allowNullValues;
-    }
-
-    /**
-     * Defines if cache aware of Spring-managed transactions.
-     * If {@code true} put/evict operations are executed only for successful transaction in after-commit phase.
-     * <p>
-     * Default is <code>false</code>
-     *
-     * @param transactionAware cache is transaction aware if <code>true</code>
-     */
-    public void setTransactionAware(boolean transactionAware) {
-        this.transactionAware = transactionAware;
     }
 
     /**
