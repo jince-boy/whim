@@ -19,6 +19,11 @@ public interface ISysAuthService {
     LoginVO login(LoginDTO loginDTO);
 
     /**
+     * 退出登录
+     */
+    void logout();
+
+    /**
      * 获取验证码
      *
      * @return 验证码响应实体

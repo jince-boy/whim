@@ -27,9 +27,13 @@ public class SysPermission extends BaseEntity implements Serializable {
      */
     private Long id;
     /**
-     * 权限/菜单名称
+     * 路由名称
      */
     private String name;
+    /**
+     * 菜单名称
+     */
+    private String title;
     /**
      * 父菜单id
      */
@@ -51,6 +55,10 @@ public class SysPermission extends BaseEntity implements Serializable {
      * 前端组件路径
      */
     private String component;
+    /**
+     * 是否缓存
+     */
+    private Integer keepAlive;
     /**
      * 排序
      */

@@ -35,6 +35,15 @@ public class AuthController {
     }
 
     /**
+     * 用户退出登录
+     */
+    @PostMapping("/logout")
+    public Result<String> logout() {
+        authService.logout();
+        return Result.success("登出成功");
+    }
+
+    /**
      * 获取验证码
      */
     @GetMapping("/captcha")

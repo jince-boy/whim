@@ -35,10 +35,12 @@
             parameterType="java.lang.Long">
         SELECT DISTINCT sp.id,
                         sp.name,
+                        sp.title,
                         sp.parent_id,
                         sp.type,
                         sp.path,
                         sp.component,
+                        sp.keep_alive,
                         sp.sort,
                         sp.code,
                         sp.visible,

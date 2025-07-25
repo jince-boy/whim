@@ -44,6 +44,12 @@ public class SysAuthServiceImpl implements ISysAuthService {
     private final PermissionProvider permissionProvider;
     private final ISysRoleService sysRoleService;
 
+    /**
+     * 用户登录
+     *
+     * @param loginDTO 用户登录数据传输对象
+     * @return 用户登录响应实体类
+     */
     @Override
     public LoginVO login(LoginDTO loginDTO) {
         // 生成验证码的key
@@ -80,6 +86,19 @@ public class SysAuthServiceImpl implements ISysAuthService {
         return new LoginVO("Bearer", tokenInfo.getTokenValue(), tokenInfo.getTokenTimeout());
     }
 
+    /**
+     * 退出登录
+     */
+    @Override
+    public void logout() {
+        StpAuthManager.SYSTEM.logout();
+    }
+
+    /**
+     * 获取验证码
+     *
+     * @return 验证码响应实体
+     */
     @Override
     public CaptchaVO getCaptcha() {
         ArithmeticCaptcha captcha = new ArithmeticCaptcha(130, 48);

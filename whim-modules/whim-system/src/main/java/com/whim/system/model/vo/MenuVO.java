@@ -18,9 +18,13 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MenuVO {
     /**
-     * 菜单名称
+     * 路由名称
      */
     private String name;
+    /**
+     * 菜单名称
+     */
+    private String title;
     /**
      * 前端路由路径
      */
@@ -33,6 +37,10 @@ public class MenuVO {
      * 前端组件路径
      */
     private String component;
+    /**
+     * 是否缓存
+     */
+    private Integer keepAlive;
     /**
      * 菜单图标
      */
