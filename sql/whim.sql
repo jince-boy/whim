@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : phpstudy
+ Source Server         : phpstudy mysql
  Source Server Type    : MySQL
  Source Server Version : 80012 (8.0.12)
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80012 (8.0.12)
  File Encoding         : 65001
 
- Date: 11/07/2025 15:20:51
+ Date: 26/07/2025 23:04:45
 */
 
 SET NAMES utf8mb4;
@@ -77,7 +77,7 @@ CREATE TABLE `sys_dict_data`  (
   `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_dict_type`(`dict_type` ASC) USING BTREE COMMENT '字典类型索引'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '字典数据表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '字典数据表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_data
@@ -99,7 +99,7 @@ CREATE TABLE `sys_dict_type`  (
   `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_type`(`type` ASC) USING BTREE COMMENT '字典类型唯一索引'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统字典表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统字典表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_type
@@ -112,13 +112,16 @@ INSERT INTO `sys_dict_type` VALUES (1, '123', 'test', 0, NULL, NULL, '2025-06-27
 DROP TABLE IF EXISTS `sys_permission`;
 CREATE TABLE `sys_permission`  (
   `id` bigint(20) NOT NULL COMMENT '权限ID',
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '权限名称',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '路由名称',
+  `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '菜单名称',
   `parent_id` bigint(20) NOT NULL DEFAULT 0 COMMENT '父权限ID(0表示根节点)',
   `type` tinyint(1) NOT NULL COMMENT '类型(1-目录 2-菜单 3-按钮 4-外链)',
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '路由路径',
+  `query_param` json NULL COMMENT '路由参数',
   `component` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '组件路径',
+  `keep_alive` tinyint(1) NOT NULL DEFAULT 0 COMMENT '页面是否缓存(0不缓存，1缓存)',
   `sort` int(11) NOT NULL DEFAULT 0 COMMENT '显示排序(升序)',
-  `code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '权限标识(如:system:user:add)',
+  `code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '权限标识(如:system:user:add)',
   `visible` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否可见(0-显示 1-隐藏)',
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态(0-启用 1-禁用)',
   `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '图标名称',
@@ -139,6 +142,8 @@ CREATE TABLE `sys_permission`  (
 -- ----------------------------
 -- Records of sys_permission
 -- ----------------------------
+INSERT INTO `sys_permission` VALUES (1, 'System', '系统管理', 0, 1, 'system', NULL, '', 0, 0, NULL, 0, 0, 'Settings24Regular', NULL, '系统管理', 1, '2025-07-24 11:55:28', NULL, '2025-07-24 11:55:28', 0);
+INSERT INTO `sys_permission` VALUES (2, 'SysUser', '用户管理', 1, 2, 'user', NULL, 'system/user/index', 0, 0, NULL, 0, 0, 'Person24Filled', NULL, '用户管理', 1, '2025-07-24 11:55:30', NULL, '2025-07-24 11:55:30', 0);
 
 -- ----------------------------
 -- Table structure for sys_post
@@ -159,7 +164,7 @@ CREATE TABLE `sys_post`  (
   `deleted` tinyint(1) NOT NULL COMMENT '删除标志(0-未删除 1-已删除)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_dept_id`(`dept_id` ASC) USING BTREE COMMENT '部门ID索引'
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '岗位表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '岗位表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_post
@@ -191,7 +196,7 @@ CREATE TABLE `sys_role`  (
 -- ----------------------------
 -- Records of sys_role
 -- ----------------------------
-INSERT INTO `sys_role` VALUES (1, '超级管理员', 'superadmin', 2, '超级管理员', 0, '超级管理员', 1, '2025-07-10 17:06:57', NULL, '2025-07-10 17:06:57', 0);
+INSERT INTO `sys_role` VALUES (1, '超级管理员', 'superadmin', 1, '超级管理员', 0, '超级管理员', 1, '2025-07-18 23:44:24', NULL, '2025-07-18 23:44:24', 0);
 
 -- ----------------------------
 -- Table structure for sys_role_dept
@@ -210,13 +215,13 @@ CREATE TABLE `sys_role_dept`  (
   INDEX `idx_dept_id`(`dept_id` ASC) USING BTREE COMMENT '部门ID索引',
   CONSTRAINT `fk_rd_dept` FOREIGN KEY (`dept_id`) REFERENCES `sys_dept` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rd_role` FOREIGN KEY (`role_id`) REFERENCES `sys_role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '角色与部门关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '角色与部门关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_dept
 -- ----------------------------
 INSERT INTO `sys_role_dept` VALUES (1, 1, 2, 1, '2025-07-10 16:21:39', NULL, '2025-07-10 16:21:39');
-INSERT INTO `sys_role_dept` VALUES (2, 1, 3, 1, '2025-07-10 16:21:40', NULL, '2025-07-10 16:21:40');
+INSERT INTO `sys_role_dept` VALUES (2, 1, 3, 1, '2025-07-16 01:08:15', NULL, '2025-07-16 01:08:15');
 
 -- ----------------------------
 -- Table structure for sys_role_permission
@@ -273,7 +278,7 @@ CREATE TABLE `sys_user`  (
 -- Records of sys_user
 -- ----------------------------
 INSERT INTO `sys_user` VALUES (1, 1, 'admin', '$2a$10$XAnymnSBtVxlnwLEqLMFOeoIUmUQhhnRmszGC3Ro.neGgPUjUpvuC', NULL, '管理员', 'jince_hm@163.com', '18331312122', 1, 0, '管理员', 1, '2025-06-27 18:12:07', 1, '2025-06-27 18:12:20', 0);
-INSERT INTO `sys_user` VALUES (2, 2, 'test', '$2a$10$XAnymnSBtVxlnwLEqLMFOeoIUmUQhhnRmszGC3Ro.neGgPUjUpvuC', NULL, '管理员', 'test@163.com', '18331312123', 1, 0, '管理员', 1, '2025-07-03 14:37:58', 1, '2025-07-03 14:37:58', 0);
+INSERT INTO `sys_user` VALUES (2, 2, 'test', '$2a$10$XAnymnSBtVxlnwLEqLMFOeoIUmUQhhnRmszGC3Ro.neGgPUjUpvuC', NULL, '管理员', 'test@163.com', '18331312123', 1, 0, '管理员', 1, '2025-07-16 00:42:00', 1, '2025-07-16 00:42:00', 0);
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -290,7 +295,7 @@ CREATE TABLE `sys_user_post`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_post`(`user_id` ASC, `post_id` ASC) USING BTREE COMMENT '用户-岗位唯一索引',
   INDEX `idx_post_id`(`post_id` ASC) USING BTREE COMMENT '岗位id索引'
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '用户岗位关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_unicode_ci COMMENT = '用户岗位关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_post
