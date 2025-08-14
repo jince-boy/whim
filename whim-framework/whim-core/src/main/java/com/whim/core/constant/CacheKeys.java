@@ -8,4 +8,5 @@ package com.whim.core.constant;
 public class CacheKeys {
     public final static String SYS_ROLE_CUSTOM = "sys_role_custom";
     public final static String SYS_DEPT_AND_CHILD = "sys_dept_and_child#30d";
+    public final static String SYS_DICT = "sys_dict";
 }

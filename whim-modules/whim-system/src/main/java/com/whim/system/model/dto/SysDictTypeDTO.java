@@ -1,24 +1,17 @@
-package com.whim.system.model.vo;
+package com.whim.system.model.dto;
 
 import com.whim.system.model.entity.SysDictType;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 /**
  * @author jince
- * @date 2025/6/27 19:31
- * @description 字典类型VO
+ * date: 2025/8/13 15:46
+ * description: 字典类型DTO
  */
 @Data
 @AutoMapper(target = SysDictType.class)
-public class SysDictTypeVO implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+public class SysDictTypeDTO {
     /**
      * 字典ID
      */
@@ -35,9 +28,4 @@ public class SysDictTypeVO implements Serializable {
      * 备注
      */
     private String remark;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
 }

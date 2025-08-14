@@ -31,10 +31,6 @@ public class SysDictType extends BaseEntity implements Serializable {
      */
     private String type;
     /**
-     * 状态(0-启用 1-禁用)
-     */
-    private Integer status;
-    /**
      * 备注
      */
     private String remark;

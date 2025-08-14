@@ -1,23 +1,19 @@
-package com.whim.system.model.entity;
+package com.whim.system.model.vo;
 
-import com.whim.mybatis.core.model.entity.BaseEntity;
+import com.whim.system.model.entity.SysDictData;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import java.io.Serial;
-import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * 字典数据表(SysDictData)实体类
- *
- * @author Jince
- * @since 2025-06-27 17:23:36
+ * @author jince
+ * date: 2025/8/13 16:17
+ * description: 字典数据VO
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class SysDictData extends BaseEntity implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 752011170287041150L;
+@AutoMapper(target = SysDictData.class)
+public class SysDictDataVO {
     /**
      * 字典数据ID
      */
@@ -46,4 +42,9 @@ public class SysDictData extends BaseEntity implements Serializable {
      * 备注
      */
     private String remark;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
 }
