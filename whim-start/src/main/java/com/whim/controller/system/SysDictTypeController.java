@@ -1,6 +1,7 @@
 package com.whim.controller.system;
 
 import com.whim.core.annotation.SystemApiPrefix;
+import com.whim.core.utils.ExcelUtils;
 import com.whim.core.web.Result;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
@@ -8,6 +9,7 @@ import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.SysDictTypeDTO;
 import com.whim.system.model.vo.SysDictTypeVO;
 import com.whim.system.service.ISysDictTypeService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,18 +31,37 @@ import org.springframework.web.bind.annotation.RestController;
 public class SysDictTypeController {
     private final ISysDictTypeService sysDictTypeService;
 
+    /**
+     * 分页查询字典类型列表
+     *
+     * @param sysDictTypeDTO 查询条件参数
+     * @param pageQueryDTO   分页参数
+     * @return 分页结果(包含数据列表和分页信息)
+     */
     @SystemCheckPermission("system:dictType:query")
     @GetMapping("/page")
     public Result<PageDataVO<SysDictTypeVO>> getDictTypePage(SysDictTypeDTO sysDictTypeDTO, PageQueryDTO pageQueryDTO) {
         return Result.success("查询成功", sysDictTypeService.getDictTypePage(sysDictTypeDTO, pageQueryDTO));
     }
 
+    /**
+     * 根据ID获取字典类型详情
+     *
+     * @param id 字典类型ID
+     * @return 字典类型详细信息
+     */
     @SystemCheckPermission("system:dictType:detail")
     @GetMapping("/detail")
     public Result<SysDictTypeVO> getDictTypeById(Long id) {
         return Result.success("查询成功", sysDictTypeService.getDictTypeById(id));
     }
 
+    /**
+     * 新增字典类型
+     *
+     * @param sysDictTypeDTO 字典类型数据
+     * @return 操作结果
+     */
     @SystemCheckPermission("system:dictType:add")
     @PostMapping("/add")
     public Result<Void> addDictType(@RequestBody SysDictTypeDTO sysDictTypeDTO) {
@@ -48,6 +69,12 @@ public class SysDictTypeController {
         return Result.success("添加成功");
     }
 
+    /**
+     * 修改字典类型
+     *
+     * @param sysDictTypeDTO 字典类型数据(必须包含ID)
+     * @return 操作结果
+     */
     @SystemCheckPermission("system:dictType:edit")
     @PutMapping("/update")
     public Result<Void> editDictType(@RequestBody SysDictTypeDTO sysDictTypeDTO) {
@@ -55,10 +82,44 @@ public class SysDictTypeController {
         return Result.success("修改成功");
     }
 
+    /**
+     * 批量删除字典类型
+     *
+     * @param dictTypeIds 需要删除的字典类型ID数组
+     * @return 操作结果
+     */
     @SystemCheckPermission("system:dictType:delete")
     @DeleteMapping("/delete")
     public Result<Void> deleteDictTypeByIds(Long[] dictTypeIds) {
         sysDictTypeService.deleteDictTypeByIds(dictTypeIds);
         return Result.success("删除成功");
+    }
+
+    /**
+     * 导出字典类型数据
+     *
+     * @param response HTTP响应对象(用于输出Excel文件)
+     * @apiNote 导出当前所有字典类型数据(不受分页限制)
+     */
+    @SystemCheckPermission("system:dictType:export")
+    @GetMapping("/export")
+    public void exportDictType(HttpServletResponse response) {
+        ExcelUtils.exportExcel(sysDictTypeService.getDictTypeList(), SysDictTypeVO.class)
+                .autoColumnWidth()
+                .fileName("字典类型")
+                .toResponse(response);
+    }
+
+    /**
+     * 重置字典缓存
+     *
+     * @return 操作结果
+     * @apiNote 清空并重新加载系统字典缓存
+     */
+    @SystemCheckPermission("system:dictType:reset")
+    @DeleteMapping("/reset")
+    public Result<Void> resetDictCache() {
+        sysDictTypeService.resetDictCache();
+        return Result.success("重置成功");
     }
 }

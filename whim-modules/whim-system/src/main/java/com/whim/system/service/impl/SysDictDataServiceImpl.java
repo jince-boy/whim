@@ -69,7 +69,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
             throw new ServiceException("新增字典数据失败，字典类型不存在");
         }
         if (this.save(ConvertUtils.convert(sysDictDataDTO, SysDictData.class))) {
-            return this.getDictDataListByDictType(sysDictDataDTO.getDictType());
+            return baseMapper.getDictDataListByDictType(sysDictDataDTO.getDictType());
         }
         throw new ServiceException("新增字典数据失败");
     }
@@ -102,7 +102,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
             throw new ServiceException("字典数据键值已存在");
         }
         if (this.updateById(ConvertUtils.convert(sysDictDataDTO, SysDictData.class))) {
-            return this.getDictDataListByDictType(sysDictDataDTO.getDictType());
+            return baseMapper.getDictDataListByDictType(sysDictDataDTO.getDictType());
         }
         throw new ServiceException("修改字典数据失败");
     }
@@ -122,9 +122,9 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     }
 
     /**
-     * 删除字典类型
+     * 删除字典数据
      *
-     * @param dictDataIds 字典类型id集合
+     * @param dictDataIds 字典数据id集合
      */
     @Override
     public void deleteDictDataByIds(Long[] dictDataIds) {

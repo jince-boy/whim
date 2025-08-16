@@ -11,6 +11,7 @@ import com.whim.core.utils.StringFormatUtils;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.redis.utils.CacheUtils;
+import com.whim.system.mapper.SysDictDataMapper;
 import com.whim.system.mapper.SysDictTypeMapper;
 import com.whim.system.model.dto.SysDictTypeDTO;
 import com.whim.system.model.entity.SysDictData;
@@ -38,8 +39,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDictType> implements ISysDictTypeService {
-
     private final ISysDictDataService sysDictDataService;
+    private final SysDictDataMapper sysDictDataMapper;
 
     /**
      * 字典类型分页查询
@@ -55,6 +56,16 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
                 .like(StringUtils.isNotBlank(sysDictTypeDTO.getType()), SysDictType::getType, sysDictTypeDTO.getType());
         IPage<SysDictTypeVO> page = this.page(pageQueryDTO.getPage(), wrapper).convert(item -> ConvertUtils.convert(item, SysDictTypeVO.class));
         return new PageDataVO<>(page);
+    }
+
+    /**
+     * 查询字典类型列表
+     *
+     * @return 字典类型列表
+     */
+    @Override
+    public List<SysDictTypeVO> getDictTypeList() {
+        return ConvertUtils.convert(this.list(), SysDictTypeVO.class);
     }
 
     /**
@@ -116,7 +127,7 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
 
         if (this.updateById(ConvertUtils.convert(sysDictTypeDTO, SysDictType.class))) {
             CacheUtils.evict(CacheKeys.SYS_DICT, sysDictType.getType());
-            return sysDictDataService.getDictDataListByDictType(sysDictTypeDTO.getType());
+            return sysDictDataMapper.getDictDataListByDictType(sysDictTypeDTO.getType());
         }
         throw new ServiceException("修改字典失败");
     }
@@ -136,6 +147,14 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
             CacheUtils.evict(CacheKeys.SYS_DICT, sysDictType.getType());
         }
         this.removeByIds(Arrays.asList(dictTypeIds));
+    }
+
+    /**
+     * 重置字典缓存
+     */
+    @Override
+    public void resetDictCache() {
+        CacheUtils.clear(CacheKeys.SYS_DICT);
     }
 }
 

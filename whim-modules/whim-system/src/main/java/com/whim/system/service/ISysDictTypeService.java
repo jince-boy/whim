@@ -20,11 +20,18 @@ public interface ISysDictTypeService extends IService<SysDictType> {
     /**
      * 字典类型分页查询
      *
-     * @param sysDictTypeDTO  字典类型查询参数
-     * @param pageQueryDTO 分页参数
+     * @param sysDictTypeDTO 字典类型查询参数
+     * @param pageQueryDTO   分页参数
      * @return 字典类型分页数据
      */
     PageDataVO<SysDictTypeVO> getDictTypePage(SysDictTypeDTO sysDictTypeDTO, PageQueryDTO pageQueryDTO);
+
+    /**
+     * 查询字典类型列表
+     *
+     * @return 字典类型列表
+     */
+    List<SysDictTypeVO> getDictTypeList();
 
 
     /**
@@ -57,4 +64,9 @@ public interface ISysDictTypeService extends IService<SysDictType> {
      * @param dictTypeIds 字典类型id集合
      */
     void deleteDictTypeByIds(Long[] dictTypeIds);
+
+    /**
+     * 重置字典缓存
+     */
+    void resetDictCache();
 }

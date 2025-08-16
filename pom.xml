@@ -33,10 +33,10 @@
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <commons-io.version>2.17.0</commons-io.version>
+        <easyexcel.version>4.0.3</easyexcel.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <p6spy.version>1.11.0</p6spy.version>
         <satoken.version>1.44.0</satoken.version>
-        <jetcache.version>2.7.8</jetcache.version>
         <redisson.version>3.45.1</redisson.version>
         <lock4j.version>2.2.7</lock4j.version>
         <caffeine.version>3.1.8</caffeine.version>
@@ -61,12 +61,6 @@
                 <version>${mybatis-plus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <!-- jetcache-->
-            <dependency>
-                <groupId>com.alicp.jetcache</groupId>
-                <artifactId>jetcache-starter-redisson</artifactId>
-                <version>${jetcache.version}</version>
             </dependency>
             <!--redisson-->
             <dependency>
@@ -97,6 +91,12 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <!-- easyexcel -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
             </dependency>
             <!--jbcrypt密码加密-->
             <dependency>

@@ -1,11 +1,10 @@
 package com.whim.system.model.vo;
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.whim.system.model.entity.SysDictType;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -15,29 +14,31 @@ import java.time.LocalDateTime;
  */
 @Data
 @AutoMapper(target = SysDictType.class)
-public class SysDictTypeVO implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+public class SysDictTypeVO {
     /**
      * 字典ID
      */
+    @ExcelProperty("字典类型ID")
     private Long id;
     /**
      * 字典名称
      */
+    @ExcelProperty("字典名称")
     private String name;
     /**
      * 字典类型(唯一标识)
      */
+    @ExcelProperty("字典类型")
     private String type;
     /**
      * 备注
      */
+    @ExcelProperty("备注")
     private String remark;
 
     /**
      * 创建时间
      */
+    @ExcelProperty("创建时间")
     private LocalDateTime createTime;
 }

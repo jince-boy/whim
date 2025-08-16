@@ -7,17 +7,20 @@
         <result property="dictType" column="dict_type" jdbcType="VARCHAR"/>
         <result property="label" column="label" jdbcType="VARCHAR"/>
         <result property="value" column="value" jdbcType="VARCHAR"/>
-        <result property="cssStyle" column="css_style" jdbcType="VARCHAR"/>
         <result property="listClass" column="list_class" jdbcType="VARCHAR"/>
         <result property="sort" column="sort" jdbcType="INTEGER"/>
-        <result property="isDefault" column="is_default" jdbcType="INTEGER"/>
-        <result property="status" column="status" jdbcType="INTEGER"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
+    <select id="getDictDataListByDictType" resultType="com.whim.system.model.vo.SysDictDataVO"
+            parameterType="java.lang.String">
+        select id,dict_type,label,value,list_class,sort,remark,create_time
+        from sys_dict_data
+        where dict_type = #{dictType}
+    </select>
 
 </mapper>
 
