@@ -31,6 +31,12 @@
                 <artifactId>whim-json</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <!--日志模块-->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-log</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!--mybatis-plus模块-->
             <dependency>
                 <groupId>com.whim</groupId>

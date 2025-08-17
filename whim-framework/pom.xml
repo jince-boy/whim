@@ -25,5 +25,6 @@
         <module>whim-redis</module>
         <module>whim-satoken</module>
         <module>whim-file</module>
+        <module>whim-log</module>
     </modules>
 </project>

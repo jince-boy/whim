@@ -11,3 +11,13 @@ spring:
       max-file-size: 20MB
       max-request-size: 20MB
       enabled: true
+
+# 全局线程池相关配置
+# 如使用JDK21请直接使用虚拟线程 不要开启此配置
+thread-pool:
+  # 是否开启线程池
+  enabled: false
+  # 队列最大长度
+  queue-capacity: 128
+  # 线程池维护线程所允许的空闲时间
+  keep-alive-seconds: 300

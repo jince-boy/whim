@@ -1,6 +1,7 @@
 package com.whim.satoken.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
+import cn.dev33.satoken.listener.SaTokenEventCenter;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
@@ -9,6 +10,7 @@ import com.whim.core.factory.YmlPropertySourceFactory;
 import com.whim.satoken.core.common.ExcludePathEnum;
 import com.whim.satoken.core.logic.StpAuthManager;
 import com.whim.satoken.handler.SaTokenExceptionHandler;
+import com.whim.satoken.listener.LoginListener;
 import com.whim.satoken.service.impl.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -72,5 +74,13 @@ public class SaTokenConfig implements WebMvcConfigurer {
         return Collections.singletonList(
                 StpAuthManager.SYSTEM
         );
+    }
+
+    /**
+     * 注册监听器
+     */
+    @PostConstruct
+    public void registerListener() {
+        SaTokenEventCenter.registerListener(new LoginListener());
     }
 }

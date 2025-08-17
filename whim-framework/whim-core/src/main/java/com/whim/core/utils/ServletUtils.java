@@ -1,5 +1,6 @@
 package com.whim.core.utils;
 
+import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Jince
@@ -248,5 +250,15 @@ public class ServletUtils {
             return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         }
         return null; // 或者返回一个默认值，例如 "http://localhost:8080"
+    }
+
+    /**
+     * 获取User-Agent
+     *
+     * @return User-Agent
+     */
+    public static UserAgent getUserAgent() {
+        HttpServletRequest request = getRequest();
+        return UserAgent.parseUserAgentString(Objects.requireNonNull(request).getHeader("User-Agent"));
     }
 }

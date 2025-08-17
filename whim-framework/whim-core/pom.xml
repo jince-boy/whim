@@ -38,6 +38,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
+        <!-- UserAgentUtils-->
+        <dependency>
+            <groupId>eu.bitwalker</groupId>
+            <artifactId>UserAgentUtils</artifactId>
+        </dependency>
         <!-- easyexcel -->
         <dependency>
             <groupId>com.alibaba</groupId>

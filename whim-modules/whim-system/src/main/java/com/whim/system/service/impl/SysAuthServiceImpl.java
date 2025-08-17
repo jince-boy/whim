@@ -11,12 +11,14 @@ import com.whim.core.utils.BCryptUtils;
 import com.whim.core.utils.ConvertUtils;
 import com.whim.core.utils.IDGeneratorUtils;
 import com.whim.core.utils.IPUtils;
+import com.whim.core.utils.SpringUtils;
 import com.whim.core.utils.StringFormatUtils;
 import com.whim.redis.utils.RedisUtils;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.core.logic.StpAuthManager;
 import com.whim.satoken.core.model.RoleInfo;
 import com.whim.satoken.core.model.UserInfo;
+import com.whim.satoken.event.LoginEvent;
 import com.whim.satoken.service.PermissionProvider;
 import com.whim.system.model.dto.LoginDTO;
 import com.whim.system.model.entity.SysUser;
@@ -25,7 +27,6 @@ import com.whim.system.model.vo.LoginVO;
 import com.whim.system.service.ISysAuthService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserService;
-import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,17 +57,22 @@ public class SysAuthServiceImpl implements ISysAuthService {
         String captchaKey = StringFormatUtils.format(RedisConstants.CAPTCHA_KEY, loginDTO.getUuid(), IPUtils.getClientIpAddress());
         // 获取验证码的值
         String captchaValue = RedisUtils.getCacheObject(captchaKey);
-        if (StringUtils.isBlank(captchaValue) || !captchaValue.equals(loginDTO.getCaptcha())) {
-            throw new CheckCaptchaException("验证码错误");
+        if (Objects.isNull(captchaValue)) {
+            throw new CheckCaptchaException("验证码已过期");
+        }
+        if (!captchaValue.equals(loginDTO.getCaptcha())) {
+            SpringUtils.getApplicationContext().publishEvent(new LoginEvent(loginDTO.getUsername(), 1, "验证码错误"));
         }
         // 删除掉通过的验证码
         RedisUtils.deleteObject(captchaKey);
 
         SysUser sysUser = sysUserService.getSysUserByUsername(loginDTO.getUsername().trim());
         if (Objects.isNull(sysUser)) {
+            SpringUtils.getApplicationContext().publishEvent(new LoginEvent(loginDTO.getUsername(), 1, "用户不存在"));
             throw new UserNotFoundException("用户不存在");
         }
         if (!BCryptUtils.matches(loginDTO.getPassword(), sysUser.getPassword())) {
+            SpringUtils.getApplicationContext().publishEvent(new LoginEvent(loginDTO.getUsername(), 1, "用户名或密码错误"));
             throw new UserPasswordNotMatchException("用户名或密码错误");
         }
         // 构建UserInfo对象
@@ -79,6 +85,7 @@ public class SysAuthServiceImpl implements ISysAuthService {
         userInfo.setRoleInfoList(ConvertUtils.convert(sysRoleService.getRoleInfoListByUserId(sysUser.getId()), RoleInfo.class));
         // 构建登录参数
         SaLoginParameter saLoginParameter = new SaLoginParameter();
+        saLoginParameter.setExtra("username", userInfo.getUsername());
         saLoginParameter.setIsLastingCookie(false);
         // 登录
         AuthContext.login(userInfo, saLoginParameter);
