@@ -13,7 +13,11 @@
     <description>日志记录</description>
 
     <dependencies>
-
+        <!-- sa-token 模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-satoken</artifactId>
+        </dependency>
     </dependencies>
 
 

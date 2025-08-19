@@ -23,6 +23,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-file</artifactId>
         </dependency>
+        <!-- whim-log 模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-log</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

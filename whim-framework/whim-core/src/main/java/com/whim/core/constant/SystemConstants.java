@@ -6,6 +6,7 @@ package com.whim.core.constant;
  * @description: 系统常量
  */
 public class SystemConstants {
-    public static final String STATUS_NORMAL = "0";
-    public static final String STATUS_DISABLE = "1";
+    public static final Integer STATUS_NORMAL = 0;
+    public static final Integer STATUS_DISABLE = 1;
+
 }

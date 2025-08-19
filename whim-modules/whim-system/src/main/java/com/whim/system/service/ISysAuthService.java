@@ -1,6 +1,6 @@
 package com.whim.system.service;
 
-import com.whim.system.model.dto.LoginDTO;
+import com.whim.system.model.dto.auth.LoginDTO;
 import com.whim.system.model.vo.CaptchaVO;
 import com.whim.system.model.vo.LoginVO;
 

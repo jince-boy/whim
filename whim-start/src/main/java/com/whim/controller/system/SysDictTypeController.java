@@ -3,10 +3,14 @@ package com.whim.controller.system;
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.utils.ExcelUtils;
 import com.whim.core.web.Result;
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckPermission;
-import com.whim.system.model.dto.SysDictTypeDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeQueryDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeInsertDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeUpdateDTO;
 import com.whim.system.model.vo.SysDictTypeVO;
 import com.whim.system.service.ISysDictTypeService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,14 +38,14 @@ public class SysDictTypeController {
     /**
      * 分页查询字典类型列表
      *
-     * @param sysDictTypeDTO 查询条件参数
+     * @param sysDictTypeQueryDTO 查询条件参数
      * @param pageQueryDTO   分页参数
      * @return 分页结果(包含数据列表和分页信息)
      */
     @SystemCheckPermission("system:dictType:query")
     @GetMapping("/page")
-    public Result<PageDataVO<SysDictTypeVO>> getDictTypePage(SysDictTypeDTO sysDictTypeDTO, PageQueryDTO pageQueryDTO) {
-        return Result.success("查询成功", sysDictTypeService.getDictTypePage(sysDictTypeDTO, pageQueryDTO));
+    public Result<PageDataVO<SysDictTypeVO>> getDictTypePage(SysDictTypeQueryDTO sysDictTypeQueryDTO, PageQueryDTO pageQueryDTO) {
+        return Result.success("查询成功", sysDictTypeService.getDictTypePage(sysDictTypeQueryDTO, pageQueryDTO));
     }
 
     /**
@@ -59,26 +63,27 @@ public class SysDictTypeController {
     /**
      * 新增字典类型
      *
-     * @param sysDictTypeDTO 字典类型数据
+     * @param sysDictTypeInsertDTO 字典类型数据
      * @return 操作结果
      */
+    @Log(title = "字典添加", logType = LogType.INSERT)
     @SystemCheckPermission("system:dictType:add")
     @PostMapping("/add")
-    public Result<Void> addDictType(@RequestBody SysDictTypeDTO sysDictTypeDTO) {
-        sysDictTypeService.insertDictType(sysDictTypeDTO);
+    public Result<Void> addDictType(@RequestBody SysDictTypeInsertDTO sysDictTypeInsertDTO) {
+        sysDictTypeService.insertDictType(sysDictTypeInsertDTO);
         return Result.success("添加成功");
     }
 
     /**
      * 修改字典类型
      *
-     * @param sysDictTypeDTO 字典类型数据(必须包含ID)
+     * @param sysDictTypeUpdateDTO 字典类型数据(必须包含ID)
      * @return 操作结果
      */
     @SystemCheckPermission("system:dictType:edit")
     @PutMapping("/update")
-    public Result<Void> editDictType(@RequestBody SysDictTypeDTO sysDictTypeDTO) {
-        sysDictTypeService.updateDictType(sysDictTypeDTO);
+    public Result<Void> editDictType(@RequestBody SysDictTypeUpdateDTO sysDictTypeUpdateDTO) {
+        sysDictTypeService.updateDictType(sysDictTypeUpdateDTO);
         return Result.success("修改成功");
     }
 

@@ -1,4 +1,4 @@
-package com.whim.system.model.dto;
+package com.whim.system.model.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -3,6 +3,7 @@ package com.whim.web.handler;
 import com.whim.core.exception.CheckCaptchaException;
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.ServiceException;
+import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
 import com.whim.core.web.Result;
@@ -186,6 +187,15 @@ public class GlobalExceptionHandler {
     public Result<String> handleUserPasswordNotMatchException(UserPasswordNotMatchException exception) {
         log.warn(exception.getMessage(), exception);
         return Result.unauthorized(exception.getMessage());
+    }
+
+    /**
+     * 用户被禁用异常
+     */
+    @ExceptionHandler(UserDisableException.class)
+    public Result<String> handleUserDisableException(UserDisableException exception) {
+        log.warn(exception.getMessage(), exception);
+        return Result.permissionDenied(exception.getMessage());
     }
 
     /**

@@ -3,7 +3,9 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
-import com.whim.system.model.dto.SysDictTypeDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeQueryDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeInsertDTO;
+import com.whim.system.model.dto.sysDictType.SysDictTypeUpdateDTO;
 import com.whim.system.model.entity.SysDictType;
 import com.whim.system.model.vo.SysDictDataVO;
 import com.whim.system.model.vo.SysDictTypeVO;
@@ -20,11 +22,11 @@ public interface ISysDictTypeService extends IService<SysDictType> {
     /**
      * 字典类型分页查询
      *
-     * @param sysDictTypeDTO 字典类型查询参数
+     * @param sysDictTypeQueryDTO 字典类型查询参数
      * @param pageQueryDTO   分页参数
      * @return 字典类型分页数据
      */
-    PageDataVO<SysDictTypeVO> getDictTypePage(SysDictTypeDTO sysDictTypeDTO, PageQueryDTO pageQueryDTO);
+    PageDataVO<SysDictTypeVO> getDictTypePage(SysDictTypeQueryDTO sysDictTypeQueryDTO, PageQueryDTO pageQueryDTO);
 
     /**
      * 查询字典类型列表
@@ -45,18 +47,18 @@ public interface ISysDictTypeService extends IService<SysDictType> {
     /**
      * 新增字典类型
      *
-     * @param sysDictTypeDTO 字典类型参数
+     * @param sysDictTypeInsertDTO 字典类型参数
      * @return 字典数据集合
      */
-    List<SysDictDataVO> insertDictType(SysDictTypeDTO sysDictTypeDTO);
+    List<SysDictDataVO> insertDictType(SysDictTypeInsertDTO sysDictTypeInsertDTO);
 
     /**
      * 修改字典类型
      *
-     * @param sysDictTypeDTO 字典类型参数
+     * @param sysDictTypeUpdateDTO 字典类型参数
      * @return 字典数据集合
      */
-    List<SysDictDataVO> updateDictType(SysDictTypeDTO sysDictTypeDTO);
+    List<SysDictDataVO> updateDictType(SysDictTypeUpdateDTO sysDictTypeUpdateDTO);
 
     /**
      * 删除字典类型

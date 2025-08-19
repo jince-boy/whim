@@ -87,6 +87,19 @@ public class ServletUtils {
     /**
      * 获取所有参数
      *
+     * @return Map 参数集合
+     */
+    public static Map<String, String> getParameterAll() {
+        Map<String, String> params = new HashMap<>();
+        for (Map.Entry<String, String[]> entry : Objects.requireNonNull(getRequest()).getParameterMap().entrySet()) {
+            params.put(entry.getKey(), String.join(",", entry.getValue()));
+        }
+        return params;
+    }
+
+    /**
+     * 获取所有参数
+     *
      * @param request HttpServletRequest/ServletRequest
      * @return Map 参数集合
      */
@@ -97,6 +110,7 @@ public class ServletUtils {
         }
         return params;
     }
+
 
     /**
      * 获取参数并转换为int类型

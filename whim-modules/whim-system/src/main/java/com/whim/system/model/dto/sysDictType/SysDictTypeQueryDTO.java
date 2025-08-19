@@ -1,4 +1,4 @@
-package com.whim.system.model.dto;
+package com.whim.system.model.dto.sysDictType;
 
 import com.whim.system.model.entity.SysDictType;
 import io.github.linpeilie.annotations.AutoMapper;
@@ -11,11 +11,7 @@ import lombok.Data;
  */
 @Data
 @AutoMapper(target = SysDictType.class)
-public class SysDictTypeDTO {
-    /**
-     * 字典ID
-     */
-    private Long id;
+public class SysDictTypeQueryDTO {
     /**
      * 字典名称
      */
@@ -24,8 +20,4 @@ public class SysDictTypeDTO {
      * 字典类型(唯一标识)
      */
     private String type;
-    /**
-     * 备注
-     */
-    private String remark;
 }

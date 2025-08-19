@@ -2,7 +2,7 @@ package com.whim.controller.system;
 
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
-import com.whim.system.model.dto.LoginDTO;
+import com.whim.system.model.dto.auth.LoginDTO;
 import com.whim.system.model.vo.CaptchaVO;
 import com.whim.system.model.vo.LoginVO;
 import com.whim.system.service.ISysAuthService;
