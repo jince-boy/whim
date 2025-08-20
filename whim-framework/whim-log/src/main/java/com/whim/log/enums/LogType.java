@@ -14,7 +14,8 @@ public enum LogType {
     DELETE(2),
     EXPORT(3),
     IMPORT(4),
-    OTHER(5);
+    OTHER(5),
+    CLEAN(6);
     private final int code;
 
     LogType(int code) {

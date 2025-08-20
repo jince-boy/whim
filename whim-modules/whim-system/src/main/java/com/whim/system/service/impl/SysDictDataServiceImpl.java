@@ -12,7 +12,9 @@ import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.redis.utils.CacheUtils;
 import com.whim.system.mapper.SysDictDataMapper;
 import com.whim.system.mapper.SysDictTypeMapper;
-import com.whim.system.model.dto.SysDictDataDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataInsertDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataQueryDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataUpdateDTO;
 import com.whim.system.model.entity.SysDictData;
 import com.whim.system.model.entity.SysDictType;
 import com.whim.system.model.vo.SysDictDataVO;
@@ -39,15 +41,15 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     /**
      * 分页查询字典数据
      *
-     * @param sysDictDataDTO 字典数据查询参数
-     * @param pageQueryDTO   分页参数
+     * @param sysDictDataQueryDTO 字典数据查询参数
+     * @param pageQueryDTO        分页参数
      * @return 字典数据列表
      */
     @Override
-    public PageDataVO<SysDictDataVO> getDictDataPage(SysDictDataDTO sysDictDataDTO, PageQueryDTO pageQueryDTO) {
+    public PageDataVO<SysDictDataVO> getDictDataPage(SysDictDataQueryDTO sysDictDataQueryDTO, PageQueryDTO pageQueryDTO) {
         LambdaQueryWrapper<SysDictData> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(SysDictData::getDictType, sysDictDataDTO.getDictType());
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(sysDictDataDTO.getLabel()), SysDictData::getLabel, sysDictDataDTO.getLabel());
+        lambdaQueryWrapper.eq(SysDictData::getDictType, sysDictDataQueryDTO.getDictType());
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(sysDictDataQueryDTO.getLabel()), SysDictData::getLabel, sysDictDataQueryDTO.getLabel());
         lambdaQueryWrapper.orderByAsc(SysDictData::getSort);
         IPage<SysDictDataVO> convert = this.page(pageQueryDTO.getPage(), lambdaQueryWrapper).convert(item -> ConvertUtils.convert(item, SysDictDataVO.class));
         return new PageDataVO<>(convert);
@@ -56,20 +58,20 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     /**
      * 新增字典数据
      *
-     * @param sysDictDataDTO 字典数据参数
+     * @param sysDictDataInsertDTO 字典数据参数
      * @return 字典数据列表
      */
-    @CachePut(cacheNames = CacheKeys.SYS_DICT, key = "#sysDictDataDTO.dictType")
+    @CachePut(cacheNames = CacheKeys.SYS_DICT, key = "#sysDictDataInsertDTO.dictType")
     @Override
-    public List<SysDictDataVO> insertDictData(SysDictDataDTO sysDictDataDTO) {
+    public List<SysDictDataVO> insertDictData(SysDictDataInsertDTO sysDictDataInsertDTO) {
         if (sysDictTypeMapper.selectCount(
                 Wrappers.<SysDictType>lambdaQuery()
-                        .eq(SysDictType::getType, sysDictDataDTO.getDictType())
+                        .eq(SysDictType::getType, sysDictDataInsertDTO.getDictType())
         ) == 0) {
             throw new ServiceException("新增字典数据失败，字典类型不存在");
         }
-        if (this.save(ConvertUtils.convert(sysDictDataDTO, SysDictData.class))) {
-            return baseMapper.getDictDataListByDictType(sysDictDataDTO.getDictType());
+        if (this.save(ConvertUtils.convert(sysDictDataInsertDTO, SysDictData.class))) {
+            return baseMapper.getDictDataListByDictType(sysDictDataInsertDTO.getDictType());
         }
         throw new ServiceException("新增字典数据失败");
     }
@@ -82,27 +84,31 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
      */
     @Override
     public SysDictDataVO getDictDataById(Long id) {
-        return ConvertUtils.convert(this.getById(id), SysDictDataVO.class);
+        SysDictData sysDictData = this.getById(id);
+        if (sysDictData == null) {
+            throw new ServiceException("查询的字典数据不存在");
+        }
+        return ConvertUtils.convert(sysDictData, SysDictDataVO.class);
     }
 
     /**
      * 修改字典数据
      *
-     * @param sysDictDataDTO 字典数据参数
+     * @param sysDictDataUpdateDTO 字典数据参数
      * @return 字典数据列表
      */
-    @CachePut(cacheNames = CacheKeys.SYS_DICT, key = "#sysDictDataDTO.dictType")
+    @CachePut(cacheNames = CacheKeys.SYS_DICT, key = "#sysDictDataUpdateDTO.dictType")
     @Override
-    public List<SysDictDataVO> updateDictData(SysDictDataDTO sysDictDataDTO) {
-        boolean exists = this.lambdaQuery().eq(SysDictData::getDictType, sysDictDataDTO.getDictType())
-                .eq(SysDictData::getValue, sysDictDataDTO.getValue())
-                .ne(SysDictData::getId, sysDictDataDTO.getId())
+    public List<SysDictDataVO> updateDictData(SysDictDataUpdateDTO sysDictDataUpdateDTO) {
+        boolean exists = this.lambdaQuery().eq(SysDictData::getDictType, sysDictDataUpdateDTO.getDictType())
+                .eq(SysDictData::getValue, sysDictDataUpdateDTO.getValue())
+                .ne(SysDictData::getId, sysDictDataUpdateDTO.getId())
                 .exists();
         if (exists) {
             throw new ServiceException("字典数据键值已存在");
         }
-        if (this.updateById(ConvertUtils.convert(sysDictDataDTO, SysDictData.class))) {
-            return baseMapper.getDictDataListByDictType(sysDictDataDTO.getDictType());
+        if (this.updateById(ConvertUtils.convert(sysDictDataUpdateDTO, SysDictData.class))) {
+            return baseMapper.getDictDataListByDictType(sysDictDataUpdateDTO.getDictType());
         }
         throw new ServiceException("修改字典数据失败");
     }

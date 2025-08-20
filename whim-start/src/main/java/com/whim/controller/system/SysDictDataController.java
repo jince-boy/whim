@@ -3,14 +3,21 @@ package com.whim.controller.system;
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.utils.ExcelUtils;
 import com.whim.core.web.Result;
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckPermission;
-import com.whim.system.model.dto.SysDictDataDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataInsertDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataQueryDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataUpdateDTO;
 import com.whim.system.model.vo.SysDictDataVO;
 import com.whim.system.service.ISysDictDataService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +34,7 @@ import java.util.List;
  * date: 2025/8/14 19:13
  * description: 字典数据管理
  */
+@Validated
 @SystemApiPrefix
 @RestController
 @RequestMapping("/dictData")
@@ -37,14 +45,14 @@ public class SysDictDataController {
     /**
      * 字典数据分页查询
      *
-     * @param sysDictDataDTO 字典数据查询参数
-     * @param pageQueryDTO   分页参数
+     * @param sysDictDataQueryDTO 字典数据查询参数
+     * @param pageQueryDTO        分页参数
      * @return 字典数据分页数据
      */
     @SystemCheckPermission("system:dictData:query")
     @GetMapping("/page")
-    public Result<PageDataVO<SysDictDataVO>> getDictDataPage(SysDictDataDTO sysDictDataDTO, PageQueryDTO pageQueryDTO) {
-        return Result.success("查询成功", sysDictDataService.getDictDataPage(sysDictDataDTO, pageQueryDTO));
+    public Result<PageDataVO<SysDictDataVO>> getDictDataPage(SysDictDataQueryDTO sysDictDataQueryDTO, PageQueryDTO pageQueryDTO) {
+        return Result.success("查询成功", sysDictDataService.getDictDataPage(sysDictDataQueryDTO, pageQueryDTO));
     }
 
     /**
@@ -65,9 +73,10 @@ public class SysDictDataController {
      * @param dictType 字典类型
      * @param response 响应
      */
+    @Log(title = "字典数据", logType = LogType.EXPORT)
     @SystemCheckPermission("system:dictData:export")
     @GetMapping("/export")
-    public void export(String dictType, HttpServletResponse response) {
+    public void export(@NotBlank(message = "字典类型不能为空") String dictType, HttpServletResponse response) {
         List<SysDictDataVO> sysUserSex = sysDictDataService.getDictDataListByDictType(dictType);
         ExcelUtils.exportExcel(sysUserSex, SysDictDataVO.class)
                 .fileName("字典数据")
@@ -83,20 +92,21 @@ public class SysDictDataController {
      */
     @SystemCheckPermission("system:dictData:detail")
     @GetMapping("/detail")
-    public Result<SysDictDataVO> getDictDataById(Long id) {
+    public Result<SysDictDataVO> getDictDataById(@NotNull(message = "字典数据id不能为空") Long id) {
         return Result.success("查询成功", sysDictDataService.getDictDataById(id));
     }
 
     /**
      * 添加字典数据
      *
-     * @param sysDictDataDTO 字典数据
+     * @param sysDictDataInsertDTO 字典数据
      * @return 添加结果
      */
+    @Log(title = "字典数据", logType = LogType.INSERT)
     @SystemCheckPermission("system:dictData:add")
     @PostMapping("/add")
-    public Result<Void> addDictData(@RequestBody SysDictDataDTO sysDictDataDTO) {
-        sysDictDataService.insertDictData(sysDictDataDTO);
+    public Result<Void> addDictData(@Validated @RequestBody SysDictDataInsertDTO sysDictDataInsertDTO) {
+        sysDictDataService.insertDictData(sysDictDataInsertDTO);
         return Result.success("添加成功");
     }
 
@@ -104,13 +114,14 @@ public class SysDictDataController {
     /**
      * 修改字典数据
      *
-     * @param sysDictDataDTO 字典数据
+     * @param sysDictDataUpdateDTO 字典数据
      * @return 修改结果
      */
+    @Log(title = "字典数据", logType = LogType.UPDATE)
     @SystemCheckPermission("system:dictData:edit")
     @PutMapping("/update")
-    public Result<Void> editDictData(@RequestBody SysDictDataDTO sysDictDataDTO) {
-        sysDictDataService.updateDictData(sysDictDataDTO);
+    public Result<Void> editDictData(@Validated @RequestBody SysDictDataUpdateDTO sysDictDataUpdateDTO) {
+        sysDictDataService.updateDictData(sysDictDataUpdateDTO);
         return Result.success("修改成功");
     }
 
@@ -121,6 +132,7 @@ public class SysDictDataController {
      * @param dictDataIds 字典数据id集合
      * @return 删除结果
      */
+    @Log(title = "字典数据", logType = LogType.DELETE)
     @SystemCheckPermission("system:dictData:delete")
     @DeleteMapping("/delete")
     public Result<Void> deleteDictDataByIds(Long[] dictDataIds) {

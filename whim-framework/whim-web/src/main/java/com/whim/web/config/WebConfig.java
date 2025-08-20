@@ -2,9 +2,11 @@ package com.whim.web.config;
 
 import com.whim.core.annotation.SystemApiPrefix;
 import com.whim.core.constant.WebPrefixConstants;
+import com.whim.web.converter.StringToLocalDateTimeConverter;
 import com.whim.web.handler.GlobalExceptionHandler;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -21,6 +23,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
         configurer.addPathPrefix(WebPrefixConstants.SYSTEM, c -> c.isAnnotationPresent(SystemApiPrefix.class));
+    }
+
+    /**
+     * 添加转换器
+     */
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToLocalDateTimeConverter());
     }
 
     /**

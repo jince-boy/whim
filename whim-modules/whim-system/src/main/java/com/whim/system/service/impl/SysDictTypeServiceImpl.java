@@ -48,7 +48,7 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
      * 字典类型分页查询
      *
      * @param sysDictTypeQueryDTO 字典类型查询参数
-     * @param pageQueryDTO   分页参数
+     * @param pageQueryDTO        分页参数
      * @return 字典类型分页数据
      */
     @Override
@@ -78,7 +78,11 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
      */
     @Override
     public SysDictTypeVO getDictTypeById(Long id) {
-        return ConvertUtils.convert(this.getById(id), SysDictTypeVO.class);
+        SysDictType sysDictType = this.getById(id);
+        if (sysDictType == null) {
+            throw new ServiceException("查询的字典类型不存在");
+        }
+        return ConvertUtils.convert(sysDictType, SysDictTypeVO.class);
     }
 
     /**

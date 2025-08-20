@@ -59,6 +59,16 @@ public class Result<T> implements Serializable {
 
     /**
      * 成功响应
+     * @param data  数据
+     * @return Result<T>
+     * @param <T> 数据类型
+     */
+    public static <T> Result<T> success(T data) {
+        return new Result<>(data).setResult(HttpStatus.OK, "success");
+    }
+
+    /**
+     * 成功响应
      *
      * @param message 消息
      * @param data    数据
@@ -68,6 +78,7 @@ public class Result<T> implements Serializable {
     public static <T> Result<T> success(String message, T data) {
         return new Result<>(data).setResult(HttpStatus.OK, message);
     }
+
 
     /**
      * 成功响应

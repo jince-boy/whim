@@ -3,7 +3,9 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatis.core.model.dto.PageQueryDTO;
 import com.whim.mybatis.core.model.vo.PageDataVO;
-import com.whim.system.model.dto.SysDictDataDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataInsertDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataQueryDTO;
+import com.whim.system.model.dto.sysDictData.SysDictDataUpdateDTO;
 import com.whim.system.model.entity.SysDictData;
 import com.whim.system.model.vo.SysDictDataVO;
 
@@ -24,7 +26,7 @@ public interface ISysDictDataService extends IService<SysDictData> {
      * @param pageQueryDTO   分页参数
      * @return 字典数据列表
      */
-    PageDataVO<SysDictDataVO> getDictDataPage(SysDictDataDTO sysDictDataDTO, PageQueryDTO pageQueryDTO);
+    PageDataVO<SysDictDataVO> getDictDataPage(SysDictDataQueryDTO sysDictDataQueryDTO, PageQueryDTO pageQueryDTO);
 
     /**
      * 根据id查询字典数据
@@ -37,18 +39,18 @@ public interface ISysDictDataService extends IService<SysDictData> {
     /**
      * 新增字典数据
      *
-     * @param sysDictDataDTO 字典数据参数
+     * @param sysDictDataInsertDTO 字典数据参数
      * @return 字典数据列表
      */
-    List<SysDictDataVO> insertDictData(SysDictDataDTO sysDictDataDTO);
+    List<SysDictDataVO> insertDictData(SysDictDataInsertDTO sysDictDataInsertDTO);
 
     /**
      * 修改字典数据
      *
-     * @param sysDictDataDTO 字典数据参数
+     * @param sysDictDataUpdateDTO 字典数据参数
      * @return 字典数据列表
      */
-    List<SysDictDataVO> updateDictData(SysDictDataDTO sysDictDataDTO);
+    List<SysDictDataVO> updateDictData(SysDictDataUpdateDTO sysDictDataUpdateDTO);
 
     /**
      * 通过字典类型查询字典数据
