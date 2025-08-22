@@ -2,6 +2,7 @@ package com.whim.web.handler;
 
 import com.whim.core.exception.CheckCaptchaException;
 import com.whim.core.exception.FileStorageException;
+import com.whim.core.exception.HttpException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
@@ -151,6 +152,15 @@ public class GlobalExceptionHandler {
     public Result<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
         log.warn("HTTP消息不可读异常: {}", exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺失");
+    }
+
+    /**
+     * HTTP异常
+     */
+    @ExceptionHandler(HttpException.class)
+    public Result<String> handleHttpException(HttpException exception) {
+        log.error("HTTP异常信息:{}", exception.getMessage(), exception);
+        return Result.error(HttpStatus.BAD_REQUEST, "请求参数错误或缺失");
     }
 
     /**
