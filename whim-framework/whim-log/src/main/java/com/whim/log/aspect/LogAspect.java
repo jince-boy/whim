@@ -105,16 +105,19 @@ public class LogAspect {
             return argsToJson(joinPoint, excludeFields);
         } else {
             paramMap.keySet().removeIf(key -> shouldExclude(key, excludeFields));
-            return JsonUtils.toJsonString(paramMap);
+            return paramMap.isEmpty() ? null : JsonUtils.toJsonString(paramMap);
         }
     }
-
 
     /**
      * 方法参数转 JSON，排除敏感字段
      */
     private String argsToJson(ProceedingJoinPoint joinPoint, String[] excludeFields) {
         Object[] args = joinPoint.getArgs();
+        if (args == null || args.length == 0) {
+            return null;
+        }
+
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String[] paramNames = signature.getParameterNames();
         Map<String, Object> merged = new HashMap<>();
@@ -139,7 +142,7 @@ public class LogAspect {
             }
         }
 
-        return JsonUtils.toJsonString(merged);
+        return merged.isEmpty() ? null : JsonUtils.toJsonString(merged);
     }
 
 

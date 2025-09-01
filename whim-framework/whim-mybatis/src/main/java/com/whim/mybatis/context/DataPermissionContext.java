@@ -27,7 +27,9 @@ public class DataPermissionContext {
 
     public static void popPermissionHolder() {
         Deque<DataPermissionHolder> stack = CONTEXT.get();
-        stack.pop();
+        if (!stack.isEmpty()) {
+            stack.pop();
+        }
         if (stack.isEmpty()) {
             CONTEXT.remove();
         }

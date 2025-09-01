@@ -99,7 +99,7 @@
                 <artifactId>easyexcel</artifactId>
                 <version>${easyexcel.version}</version>
             </dependency>
-            <!-- UserAgentUtils-->
+            <!-- UserAgentUtils 用户获取客户端浏览器系统信息-->
             <dependency>
                 <groupId>eu.bitwalker</groupId>
                 <artifactId>UserAgentUtils</artifactId>
