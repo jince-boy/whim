@@ -1,6 +1,7 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
 
@@ -28,4 +29,12 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @return 菜单树
      */
     List<MenuVO> getMenuTreeByUserId(Long id);
+
+    /**
+     * 获取所有菜单树
+     *
+     * @param sysPermissionQueryDTO 查询参数
+     * @return 菜单树
+     */
+    List<MenuVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO);
 }

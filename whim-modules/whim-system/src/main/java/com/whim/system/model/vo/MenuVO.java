@@ -5,6 +5,7 @@ import com.whim.system.model.entity.SysPermission;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,10 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MenuVO {
     /**
+     * 菜单id
+     */
+    private Long id;
+    /**
      * 路由名称
      */
     private String name;
@@ -25,6 +30,14 @@ public class MenuVO {
      * 菜单名称
      */
     private String title;
+    /**
+     * 类型(1-目录 2-菜单 3-按钮 4-外链)
+     */
+    private Integer type;
+    /**
+     * 权限标识
+     */
+    private String code;
     /**
      * 前端路由路径
      */
@@ -46,6 +59,10 @@ public class MenuVO {
      */
     private String icon;
     /**
+     * 排序
+     */
+    private Integer sort;
+    /**
      * 显示状态
      */
     private Integer visible;
@@ -61,4 +78,8 @@ public class MenuVO {
      * 子菜单
      */
     private List<MenuVO> children;
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
 }

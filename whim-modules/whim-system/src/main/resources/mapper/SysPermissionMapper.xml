@@ -37,12 +37,10 @@
                         sp.name,
                         sp.title,
                         sp.parent_id,
-                        sp.type,
                         sp.path,
                         sp.component,
                         sp.keep_alive,
                         sp.sort,
-                        sp.code,
                         sp.visible,
                         sp.status,
                         sp.icon,
@@ -58,6 +56,7 @@
                  INNER JOIN sys_role sr ON srp.role_id = sr.id AND sr.status = '0'
                  INNER JOIN sys_user_role sur ON sr.id = sur.role_id AND sur.user_id = #{userId}
         WHERE sp.type IN ('1', '2', '4')
+          and sp.status = '0'
         ORDER BY sp.parent_id, sp.sort
     </select>
 

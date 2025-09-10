@@ -1,5 +1,6 @@
 package com.whim.system.service.impl;
 
+import com.alibaba.excel.util.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.constant.MenuConstants;
@@ -8,6 +9,7 @@ import com.whim.core.utils.ConvertUtils;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.service.PermissionProvider;
 import com.whim.system.mapper.SysPermissionMapper;
+import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
 import com.whim.system.service.ISysPermissionService;
@@ -74,6 +76,9 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
         List<SysPermission> permissionList;
         if (AuthContext.isSuperAdmin(id)) {
             LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<>();
+            wrapper.select(SysPermission.class, info ->
+                    !info.getColumn().equals("type") && !info.getColumn().equals("code")// 排除 type和code 字段
+            );
             wrapper.in(SysPermission::getType, MenuConstants.MENU_TYPE_DIR, MenuConstants.MENU_TYPE_MENU, MenuConstants.MENU_TYPE_LINK);
             wrapper.eq(SysPermission::getStatus, SystemConstants.STATUS_NORMAL);
             wrapper.orderByAsc(SysPermission::getParentId).orderByAsc(SysPermission::getSort);
@@ -91,9 +96,21 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
         return buildMenuTree(permissionMap, MenuConstants.TOP_PARENT_ID);
     }
 
-//    使用MyBatis-Plus的类型处理器（推荐）
-//
-//    这个方法不错，然后你帮我弄两个，一个map接收，一个list接收，然后
+    /**
+     * 获取所有菜单树
+     *
+     * @param sysPermissionQueryDTO 查询参数
+     * @return 菜单树
+     */
+    @Override
+    public List<MenuVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO) {
+        LambdaQueryWrapper<SysPermission> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(StringUtils.isNotBlank(sysPermissionQueryDTO.getTitle()), SysPermission::getTitle, sysPermissionQueryDTO.getTitle());
+        lambdaQueryWrapper.orderByAsc(SysPermission::getParentId).orderByAsc(SysPermission::getSort);
+        List<SysPermission> permissionList = this.list(lambdaQueryWrapper);
+        Map<Long, List<SysPermission>> permissionMap = permissionList.stream().collect(Collectors.groupingBy(SysPermission::getParentId));
+        return buildMenuTree(permissionMap, MenuConstants.TOP_PARENT_ID);
+    }
 
     /**
      * 递归构建菜单树
