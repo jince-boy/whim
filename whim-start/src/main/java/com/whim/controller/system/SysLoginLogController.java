@@ -1,7 +1,7 @@
 package com.whim.controller.system;
 
 
-import com.whim.core.annotation.SystemApiPrefix;
+import com.whim.web.annotation.SystemApiPrefix;
 import com.whim.core.utils.ExcelUtils;
 import com.whim.core.web.Result;
 import com.whim.log.annotation.Log;

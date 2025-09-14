@@ -1,4 +1,4 @@
-package com.whim.core.annotation;
+package com.whim.web.annotation;
 
 import org.springframework.web.bind.annotation.RestController;
 

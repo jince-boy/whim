@@ -1,6 +1,6 @@
 package com.whim.web.config;
 
-import com.whim.core.annotation.SystemApiPrefix;
+import com.whim.web.annotation.SystemApiPrefix;
 import com.whim.core.constant.WebPrefixConstants;
 import com.whim.web.converter.StringToLocalDateTimeConverter;
 import com.whim.web.handler.GlobalExceptionHandler;

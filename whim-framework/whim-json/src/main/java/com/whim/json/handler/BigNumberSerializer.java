@@ -61,13 +61,6 @@ public class BigNumberSerializer extends NumberSerializer {
      */
     @Override
     public void serialize(Number value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        // 在安全范围内：按普通数字序列化
-        if (value.longValue() > MIN_SAFE_INTEGER && value.longValue() < MAX_SAFE_INTEGER) {
-            super.serialize(value, gen, provider);
-        }
-        // 超出安全范围：序列化为字符串
-        else {
-            gen.writeString(value.toString());
-        }
+        gen.writeString(value.toString());
     }
 }

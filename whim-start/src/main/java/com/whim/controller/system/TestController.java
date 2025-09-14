@@ -1,7 +1,7 @@
 package com.whim.controller.system;
 
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.whim.core.annotation.SystemApiPrefix;
+import com.whim.web.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
 import com.whim.file.FileStorageService;
 import com.whim.file.model.MetaData;

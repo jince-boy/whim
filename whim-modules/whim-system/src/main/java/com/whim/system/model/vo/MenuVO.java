@@ -31,6 +31,10 @@ public class MenuVO {
      */
     private String title;
     /**
+     * 父菜单id
+     */
+    private Long parentId;
+    /**
      * 类型(1-目录 2-菜单 3-按钮 4-外链)
      */
     private Integer type;

@@ -1,6 +1,6 @@
 package com.whim.controller.system;
 
-import com.whim.core.annotation.SystemApiPrefix;
+import com.whim.web.annotation.SystemApiPrefix;
 import com.whim.core.web.Result;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.vo.MenuVO;
