@@ -70,6 +70,12 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
         ) == 0) {
             throw new ServiceException("新增字典数据失败，字典类型不存在");
         }
+        boolean exists = this.lambdaQuery().eq(SysDictData::getDictType, sysDictDataInsertDTO.getDictType())
+                .eq(SysDictData::getValue, sysDictDataInsertDTO.getValue())
+                .exists();
+        if (exists) {
+            throw new ServiceException("字典数据键值已存在");
+        }
         if (this.save(ConvertUtils.convert(sysDictDataInsertDTO, SysDictData.class))) {
             return baseMapper.getDictDataListByDictType(sysDictDataInsertDTO.getDictType());
         }
