@@ -1,26 +1,17 @@
-package com.whim.system.model.vo;
+package com.whim.system.model.dto.sysPermission;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.whim.system.model.entity.SysPermission;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 /**
- * @author Jince
- * @date: 2025/7/21 12:48
- * @description: 菜单VO
+ * @author jince
+ * date: 2025/9/20 22:20
+ * description: 添加菜单参数
  */
 @Data
 @AutoMapper(target = SysPermission.class)
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class MenuVO {
-    /**
-     * 菜单id
-     */
-    private Long id;
+public class SysPermissionInsertDTO {
     /**
      * 路由名称
      */
@@ -38,10 +29,6 @@ public class MenuVO {
      */
     private Integer type;
     /**
-     * 权限标识
-     */
-    private String code;
-    /**
      * 前端路由路径
      */
     private String path;
@@ -58,17 +45,25 @@ public class MenuVO {
      */
     private Integer keepAlive;
     /**
-     * 菜单图标
-     */
-    private String icon;
-    /**
      * 排序
      */
     private Integer sort;
     /**
+     * 权限标识
+     */
+    private String code;
+    /**
      * 显示状态
      */
     private Integer visible;
+    /**
+     * 状态
+     */
+    private Integer status;
+    /**
+     * 菜单图标
+     */
+    private String icon;
     /**
      * 跳转地址
      */
@@ -77,12 +72,4 @@ public class MenuVO {
      * 备注
      */
     private String remark;
-    /**
-     * 子菜单
-     */
-    private List<MenuVO> children;
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
 }

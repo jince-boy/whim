@@ -9,6 +9,7 @@ import com.whim.core.utils.ConvertUtils;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.service.PermissionProvider;
 import com.whim.system.mapper.SysPermissionMapper;
+import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
@@ -130,6 +131,18 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
             tree.add(menuVO);
         }
         return tree;
+    }
+
+    /**
+     * 添加菜单
+     *
+     * @param sysPermissionInsertDTO 菜单参数
+     * @return 添加结果 true:添加成功 false:添加失败
+     */
+    @Override
+    public Boolean insertPermission(SysPermissionInsertDTO sysPermissionInsertDTO) {
+        SysPermission sysPermission = ConvertUtils.convert(sysPermissionInsertDTO, SysPermission.class);
+        return this.save(sysPermission);
     }
 }
 

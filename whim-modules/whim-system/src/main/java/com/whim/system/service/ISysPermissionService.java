@@ -1,6 +1,7 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
@@ -37,4 +38,12 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @return 菜单树
      */
     List<MenuVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO);
+
+    /**
+     * 添加菜单
+     *
+     * @param sysPermissionInsertDTO 菜单参数
+     * @return 添加结果 true:添加成功 false:添加失败
+     */
+    Boolean insertPermission(SysPermissionInsertDTO sysPermissionInsertDTO);
 }
