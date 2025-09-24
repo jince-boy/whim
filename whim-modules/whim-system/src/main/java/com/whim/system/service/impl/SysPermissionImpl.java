@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.constant.MenuConstants;
 import com.whim.core.constant.SystemConstants;
+import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.ConvertUtils;
 import com.whim.satoken.core.context.AuthContext;
 import com.whim.satoken.service.PermissionProvider;
 import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
+import com.whim.system.model.dto.sysPermission.SysPermissionUpdateDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
 import com.whim.system.service.ISysPermissionService;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +117,58 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
     }
 
     /**
+     * 根据id获取权限
+     *
+     * @param id 权限id
+     * @return 权限
+     */
+    @Override
+    public MenuVO getPermissionById(Long id) {
+        return ConvertUtils.convert(this.getById(id), MenuVO.class);
+    }
+
+    /**
+     * 添加菜单
+     *
+     * @param sysPermissionInsertDTO 菜单参数
+     * @return 添加结果 true:添加成功 false:添加失败
+     */
+    @Override
+    public Boolean insertPermission(SysPermissionInsertDTO sysPermissionInsertDTO) {
+        SysPermission sysPermission = ConvertUtils.convert(sysPermissionInsertDTO, SysPermission.class);
+        return this.save(sysPermission);
+    }
+
+    /**
+     * 修改菜单
+     *
+     * @param sysPermissionUpdateDTO 修改参数
+     * @return 修改结果 true:修改成功 false:修改失败
+     */
+    @Override
+    public Boolean updatePermission(SysPermissionUpdateDTO sysPermissionUpdateDTO) {
+        SysPermission sysPermission = ConvertUtils.convert(sysPermissionUpdateDTO, SysPermission.class);
+        return this.updateById(sysPermission);
+    }
+
+    /**
+     * 删除菜单
+     *
+     * @param menuIds 菜单id
+     */
+    @Override
+    public void deletePermissionByIds(Long[] menuIds) {
+        for (Long menuId : menuIds) {
+            LambdaQueryWrapper<SysPermission> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(SysPermission::getParentId, menuId);
+            if (this.exists(lambdaQueryWrapper)) {
+                throw new ServiceException("该菜单存在子权限，请先删除子权限后再操作");
+            }
+        }
+        this.removeByIds(Arrays.asList(menuIds));
+    }
+
+    /**
      * 递归构建菜单树
      */
     private List<MenuVO> buildMenuTree(Map<Long, List<SysPermission>> permissionMap, Long parentId) {
@@ -131,18 +186,6 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
             tree.add(menuVO);
         }
         return tree;
-    }
-
-    /**
-     * 添加菜单
-     *
-     * @param sysPermissionInsertDTO 菜单参数
-     * @return 添加结果 true:添加成功 false:添加失败
-     */
-    @Override
-    public Boolean insertPermission(SysPermissionInsertDTO sysPermissionInsertDTO) {
-        SysPermission sysPermission = ConvertUtils.convert(sysPermissionInsertDTO, SysPermission.class);
-        return this.save(sysPermission);
     }
 }
 

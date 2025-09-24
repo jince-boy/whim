@@ -1,22 +1,17 @@
-package com.whim.system.model.entity;
+package com.whim.system.model.dto.sysPermission;
 
-import com.whim.mybatis.core.model.entity.BaseEntity;
+import com.whim.system.model.entity.SysPermission;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.io.Serial;
-import java.io.Serializable;
 
 /**
- * @author Jince
- * @date 2024-10-23 19:53:10
- * @description 菜单权限(SysPermission)实体类
+ * @author jince
+ * date: 2025/9/21 11:14
+ * description: 更新菜单DTO
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class SysPermission extends BaseEntity implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -18778024102398442L;
+@AutoMapper(target = SysPermission.class)
+public class SysPermissionUpdateDTO {
     /**
      * 主键
      */
@@ -81,8 +76,4 @@ public class SysPermission extends BaseEntity implements Serializable {
      * 备注
      */
     private String remark;
-    /**
-     * 逻辑删除
-     */
-    private Integer deleted;
 }

@@ -25,6 +25,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -142,9 +143,9 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     public void deleteDictDataByIds(Long[] dictDataIds) {
         for (Long dictDataId : dictDataIds) {
             SysDictData sysDictData = this.getById(dictDataId);
-            this.removeById(sysDictData);
             CacheUtils.evict(CacheKeys.SYS_DICT, sysDictData.getDictType());
         }
+        this.removeByIds(Arrays.asList(dictDataIds));
     }
 }
 

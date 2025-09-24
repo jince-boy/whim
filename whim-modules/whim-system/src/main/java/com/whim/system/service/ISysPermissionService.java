@@ -3,6 +3,7 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
+import com.whim.system.model.dto.sysPermission.SysPermissionUpdateDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.MenuVO;
 
@@ -22,6 +23,14 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @return 权限列表
      */
     Set<String> getPermissionList(Long id);
+
+    /**
+     * 根据id获取权限
+     *
+     * @param id 权限id
+     * @return 权限
+     */
+    MenuVO getPermissionById(Long id);
 
     /**
      * 根据用户id获取菜单树
@@ -46,4 +55,19 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @return 添加结果 true:添加成功 false:添加失败
      */
     Boolean insertPermission(SysPermissionInsertDTO sysPermissionInsertDTO);
+
+    /**
+     * 修改菜单
+     *
+     * @param sysPermissionUpdateDTO 修改参数
+     * @return 修改结果 true:修改成功 false:修改失败
+     */
+    Boolean updatePermission(SysPermissionUpdateDTO sysPermissionUpdateDTO);
+
+    /**
+     * 删除菜单
+     *
+     * @param menuIds 菜单id
+     */
+    void deletePermissionByIds(Long[] menuIds);
 }
