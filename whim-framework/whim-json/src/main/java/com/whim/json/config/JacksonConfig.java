@@ -36,7 +36,7 @@ public class JacksonConfig {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
             timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
-            timeModule.addDeserializer(Date.class, new DateSerializer()); // 假设这是自定义的Date反序列化器
+            timeModule.addDeserializer(Date.class, new DateSerializer());
 
             // 2. 数字模块：处理大数字类型
             SimpleModule numberModule = new SimpleModule();

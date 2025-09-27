@@ -1,5 +1,7 @@
 package com.whim.system.model.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysUser;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -17,10 +19,12 @@ public class SysUserVO {
     /**
      * 主键
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 部门ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long deptId;
     /**
      * 用户名

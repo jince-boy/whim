@@ -1,5 +1,7 @@
 package com.whim.system.model.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -22,5 +24,6 @@ public class LoginVO {
     /**
      * 有效时间
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long expires;
 }

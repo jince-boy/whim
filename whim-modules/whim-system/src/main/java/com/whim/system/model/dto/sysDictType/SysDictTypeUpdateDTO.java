@@ -1,5 +1,7 @@
 package com.whim.system.model.dto.sysDictType;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysDictType;
 import io.github.linpeilie.annotations.AutoMapper;
 import jakarta.validation.constraints.NotBlank;
@@ -18,6 +20,7 @@ public class SysDictTypeUpdateDTO {
      * 字典ID
      */
     @NotNull(message = "字典ID不能为空")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 字典名称

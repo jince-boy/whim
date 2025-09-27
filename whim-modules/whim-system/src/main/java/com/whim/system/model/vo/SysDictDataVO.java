@@ -2,6 +2,8 @@ package com.whim.system.model.vo;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysDictData;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -20,6 +22,7 @@ public class SysDictDataVO {
      * 字典数据ID
      */
     @ExcelProperty("字典数据id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 字典类型(关联sys_dict_type.type)

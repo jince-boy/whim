@@ -1,6 +1,8 @@
 package com.whim.system.model.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysDictType;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -19,6 +21,7 @@ public class SysDictTypeVO {
      * 字典ID
      */
     @ExcelProperty("字典类型ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 字典名称

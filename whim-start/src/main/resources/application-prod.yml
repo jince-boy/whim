@@ -51,15 +51,6 @@ redisson:
     # 发布和订阅连接池大小
     subscriptionConnectionPoolSize: 50
 
-#p6spy sql日志监控
-decorator:
-  datasource:
-    enabled: false
-    p6spy:
-      logging: slf4j
-      log-format: "SQL耗时：%(executionTime)ms | 执行语句：%(sqlSingleLine)"
-      enable-logging: true
-
 # 文件配置
 file:
   storage:

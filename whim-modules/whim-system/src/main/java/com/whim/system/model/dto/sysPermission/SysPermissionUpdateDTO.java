@@ -1,5 +1,7 @@
 package com.whim.system.model.dto.sysPermission;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysPermission;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -15,6 +17,7 @@ public class SysPermissionUpdateDTO {
     /**
      * 主键
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 路由名称
@@ -27,6 +30,7 @@ public class SysPermissionUpdateDTO {
     /**
      * 父菜单id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long parentId;
     /**
      * 类型(1-目录 2-菜单 3-按钮 4-外链)

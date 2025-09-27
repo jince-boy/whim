@@ -1,6 +1,8 @@
 package com.whim.system.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.whim.system.model.entity.SysPermission;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -20,6 +22,7 @@ public class MenuVO {
     /**
      * 菜单id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     /**
      * 路由名称
@@ -32,6 +35,7 @@ public class MenuVO {
     /**
      * 父菜单id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long parentId;
     /**
      * 类型(1-目录 2-菜单 3-按钮 4-外链)
