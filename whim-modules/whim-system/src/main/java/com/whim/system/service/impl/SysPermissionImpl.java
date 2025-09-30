@@ -14,7 +14,7 @@ import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionUpdateDTO;
 import com.whim.system.model.entity.SysPermission;
-import com.whim.system.model.vo.MenuVO;
+import com.whim.system.model.vo.SysPermissionVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +76,7 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
      * @return 菜单树
      */
     @Override
-    public List<MenuVO> getMenuTreeByUserId(Long id) {
+    public List<SysPermissionVO> getMenuTreeByUserId(Long id) {
         List<SysPermission> permissionList;
         if (AuthContext.isSuperAdmin(id)) {
             LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<>();
@@ -107,7 +107,7 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
      * @return 菜单树
      */
     @Override
-    public List<MenuVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO) {
+    public List<SysPermissionVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO) {
         LambdaQueryWrapper<SysPermission> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(StringUtils.isNotBlank(sysPermissionQueryDTO.getTitle()), SysPermission::getTitle, sysPermissionQueryDTO.getTitle());
         lambdaQueryWrapper.orderByAsc(SysPermission::getParentId).orderByAsc(SysPermission::getSort);
@@ -123,8 +123,8 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
      * @return 权限
      */
     @Override
-    public MenuVO getPermissionById(Long id) {
-        return ConvertUtils.convert(this.getById(id), MenuVO.class);
+    public SysPermissionVO getPermissionById(Long id) {
+        return ConvertUtils.convert(this.getById(id), SysPermissionVO.class);
     }
 
     /**
@@ -171,19 +171,19 @@ public class SysPermissionImpl extends ServiceImpl<SysPermissionMapper, SysPermi
     /**
      * 递归构建菜单树
      */
-    private List<MenuVO> buildMenuTree(Map<Long, List<SysPermission>> permissionMap, Long parentId) {
+    private List<SysPermissionVO> buildMenuTree(Map<Long, List<SysPermission>> permissionMap, Long parentId) {
         List<SysPermission> permissions = permissionMap.getOrDefault(parentId, Collections.emptyList());
         if (CollectionUtils.isEmpty(permissions)) {
             return Collections.emptyList();
         }
 
-        List<MenuVO> tree = new ArrayList<>();
+        List<SysPermissionVO> tree = new ArrayList<>();
         for (SysPermission permission : permissions) {
-            MenuVO menuVO = ConvertUtils.convert(permission, MenuVO.class);
+            SysPermissionVO sysPermissionVO = ConvertUtils.convert(permission, SysPermissionVO.class);
             // 递归查找子菜单
-            List<MenuVO> children = buildMenuTree(permissionMap, permission.getId());
-            menuVO.setChildren(children);
-            tree.add(menuVO);
+            List<SysPermissionVO> children = buildMenuTree(permissionMap, permission.getId());
+            sysPermissionVO.setChildren(children);
+            tree.add(sysPermissionVO);
         }
         return tree;
     }

@@ -27,5 +27,5 @@ public class UserInfoVO {
     /**
      * 菜单
      */
-    private List<MenuVO> menus;
+    private List<SysPermissionVO> menus;
 }

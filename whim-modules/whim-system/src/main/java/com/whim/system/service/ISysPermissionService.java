@@ -5,7 +5,7 @@ import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionUpdateDTO;
 import com.whim.system.model.entity.SysPermission;
-import com.whim.system.model.vo.MenuVO;
+import com.whim.system.model.vo.SysPermissionVO;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +30,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @param id 权限id
      * @return 权限
      */
-    MenuVO getPermissionById(Long id);
+    SysPermissionVO getPermissionById(Long id);
 
     /**
      * 根据用户id获取菜单树
@@ -38,7 +38,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @param id 用户id
      * @return 菜单树
      */
-    List<MenuVO> getMenuTreeByUserId(Long id);
+    List<SysPermissionVO> getMenuTreeByUserId(Long id);
 
     /**
      * 获取所有菜单树
@@ -46,7 +46,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @param sysPermissionQueryDTO 查询参数
      * @return 菜单树
      */
-    List<MenuVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO);
+    List<SysPermissionVO> getAllMenuThree(SysPermissionQueryDTO sysPermissionQueryDTO);
 
     /**
      * 添加菜单

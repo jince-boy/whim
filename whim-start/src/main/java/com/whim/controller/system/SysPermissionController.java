@@ -7,7 +7,7 @@ import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.sysPermission.SysPermissionInsertDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionQueryDTO;
 import com.whim.system.model.dto.sysPermission.SysPermissionUpdateDTO;
-import com.whim.system.model.vo.MenuVO;
+import com.whim.system.model.vo.SysPermissionVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.web.annotation.SystemApiPrefix;
 import jakarta.validation.constraints.NotNull;
@@ -43,7 +43,7 @@ public class SysPermissionController {
      */
     @SystemCheckPermission("system:menu:query")
     @GetMapping("/list")
-    public Result<List<MenuVO>> getMenuList(SysPermissionQueryDTO sysPermissionQueryDTO) {
+    public Result<List<SysPermissionVO>> getMenuList(SysPermissionQueryDTO sysPermissionQueryDTO) {
         return Result.success(sysPermissionService.getAllMenuThree(sysPermissionQueryDTO));
     }
 
@@ -55,7 +55,7 @@ public class SysPermissionController {
      */
     @SystemCheckPermission("system:menu:detail")
     @GetMapping("/detail")
-    public Result<MenuVO> getMenuById(@NotNull(message = "菜单数据id不能为空") Long id) {
+    public Result<SysPermissionVO> getMenuById(@NotNull(message = "菜单数据id不能为空") Long id) {
         return Result.success("查询成功", sysPermissionService.getPermissionById(id));
     }
 

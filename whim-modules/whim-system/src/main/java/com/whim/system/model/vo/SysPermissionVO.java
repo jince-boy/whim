@@ -18,7 +18,7 @@ import java.util.List;
 @Data
 @AutoMapper(target = SysPermission.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class MenuVO {
+public class SysPermissionVO {
     /**
      * 菜单id
      */
@@ -74,6 +74,10 @@ public class MenuVO {
      */
     private Integer visible;
     /**
+     * 状态
+     */
+    private Integer status;
+    /**
      * 跳转地址
      */
     private String redirect;
@@ -84,7 +88,7 @@ public class MenuVO {
     /**
      * 子菜单
      */
-    private List<MenuVO> children;
+    private List<SysPermissionVO> children;
     /**
      * 创建时间
      */
