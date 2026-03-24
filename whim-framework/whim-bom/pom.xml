@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.whim</groupId>
+    <artifactId>whim-bom</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <description>
+        whim-framework 各模块的版本管理
+    </description>
+
+    <properties>
+        <revision>1.0.0</revision>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 核心模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-bom</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

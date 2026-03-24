@@ -6,15 +6,17 @@
     <parent>
         <groupId>com.whim</groupId>
         <artifactId>whim</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
-    <artifactId>whim-framework</artifactId>
+    <description>whim框架模块</description>
 
-    <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <artifactId>whim-framework</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>whim-bom</module>
+        <module>whim-core</module>
+    </modules>
 
 </project>
