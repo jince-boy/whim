@@ -5,10 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.whim</groupId>
-        <artifactId>whim</artifactId>
-        <version>${revision}</version>
+        <artifactId>whim-framework</artifactId>
+        <version>0.0.1</version>
     </parent>
 
-    <artifactId>whim-start</artifactId>
+    <artifactId>whim-web</artifactId>
+
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
 </project>

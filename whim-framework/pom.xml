@@ -17,6 +17,7 @@
     <modules>
         <module>whim-bom</module>
         <module>whim-core</module>
+        <module>whim-web</module>
     </modules>
 
 </project>
