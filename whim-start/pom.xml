@@ -11,4 +11,18 @@
 
     <artifactId>whim-start</artifactId>
 
+    <dependencies>
+        <!-- whim-web -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-web</artifactId>
+        </dependency>
+        <!-- webmvc-test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
 </project>

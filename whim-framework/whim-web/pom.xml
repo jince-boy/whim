@@ -6,15 +6,23 @@
     <parent>
         <groupId>com.whim</groupId>
         <artifactId>whim-framework</artifactId>
-        <version>0.0.1</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>whim-web</artifactId>
+    <description>web模块</description>
 
-    <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <dependencies>
+        <!-- webmvc -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- 通用核心模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-core</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

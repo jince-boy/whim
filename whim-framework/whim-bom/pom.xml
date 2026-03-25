@@ -22,7 +22,13 @@
             <!-- 核心模块 -->
             <dependency>
                 <groupId>com.whim</groupId>
-                <artifactId>whim-bom</artifactId>
+                <artifactId>whim-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- web模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-web</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>
