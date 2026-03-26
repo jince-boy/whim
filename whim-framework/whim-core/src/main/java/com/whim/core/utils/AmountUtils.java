@@ -1,5 +1,8 @@
 package com.whim.core.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -9,15 +12,13 @@ import java.math.RoundingMode;
  * @date 2026/3/24
  * @description 金额工具类，提供金额换算、格式处理与中文大写转换能力。
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AmountUtils {
 
     private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
     private static final String[] FRACTION_UNITS = {"角", "分"};
     private static final String[] DIGITS = {"零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"};
     private static final String[][] INTEGER_UNITS = {{"元", "万", "亿"}, {"", "拾", "佰", "仟"}};
-
-    private AmountUtils() {
-    }
 
     /**
      * 返回非空金额。

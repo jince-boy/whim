@@ -1,5 +1,7 @@
 package com.whim.core.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeansException;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
  * 主要提供获取Bean及其他Bean相关信息的方法。
  */
 @Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SpringUtils implements BeanFactoryPostProcessor, ApplicationContextAware {
     private static volatile ConfigurableListableBeanFactory beanFactory;
     private static volatile ApplicationContext applicationContext;

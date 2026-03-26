@@ -1,5 +1,8 @@
 package com.whim.core.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -14,6 +17,7 @@ import java.util.Set;
  * @date 2026/3/24
  * @description 值解析工具类，提供常见基础类型的宽松转换能力。
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ValueParserUtils {
 
     private static final char FULL_WIDTH_SPACE = '\u3000';
@@ -21,12 +25,6 @@ public final class ValueParserUtils {
     private static final int WIDTH_OFFSET = 65248;
     private static final Set<String> TRUE_VALUES = Set.of("true", "1", "yes", "y", "ok", "on");
     private static final Set<String> FALSE_VALUES = Set.of("false", "0", "no", "n", "off");
-
-    /**
-     * 私有构造。
-     */
-    private ValueParserUtils() {
-    }
 
     /**
      * 转换为字符串。

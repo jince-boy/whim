@@ -1,6 +1,8 @@
 package com.whim.core.utils;
 
 import io.github.linpeilie.Converter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -11,10 +13,8 @@ import java.util.Objects;
  * @date 2026/3/24
  * @description Bean 转换工具类，统一封装 MapStruct Plus 的对象映射能力。
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BeanConvertUtils {
-
-    private BeanConvertUtils() {
-    }
 
     /**
      * 获取转换器实例。

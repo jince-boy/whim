@@ -1,5 +1,7 @@
 package com.whim.core.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -8,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @date 2024/10/4 00:46
  * @description BCrypt 密码工具类，提供密码加密与校验能力。
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BCryptUtils {
 
     /**
