@@ -5,20 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.whim</groupId>
-        <artifactId>whim</artifactId>
+        <artifactId>whim-framework</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <description>whim框架模块</description>
+    <artifactId>whim-json</artifactId>
+    <description>JSON 模块</description>
 
-    <artifactId>whim-framework</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>whim-bom</module>
-        <module>whim-core</module>
-        <module>whim-web</module>
-        <module>whim-json</module>
-    </modules>
+    <dependencies>
+<!--        <dependency>-->
+<!--            <groupId></groupId>-->
+<!--            <artifactId></artifactId>-->
+<!--        </dependency>-->
+    </dependencies>
 
 </project>
