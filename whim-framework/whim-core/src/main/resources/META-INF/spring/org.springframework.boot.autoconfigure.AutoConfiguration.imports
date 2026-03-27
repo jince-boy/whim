@@ -1,1 +1,1 @@
-com.whim.core.config.TaskExecutorAutoConfiguration
+com.whim.core.config.ThreadPoolAutoConfiguration

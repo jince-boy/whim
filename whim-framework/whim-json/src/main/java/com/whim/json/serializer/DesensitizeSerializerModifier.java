@@ -50,6 +50,7 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
             if (annotation == null) {
                 continue;
             }
+            validateStringProperty(writer);
             writer.assignSerializer(new DesensitizeValueSerializer(annotation, accessEvaluator));
         }
         return beanProperties;
@@ -66,6 +67,18 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
             return null;
         }
         return member.getAnnotation(Desensitize.class);
+    }
+
+    /**
+     * 校验脱敏注解仅用于字符串字段。
+     *
+     * @param writer 字段写出器
+     */
+    private void validateStringProperty(BeanPropertyWriter writer) {
+        if (String.class.equals(writer.getType().getRawClass())) {
+            return;
+        }
+        throw new IllegalStateException("@Desensitize only supports String properties: " + writer.getFullName());
     }
 
     /**

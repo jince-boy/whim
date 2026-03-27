@@ -1,7 +1,6 @@
-package com.whim.json.handler;
+package com.whim.json.module;
 
 import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.module.SimpleModule;
@@ -11,37 +10,36 @@ import java.math.BigInteger;
 
 /**
  * @author Jince
- * @date 2026/03/27
- * @description 大数字 Jackson 处理器
+ * @date 2026/03/28
+ * @description 大数字 Jackson 模块，负责注册避免前端精度丢失的序列化能力。
  */
-public final class BigNumberJacksonHandler {
+public final class BigNumberJacksonModule extends SimpleModule {
 
     /**
-     * 构建大数字处理模块
-     *
-     * @return 大数字处理模块
+     * 创建大数字 Jackson 模块。
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public JacksonModule getModule() {
-        var module = new SimpleModule("whim-big-number-jackson-module");
+    public BigNumberJacksonModule() {
+        super("whim-big-number-jackson-module");
         var longSerializer = new LongValueSerializer();
-        module.addSerializer(Long.class, longSerializer);
-        module.addSerializer((Class) Long.TYPE, (ValueSerializer) longSerializer);
-        module.addSerializer(BigInteger.class, new BigIntegerValueSerializer());
-        module.addSerializer(BigDecimal.class, new BigDecimalValueSerializer());
-        return module;
+        addSerializer(Long.class, longSerializer);
+        addSerializer((Class) Long.TYPE, (ValueSerializer) longSerializer);
+        addSerializer(BigInteger.class, new BigIntegerValueSerializer());
+        addSerializer(BigDecimal.class, new BigDecimalValueSerializer());
     }
 
     /**
-     * Long 序列化器
+     * @author Jince
+     * @date 2026/03/28
+     * @description Long 序列化器。
      */
     private static final class LongValueSerializer extends ValueSerializer<Long> {
 
         /**
-         * 将 Long 序列化为字符串
+         * 将 Long 序列化为字符串。
          *
-         * @param value   数值
-         * @param jgen    JSON 生成器
+         * @param value 数值
+         * @param jgen JSON 生成器
          * @param context 序列化上下文
          */
         @Override
@@ -55,15 +53,17 @@ public final class BigNumberJacksonHandler {
     }
 
     /**
-     * BigInteger 序列化器
+     * @author Jince
+     * @date 2026/03/28
+     * @description BigInteger 序列化器。
      */
     private static final class BigIntegerValueSerializer extends ValueSerializer<BigInteger> {
 
         /**
-         * 将 BigInteger 序列化为字符串
+         * 将 BigInteger 序列化为字符串。
          *
-         * @param value   数值
-         * @param jgen    JSON 生成器
+         * @param value 数值
+         * @param jgen JSON 生成器
          * @param context 序列化上下文
          */
         @Override
@@ -77,15 +77,17 @@ public final class BigNumberJacksonHandler {
     }
 
     /**
-     * BigDecimal 序列化器
+     * @author Jince
+     * @date 2026/03/28
+     * @description BigDecimal 序列化器。
      */
     private static final class BigDecimalValueSerializer extends ValueSerializer<BigDecimal> {
 
         /**
-         * 将 BigDecimal 序列化为字符串
+         * 将 BigDecimal 序列化为字符串。
          *
-         * @param value   数值
-         * @param jgen    JSON 生成器
+         * @param value 数值
+         * @param jgen JSON 生成器
          * @param context 序列化上下文
          */
         @Override

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 /**
  * @author Jince
  * @date 2026/03/27
- * @description 字段脱敏注解，支持基于角色或权限动态决定是否展示原始值。
+ * @description 字符串字段脱敏注解，支持基于角色或权限动态决定是否展示原始值。
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})

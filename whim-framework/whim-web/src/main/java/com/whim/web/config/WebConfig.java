@@ -5,12 +5,17 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 /**
- * @author jince
- * @date 2026/3/27
+ * @author Jince
+ * @date 2026/03/27
  * @description web 配置
  */
 @AutoConfiguration
 public class WebConfig {
+    /**
+     * 注册全局异常处理器
+     *
+     * @return 全局异常处理器
+     */
     @Bean
     public GlobalExceptionHandler globalExceptionHandler() {
         return new GlobalExceptionHandler();
