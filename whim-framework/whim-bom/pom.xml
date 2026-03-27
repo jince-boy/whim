@@ -35,6 +35,7 @@
             <dependency>
                 <groupId>com.whim</groupId>
                 <artifactId>whim-json</artifactId>
+                <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

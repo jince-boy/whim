@@ -43,6 +43,11 @@
            <groupId>org.apache.commons</groupId>
            <artifactId>commons-lang3</artifactId>
        </dependency>
+       <!--commons-io-->
+       <dependency>
+           <groupId>commons-io</groupId>
+           <artifactId>commons-io</artifactId>
+       </dependency>
        <!-- Spring Security crypto -->
        <dependency>
            <groupId>org.springframework.security</groupId>

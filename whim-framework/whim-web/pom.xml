@@ -23,6 +23,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-core</artifactId>
         </dependency>
+        <!-- JSON 模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-json</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

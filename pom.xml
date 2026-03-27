@@ -32,11 +32,25 @@
         <mapstruct-plus.version>1.5.0</mapstruct-plus.version>
         <ip2region.version>3.3.6</ip2region.version>
         <yauaa.version>8.1.1</yauaa.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
+        <commons-io.version>2.21.0</commons-io.version>
 
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!--commons-lang3-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <!--commons-io-->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
             <!--基于 MapStruct 的增强库，简化对象映射（如 DTO 与 Entity 转换）的集成-->
             <dependency>
                 <groupId>io.github.linpeilie</groupId>
@@ -95,6 +109,10 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
