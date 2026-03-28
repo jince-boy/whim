@@ -34,7 +34,7 @@ public final class JsonUtils {
      * @param jsonMapper JsonMapper 实例
      */
     public static void setJsonMapper(JsonMapper jsonMapper) {
-        JsonUtils.jsonMapper = Objects.requireNonNull(jsonMapper, "jsonMapper must not be null");
+        JsonUtils.jsonMapper = Objects.requireNonNull(jsonMapper, "参数[jsonMapper]不能为空");
     }
 
     /**
@@ -54,7 +54,7 @@ public final class JsonUtils {
         try {
             return jsonMapper.writeValueAsString(value);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to serialize object to JSON.", exception);
+            throw new IllegalArgumentException("将对象序列化为 JSON 失败。", exception);
         }
     }
 
@@ -68,7 +68,7 @@ public final class JsonUtils {
         try {
             return jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(value);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to serialize object to pretty JSON.", exception);
+            throw new IllegalArgumentException("将对象序列化为格式化 JSON 失败。", exception);
         }
     }
 
@@ -82,7 +82,7 @@ public final class JsonUtils {
         try {
             return jsonMapper.writeValueAsBytes(value);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to serialize object to JSON bytes.", exception);
+            throw new IllegalArgumentException("将对象序列化为 JSON 字节数组失败。", exception);
         }
     }
 
@@ -95,11 +95,11 @@ public final class JsonUtils {
      * @return 目标对象
      */
     public static <T> T fromJson(String json, Class<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.readValue(requireHasText(json, "json"), targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to deserialize JSON to %s.".formatted(targetType.getName()), exception);
+            throw new IllegalArgumentException("将 JSON 反序列化为 %s 失败。".formatted(targetType.getName()), exception);
         }
     }
 
@@ -112,12 +112,12 @@ public final class JsonUtils {
      * @return 目标对象
      */
     public static <T> T fromJson(byte[] jsonBytes, Class<T> targetType) {
-        Objects.requireNonNull(jsonBytes, "jsonBytes must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(jsonBytes, "参数[jsonBytes]不能为空");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.readValue(jsonBytes, targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to deserialize JSON bytes to %s.".formatted(targetType.getName()), exception);
+            throw new IllegalArgumentException("将 JSON 字节数组反序列化为 %s 失败。".formatted(targetType.getName()), exception);
         }
     }
 
@@ -130,11 +130,11 @@ public final class JsonUtils {
      * @return 目标对象
      */
     public static <T> T fromJson(String json, TypeReference<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.readValue(requireHasText(json, "json"), targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to deserialize JSON to generic target type.", exception);
+            throw new IllegalArgumentException("将 JSON 反序列化为泛型目标类型失败。", exception);
         }
     }
 
@@ -147,7 +147,7 @@ public final class JsonUtils {
      * @return 目标对象
      */
     public static <T> T fromJson(String json, ParameterizedTypeReference<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         return fromJson(requireHasText(json, "json"), jsonMapper.getTypeFactory().constructType(targetType.getType()));
     }
 
@@ -160,7 +160,7 @@ public final class JsonUtils {
      * @return 列表对象
      */
     public static <T> List<T> toList(String json, Class<T> elementType) {
-        Objects.requireNonNull(elementType, "elementType must not be null");
+        Objects.requireNonNull(elementType, "参数[elementType]不能为空");
         JavaType listType = jsonMapper.getTypeFactory().constructCollectionType(List.class, elementType);
         return fromJson(json, listType);
     }
@@ -176,8 +176,8 @@ public final class JsonUtils {
      * @return 映射对象
      */
     public static <K, V> Map<K, V> toMap(String json, Class<K> keyType, Class<V> valueType) {
-        Objects.requireNonNull(keyType, "keyType must not be null");
-        Objects.requireNonNull(valueType, "valueType must not be null");
+        Objects.requireNonNull(keyType, "参数[keyType]不能为空");
+        Objects.requireNonNull(valueType, "参数[valueType]不能为空");
         JavaType mapType = jsonMapper.getTypeFactory().constructMapType(Map.class, keyType, valueType);
         return fromJson(json, mapType);
     }
@@ -229,11 +229,11 @@ public final class JsonUtils {
      * @return 转换结果
      */
     public static <T> T convert(Object source, Class<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.convertValue(source, targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to convert value to %s.".formatted(targetType.getName()), exception);
+            throw new IllegalArgumentException("将值转换为 %s 失败。".formatted(targetType.getName()), exception);
         }
     }
 
@@ -246,11 +246,11 @@ public final class JsonUtils {
      * @return 转换结果
      */
     public static <T> T convert(Object source, TypeReference<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.convertValue(source, targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to convert value to generic target type.", exception);
+            throw new IllegalArgumentException("将值转换为泛型目标类型失败。", exception);
         }
     }
 
@@ -263,7 +263,7 @@ public final class JsonUtils {
      * @return 转换结果
      */
     public static <T> T convert(Object source, ParameterizedTypeReference<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         return convert(source, jsonMapper.getTypeFactory().constructType(targetType.getType()));
     }
 
@@ -293,7 +293,7 @@ public final class JsonUtils {
         try {
             return jsonMapper.valueToTree(value);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to convert value to JSON tree.", exception);
+            throw new IllegalArgumentException("将值转换为 JSON 树失败。", exception);
         }
     }
 
@@ -307,7 +307,7 @@ public final class JsonUtils {
         try {
             return jsonMapper.readTree(requireHasText(json, "json"));
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to read JSON tree.", exception);
+            throw new IllegalArgumentException("读取 JSON 树失败。", exception);
         }
     }
 
@@ -337,12 +337,12 @@ public final class JsonUtils {
      * @return 转换结果
      */
     public static <T> T treeToValue(JsonNode jsonNode, Class<T> targetType) {
-        Objects.requireNonNull(jsonNode, "jsonNode must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(jsonNode, "参数[jsonNode]不能为空");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         try {
             return jsonMapper.treeToValue(jsonNode, targetType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to convert JSON tree to %s.".formatted(targetType.getName()), exception);
+            throw new IllegalArgumentException("将 JSON 树转换为 %s 失败。".formatted(targetType.getName()), exception);
         }
     }
 
@@ -385,11 +385,11 @@ public final class JsonUtils {
      * @return 反序列化结果
      */
     private static <T> T fromJson(String json, JavaType javaType) {
-        Objects.requireNonNull(javaType, "javaType must not be null");
+        Objects.requireNonNull(javaType, "参数[javaType]不能为空");
         try {
             return jsonMapper.readValue(requireHasText(json, "json"), javaType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to deserialize JSON to JavaType.", exception);
+            throw new IllegalArgumentException("将 JSON 反序列化为 JavaType 失败。", exception);
         }
     }
 
@@ -402,11 +402,11 @@ public final class JsonUtils {
      * @return 转换结果
      */
     private static <T> T convert(Object source, JavaType javaType) {
-        Objects.requireNonNull(javaType, "javaType must not be null");
+        Objects.requireNonNull(javaType, "参数[javaType]不能为空");
         try {
             return jsonMapper.convertValue(source, javaType);
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Failed to convert value to JavaType.", exception);
+            throw new IllegalArgumentException("将值转换为 JavaType 失败。", exception);
         }
     }
 
@@ -428,7 +428,7 @@ public final class JsonUtils {
      */
     private static String requireHasText(String text, String fieldName) {
         if (isBlank(text)) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new IllegalArgumentException("参数[%s]不能为空白".formatted(fieldName));
         }
         return text;
     }

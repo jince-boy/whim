@@ -40,7 +40,7 @@ public class SpringUtils implements BeanFactoryPostProcessor, ApplicationContext
     public static ApplicationContext getApplicationContext() {
         ApplicationContext context = applicationContext;
         if (context == null) {
-            throw new IllegalStateException("Spring ApplicationContext has not been initialized yet.");
+            throw new IllegalStateException("Spring 应用上下文尚未初始化。");
         }
         return context;
     }

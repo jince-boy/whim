@@ -35,7 +35,7 @@ public final class BeanConvertUtils {
      * @return 转换后的对象
      */
     public static <S, T> T convert(S source, Class<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         if (source == null) {
             return null;
         }
@@ -52,7 +52,7 @@ public final class BeanConvertUtils {
      * @return 转换后的对象
      */
     public static <S, T> T convert(S source, T target) {
-        Objects.requireNonNull(target, "target must not be null");
+        Objects.requireNonNull(target, "参数[target]不能为空");
         if (source == null) {
             return null;
         }
@@ -69,7 +69,7 @@ public final class BeanConvertUtils {
      * @return 转换后的列表
      */
     public static <S, T> List<T> convertList(List<S> sourceList, Class<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         if (sourceList == null || sourceList.isEmpty()) {
             return List.of();
         }
@@ -85,7 +85,7 @@ public final class BeanConvertUtils {
      * @return 转换后的对象
      */
     public static <T> T convertMap(Map<String, ?> sourceMap, Class<T> targetType) {
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        Objects.requireNonNull(targetType, "参数[targetType]不能为空");
         if (sourceMap == null || sourceMap.isEmpty()) {
             return null;
         }

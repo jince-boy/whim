@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -62,7 +61,7 @@ public final class RestClientUtils {
      * @param restClient RestClient 实例
      */
     public static void setRestClient(RestClient restClient) {
-        RestClientUtils.restClient = Objects.requireNonNull(restClient, "restClient must not be null");
+        RestClientUtils.restClient = Objects.requireNonNull(restClient, "参数[restClient]不能为空");
     }
 
     /**
@@ -105,7 +104,7 @@ public final class RestClientUtils {
      * @return 完整响应
      */
     public static <T> ResponseEntity<T> executeForEntity(Request request, Class<T> responseType) {
-        Objects.requireNonNull(responseType, "responseType must not be null");
+        Objects.requireNonNull(responseType, "参数[responseType]不能为空");
         return exchange(request, responseSpec -> responseSpec.toEntity(responseType));
     }
 
@@ -118,7 +117,7 @@ public final class RestClientUtils {
      * @return 完整响应
      */
     public static <T> ResponseEntity<T> executeForEntity(Request request, ParameterizedTypeReference<T> responseType) {
-        Objects.requireNonNull(responseType, "responseType must not be null");
+        Objects.requireNonNull(responseType, "参数[responseType]不能为空");
         return exchange(request, responseSpec -> responseSpec.toEntity(responseType));
     }
 
@@ -240,8 +239,8 @@ public final class RestClientUtils {
      * @return 提取结果
      */
     private static <T> T exchange(Request request, ResponseExtractor<T> extractor) {
-        Objects.requireNonNull(request, "request must not be null");
-        Objects.requireNonNull(extractor, "extractor must not be null");
+        Objects.requireNonNull(request, "参数[request]不能为空");
+        Objects.requireNonNull(extractor, "参数[extractor]不能为空");
 
         URI uri = buildUri(request);
         try {
@@ -399,7 +398,7 @@ public final class RestClientUtils {
      * @return 异常消息
      */
     private static String buildRequestErrorMessage(HttpMethod method, URI uri) {
-        return "HTTP request failed, method=%s, uri=%s".formatted(method.name(), uri);
+        return "HTTP 请求失败，请求方法=%s，请求地址=%s".formatted(method.name(), uri);
     }
 
     /**
@@ -420,7 +419,7 @@ public final class RestClientUtils {
             String responseBody
     ) {
         String normalizedBody = responseBody == null ? "" : responseBody.trim();
-        return "HTTP request failed, method=%s, uri=%s, status=%s, statusText=%s, response=%s"
+        return "HTTP 请求失败，请求方法=%s，请求地址=%s，状态码=%s，状态描述=%s，响应内容=%s"
                 .formatted(method.name(), uri, statusCode.value(), statusText, normalizedBody);
     }
 
@@ -496,9 +495,9 @@ public final class RestClientUtils {
          * 构建不可变请求对象。
          */
         public Request {
-            Objects.requireNonNull(method, "method must not be null");
+            Objects.requireNonNull(method, "参数[method]不能为空");
             if (url == null || url.isBlank()) {
-                throw new IllegalArgumentException("url must not be blank");
+                throw new IllegalArgumentException("参数[url]不能为空白");
             }
             queryParams = copyMap(queryParams);
             uriVariables = copyMap(uriVariables);

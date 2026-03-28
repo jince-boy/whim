@@ -149,7 +149,7 @@ public final class IPUtils {
             String region = selectSearcher(lookupAddress).search(ip);
             return normalizeRegion(region).orElse(null);
         } catch (Exception exception) {
-            log.error("Offline IP region lookup failed for ip={}", ip, exception);
+            log.error("IP 离线归属地查询失败，ip={}", ip, exception);
             throw new ServiceException("IP地址离线归属地查询失败: " + ip, exception);
         }
     }
@@ -398,10 +398,10 @@ public final class IPUtils {
         try (InputStream inputStream = resource.getInputStream()) {
             return Searcher.newWithBuffer(version, Searcher.loadContentFromInputStream(inputStream));
         } catch (IOException exception) {
-            log.error("Load ip2region database failed, file={}", dataFile, exception);
+            log.error("加载 ip2region 数据库失败，file={}", dataFile, exception);
             throw new ServiceException("加载 ip2region 数据库失败: " + dataFile, exception);
         } catch (Exception exception) {
-            log.error("Initialize ip2region searcher failed, file={}", dataFile, exception);
+            log.error("初始化 ip2region 检索器失败，file={}", dataFile, exception);
             throw new ServiceException("初始化 ip2region 检索器失败: " + dataFile, exception);
         }
     }

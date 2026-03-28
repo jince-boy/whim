@@ -28,7 +28,7 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
      * @param accessEvaluator 脱敏访问评估器
      */
     public DesensitizeSerializerModifier(DesensitizationAccessEvaluator accessEvaluator) {
-        this.accessEvaluator = Objects.requireNonNull(accessEvaluator, "accessEvaluator must not be null");
+        this.accessEvaluator = Objects.requireNonNull(accessEvaluator, "参数[accessEvaluator]不能为空");
     }
 
     /**
@@ -78,7 +78,7 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
         if (String.class.equals(writer.getType().getRawClass())) {
             return;
         }
-        throw new IllegalStateException("@Desensitize only supports String properties: " + writer.getFullName());
+        throw new IllegalStateException("@Desensitize 仅支持 String 类型字段：" + writer.getFullName());
     }
 
     /**
@@ -97,8 +97,8 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
          * @param accessEvaluator 脱敏访问评估器
          */
         private DesensitizeValueSerializer(Desensitize desensitize, DesensitizationAccessEvaluator accessEvaluator) {
-            this.desensitize = Objects.requireNonNull(desensitize, "desensitize must not be null");
-            this.accessEvaluator = Objects.requireNonNull(accessEvaluator, "accessEvaluator must not be null");
+            this.desensitize = Objects.requireNonNull(desensitize, "参数[desensitize]不能为空");
+            this.accessEvaluator = Objects.requireNonNull(accessEvaluator, "参数[accessEvaluator]不能为空");
         }
 
         /**

@@ -218,7 +218,7 @@ public final class Result<T> implements Serializable {
      * @return 文件响应实体
      */
     public static ResponseEntity<Resource> file(Resource resource) {
-        Objects.requireNonNull(resource, "resource must not be null");
+        Objects.requireNonNull(resource, "参数[resource]不能为空");
 
         var headers = new HttpHeaders();
         var mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM);
@@ -263,7 +263,7 @@ public final class Result<T> implements Serializable {
      * @return 响应对象
      */
     private static <T> Result<T> of(HttpStatusCode status, String message, T data) {
-        Objects.requireNonNull(status, "status must not be null");
+        Objects.requireNonNull(status, "参数[status]不能为空");
         return new Result<>(status.value(), message, data);
     }
 
@@ -274,7 +274,7 @@ public final class Result<T> implements Serializable {
      */
     private static void validateSuccessStatus(HttpStatusCode status) {
         if (!status.is2xxSuccessful()) {
-            throw new IllegalArgumentException("success status must be a 2xx status");
+            throw new IllegalArgumentException("成功状态码必须是 2xx");
         }
     }
 
@@ -285,7 +285,7 @@ public final class Result<T> implements Serializable {
      */
     private static void validateErrorStatus(HttpStatusCode status) {
         if (status.is2xxSuccessful()) {
-            throw new IllegalArgumentException("error status must not be a 2xx status");
+            throw new IllegalArgumentException("失败状态码不能是 2xx");
         }
     }
 

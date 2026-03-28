@@ -446,7 +446,7 @@ public final class ValueParserUtils {
      * @return 枚举结果
      */
     public static <E extends Enum<E>> E toEnum(Class<E> enumType, Object value, E defaultValue) {
-        Objects.requireNonNull(enumType, "enumType must not be null");
+        Objects.requireNonNull(enumType, "参数[enumType]不能为空");
         if (value == null) {
             return defaultValue;
         }

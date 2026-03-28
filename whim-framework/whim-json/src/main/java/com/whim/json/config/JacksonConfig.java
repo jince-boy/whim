@@ -1,8 +1,9 @@
 package com.whim.json.config;
 
+import com.whim.json.config.properties.DateTimeJsonProperties;
 import com.whim.json.module.BigNumberJacksonModule;
 import com.whim.json.module.DesensitizeJacksonModule;
-import com.whim.json.module.TimeJacksonModule;
+import com.whim.json.module.DateTimeJacksonModule;
 import com.whim.json.module.XssJacksonModule;
 import com.whim.json.spi.DefaultDesensitizationAccessEvaluator;
 import com.whim.json.spi.DesensitizationAccessEvaluator;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -22,16 +24,18 @@ import java.util.TimeZone;
  * @description Jackson 自动配置
  */
 @AutoConfiguration(before = JacksonAutoConfiguration.class)
+@EnableConfigurationProperties(DateTimeJsonProperties.class)
 public class JacksonConfig {
 
     /**
      * 创建时间 Jackson 模块。
      *
+     * @param dateTimeJsonProperties 时间配置属性
      * @return 时间 Jackson 模块
      */
     @Bean
-    public TimeJacksonModule timeJacksonModule() {
-        return new TimeJacksonModule();
+    public DateTimeJacksonModule timeJacksonModule(DateTimeJsonProperties dateTimeJsonProperties) {
+        return new DateTimeJacksonModule(dateTimeJsonProperties);
     }
 
     /**
@@ -79,27 +83,29 @@ public class JacksonConfig {
     /**
      * 配置 JsonMapper。
      *
-     * @param timeJacksonModule 时间 Jackson 模块
+     * @param dateTimeJacksonModule 时间 Jackson 模块
      * @param bigNumberJacksonModule 大数字 Jackson 模块
      * @param desensitizeJacksonModule 脱敏 Jackson 模块
      * @param xssJacksonModule XSS Jackson 模块
+     * @param dateTimeJsonProperties 时间配置属性
      * @return JsonMapper 构建器自定义器
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer(
-            TimeJacksonModule timeJacksonModule,
+            DateTimeJacksonModule dateTimeJacksonModule,
             BigNumberJacksonModule bigNumberJacksonModule,
             DesensitizeJacksonModule desensitizeJacksonModule,
-            XssJacksonModule xssJacksonModule
+            XssJacksonModule xssJacksonModule,
+            DateTimeJsonProperties dateTimeJsonProperties
     ) {
         return builder -> builder
                 .addModules(
-                        timeJacksonModule,
+                        dateTimeJacksonModule,
                         bigNumberJacksonModule,
                         desensitizeJacksonModule,
                         xssJacksonModule
                 )
-                .defaultTimeZone(TimeZone.getDefault());
+                .defaultTimeZone(TimeZone.getTimeZone(dateTimeJsonProperties.getZoneId()));
     }
 
     /**

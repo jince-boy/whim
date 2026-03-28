@@ -82,7 +82,7 @@ public final class XssDeserializerModifier extends ValueDeserializerModifier {
          */
         private XssValueDeserializer(Xss xss, ValueDeserializer<?> delegate) {
             super(String.class);
-            this.xss = Objects.requireNonNull(xss, "xss must not be null");
+            this.xss = Objects.requireNonNull(xss, "参数[xss]不能为空");
             this.delegate = delegate;
         }
 

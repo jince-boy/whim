@@ -21,7 +21,7 @@ public final class DesensitizeJacksonModule extends SimpleModule {
     public DesensitizeJacksonModule(DesensitizationAccessEvaluator accessEvaluator) {
         super("whim-desensitize-jackson-module");
         setSerializerModifier(new DesensitizeSerializerModifier(
-                Objects.requireNonNull(accessEvaluator, "accessEvaluator must not be null")
+                Objects.requireNonNull(accessEvaluator, "参数[accessEvaluator]不能为空")
         ));
     }
 }

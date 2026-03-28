@@ -165,7 +165,7 @@ public final class RandomStringUtils {
             builder.append(extraCharacters);
         }
         if (builder.isEmpty()) {
-            throw new IllegalArgumentException("At least one character source must be enabled");
+            throw new IllegalArgumentException("至少需要启用一种字符来源");
         }
         return builder.toString();
     }
@@ -193,7 +193,7 @@ public final class RandomStringUtils {
      */
     private static void validateLength(int length) {
         if (length < 0) {
-            throw new IllegalArgumentException("length must not be negative");
+            throw new IllegalArgumentException("参数[length]不能为负数");
         }
     }
 
@@ -206,7 +206,7 @@ public final class RandomStringUtils {
      */
     private static String requireHasText(String value, String fieldName) {
         if (isBlank(value)) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new IllegalArgumentException("参数[%s]不能为空白".formatted(fieldName));
         }
         return value;
     }

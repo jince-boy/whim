@@ -168,7 +168,7 @@ public final class DateUtils {
      * @return 当前时间点。
      */
     public static Instant now(Clock clock) {
-        return Instant.now(Objects.requireNonNull(clock, "clock must not be null"));
+        return Instant.now(Objects.requireNonNull(clock, "参数[clock]不能为空"));
     }
 
     /**
@@ -187,7 +187,7 @@ public final class DateUtils {
      * @return 当前日期。
      */
     public static LocalDate today(Clock clock) {
-        return LocalDate.now(Objects.requireNonNull(clock, "clock must not be null"));
+        return LocalDate.now(Objects.requireNonNull(clock, "参数[clock]不能为空"));
     }
 
     /**
@@ -206,7 +206,7 @@ public final class DateUtils {
      * @return 当前本地日期时间。
      */
     public static LocalDateTime currentDateTime(Clock clock) {
-        return LocalDateTime.now(Objects.requireNonNull(clock, "clock must not be null"));
+        return LocalDateTime.now(Objects.requireNonNull(clock, "参数[clock]不能为空"));
     }
 
     /**
@@ -229,7 +229,7 @@ public final class DateUtils {
      * @return 格式化后的字符串。
      */
     public static String format(TemporalAccessor temporal, String pattern, ZoneId zoneId) {
-        Objects.requireNonNull(temporal, "temporal must not be null");
+        Objects.requireNonNull(temporal, "参数[temporal]不能为空");
         return formatter(pattern)
                 .withZone(resolveZone(zoneId))
                 .format(temporal);
@@ -255,7 +255,7 @@ public final class DateUtils {
      * @return 格式化后的字符串。
      */
     public static String format(Date date, String pattern, ZoneId zoneId) {
-        Objects.requireNonNull(date, "date must not be null");
+        Objects.requireNonNull(date, "参数[date]不能为空");
         return format(date.toInstant(), pattern, zoneId);
     }
 
@@ -355,7 +355,7 @@ public final class DateUtils {
                 // 尝试下一个候选格式。
             }
         }
-        throw new IllegalArgumentException("Unsupported date text: " + source);
+        throw new IllegalArgumentException("不支持的日期文本：" + source);
     }
 
     /**
@@ -429,7 +429,7 @@ public final class DateUtils {
      * @return 仅保留日期部分的新 Date。
      */
     public static Date truncateTime(Date date) {
-        Objects.requireNonNull(date, "date must not be null");
+        Objects.requireNonNull(date, "参数[date]不能为空");
         return toDate(startOfDay(toLocalDate(date)));
     }
 
@@ -539,8 +539,8 @@ public final class DateUtils {
      * @return 天数差，保留正负方向。
      */
     public static long daysBetween(LocalDate start, LocalDate end) {
-        Objects.requireNonNull(start, "start must not be null");
-        Objects.requireNonNull(end, "end must not be null");
+        Objects.requireNonNull(start, "参数[start]不能为空");
+        Objects.requireNonNull(end, "参数[end]不能为空");
         return ChronoUnit.DAYS.between(start, end);
     }
 
@@ -551,7 +551,7 @@ public final class DateUtils {
      * @return 当天 00:00:00 对应的日期时间。
      */
     public static LocalDateTime startOfDay(LocalDate date) {
-        return Objects.requireNonNull(date, "date must not be null").atStartOfDay();
+        return Objects.requireNonNull(date, "参数[date]不能为空").atStartOfDay();
     }
 
     /**
@@ -561,7 +561,7 @@ public final class DateUtils {
      * @return 当天 23:59:59.999999999 对应的日期时间。
      */
     public static LocalDateTime endOfDay(LocalDate date) {
-        return Objects.requireNonNull(date, "date must not be null").atTime(LocalTime.MAX);
+        return Objects.requireNonNull(date, "参数[date]不能为空").atTime(LocalTime.MAX);
     }
 
     /**
@@ -571,7 +571,7 @@ public final class DateUtils {
      * @return 转换后的 Date。
      */
     public static Date toDate(Instant instant) {
-        Objects.requireNonNull(instant, "instant must not be null");
+        Objects.requireNonNull(instant, "参数[instant]不能为空");
         return Date.from(instant);
     }
 
@@ -593,7 +593,7 @@ public final class DateUtils {
      * @return 转换后的 Date。
      */
     public static Date toDate(LocalDateTime dateTime, ZoneId zoneId) {
-        Objects.requireNonNull(dateTime, "dateTime must not be null");
+        Objects.requireNonNull(dateTime, "参数[dateTime]不能为空");
         return Date.from(dateTime.atZone(resolveZone(zoneId)).toInstant());
     }
 
@@ -605,7 +605,7 @@ public final class DateUtils {
      * @return 转换后的 Date。
      */
     public static Date toDate(LocalDate date, ZoneId zoneId) {
-        Objects.requireNonNull(date, "date must not be null");
+        Objects.requireNonNull(date, "参数[date]不能为空");
         return toDate(date.atStartOfDay(), zoneId);
     }
 
@@ -616,7 +616,7 @@ public final class DateUtils {
      * @return 转换后的 Instant。
      */
     public static Instant toInstant(Date date) {
-        Objects.requireNonNull(date, "date must not be null");
+        Objects.requireNonNull(date, "参数[date]不能为空");
         return date.toInstant();
     }
 
@@ -638,7 +638,7 @@ public final class DateUtils {
      * @return 转换后的 LocalDateTime。
      */
     public static LocalDateTime toLocalDateTime(Date date, ZoneId zoneId) {
-        Objects.requireNonNull(date, "date must not be null");
+        Objects.requireNonNull(date, "参数[date]不能为空");
         return LocalDateTime.ofInstant(date.toInstant(), resolveZone(zoneId));
     }
 
@@ -670,7 +670,7 @@ public final class DateUtils {
      * @return 转换后的 Timestamp。
      */
     public static Timestamp toTimestamp(Instant instant) {
-        Objects.requireNonNull(instant, "instant must not be null");
+        Objects.requireNonNull(instant, "参数[instant]不能为空");
         return Timestamp.from(instant);
     }
 
@@ -707,9 +707,9 @@ public final class DateUtils {
             if (parsed instanceof LocalTime time) {
                 return DEFAULT_DATE_FOR_TIME_ONLY.atTime(time).atZone(zoneId).toInstant();
             }
-            throw new IllegalArgumentException("Unsupported date pattern: " + pattern);
+            throw new IllegalArgumentException("不支持的日期格式：" + pattern);
         } catch (DateTimeParseException exception) {
-            throw new IllegalArgumentException("Failed to parse date text: " + text + ", pattern: " + pattern, exception);
+            throw new IllegalArgumentException("解析日期文本失败：text=" + text + "，pattern=" + pattern, exception);
         }
     }
 
@@ -719,7 +719,7 @@ public final class DateUtils {
 
     private static String requireHasText(String text, String fieldName) {
         if (isBlank(text)) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new IllegalArgumentException("参数[%s]不能为空白".formatted(fieldName));
         }
         return text;
     }

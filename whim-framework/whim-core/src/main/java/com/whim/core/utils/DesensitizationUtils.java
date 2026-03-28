@@ -89,7 +89,7 @@ public final class DesensitizationUtils {
      * @return 脱敏后的字符串
      */
     public static String mask(String value, DesensitizationType type, String maskText) {
-        Objects.requireNonNull(type, "type must not be null");
+        Objects.requireNonNull(type, "参数[type]不能为空");
         return switch (type) {
             case PHONE -> mask(value, 3, 4, maskText);
             case ID_CARD -> mask(value, 6, 4, maskText);
@@ -127,10 +127,10 @@ public final class DesensitizationUtils {
      */
     private static void validateKeepLength(int prefixKeep, int suffixKeep) {
         if (prefixKeep < 0) {
-            throw new IllegalArgumentException("prefixKeep must not be negative");
+            throw new IllegalArgumentException("参数[prefixKeep]不能为负数");
         }
         if (suffixKeep < 0) {
-            throw new IllegalArgumentException("suffixKeep must not be negative");
+            throw new IllegalArgumentException("参数[suffixKeep]不能为负数");
         }
     }
 
@@ -142,7 +142,7 @@ public final class DesensitizationUtils {
      */
     private static String normalizeMaskText(String maskText) {
         if (maskText == null || maskText.isEmpty()) {
-            throw new IllegalArgumentException("maskText must not be empty");
+            throw new IllegalArgumentException("参数[maskText]不能为空");
         }
         return maskText;
     }

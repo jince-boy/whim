@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> handleGeneralException(Exception exception, HttpServletRequest request) {
-        log.error("Unhandled exception on [{} {}]", request.getMethod(), request.getRequestURI(), exception);
+        log.error("请求 [{} {}] 发生未处理异常", request.getMethod(), request.getRequestURI(), exception);
         return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部异常，请稍后重试").toResponseEntity();
     }
 
@@ -63,10 +63,10 @@ public class GlobalExceptionHandler {
     ) {
         var supportedMethods = exception.getSupportedMethods();
         log.warn(
-                "Unsupported request method on [{} {}], supported methods: {}",
+                "请求 [{} {}] 的请求方式不受支持，支持的方式为：{}",
                 request.getMethod(),
                 request.getRequestURI(),
-                supportedMethods == null || supportedMethods.length == 0 ? "unknown" : String.join(", ", supportedMethods),
+                supportedMethods == null || supportedMethods.length == 0 ? "未知" : String.join(", ", supportedMethods),
                 exception
         );
         return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式不受支持").toResponseEntity();
@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
             NoResourceFoundException exception,
             HttpServletRequest request
     ) {
-        log.warn("Resource not found on [{} {}]", request.getMethod(), request.getRequestURI(), exception);
+        log.warn("请求 [{} {}] 的资源不存在", request.getMethod(), request.getRequestURI(), exception);
         return Result.error(HttpStatus.NOT_FOUND, "请求资源不存在").toResponseEntity();
     }
 
@@ -100,7 +100,7 @@ public class GlobalExceptionHandler {
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
-        log.warn("Illegal argument on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 的参数非法：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.BAD_REQUEST,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "请求参数非法"
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     ) {
         var requiredType = Optional.ofNullable(exception.getRequiredType())
                 .map(Class::getSimpleName)
-                .orElse("unknown");
+                .orElse("未知");
         var message = "请求参数类型不匹配，参数[%s]需要 %s 类型，当前值为 %s".formatted(
                 exception.getName(),
                 requiredType,
@@ -129,7 +129,7 @@ public class GlobalExceptionHandler {
         );
         var errors = List.of(Result.fieldError(exception.getName(), message));
 
-        log.warn("Argument type mismatch on [{} {}]: {}", request.getMethod(), request.getRequestURI(), message, exception);
+        log.warn("请求 [{} {}] 的参数类型不匹配：{}", request.getMethod(), request.getRequestURI(), message, exception);
         return Result.validationError("请求参数类型不匹配", errors);
     }
 
@@ -163,9 +163,9 @@ public class GlobalExceptionHandler {
         var summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
-                .orElse("unknown validation error");
+                .orElse("未知校验错误");
 
-        log.warn("Request body validation failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), summary);
+        log.warn("请求 [{} {}] 的请求体参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
         return Result.validationError("参数校验失败", errors);
     }
 
@@ -199,9 +199,9 @@ public class GlobalExceptionHandler {
         var summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
-                .orElse("unknown validation error");
+                .orElse("未知校验错误");
 
-        log.warn("Binding validation failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), summary);
+        log.warn("请求 [{} {}] 的绑定参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
         return Result.validationError("参数校验失败", errors);
     }
 
@@ -226,7 +226,7 @@ public class GlobalExceptionHandler {
                         }
                     }
                     return Result.fieldError(
-                            StringUtils.hasText(field) ? field : "parameter",
+                            StringUtils.hasText(field) ? field : "参数",
                             StringUtils.hasText(violation.getMessage()) ? violation.getMessage() : "参数校验失败"
                     );
                 })
@@ -235,9 +235,9 @@ public class GlobalExceptionHandler {
         var summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
-                .orElse("unknown validation error");
+                .orElse("未知校验错误");
 
-        log.warn("Constraint validation failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), summary);
+        log.warn("请求 [{} {}] 的方法级参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
         return Result.validationError("参数校验失败", errors);
     }
 
@@ -256,7 +256,7 @@ public class GlobalExceptionHandler {
         var message = "缺少必要的请求参数";
         var errors = List.of(Result.fieldError(exception.getParameterName(), message));
 
-        log.warn("Missing request parameter on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 缺少必要参数：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.validationError(message, errors);
     }
 
@@ -272,7 +272,7 @@ public class GlobalExceptionHandler {
             ServletRequestBindingException exception,
             HttpServletRequest request
     ) {
-        log.warn("Servlet request binding failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 的 Servlet 绑定失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_REQUEST, "请求头或绑定信息缺失");
     }
 
@@ -288,7 +288,7 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException exception,
             HttpServletRequest request
     ) {
-        log.warn("Unreadable request body on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 的请求体不可读：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺少必要字段").toResponseEntity();
     }
 
@@ -301,7 +301,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpException.class)
     public Result<Void> handleHttpException(HttpException exception, HttpServletRequest request) {
-        log.error("Remote http invocation failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.error("请求 [{} {}] 的远程 HTTP 调用失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_GATEWAY, "远程服务调用失败");
     }
 
@@ -314,7 +314,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ServiceException.class)
     public Result<Void> handleServiceException(ServiceException exception, HttpServletRequest request) {
-        log.error("Service exception on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.error("请求 [{} {}] 发生业务异常：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "业务处理失败"
@@ -333,7 +333,7 @@ public class GlobalExceptionHandler {
             UserNotFoundException exception,
             HttpServletRequest request
     ) {
-        log.warn("User not found on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 的用户不存在：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.NOT_FOUND,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户不存在"
@@ -352,7 +352,7 @@ public class GlobalExceptionHandler {
             UserPasswordNotMatchException exception,
             HttpServletRequest request
     ) {
-        log.warn("Authentication failed on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 认证失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.unauthorized(StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户名或密码错误");
     }
 
@@ -365,7 +365,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(UserDisableException.class)
     public Result<Void> handleUserDisableException(UserDisableException exception, HttpServletRequest request) {
-        log.warn("Disabled user access on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.warn("请求 [{} {}] 的禁用用户访问被拦截：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.permissionDenied(StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户已被禁用");
     }
 
@@ -378,7 +378,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(FileStorageException.class)
     public Result<Void> handleFileStorageException(FileStorageException exception, HttpServletRequest request) {
-        log.error("File storage exception on [{} {}]: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        log.error("请求 [{} {}] 发生文件存储异常：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "文件存储失败"
