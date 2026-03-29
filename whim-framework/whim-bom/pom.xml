@@ -25,16 +25,22 @@
                 <artifactId>whim-core</artifactId>
                 <version>${revision}</version>
             </dependency>
-            <!-- web模块 -->
-            <dependency>
-                <groupId>com.whim</groupId>
-                <artifactId>whim-web</artifactId>
-                <version>${revision}</version>
-            </dependency>
             <!-- json模块 -->
             <dependency>
                 <groupId>com.whim</groupId>
                 <artifactId>whim-json</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- redis模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- web模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-web</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

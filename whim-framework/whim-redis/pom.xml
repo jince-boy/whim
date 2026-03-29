@@ -5,21 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.whim</groupId>
-        <artifactId>whim</artifactId>
+        <artifactId>whim-framework</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <description>whim框架模块</description>
-
-    <artifactId>whim-framework</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>whim-bom</module>
-        <module>whim-core</module>
-        <module>whim-web</module>
-        <module>whim-json</module>
-        <module>whim-redis</module>
-    </modules>
+    <artifactId>whim-redis</artifactId>
+    <description>redis模块</description>
 
 </project>
