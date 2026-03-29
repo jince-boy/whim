@@ -28,6 +28,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-json</artifactId>
         </dependency>
+        <!-- 监控模块 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

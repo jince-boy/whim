@@ -3,9 +3,11 @@ package com.whim.web.config;
 import com.whim.json.config.properties.DateTimeProperties;
 import com.whim.web.converter.StringToLocalDateTimeConverter;
 import com.whim.web.handler.GlobalExceptionHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -14,7 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @description web 配置
  */
 @AutoConfiguration
-public class WebConfig {
+@RequiredArgsConstructor
+public class WebConfig implements WebMvcConfigurer {
+
+    private final DateTimeProperties dateTimeProperties;
+
     /**
      * 注册全局异常处理器
      *
@@ -38,18 +44,10 @@ public class WebConfig {
     }
 
     /**
-     * 注册 MVC 参数转换器。
-     *
-     * @param stringToLocalDateTimeConverter LocalDateTime 转换器
-     * @return WebMvcConfigurer
+     * 添加转换器
      */
-    @Bean
-    public WebMvcConfigurer webMvcConfigurer(StringToLocalDateTimeConverter stringToLocalDateTimeConverter) {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addFormatters(org.springframework.format.FormatterRegistry registry) {
-                registry.addConverter(stringToLocalDateTimeConverter);
-            }
-        };
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToLocalDateTimeConverter(this.dateTimeProperties));
     }
 }
