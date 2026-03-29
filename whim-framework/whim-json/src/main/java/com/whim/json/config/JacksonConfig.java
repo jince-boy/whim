@@ -1,6 +1,6 @@
 package com.whim.json.config;
 
-import com.whim.json.config.properties.DateTimeJsonProperties;
+import com.whim.json.config.properties.DateTimeProperties;
 import com.whim.json.module.BigNumberJacksonModule;
 import com.whim.json.module.DesensitizeJacksonModule;
 import com.whim.json.module.DateTimeJacksonModule;
@@ -24,18 +24,18 @@ import java.util.TimeZone;
  * @description Jackson 自动配置
  */
 @AutoConfiguration(before = JacksonAutoConfiguration.class)
-@EnableConfigurationProperties(DateTimeJsonProperties.class)
+@EnableConfigurationProperties(DateTimeProperties.class)
 public class JacksonConfig {
 
     /**
      * 创建时间 Jackson 模块。
      *
-     * @param dateTimeJsonProperties 时间配置属性
+     * @param dateTimeProperties 时间配置属性
      * @return 时间 Jackson 模块
      */
     @Bean
-    public DateTimeJacksonModule timeJacksonModule(DateTimeJsonProperties dateTimeJsonProperties) {
-        return new DateTimeJacksonModule(dateTimeJsonProperties);
+    public DateTimeJacksonModule timeJacksonModule(DateTimeProperties dateTimeProperties) {
+        return new DateTimeJacksonModule(dateTimeProperties);
     }
 
     /**
@@ -87,7 +87,7 @@ public class JacksonConfig {
      * @param bigNumberJacksonModule 大数字 Jackson 模块
      * @param desensitizeJacksonModule 脱敏 Jackson 模块
      * @param xssJacksonModule XSS Jackson 模块
-     * @param dateTimeJsonProperties 时间配置属性
+     * @param dateTimeProperties 时间配置属性
      * @return JsonMapper 构建器自定义器
      */
     @Bean
@@ -96,7 +96,7 @@ public class JacksonConfig {
             BigNumberJacksonModule bigNumberJacksonModule,
             DesensitizeJacksonModule desensitizeJacksonModule,
             XssJacksonModule xssJacksonModule,
-            DateTimeJsonProperties dateTimeJsonProperties
+            DateTimeProperties dateTimeProperties
     ) {
         return builder -> builder
                 .addModules(
@@ -105,7 +105,7 @@ public class JacksonConfig {
                         desensitizeJacksonModule,
                         xssJacksonModule
                 )
-                .defaultTimeZone(TimeZone.getTimeZone(dateTimeJsonProperties.getZoneId()));
+                .defaultTimeZone(TimeZone.getTimeZone(dateTimeProperties.getZoneId()));
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.whim.json.module;
 
-import com.whim.json.config.properties.DateTimeJsonProperties;
+import com.whim.json.config.properties.DateTimeProperties;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
@@ -42,19 +42,19 @@ public final class DateTimeJacksonModule extends SimpleModule {
     /**
      * 创建时间 Jackson 模块。
      *
-     * @param dateTimeJsonProperties 时间配置属性
+     * @param dateTimeProperties 时间配置属性
      */
-    public DateTimeJacksonModule(DateTimeJsonProperties dateTimeJsonProperties) {
+    public DateTimeJacksonModule(DateTimeProperties dateTimeProperties) {
         super("whim-time-jackson-module");
-        Objects.requireNonNull(dateTimeJsonProperties, "参数[timeJsonProperties]不能为空");
-        zoneId = ZoneId.of(dateTimeJsonProperties.getZoneId());
-        dateTimeOutputFormatter = DateTimeFormatter.ofPattern(dateTimeJsonProperties.getDateTimePattern());
-        dateOutputFormatter = DateTimeFormatter.ofPattern(dateTimeJsonProperties.getDatePattern());
-        timeOutputFormatter = DateTimeFormatter.ofPattern(dateTimeJsonProperties.getTimePattern());
-        dateTimeInputFormatters = createFormatters(dateTimeJsonProperties.getDateTimeInputPatterns());
-        dateInputFormatters = createFormatters(dateTimeJsonProperties.getDateInputPatterns());
-        timeInputFormatters = createFormatters(dateTimeJsonProperties.getTimeInputPatterns());
-        supportedInputFormatsDescription = buildSupportedInputFormatsDescription(dateTimeJsonProperties);
+        Objects.requireNonNull(dateTimeProperties, "参数[dateTimeProperties]不能为空");
+        zoneId = ZoneId.of(dateTimeProperties.getZoneId());
+        dateTimeOutputFormatter = DateTimeFormatter.ofPattern(dateTimeProperties.getDateTimePattern());
+        dateOutputFormatter = DateTimeFormatter.ofPattern(dateTimeProperties.getDatePattern());
+        timeOutputFormatter = DateTimeFormatter.ofPattern(dateTimeProperties.getTimePattern());
+        dateTimeInputFormatters = createFormatters(dateTimeProperties.getDateTimeInputPatterns());
+        dateInputFormatters = createFormatters(dateTimeProperties.getDateInputPatterns());
+        timeInputFormatters = createFormatters(dateTimeProperties.getTimeInputPatterns());
+        supportedInputFormatsDescription = buildSupportedInputFormatsDescription(dateTimeProperties);
 
         addSerializer(LocalDateTime.class, new LocalDateTimeValueSerializer());
         addDeserializer(LocalDateTime.class, new LocalDateTimeValueDeserializer());
@@ -88,15 +88,15 @@ public final class DateTimeJacksonModule extends SimpleModule {
     /**
      * 构建支持的输入格式说明。
      *
-     * @param dateTimeJsonProperties 时间配置属性
+     * @param dateTimeProperties 时间配置属性
      * @return 输入格式说明
      */
-    private static String buildSupportedInputFormatsDescription(DateTimeJsonProperties dateTimeJsonProperties) {
+    private static String buildSupportedInputFormatsDescription(DateTimeProperties dateTimeProperties) {
         return "日期时间格式：%s；日期格式：%s；时间格式：%s；以及 ISO-8601、10/13/16/19 位时间戳"
                 .formatted(
-                        String.join("、", dateTimeJsonProperties.getDateTimeInputPatterns()),
-                        String.join("、", dateTimeJsonProperties.getDateInputPatterns()),
-                        String.join("、", dateTimeJsonProperties.getTimeInputPatterns())
+                        String.join("、", dateTimeProperties.getDateTimeInputPatterns()),
+                        String.join("、", dateTimeProperties.getDateInputPatterns()),
+                        String.join("、", dateTimeProperties.getTimeInputPatterns())
                 );
     }
 

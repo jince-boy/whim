@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * @author Jince
  * @date 2026/03/28
- * @description JSON 时间格式配置属性。
+ * @description 时间格式配置属性。
  */
 @Data
-@ConfigurationProperties(prefix = "whim.json.time")
-public class DateTimeJsonProperties {
+@ConfigurationProperties(prefix = "whim.time")
+public class DateTimeProperties {
     /**
      * 统一序列化与本地时间解析使用的时区。
      */
