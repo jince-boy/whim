@@ -1,2 +1,4 @@
 com.whim.web.config.WebConfig
 com.whim.web.config.FilterConfiguration
+com.whim.web.config.LockExceptionAutoConfiguration
+com.whim.web.config.JacksonEnhancementAutoConfiguration

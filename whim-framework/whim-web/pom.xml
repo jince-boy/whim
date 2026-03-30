@@ -23,10 +23,15 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-core</artifactId>
         </dependency>
-        <!-- JSON 模块 -->
+        <!-- JSON 序列化基础模块 -->
         <dependency>
             <groupId>com.whim</groupId>
             <artifactId>whim-json</artifactId>
+        </dependency>
+        <!-- OWASP HTML Sanitizer（XSS 防护） -->
+        <dependency>
+            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+            <artifactId>owasp-java-html-sanitizer</artifactId>
         </dependency>
         <!-- 监控模块 -->
         <dependency>

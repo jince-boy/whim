@@ -12,4 +12,31 @@
     <artifactId>whim-redis</artifactId>
     <description>redis模块</description>
 
+    <dependencies>
+        <!--lombok-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!--JSON 序列化基础模块（时间、大数字等通用序列化能力）-->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-json</artifactId>
+        </dependency>
+        <!--redisson-->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+        </dependency>
+        <!--lock4j 分布式锁-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+        </dependency>
+        <!--caffeine 本地缓存-->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+    </dependencies>
 </project>

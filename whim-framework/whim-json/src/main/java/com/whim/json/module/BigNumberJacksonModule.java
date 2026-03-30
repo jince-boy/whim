@@ -28,74 +28,26 @@ public final class BigNumberJacksonModule extends SimpleModule {
         addSerializer(BigDecimal.class, new BigDecimalValueSerializer());
     }
 
-    /**
-     * @author Jince
-     * @date 2026/03/28
-     * @description Long 序列化器。
-     */
     private static final class LongValueSerializer extends ValueSerializer<Long> {
-
-        /**
-         * 将 Long 序列化为字符串。
-         *
-         * @param value 数值
-         * @param jgen JSON 生成器
-         * @param context 序列化上下文
-         */
         @Override
         public void serialize(Long value, JsonGenerator jgen, SerializationContext context) {
-            if (value == null) {
-                jgen.writeNull();
-                return;
-            }
+            if (value == null) { jgen.writeNull(); return; }
             jgen.writeString(value.toString());
         }
     }
 
-    /**
-     * @author Jince
-     * @date 2026/03/28
-     * @description BigInteger 序列化器。
-     */
     private static final class BigIntegerValueSerializer extends ValueSerializer<BigInteger> {
-
-        /**
-         * 将 BigInteger 序列化为字符串。
-         *
-         * @param value 数值
-         * @param jgen JSON 生成器
-         * @param context 序列化上下文
-         */
         @Override
         public void serialize(BigInteger value, JsonGenerator jgen, SerializationContext context) {
-            if (value == null) {
-                jgen.writeNull();
-                return;
-            }
+            if (value == null) { jgen.writeNull(); return; }
             jgen.writeString(value.toString());
         }
     }
 
-    /**
-     * @author Jince
-     * @date 2026/03/28
-     * @description BigDecimal 序列化器。
-     */
     private static final class BigDecimalValueSerializer extends ValueSerializer<BigDecimal> {
-
-        /**
-         * 将 BigDecimal 序列化为字符串。
-         *
-         * @param value 数值
-         * @param jgen JSON 生成器
-         * @param context 序列化上下文
-         */
         @Override
         public void serialize(BigDecimal value, JsonGenerator jgen, SerializationContext context) {
-            if (value == null) {
-                jgen.writeNull();
-                return;
-            }
+            if (value == null) { jgen.writeNull(); return; }
             jgen.writeString(value.toPlainString());
         }
     }
