@@ -20,13 +20,6 @@
         <module>whim-web</module>
         <module>whim-json</module>
         <module>whim-redis</module>
-        <module>whim-satoken</module>
-        <module>whim-mybatisplus</module>
-        <module>whim-skywalking</module>
-        <module>whim-log</module>
-        <module>whim-file</module>
-        <module>whim-sse</module>
-        <module>whim-mail</module>
     </modules>
 
 </project>
