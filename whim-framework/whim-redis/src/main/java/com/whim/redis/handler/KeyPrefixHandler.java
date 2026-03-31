@@ -1,6 +1,6 @@
 package com.whim.redis.handler;
 
-import org.redisson.api.NameMapper;
+import org.redisson.config.NameMapper;
 
 /**
  * @author Jince

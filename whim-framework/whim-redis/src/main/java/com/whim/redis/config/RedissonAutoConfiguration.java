@@ -46,6 +46,7 @@ public class RedissonAutoConfiguration {
         return config -> {
             RedisJsonCodec codec = new RedisJsonCodec(dateTimeJacksonModule, bigNumberJacksonModule);
             config.setCodec(codec).setUseScriptCache(true);
+            config.setNameMapper(new KeyPrefixHandler(redissonProperties.getKeyPrefix()));
 
             if (redissonProperties.getThreads() != null) {
                 config.setThreads(redissonProperties.getThreads());
@@ -76,7 +77,6 @@ public class RedissonAutoConfiguration {
             return;
         }
         config.useSingleServer()
-                .setNameMapper(new KeyPrefixHandler(redissonProperties.getKeyPrefix()))
                 .setTimeout(ssc.getTimeout())
                 .setClientName(ssc.getClientName())
                 .setIdleConnectionTimeout(ssc.getIdleConnectionTimeout())
@@ -96,7 +96,6 @@ public class RedissonAutoConfiguration {
             return;
         }
         config.useClusterServers()
-                .setNameMapper(new KeyPrefixHandler(redissonProperties.getKeyPrefix()))
                 .setTimeout(csc.getTimeout())
                 .setClientName(csc.getClientName())
                 .setIdleConnectionTimeout(csc.getIdleConnectionTimeout())

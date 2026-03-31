@@ -2,6 +2,7 @@ package com.whim.web.handler;
 
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
+import com.whim.core.exception.LockException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
@@ -290,6 +291,19 @@ public class GlobalExceptionHandler {
     ) {
         log.warn("请求 [{} {}] 的请求体不可读：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺少必要字段").toResponseEntity();
+    }
+
+    /**
+     * 处理分布式锁获取失败异常
+     *
+     * @param exception 异常对象
+     * @param request   当前请求
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(LockException.class)
+    public Result<Void> handleLockException(LockException exception, HttpServletRequest request) {
+        log.error("请求 [{} {}] 获取分布式锁失败", request.getMethod(), request.getRequestURI(), exception);
+        return Result.error(HttpStatus.CONFLICT, "业务处理中，请稍后再试");
     }
 
     /**

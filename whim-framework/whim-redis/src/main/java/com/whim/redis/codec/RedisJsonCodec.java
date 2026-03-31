@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import lombok.Getter;
 import org.redisson.client.codec.BaseCodec;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.client.handler.State;
@@ -14,15 +15,16 @@ import org.redisson.client.protocol.Decoder;
 import org.redisson.client.protocol.Encoder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.Module;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.impl.DefaultTypeResolverBuilder;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,12 +38,13 @@ import java.io.OutputStream;
  * <ul>
  *   <li>Map 的 key 使用 {@link StringCodec}（Redis 中 key 保持可读性）</li>
  *   <li>Value 使用 Jackson 3 JSON 序列化，嵌入类型信息以支持多态反序列化</li>
- *   <li>复用 whim-serialization 提供的时间、大数字序列化模块</li>
+ *   <li>复用 whim-json 提供的时间、大数字序列化模块</li>
  *   <li>修复 Long 类型被错误反序列化为 Integer 的问题</li>
  * </ul>
  */
 public class RedisJsonCodec extends BaseCodec {
 
+    @Getter
     private final JsonMapper jsonMapper;
 
     private final Encoder valueEncoder = new Encoder() {
@@ -67,11 +70,11 @@ public class RedisJsonCodec extends BaseCodec {
     };
 
     /**
-     * 使用指定的 Jackson 模块创建编解码器，复用 whim-serialization 的统一序列化规则。
+     * 使用指定的 Jackson 模块创建编解码器，复用 whim-json 的统一序列化规则。
      *
      * @param modules 需要注册的 Jackson 模块（时间、大数字等）
      */
-    public RedisJsonCodec(Module... modules) {
+    public RedisJsonCodec(JacksonModule... modules) {
         this.jsonMapper = createJsonMapper(modules);
     }
 
@@ -85,21 +88,12 @@ public class RedisJsonCodec extends BaseCodec {
     }
 
     /**
-     * 获取内部使用的 JsonMapper
-     *
-     * @return JsonMapper 实例
-     */
-    public JsonMapper getJsonMapper() {
-        return jsonMapper;
-    }
-
-    /**
      * 创建 Redis 专用 JsonMapper，包含类型信息、通用配置和外部序列化模块。
      *
      * @param modules 需要注册的 Jackson 模块
      * @return 配置好的 JsonMapper
      */
-    private static JsonMapper createJsonMapper(Module... modules) {
+    private static JsonMapper createJsonMapper(JacksonModule... modules) {
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(Object.class)
                 .build();
@@ -109,8 +103,8 @@ public class RedisJsonCodec extends BaseCodec {
          * 默认 NON_FINAL 不为 final 类（如 Long）添加类型标记，
          * 会导致 Long 值在 int 范围内时被错误反序列化为 Integer。
          */
-        ObjectMapper.DefaultTypeResolverBuilder typeResolver =
-                new ObjectMapper.DefaultTypeResolverBuilder(ptv, ObjectMapper.DefaultTyping.NON_FINAL) {
+        DefaultTypeResolverBuilder typeResolver =
+                new DefaultTypeResolverBuilder(ptv, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY) {
                     @Override
                     public boolean useForType(JavaType t) {
                         if (t.getRawClass() == Long.class) {
@@ -119,8 +113,6 @@ public class RedisJsonCodec extends BaseCodec {
                         return super.useForType(t);
                     }
                 };
-        typeResolver.init(JsonTypeInfo.Id.CLASS, null);
-        typeResolver.inclusion(JsonTypeInfo.As.PROPERTY);
 
         return JsonMapper.builder()
                 .findAndAddModules()

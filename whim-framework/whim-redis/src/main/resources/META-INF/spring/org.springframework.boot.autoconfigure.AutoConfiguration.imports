@@ -1,2 +1,3 @@
 com.whim.redis.config.RedissonAutoConfiguration
 com.whim.redis.config.CacheAutoConfiguration
+com.whim.redis.config.LockAutoConfiguration

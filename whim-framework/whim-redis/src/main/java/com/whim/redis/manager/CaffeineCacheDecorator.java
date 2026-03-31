@@ -2,7 +2,6 @@ package com.whim.redis.manager;
 
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RTopic;
-import org.redisson.client.codec.StringCodec;
 import org.springframework.cache.Cache;
 
 import java.util.concurrent.Callable;
