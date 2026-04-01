@@ -20,7 +20,7 @@ public class CaffeineProperties {
     private boolean enabled = true;
 
     /**
-     * 写入后过期时间
+     * 写入后过期时间()
      */
     private Duration expireAfterWrite = Duration.ofSeconds(30);
 

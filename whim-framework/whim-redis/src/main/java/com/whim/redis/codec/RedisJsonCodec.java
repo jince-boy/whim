@@ -17,7 +17,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
@@ -38,7 +37,7 @@ import java.io.OutputStream;
  * <ul>
  *   <li>Map 的 key 使用 {@link StringCodec}（Redis 中 key 保持可读性）</li>
  *   <li>Value 使用 Jackson 3 JSON 序列化，嵌入类型信息以支持多态反序列化</li>
- *   <li>复用 whim-json 提供的时间、大数字序列化模块</li>
+ *   <li>复用 Spring 管理的 JsonMapper 基础配置</li>
  *   <li>修复 Long 类型被错误反序列化为 Integer 的问题</li>
  * </ul>
  */
@@ -70,30 +69,22 @@ public class RedisJsonCodec extends BaseCodec {
     };
 
     /**
-     * 使用指定的 Jackson 模块创建编解码器，复用 whim-json 的统一序列化规则。
+     * 基于 Spring 管理的 JsonMapper 创建 Redis 专用编解码器。
+     * <p>在保留全局日期时间、数字等序列化规则的基础上，补充 Redis 所需的类型信息与可见性配置。</p>
      *
-     * @param modules 需要注册的 Jackson 模块（时间、大数字等）
-     */
-    public RedisJsonCodec(JacksonModule... modules) {
-        this.jsonMapper = createJsonMapper(modules);
-    }
-
-    /**
-     * 使用自定义 JsonMapper 创建编解码器
-     *
-     * @param jsonMapper 自定义的 JsonMapper 实例
+     * @param jsonMapper Spring 管理的 JsonMapper 实例
      */
     public RedisJsonCodec(JsonMapper jsonMapper) {
-        this.jsonMapper = jsonMapper;
+        this.jsonMapper = createJsonMapper(jsonMapper);
     }
 
     /**
-     * 创建 Redis 专用 JsonMapper，包含类型信息、通用配置和外部序列化模块。
+     * 创建 Redis 专用 JsonMapper，包含类型信息、通用配置，并继承业务侧全局 JsonMapper 的格式配置。
      *
-     * @param modules 需要注册的 Jackson 模块
+     * @param baseMapper Spring 管理的基础 JsonMapper
      * @return 配置好的 JsonMapper
      */
-    private static JsonMapper createJsonMapper(JacksonModule... modules) {
+    private static JsonMapper createJsonMapper(JsonMapper baseMapper) {
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(Object.class)
                 .build();
@@ -114,9 +105,7 @@ public class RedisJsonCodec extends BaseCodec {
                     }
                 };
 
-        return JsonMapper.builder()
-                .findAndAddModules()
-                .addModules(modules)
+        return baseMapper.rebuild()
                 .changeDefaultPropertyInclusion(incl -> incl
                         .withValueInclusion(JsonInclude.Include.NON_NULL)
                         .withContentInclusion(JsonInclude.Include.NON_NULL))

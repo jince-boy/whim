@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.whim.redis.config.properties.CaffeineProperties;
 import com.whim.redis.manager.EnhancedSpringCacheManager;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -51,9 +52,7 @@ public class CacheAutoConfiguration {
      * @return 缓存管理器
      */
     @Bean
-    public CacheManager cacheManager(RedissonClient redissonClient,
-                                     @org.springframework.beans.factory.annotation.Autowired(required = false)
-                                     Cache<Object, Object> caffeineCache) {
+    public CacheManager cacheManager(RedissonClient redissonClient, @Nullable Cache<Object, Object> caffeineCache) {
         return new EnhancedSpringCacheManager(redissonClient, caffeineCache);
     }
 }

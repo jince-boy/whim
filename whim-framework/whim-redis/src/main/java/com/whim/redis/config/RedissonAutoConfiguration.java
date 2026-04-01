@@ -1,8 +1,6 @@
 package com.whim.redis.config;
 
 import com.whim.json.config.JacksonConfig;
-import com.whim.json.module.BigNumberJacksonModule;
-import com.whim.json.module.DateTimeJacksonModule;
 import com.whim.redis.codec.RedisJsonCodec;
 import com.whim.redis.config.properties.RedissonProperties;
 import com.whim.redis.handler.KeyPrefixHandler;
@@ -14,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Jince
@@ -33,18 +32,15 @@ public class RedissonAutoConfiguration {
     private final Environment environment;
 
     /**
-     * 定制 Redisson 自动配置，复用 whim-json 的统一序列化模块。
+     * 定制 Redisson 自动配置，复用 Spring 管理的 JsonMapper 配置。
      *
-     * @param dateTimeJacksonModule  时间序列化模块
-     * @param bigNumberJacksonModule 大数字序列化模块
+     * @param jsonMapper Spring 管理的 JsonMapper
      * @return Redisson 自动配置定制器
      */
     @Bean
-    public RedissonAutoConfigurationCustomizer redissonAutoConfigurationCustomizer(
-            DateTimeJacksonModule dateTimeJacksonModule,
-            BigNumberJacksonModule bigNumberJacksonModule) {
+    public RedissonAutoConfigurationCustomizer redissonAutoConfigurationCustomizer(JsonMapper jsonMapper) {
         return config -> {
-            RedisJsonCodec codec = new RedisJsonCodec(dateTimeJacksonModule, bigNumberJacksonModule);
+            RedisJsonCodec codec = new RedisJsonCodec(jsonMapper);
             config.setCodec(codec).setUseScriptCache(true);
             config.setNameMapper(new KeyPrefixHandler(redissonProperties.getKeyPrefix()));
 

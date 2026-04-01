@@ -1,16 +1,24 @@
 package com.whim.json.config;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.whim.json.config.properties.DateTimeProperties;
 import com.whim.json.module.BigNumberJacksonModule;
-import com.whim.json.module.DateTimeJacksonModule;
 import com.whim.json.utils.JsonUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -21,51 +29,32 @@ import java.util.TimeZone;
 @AutoConfiguration(before = JacksonAutoConfiguration.class)
 @EnableConfigurationProperties(DateTimeProperties.class)
 public class JacksonConfig {
-
     /**
-     * 创建时间 Jackson 模块。
-     *
-     * @param dateTimeProperties 时间配置属性
-     * @return 时间 Jackson 模块
-     */
-    @Bean
-    public DateTimeJacksonModule dateTimeJacksonModule(DateTimeProperties dateTimeProperties) {
-        return new DateTimeJacksonModule(dateTimeProperties);
-    }
-
-    /**
-     * 创建大数字 Jackson 模块。
-     *
-     * @return 大数字 Jackson 模块
-     */
-    @Bean
-    public BigNumberJacksonModule bigNumberJacksonModule() {
-        return new BigNumberJacksonModule();
-    }
-
-    /**
-     * 将序列化基础模块注册到 Spring Boot 管理的 JsonMapper。
-     *
-     * @param dateTimeJacksonModule  时间 Jackson 模块
-     * @param bigNumberJacksonModule 大数字 Jackson 模块
-     * @param dateTimeProperties     时间配置属性
-     * @return JsonMapper 构建器自定义器
+     * 配置 Jackson 全局日期时间格式与通用模块。
      */
     @Bean
     public JsonMapperBuilderCustomizer serializationJsonMapperCustomizer(
-            DateTimeJacksonModule dateTimeJacksonModule,
-            BigNumberJacksonModule bigNumberJacksonModule,
-            DateTimeProperties dateTimeProperties) {
+            DateTimeProperties props) {
+        var zone = TimeZone.getTimeZone(props.getZoneId());
+        var dtFormat = JsonFormat.Value.forPattern(props.getDateTimePattern()).withTimeZone(zone);
         return builder -> builder
-                .addModules(dateTimeJacksonModule, bigNumberJacksonModule)
-                .defaultTimeZone(TimeZone.getTimeZone(dateTimeProperties.getZoneId()));
+                .addModules(new BigNumberJacksonModule())
+                .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
+                .defaultTimeZone(zone)
+                .withConfigOverride(LocalDateTime.class, o -> o.setFormat(JsonFormat.Value.forPattern(props.getDateTimePattern())))
+                .withConfigOverride(LocalDate.class, o -> o.setFormat(JsonFormat.Value.forPattern(props.getDatePattern())))
+                .withConfigOverride(LocalTime.class, o -> o.setFormat(JsonFormat.Value.forPattern(props.getTimePattern())))
+                .withConfigOverride(Instant.class, o -> o.setFormat(dtFormat))
+                .withConfigOverride(Date.class, o -> o.setFormat(dtFormat))
+                .withConfigOverride(OffsetDateTime.class, o -> o.setFormat(dtFormat))
+                .withConfigOverride(ZonedDateTime.class, o -> o.setFormat(dtFormat));
     }
 
     /**
-     * 初始化 JsonUtils 使用的 JsonMapper
+     * 在 Spring 启动时，把 Spring 管理的 JsonMapper 塞进 JsonUtils 这个静态工具类里
      *
-     * @param jsonMapper Spring Boot 管理的 JsonMapper
-     * @return JsonUtils 初始化器
+     * @param jsonMapper Spring 管理的 JsonMapper
+     * @return JsonUtils.Initializer
      */
     @Bean
     public JsonUtils.Initializer jsonUtilsInitializer(JsonMapper jsonMapper) {

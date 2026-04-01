@@ -28,24 +28,6 @@ import java.util.concurrent.ConcurrentMap;
  * @author Jince
  * @date 2026/03/30
  * @description 增强版 Spring CacheManager 实现，基于 Redisson 并支持 Caffeine 二级缓存。
- * <p>
- * 核心特性：
- * <ul>
- *   <li>缓存名称支持 {@code #} 分隔的多参数配置语法</li>
- *   <li>可选的 Caffeine 本地缓存（L1）+ Redis 远程缓存（L2）组合</li>
- *   <li>多节点间通过 Pub/Sub 实现本地缓存最终一致性</li>
- *   <li>线程安全的缓存实例创建</li>
- * </ul>
- * <p>
- * 缓存名称语法：{@code cacheName#ttl#maxIdleTime#maxSize#localCache}
- * <table>
- *   <tr><th>参数</th><th>说明</th><th>示例</th></tr>
- *   <tr><td>cacheName</td><td>缓存名称（必填）</td><td>users</td></tr>
- *   <tr><td>ttl</td><td>存活时间</td><td>30s, 5m, 1h, 1d</td></tr>
- *   <tr><td>maxIdleTime</td><td>最大空闲时间</td><td>10m</td></tr>
- *   <tr><td>maxSize</td><td>最大条目数</td><td>500</td></tr>
- *   <tr><td>localCache</td><td>1=启用本地缓存（默认），0=仅 Redis</td><td>0</td></tr>
- * </table>
  */
 @Slf4j
 public class EnhancedSpringCacheManager implements CacheManager, InitializingBean, DisposableBean {
