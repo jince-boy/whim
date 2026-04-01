@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.whim.redis.config.properties.CaffeineProperties;
 import com.whim.redis.manager.EnhancedSpringCacheManager;
-import com.whim.redis.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -42,17 +41,6 @@ public class CacheAutoConfiguration {
                 .initialCapacity(caffeineProperties.getInitialCapacity())
                 .maximumSize(caffeineProperties.getMaximumSize())
                 .build();
-    }
-
-    /**
-     * 创建 Redis 操作服务
-     *
-     * @param redissonClient Redisson 客户端
-     * @return Redis 操作服务
-     */
-    @Bean
-    public RedisService redisService(RedissonClient redissonClient) {
-        return new RedisService(redissonClient);
     }
 
     /**
