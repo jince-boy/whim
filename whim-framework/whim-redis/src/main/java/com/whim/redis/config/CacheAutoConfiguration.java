@@ -1,19 +1,18 @@
 package com.whim.redis.config;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.whim.redis.config.properties.CaffeineProperties;
 import com.whim.redis.manager.EnhancedSpringCacheManager;
+import com.whim.redis.utils.CacheUtils;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Jince
@@ -30,29 +29,26 @@ public class CacheAutoConfiguration {
     private final CaffeineProperties caffeineProperties;
 
     /**
-     * 创建 Caffeine 本地缓存实例。当 {@code whim.cache.caffeine.enabled=false} 时不创建。
-     *
-     * @return Caffeine 缓存实例
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "whim.cache.caffeine", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public Cache<Object, Object> caffeineCache() {
-        return Caffeine.newBuilder()
-                .expireAfterWrite(caffeineProperties.getExpireAfterWrite())
-                .initialCapacity(caffeineProperties.getInitialCapacity())
-                .maximumSize(caffeineProperties.getMaximumSize())
-                .build();
-    }
-
-    /**
-     * 创建增强版缓存管理器。当 Caffeine 缓存 Bean 不存在时自动降级为纯 Redis 缓存。
+     * 创建增强版缓存管理器，根据配置决定是否启用本地二级缓存。
      *
      * @param redissonClient Redisson 客户端
-     * @param caffeineCache  Caffeine 本地缓存，可选注入
+     * @param jsonMapper Spring 管理的 JsonMapper
      * @return 缓存管理器
      */
     @Bean
-    public CacheManager cacheManager(RedissonClient redissonClient, @Nullable Cache<Object, Object> caffeineCache) {
-        return new EnhancedSpringCacheManager(redissonClient, caffeineCache);
+    @ConditionalOnMissingBean(CacheManager.class)
+    public CacheManager cacheManager(RedissonClient redissonClient, JsonMapper jsonMapper) {
+        return new EnhancedSpringCacheManager(redissonClient, caffeineProperties, jsonMapper);
+    }
+
+    /**
+     * 初始化 CacheUtils 使用的 CacheManager。
+     *
+     * @param cacheManager 缓存管理器
+     * @return CacheUtils 初始化器
+     */
+    @Bean
+    public CacheUtils.Initializer cacheUtilsInitializer(CacheManager cacheManager) {
+        return new CacheUtils.Initializer(cacheManager);
     }
 }

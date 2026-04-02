@@ -18,15 +18,10 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-        <!-- 通用核心模块 -->
+        <!-- Spring Boot Jackson -->
         <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-core</artifactId>
-        </dependency>
-        <!--JSON 序列化基础模块（时间、大数字等通用序列化能力）-->
-        <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-json</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-jackson</artifactId>
         </dependency>
         <!--redisson-->
         <dependency>
