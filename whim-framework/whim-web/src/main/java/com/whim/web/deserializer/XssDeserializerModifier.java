@@ -32,11 +32,7 @@ public final class XssDeserializerModifier extends ValueDeserializerModifier {
      * @return 更新后的 Bean 反序列化构建器
      */
     @Override
-    public BeanDeserializerBuilder updateBuilder(
-            DeserializationConfig config,
-            BeanDescription.Supplier beanDescription,
-            BeanDeserializerBuilder builder
-    ) {
+    public BeanDeserializerBuilder updateBuilder(DeserializationConfig config,BeanDescription.Supplier beanDescription,BeanDeserializerBuilder builder) {
         List<SettableBeanProperty> replacements = new ArrayList<>();
         var properties = builder.getProperties();
         while (properties.hasNext()) {

@@ -1,4 +1,4 @@
-package com.whim.web.annotation;
+package com.whim.web.enums;
 
 /**
  * @author Jince

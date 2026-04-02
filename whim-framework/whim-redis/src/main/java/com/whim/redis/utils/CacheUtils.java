@@ -53,7 +53,7 @@ public final class CacheUtils {
      * @param <T>       返回值泛型
      * @return 缓存值
      */
-    public static <T> T get(String cacheName, Object key) {
+    public static <T> T get(String cacheName, String key) {
         Cache.ValueWrapper wrapper = requireCache(cacheName).get(key);
         if (wrapper == null) {
             return null;
@@ -72,7 +72,7 @@ public final class CacheUtils {
      * @param <T>       返回值泛型
      * @return 缓存值
      */
-    public static <T> T get(String cacheName, Object key, Class<T> type) {
+    public static <T> T get(String cacheName, String key, Class<T> type) {
         return requireCache(cacheName).get(key, type);
     }
 
@@ -83,7 +83,7 @@ public final class CacheUtils {
      * @param key       缓存键
      * @param value     缓存值
      */
-    public static void put(String cacheName, Object key, Object value) {
+    public static void put(String cacheName, String key, Object value) {
         requireCache(cacheName).put(key, value);
     }
 
@@ -93,7 +93,7 @@ public final class CacheUtils {
      * @param cacheName 缓存名称
      * @param key       缓存键
      */
-    public static void evict(String cacheName, Object key) {
+    public static void evict(String cacheName, String key) {
         requireCache(cacheName).evict(key);
     }
 

@@ -1,5 +1,7 @@
 package com.whim.web.annotation;
 
+import com.whim.web.enums.DesensitizationType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

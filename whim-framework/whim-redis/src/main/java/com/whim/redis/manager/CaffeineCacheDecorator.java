@@ -6,12 +6,8 @@ import org.jspecify.annotations.NonNull;
 import org.redisson.api.RTopic;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
-import tools.jackson.databind.json.JsonMapper;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -28,10 +24,8 @@ public class CaffeineCacheDecorator implements Cache {
 
     private static final String INVALIDATION_TOPIC = "cache:invalidation";
     private static final String SEPARATOR = "::";
-    private static final String KEY_SIGNATURE_SEPARATOR = "|";
     private static final String WILDCARD = "*";
     private static final Object NULL_HOLDER = new Object();
-    private static final Field SIMPLE_KEY_PARAMS_FIELD = resolveSimpleKeyParamsField();
 
     private final String name;
     private final Cache delegate;
@@ -40,7 +34,6 @@ public class CaffeineCacheDecorator implements Cache {
     private final com.github.benmanes.caffeine.cache.Cache<Object, Object> localCache;
     private final RTopic invalidationTopic;
     private final String nodeId;
-    private final JsonMapper jsonMapper;
 
     /**
      * 创建二级缓存装饰器
@@ -50,20 +43,17 @@ public class CaffeineCacheDecorator implements Cache {
      * @param localCache       当前缓存专属的 Caffeine 本地缓存实例
      * @param invalidationTopic Redisson 缓存失效广播主题
      * @param nodeId           当前节点唯一标识，用于过滤自身广播
-     * @param jsonMapper       用于生成稳定本地缓存键的 JsonMapper
      */
     public CaffeineCacheDecorator(String name,
                                   Cache delegate,
                                   com.github.benmanes.caffeine.cache.Cache<Object, Object> localCache,
                                   RTopic invalidationTopic,
-                                  String nodeId,
-                                  JsonMapper jsonMapper) {
+                                  String nodeId) {
         this.name = name;
         this.delegate = delegate;
         this.localCache = localCache;
         this.invalidationTopic = invalidationTopic;
         this.nodeId = nodeId;
-        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -76,29 +66,28 @@ public class CaffeineCacheDecorator implements Cache {
     }
 
     /**
-     * 构建本地缓存使用的稳定键，确保跨节点失效广播能够正确命中。
+     * 将缓存键统一规范为字符串，确保本地缓存、Redis 缓存与广播失效使用同一套键。
      *
      * @param key 原始缓存键
-     * @return 本地缓存键
+     * @return 规范化后的字符串缓存键
      */
-    private String buildLocalCacheKey(Object key) {
+    private String normalizeCacheKey(Object key) {
         if (key == null) {
-            return buildTypedSignature(Void.class, "null");
+            return "null";
         }
-        if (key instanceof SimpleKey simpleKey) {
-            return buildTypedSignature(SimpleKey.class, serializeSimpleKey(simpleKey));
+        if (key == SimpleKey.EMPTY) {
+            return "SimpleKey []";
         }
-        if (key.getClass().isArray()) {
-            return buildTypedSignature(key.getClass(), serializeArrayKey(key));
+        if (isSupportedStringKeyType(key) || key instanceof SimpleKey) {
+            return String.valueOf(key);
         }
-        if (isSimpleKeyType(key)) {
-            return buildTypedSignature(key.getClass(), normalizeSimpleKeyValue(key));
-        }
-        return buildTypedSignature(key.getClass(), serializeObjectKey(key));
+        throw new IllegalArgumentException(
+                "缓存[%s]的键类型[%s]不支持直接转换为字符串键，请显式使用字符串键或在缓存注解中指定 key 表达式。"
+                        .formatted(name, key.getClass().getName()));
     }
 
     /**
-     * Return the cache name.
+     * 获取缓存名称。
      */
     @Override
     @NonNull
@@ -107,7 +96,7 @@ public class CaffeineCacheDecorator implements Cache {
     }
 
     /**
-     * Return the underlying native cache provider.
+     * 获取底层原生缓存实现。
      */
     @Override
     @NonNull
@@ -141,33 +130,33 @@ public class CaffeineCacheDecorator implements Cache {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
-        String localCacheKey = buildLocalCacheKey(key);
-        Object cachedValue = getLocalCachedValue(localCacheKey);
-        if (cachedValue != null || localCache.asMap().containsKey(localCacheKey)) {
+        String cacheKey = normalizeCacheKey(key);
+        Object cachedValue = getLocalCachedValue(cacheKey);
+        if (cachedValue != null || localCache.asMap().containsKey(cacheKey)) {
             return (T) cachedValue;
         }
-        T loadedValue = delegate.get(key, valueLoader);
-        localCache.put(localCacheKey, toStoreValue(loadedValue));
+        T loadedValue = delegate.get(cacheKey, valueLoader);
+        localCache.put(cacheKey, toStoreValue(loadedValue));
         return loadedValue;
     }
 
     @Override
     public void put(@NonNull Object key, Object value) {
-        String localCacheKey = buildLocalCacheKey(key);
-        delegate.put(key, value);
-        localCache.put(localCacheKey, toStoreValue(value));
-        publishInvalidation(localCacheKey);
+        String cacheKey = normalizeCacheKey(key);
+        delegate.put(cacheKey, value);
+        localCache.put(cacheKey, toStoreValue(value));
+        publishInvalidation(cacheKey);
     }
 
     @Override
     public ValueWrapper putIfAbsent(@NonNull Object key, Object value) {
-        ValueWrapper wrapper = delegate.putIfAbsent(key, value);
-        String localCacheKey = buildLocalCacheKey(key);
+        String cacheKey = normalizeCacheKey(key);
+        ValueWrapper wrapper = delegate.putIfAbsent(cacheKey, value);
         if (wrapper == null) {
-            localCache.put(localCacheKey, toStoreValue(value));
-            publishInvalidation(localCacheKey);
+            localCache.put(cacheKey, toStoreValue(value));
+            publishInvalidation(cacheKey);
         } else {
-            localCache.put(localCacheKey, toStoreValue(wrapper.get()));
+            localCache.put(cacheKey, toStoreValue(wrapper.get()));
         }
         return wrapper;
     }
@@ -179,11 +168,11 @@ public class CaffeineCacheDecorator implements Cache {
 
     @Override
     public boolean evictIfPresent(@NonNull Object key) {
-        String localCacheKey = buildLocalCacheKey(key);
-        boolean evicted = delegate.evictIfPresent(key);
+        String cacheKey = normalizeCacheKey(key);
+        boolean evicted = delegate.evictIfPresent(cacheKey);
         if (evicted) {
-            localCache.invalidate(localCacheKey);
-            publishInvalidation(localCacheKey);
+            localCache.invalidate(cacheKey);
+            publishInvalidation(cacheKey);
         }
         return evicted;
     }
@@ -224,12 +213,12 @@ public class CaffeineCacheDecorator implements Cache {
      *
      * @param localCacheKey 本地缓存稳定键，使用 "*" 表示清空整个缓存
      */
-    private void publishInvalidation(String localCacheKey) {
+    private void publishInvalidation(String cacheKey) {
         try {
-            String message = nodeId + SEPARATOR + name + SEPARATOR + localCacheKey;
+            String message = nodeId + SEPARATOR + name + SEPARATOR + cacheKey;
             invalidationTopic.publish(message);
         } catch (Exception e) {
-            log.warn("缓存失效广播发送失败，缓存名称：{}，本地缓存键：{}", name, localCacheKey, e);
+            log.warn("缓存失效广播发送失败，缓存名称：{}，缓存键：{}", name, cacheKey, e);
         }
     }
 
@@ -240,17 +229,17 @@ public class CaffeineCacheDecorator implements Cache {
      * @return 缓存值，未命中时返回 null
      */
     private Object getCachedValue(Object key) {
-        String localCacheKey = buildLocalCacheKey(key);
-        Object cachedValue = getLocalCachedValue(localCacheKey);
-        if (cachedValue != null || localCache.asMap().containsKey(localCacheKey)) {
+        String cacheKey = normalizeCacheKey(key);
+        Object cachedValue = getLocalCachedValue(cacheKey);
+        if (cachedValue != null || localCache.asMap().containsKey(cacheKey)) {
             return cachedValue;
         }
-        ValueWrapper wrapper = delegate.get(key);
+        ValueWrapper wrapper = delegate.get(cacheKey);
         if (wrapper == null) {
             return null;
         }
         Object value = wrapper.get();
-        localCache.put(localCacheKey, toStoreValue(value));
+        localCache.put(cacheKey, toStoreValue(value));
         return value;
     }
 
@@ -286,140 +275,18 @@ public class CaffeineCacheDecorator implements Cache {
     }
 
     /**
-     * 判断是否为可直接规范化为文本的简单缓存键类型。
+     * 判断是否为支持直接转换为字符串的缓存键类型。
      *
      * @param key 缓存键
-     * @return 是否为简单键类型
+     * @return 是否为支持的字符串键类型
      */
-    private boolean isSimpleKeyType(Object key) {
+    private boolean isSupportedStringKeyType(Object key) {
         return key instanceof CharSequence
                 || key instanceof Number
                 || key instanceof Boolean
                 || key instanceof Character
                 || key instanceof Enum<?>
-                || key instanceof java.util.UUID
+                || key instanceof UUID
                 || key instanceof Class<?>;
-    }
-
-    /**
-     * 将简单缓存键转换为稳定文本，避免不同类型但字符串值相同的键发生碰撞。
-     *
-     * @param key 缓存键
-     * @return 稳定文本
-     */
-    private String normalizeSimpleKeyValue(Object key) {
-        if (key instanceof Enum<?> enumValue) {
-            return enumValue.name();
-        }
-        if (key instanceof Class<?> type) {
-            return type.getName();
-        }
-        return String.valueOf(key);
-    }
-
-    /**
-     * 将 SimpleKey 转换为稳定文本，确保多参数缓存键跨节点保持一致。
-     *
-     * @param simpleKey Spring Cache 默认复合键
-     * @return 稳定文本
-     */
-    private String serializeSimpleKey(SimpleKey simpleKey) {
-        Object[] params = extractSimpleKeyParams(simpleKey);
-        StringBuilder builder = new StringBuilder();
-        for (int index = 0; index < params.length; index++) {
-            if (index > 0) {
-                builder.append(',');
-            }
-            builder.append(buildLocalCacheKey(params[index]));
-        }
-        return builder.toString();
-    }
-
-    /**
-     * 将数组缓存键转换为稳定文本，避免数组 toString 产生内存地址语义。
-     *
-     * @param arrayKey 数组缓存键
-     * @return 稳定文本
-     */
-    private String serializeArrayKey(Object arrayKey) {
-        int length = Array.getLength(arrayKey);
-        StringBuilder builder = new StringBuilder();
-        for (int index = 0; index < length; index++) {
-            if (index > 0) {
-                builder.append(',');
-            }
-            builder.append(buildLocalCacheKey(Array.get(arrayKey, index)));
-        }
-        return builder.toString();
-    }
-
-    /**
-     * 将复杂对象缓存键序列化为稳定字节，作为本地缓存与失效广播的统一标识。
-     *
-     * @param key 复杂对象缓存键
-     * @return 稳定字节
-     */
-    private byte[] serializeObjectKey(Object key) {
-        try {
-            return jsonMapper.writeValueAsBytes(key);
-        } catch (Exception exception) {
-            throw new IllegalArgumentException(
-                    "缓存[%s]的键类型[%s]无法生成稳定签名，请改用简单类型键或可稳定序列化的对象键。"
-                            .formatted(name, key.getClass().getName()),
-                    exception);
-        }
-    }
-
-    /**
-     * 基于键类型与规范文本生成稳定签名。
-     *
-     * @param keyType 键类型
-     * @param canonicalValue 规范文本
-     * @return 稳定签名
-     */
-    private String buildTypedSignature(Class<?> keyType, String canonicalValue) {
-        return buildTypedSignature(keyType, canonicalValue.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * 基于键类型与规范字节生成稳定签名。
-     *
-     * @param keyType 键类型
-     * @param canonicalBytes 规范字节
-     * @return 稳定签名
-     */
-    private String buildTypedSignature(Class<?> keyType, byte[] canonicalBytes) {
-        return keyType.getName()
-                + KEY_SIGNATURE_SEPARATOR
-                + Base64.getUrlEncoder().withoutPadding().encodeToString(canonicalBytes);
-    }
-
-    /**
-     * 提取 Spring SimpleKey 内部维护的参数数组。
-     *
-     * @param simpleKey Spring Cache 默认复合键
-     * @return 参数数组
-     */
-    private Object[] extractSimpleKeyParams(SimpleKey simpleKey) {
-        try {
-            return (Object[]) SIMPLE_KEY_PARAMS_FIELD.get(simpleKey);
-        } catch (IllegalAccessException exception) {
-            throw new IllegalStateException("读取 Spring SimpleKey 参数失败，无法生成稳定本地缓存键。", exception);
-        }
-    }
-
-    /**
-     * 解析 Spring SimpleKey 的参数字段，供多参数缓存键生成稳定签名。
-     *
-     * @return SimpleKey 参数字段
-     */
-    private static Field resolveSimpleKeyParamsField() {
-        try {
-            Field field = SimpleKey.class.getDeclaredField("params");
-            field.setAccessible(true);
-            return field;
-        } catch (Exception exception) {
-            throw new IllegalStateException("初始化 Spring SimpleKey 参数字段失败，无法启用稳定本地缓存键。", exception);
-        }
     }
 }

@@ -19,7 +19,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -39,7 +38,6 @@ public class EnhancedSpringCacheManager implements CacheManager, InitializingBea
 
     private final RedissonClient redissonClient;
     private final CaffeineProperties caffeineProperties;
-    private final JsonMapper jsonMapper;
     private final String nodeId = UUID.randomUUID().toString();
     private final ConcurrentMap<String, Cache> instanceMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, String> cacheDefinitionMap = new ConcurrentHashMap<>();
@@ -61,14 +59,11 @@ public class EnhancedSpringCacheManager implements CacheManager, InitializingBea
      *
      * @param redissonClient Redisson 客户端
      * @param caffeineProperties Caffeine 本地缓存配置
-     * @param jsonMapper Spring 管理的 JsonMapper
      */
     public EnhancedSpringCacheManager(RedissonClient redissonClient,
-                                      CaffeineProperties caffeineProperties,
-                                      JsonMapper jsonMapper) {
+                                      CaffeineProperties caffeineProperties) {
         this.redissonClient = redissonClient;
         this.caffeineProperties = caffeineProperties;
-        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -272,7 +267,7 @@ public class EnhancedSpringCacheManager implements CacheManager, InitializingBea
             builder.expireAfterAccess(expireAfterAccess);
         }
 
-        return new CaffeineCacheDecorator(name, cache, builder.build(), invalidationTopic, nodeId, jsonMapper);
+        return new CaffeineCacheDecorator(name, cache, builder.build(), invalidationTopic, nodeId);
     }
 
     /**

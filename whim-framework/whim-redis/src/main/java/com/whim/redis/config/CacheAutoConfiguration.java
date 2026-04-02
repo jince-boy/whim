@@ -12,7 +12,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Jince
@@ -32,13 +31,12 @@ public class CacheAutoConfiguration {
      * 创建增强版缓存管理器，根据配置决定是否启用本地二级缓存。
      *
      * @param redissonClient Redisson 客户端
-     * @param jsonMapper Spring 管理的 JsonMapper
      * @return 缓存管理器
      */
     @Bean
     @ConditionalOnMissingBean(CacheManager.class)
-    public CacheManager cacheManager(RedissonClient redissonClient, JsonMapper jsonMapper) {
-        return new EnhancedSpringCacheManager(redissonClient, caffeineProperties, jsonMapper);
+    public CacheManager cacheManager(RedissonClient redissonClient) {
+        return new EnhancedSpringCacheManager(redissonClient, caffeineProperties);
     }
 
     /**
