@@ -1,14 +1,14 @@
 package com.whim.web.config;
 
-import com.whim.web.module.DesensitizeJacksonModule;
-import com.whim.web.module.XssJacksonModule;
-import com.whim.web.spi.DefaultDesensitizationAccessEvaluator;
+import com.whim.web.deserializer.XssDeserializerModifier;
+import com.whim.web.serializer.DesensitizeSerializerModifier;
 import com.whim.web.spi.DesensitizationAccessEvaluator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * @author Jince
@@ -26,7 +26,21 @@ public class JacksonEnhancementAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(DesensitizationAccessEvaluator.class)
     public DesensitizationAccessEvaluator desensitizationAccessEvaluator() {
-        return new DefaultDesensitizationAccessEvaluator();
+        return (roles, authorities, requireAll) -> false;
+    }
+
+    /**
+     * 将 Web 增强模块注册到 Spring Boot 管理的 JsonMapper。
+     *
+     * @param accessEvaluator 脱敏访问评估器
+     * @return JsonMapper 构建器自定义器
+     */
+    @Bean
+    public JsonMapperBuilderCustomizer webJsonEnhancementCustomizer(DesensitizationAccessEvaluator accessEvaluator) {
+        return builder -> builder.addModules(
+                createDesensitizeModule(accessEvaluator),
+                createXssModule()
+        );
     }
 
     /**
@@ -35,9 +49,10 @@ public class JacksonEnhancementAutoConfiguration {
      * @param accessEvaluator 脱敏访问评估器
      * @return 脱敏 Jackson 模块
      */
-    @Bean
-    public DesensitizeJacksonModule desensitizeJacksonModule(DesensitizationAccessEvaluator accessEvaluator) {
-        return new DesensitizeJacksonModule(accessEvaluator);
+    private SimpleModule createDesensitizeModule(DesensitizationAccessEvaluator accessEvaluator) {
+        var module = new SimpleModule("whim-desensitize-jackson-module");
+        module.setSerializerModifier(new DesensitizeSerializerModifier(accessEvaluator));
+        return module;
     }
 
     /**
@@ -45,22 +60,9 @@ public class JacksonEnhancementAutoConfiguration {
      *
      * @return XSS Jackson 模块
      */
-    @Bean
-    public XssJacksonModule xssJacksonModule() {
-        return new XssJacksonModule();
-    }
-
-    /**
-     * 将 Web 增强模块注册到 Spring Boot 管理的 JsonMapper。
-     *
-     * @param desensitizeJacksonModule 脱敏 Jackson 模块
-     * @param xssJacksonModule         XSS Jackson 模块
-     * @return JsonMapper 构建器自定义器
-     */
-    @Bean
-    public JsonMapperBuilderCustomizer webJsonEnhancementCustomizer(
-            DesensitizeJacksonModule desensitizeJacksonModule,
-            XssJacksonModule xssJacksonModule) {
-        return builder -> builder.addModules(desensitizeJacksonModule, xssJacksonModule);
+    private SimpleModule createXssModule() {
+        var module = new SimpleModule("whim-xss-jackson-module");
+        module.setDeserializerModifier(new XssDeserializerModifier());
+        return module;
     }
 }

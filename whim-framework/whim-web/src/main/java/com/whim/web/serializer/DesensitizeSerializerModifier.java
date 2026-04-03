@@ -119,9 +119,7 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
                 jsonGenerator.writeString(text);
                 return;
             }
-            jsonGenerator.writeString(desensitize.type().mask(
-                    text, desensitize.prefixKeep(), desensitize.suffixKeep(), desensitize.maskChar()
-            ));
+            jsonGenerator.writeString(maskValue(text));
         }
 
         /**
@@ -136,6 +134,37 @@ public final class DesensitizeSerializerModifier extends ValueSerializerModifier
                 return false;
             }
             return accessEvaluator.canViewPlainValue(roles, authorities, desensitize.requireAll());
+        }
+
+        /**
+         * 按注解指定规则对字段值执行脱敏。
+         *
+         * @param value 原始字段值
+         * @return 脱敏后的字段值
+         */
+        private String maskValue(String value) {
+            if (value.isBlank()) {
+                return value;
+            }
+            var prefixKeep = Math.max(desensitize.prefixKeep(), 0);
+            var suffixKeep = Math.max(desensitize.suffixKeep(), 0);
+            if (value.length() <= prefixKeep + suffixKeep) {
+                return repeatMask(desensitize.maskChar(), value.length());
+            }
+            return value.substring(0, prefixKeep)
+                    + repeatMask(desensitize.maskChar(), value.length() - prefixKeep - suffixKeep)
+                    + value.substring(value.length() - suffixKeep);
+        }
+
+        /**
+         * 按指定次数重复生成脱敏字符文本。
+         *
+         * @param maskChar 脱敏字符
+         * @param count 重复次数
+         * @return 脱敏字符文本
+         */
+        private String repeatMask(char maskChar, int count) {
+            return String.valueOf(maskChar).repeat(Math.max(count, 0));
         }
     }
 }

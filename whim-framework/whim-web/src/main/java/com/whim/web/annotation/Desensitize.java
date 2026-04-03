@@ -1,7 +1,5 @@
 package com.whim.web.annotation;
 
-import com.whim.web.enums.DesensitizationType;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,13 +15,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Desensitize {
-
-    /**
-     * 指定脱敏类型。
-     *
-     * @return 脱敏类型
-     */
-    DesensitizationType type() default DesensitizationType.CUSTOM;
 
     /**
      * 指定允许查看原始值的角色集合。
@@ -47,14 +38,14 @@ public @interface Desensitize {
     boolean requireAll() default false;
 
     /**
-     * 自定义脱敏时前缀保留长度。
+     * 指定脱敏时前缀保留长度。
      *
      * @return 前缀保留长度
      */
     int prefixKeep() default 0;
 
     /**
-     * 自定义脱敏时后缀保留长度。
+     * 指定脱敏时后缀保留长度。
      *
      * @return 后缀保留长度
      */
