@@ -18,6 +18,11 @@
            <groupId>org.springframework</groupId>
            <artifactId>spring-web</artifactId>
        </dependency>
+       <!-- Spring AOP模块 -->
+       <dependency>
+           <groupId>org.springframework.boot</groupId>
+           <artifactId>spring-boot-starter-aop</artifactId>
+       </dependency>
        <!-- servlet -->
        <dependency>
            <groupId>jakarta.servlet</groupId>

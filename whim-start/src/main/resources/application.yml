@@ -57,3 +57,35 @@ thread-pool:
   wait-for-tasks-to-complete-on-shutdown: true
   # 关闭线程池时最长等待秒数
   await-termination-seconds: 10
+
+# sa-token
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: Authorization
+  # jwt秘钥 （只有集成 sa-token-temp-jwt 模块时此参数才会生效）
+  jwt-secret-key: 3i8ztwg38p2GvMrFgp48fv9CWAXCI5oBCDO2Pqcutdd
+  # Token 有效期（单位：秒），默认30天，-1代表永不过期
+  timeout: 604800 # 7天
+  # Token 最低活跃频率（单位：秒）
+  active-timeout: 86400 # 1天
+  # 是否允许同一账号并发登录
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: false
+  # 同一账号最大登录数量，-1代表不限 （只有在 isConcurrent=true，isShare=false 时此配置才有效）
+  max-login-count: 3
+  # 溢出 maxLoginCount 的客户端，将以何种方式注销下线 (LOGOUT=注销下线, KICKOUT=踢人下线, REPLACED=顶人下线)
+  overflowLogoutMode: REPLACED
+  # 尝试从 header 里读取 Token
+  is-read-header: true
+  is-read-cookie: false
+  is-read-body: false
+  # token前缀
+  token-prefix: Bearer
+  # 获取 Token-Session 时是否必须登录 （如果配置为true，会在每次获取 Token-Session 时校验是否登录）
+  token-session-check-login: false
+  # 是否输出操作日志
+  is-log: false
+  # 是否在初始化配置时打印版本字符画
+  is-print: false
+

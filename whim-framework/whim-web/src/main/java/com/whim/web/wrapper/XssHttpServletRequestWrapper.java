@@ -5,6 +5,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.springframework.http.MediaType;
@@ -35,15 +36,18 @@ import java.util.Map;
 public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static final PolicyFactory PLAIN_TEXT_POLICY = new HtmlPolicyBuilder().toFactory();
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
-    private byte[] sanitizedBody;
+    private final Charset requestCharset;
+    private final byte[] sanitizedBody;
 
     /**
      * 创建 XSS 请求包装器。
      *
      * @param request 原始请求
      */
-    public XssHttpServletRequestWrapper(HttpServletRequest request) {
+    public XssHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
+        this.requestCharset = resolveCharset(request.getCharacterEncoding());
+        this.sanitizedBody = resolveRequestBody();
     }
 
     /**
@@ -89,7 +93,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        return new CachedBodyServletInputStream(resolveRequestBody());
+        return new CachedBodyServletInputStream(this.sanitizedBody);
     }
 
     /**
@@ -100,7 +104,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public BufferedReader getReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(resolveRequestBody()), resolveCharset()));
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(this.sanitizedBody), this.requestCharset));
     }
 
     /**
@@ -110,11 +114,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public int getContentLength() {
-        try {
-            return resolveRequestBody().length;
-        } catch (IOException exception) {
-            return -1;
-        }
+        return this.sanitizedBody.length;
     }
 
     /**
@@ -124,11 +124,17 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public long getContentLengthLong() {
-        try {
-            return resolveRequestBody().length;
-        } catch (IOException exception) {
-            return -1;
-        }
+        return this.sanitizedBody.length;
+    }
+
+    /**
+     * 返回当前请求字符集。
+     *
+     * @return 请求字符集名称
+     */
+    @Override
+    public String getCharacterEncoding() {
+        return this.requestCharset.name();
     }
 
     /**
@@ -155,12 +161,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      * @throws IOException I/O 异常
      */
     private byte[] resolveRequestBody() throws IOException {
-        if (sanitizedBody != null) {
-            return sanitizedBody;
-        }
         byte[] originalBody = StreamUtils.copyToByteArray(super.getInputStream());
-        sanitizedBody = isJsonRequest() ? cleanJsonBody(originalBody) : originalBody;
-        return sanitizedBody;
+        return isJsonRequest() ? cleanJsonBody(originalBody) : originalBody;
     }
 
     /**
@@ -194,7 +196,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             if (rootNode == null) {
                 return requestBody;
             }
-            return JSON_MAPPER.writeValueAsBytes(cleanJsonNode(rootNode));
+            String sanitizedJson = JSON_MAPPER.writeValueAsString(cleanJsonNode(rootNode));
+            return sanitizedJson.getBytes(this.requestCharset);
         } catch (Exception exception) {
             log.warn("XSS JSON 请求体清洗失败，已回退为原始请求体，uri={}", super.getRequestURI(), exception);
             return requestBody;
@@ -269,8 +272,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      *
      * @return 请求字符集
      */
-    private Charset resolveCharset() {
-        String characterEncoding = super.getCharacterEncoding();
+    private Charset resolveCharset(String characterEncoding) {
         if (!StringUtils.hasText(characterEncoding)) {
             return StandardCharsets.UTF_8;
         }
@@ -322,7 +324,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
          * @throws IOException I/O 异常
          */
         @Override
-        public int read(byte[] buffer, int offset, int length) throws IOException {
+        public int read(byte @NonNull [] buffer, int offset, int length) throws IOException {
             int read = this.inputStream.read(buffer, offset, length);
             notifyIfAllDataRead();
             return read;

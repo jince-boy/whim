@@ -5,28 +5,23 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.whim</groupId>
-        <artifactId>whim</artifactId>
+        <artifactId>whim-modules</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>whim-start</artifactId>
+    <artifactId>whim-system</artifactId>
+    <description>系统业务模块</description>
 
     <dependencies>
-        <!-- whim-web -->
+        <!-- sa-token认证模块 -->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-web</artifactId>
+            <artifactId>whim-satoken</artifactId>
         </dependency>
-        <!-- 系统业务模块 -->
+        <!-- redis 模块 -->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-system</artifactId>
-        </dependency>
-        <!-- webmvc-test -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc-test</artifactId>
-            <scope>test</scope>
+            <artifactId>whim-redis</artifactId>
         </dependency>
     </dependencies>
 

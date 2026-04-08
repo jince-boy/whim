@@ -9,18 +9,10 @@
         <version>${revision}</version>
     </parent>
 
-    <description>whim框架模块</description>
-
-    <artifactId>whim-framework</artifactId>
+    <artifactId>whim-modules</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>whim-bom</module>
-        <module>whim-core</module>
-        <module>whim-web</module>
-        <module>whim-json</module>
-        <module>whim-redis</module>
-        <module>whim-satoken</module>
+        <module>whim-system</module>
     </modules>
-
 </project>

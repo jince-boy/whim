@@ -37,6 +37,12 @@
                 <artifactId>whim-redis</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <!-- sa-token 模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-satoken</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!-- web模块 -->
             <dependency>
                 <groupId>com.whim</groupId>
