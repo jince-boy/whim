@@ -4,6 +4,7 @@ import com.whim.web.annotation.Xss;
 import com.whim.web.xss.XssSanitizer;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import org.springframework.core.convert.converter.GenericConverter;
 
 import java.util.Objects;
 import java.util.Set;
@@ -13,7 +14,8 @@ import java.util.Set;
  */
 public final class XssStringConverter implements ConditionalGenericConverter {
 
-    private static final Set<ConvertiblePair> CONVERTIBLE_TYPES = Set.of(new ConvertiblePair(String.class, String.class));
+    private static final Set<GenericConverter.ConvertiblePair> CONVERTIBLE_TYPES =
+            Set.of(new GenericConverter.ConvertiblePair(String.class, String.class));
 
     private final XssSanitizer xssSanitizer;
 
@@ -22,7 +24,7 @@ public final class XssStringConverter implements ConditionalGenericConverter {
     }
 
     @Override
-    public Set<ConvertiblePair> getConvertibleTypes() {
+    public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
         return CONVERTIBLE_TYPES;
     }
 
