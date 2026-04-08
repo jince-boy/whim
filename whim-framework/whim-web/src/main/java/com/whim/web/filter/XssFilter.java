@@ -2,7 +2,6 @@ package com.whim.web.filter;
 
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.wrapper.XssHttpServletRequestWrapper;
-import com.whim.web.xss.XssCleaner;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +27,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class XssFilter extends OncePerRequestFilter {
     private final RequestMappingHandlerMapping handlerMapping;
-    private final XssCleaner xssCleaner;
 
     /**
      * 判断当前请求是否需要跳过 XSS 过滤。
@@ -59,7 +57,7 @@ public class XssFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        filterChain.doFilter(new XssHttpServletRequestWrapper(request, xssCleaner), response);
+        filterChain.doFilter(new XssHttpServletRequestWrapper(request), response);
     }
 
     /**

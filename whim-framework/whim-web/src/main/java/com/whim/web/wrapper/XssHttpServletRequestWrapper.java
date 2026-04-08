@@ -1,13 +1,20 @@
 package com.whim.web.wrapper;
 
-import com.whim.web.xss.XssCleaner;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+import lombok.extern.slf4j.Slf4j;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 import org.springframework.http.MediaType;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -18,27 +25,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Jince
  * @date 2026/04/08
  * @description 对请求参数和 JSON 请求体执行 XSS 清洗的请求包装器。
  */
+@Slf4j
 public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
-    private final XssCleaner xssCleaner;
-    private byte[] cachedBody;
-    private byte[] resolvedBody;
+    private static final PolicyFactory PLAIN_TEXT_POLICY = new HtmlPolicyBuilder().toFactory();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
+    private byte[] sanitizedBody;
 
     /**
      * 创建 XSS 请求包装器。
      *
      * @param request 原始请求
-     * @param xssCleaner XSS 清洗器
      */
-    public XssHttpServletRequestWrapper(HttpServletRequest request, XssCleaner xssCleaner) {
+    public XssHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
-        this.xssCleaner = Objects.requireNonNull(xssCleaner, "参数[xssCleaner]不能为空");
     }
 
     /**
@@ -49,7 +54,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public String getParameter(String name) {
-        return xssCleaner.clean(super.getParameter(name));
+        return clean(super.getParameter(name));
     }
 
     /**
@@ -60,15 +65,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public String[] getParameterValues(String name) {
-        String[] values = super.getParameterValues(name);
-        if (values == null || values.length == 0) {
-            return values;
-        }
-        String[] cleanedValues = new String[values.length];
-        for (int index = 0; index < values.length; index++) {
-            cleanedValues[index] = xssCleaner.clean(values[index]);
-        }
-        return cleanedValues;
+        return cleanValues(super.getParameterValues(name));
     }
 
     /**
@@ -146,7 +143,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         }
         String[] cleanedValues = new String[values.length];
         for (int index = 0; index < values.length; index++) {
-            cleanedValues[index] = xssCleaner.clean(values[index]);
+            cleanedValues[index] = clean(values[index]);
         }
         return cleanedValues;
     }
@@ -158,25 +155,98 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      * @throws IOException I/O 异常
      */
     private byte[] resolveRequestBody() throws IOException {
-        if (resolvedBody != null) {
-            return resolvedBody;
+        if (sanitizedBody != null) {
+            return sanitizedBody;
         }
-        byte[] originalBody = readCachedBody();
-        resolvedBody = isJsonRequest() ? xssCleaner.cleanJsonBody(originalBody) : originalBody;
-        return resolvedBody;
+        byte[] originalBody = StreamUtils.copyToByteArray(super.getInputStream());
+        sanitizedBody = isJsonRequest() ? cleanJsonBody(originalBody) : originalBody;
+        return sanitizedBody;
     }
 
     /**
-     * 缓存原始请求体字节数组。
+     * 清洗普通字符串中的 XSS 内容。
      *
-     * @return 原始请求体字节数组
-     * @throws IOException I/O 异常
+     * @param value 原始字符串
+     * @return 清洗后的字符串
      */
-    private byte[] readCachedBody() throws IOException {
-        if (cachedBody == null) {
-            cachedBody = StreamUtils.copyToByteArray(super.getInputStream());
+    private String clean(String value) {
+        if (value == null) {
+            return null;
         }
-        return cachedBody;
+        if (!StringUtils.hasText(value)) {
+            return value;
+        }
+        return PLAIN_TEXT_POLICY.sanitize(value);
+    }
+
+    /**
+     * 清洗 JSON 请求体中的所有文本节点。
+     *
+     * @param requestBody 原始请求体字节数组
+     * @return 清洗后的请求体字节数组
+     */
+    private byte[] cleanJsonBody(byte[] requestBody) {
+        if (requestBody == null || requestBody.length == 0) {
+            return requestBody;
+        }
+        try {
+            var rootNode = JSON_MAPPER.readTree(requestBody);
+            if (rootNode == null) {
+                return requestBody;
+            }
+            return JSON_MAPPER.writeValueAsBytes(cleanJsonNode(rootNode));
+        } catch (Exception exception) {
+            log.warn("XSS JSON 请求体清洗失败，已回退为原始请求体，uri={}", super.getRequestURI(), exception);
+            return requestBody;
+        }
+    }
+
+    /**
+     * 递归清洗 JSON 树中的文本节点。
+     *
+     * @param jsonNode 当前 JSON 节点
+     * @return 清洗后的 JSON 节点
+     */
+    private JsonNode cleanJsonNode(JsonNode jsonNode) {
+        if (jsonNode == null) {
+            return null;
+        }
+        if (jsonNode.isString()) {
+            return JsonNodeFactory.instance.stringNode(clean(jsonNode.stringValue()));
+        }
+        if (jsonNode.isObject()) {
+            return cleanObjectNode((ObjectNode) jsonNode);
+        }
+        if (jsonNode.isArray()) {
+            return cleanArrayNode((ArrayNode) jsonNode);
+        }
+        return jsonNode;
+    }
+
+    /**
+     * 清洗 JSON 对象节点中的所有字段。
+     *
+     * @param objectNode JSON 对象节点
+     * @return 清洗后的对象节点
+     */
+    private ObjectNode cleanObjectNode(ObjectNode objectNode) {
+        for (Map.Entry<String, JsonNode> property : objectNode.properties()) {
+            objectNode.set(property.getKey(), cleanJsonNode(property.getValue()));
+        }
+        return objectNode;
+    }
+
+    /**
+     * 清洗 JSON 数组节点中的所有元素。
+     *
+     * @param arrayNode JSON 数组节点
+     * @return 清洗后的数组节点
+     */
+    private ArrayNode cleanArrayNode(ArrayNode arrayNode) {
+        for (int index = 0; index < arrayNode.size(); index++) {
+            arrayNode.set(index, cleanJsonNode(arrayNode.get(index)));
+        }
+        return arrayNode;
     }
 
     /**
@@ -204,7 +274,12 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         if (!StringUtils.hasText(characterEncoding)) {
             return StandardCharsets.UTF_8;
         }
-        return Charset.forName(characterEncoding);
+        try {
+            return Charset.forName(characterEncoding);
+        } catch (Exception exception) {
+            log.warn("解析请求字符集失败，已使用 UTF-8，encoding={}, uri={}", characterEncoding, super.getRequestURI(), exception);
+            return StandardCharsets.UTF_8;
+        }
     }
 
     /**
