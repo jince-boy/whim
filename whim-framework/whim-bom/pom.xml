@@ -43,6 +43,12 @@
                 <artifactId>whim-satoken</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <!-- mybatis-plus 模块 -->
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-mybatisplus</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!-- web模块 -->
             <dependency>
                 <groupId>com.whim</groupId>

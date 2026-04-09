@@ -2,7 +2,6 @@ package com.whim.web.handler;
 
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
-import com.whim.core.exception.LockException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
