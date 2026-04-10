@@ -21,6 +21,7 @@
         <module>whim-json</module>
         <module>whim-redis</module>
         <module>whim-satoken</module>
+        <module>whim-mybatisplus</module>
     </modules>
 
 </project>

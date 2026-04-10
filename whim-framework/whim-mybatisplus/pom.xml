@@ -13,6 +13,11 @@
     <description>mybatis-plus模块</description>
 
     <dependencies>
+        <!-- 核心模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-core</artifactId>
+        </dependency>
         <!-- MySQL 驱动 -->
         <dependency>
             <groupId>com.mysql</groupId>

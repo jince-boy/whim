@@ -13,6 +13,11 @@
     <description>sa-token模块</description>
 
     <dependencies>
+        <!-- 核心模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-core</artifactId>
+        </dependency>
         <!-- SpringMVC模块 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
