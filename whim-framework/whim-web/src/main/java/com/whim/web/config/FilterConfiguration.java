@@ -1,6 +1,7 @@
 package com.whim.web.config;
 
 import com.whim.web.filter.XssFilter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -18,11 +19,12 @@ public class FilterConfiguration {
     /**
      * 注册全局 XSS 过滤器。
      *
-     * @param handlerMapping Spring MVC 请求映射处理器
+     * @param handlerMapping 主 Web MVC 的 {@link RequestMappingHandlerMapping}（与 Actuator 控制器端点映射区分）
      * @return 过滤器注册信息
      */
     @Bean
-    public FilterRegistrationBean<XssFilter> xssFilter(RequestMappingHandlerMapping handlerMapping) {
+    public FilterRegistrationBean<XssFilter> xssFilter(
+            @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping) {
         FilterRegistrationBean<XssFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new XssFilter(handlerMapping));
         registrationBean.setName("xssFilter");

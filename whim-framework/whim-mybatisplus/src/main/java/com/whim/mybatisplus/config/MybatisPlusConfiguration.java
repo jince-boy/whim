@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.whim.core.auth.AuthenticationContext;
 import com.whim.mybatisplus.handler.AutoFillFieldHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -15,7 +17,13 @@ import org.springframework.context.annotation.Bean;
  * description:
  */
 @AutoConfiguration
+@RequiredArgsConstructor
 public class MybatisPlusConfiguration {
+    /**
+     * 用户认证上下文
+     */
+    private final AuthenticationContext authenticationContext;
+
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
@@ -33,6 +41,6 @@ public class MybatisPlusConfiguration {
      */
     @Bean
     public MetaObjectHandler AutoFillFieldHandler() {
-        return new AutoFillFieldHandler();
+        return new AutoFillFieldHandler(authenticationContext);
     }
 }
