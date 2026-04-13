@@ -88,4 +88,9 @@ sa-token:
   is-log: false
   # 是否在初始化配置时打印版本字符画
   is-print: false
-
+  # 拦截器放行路径（Ant 风格），不校验登录
+  exclude-paths:
+    - /
+    - /system/auth/login
+    - /system/auth/captcha
+    - /error
