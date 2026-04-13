@@ -7,22 +7,16 @@ import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInt
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.mybatisplus.handler.AutoFillFieldHandler;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 /**
  * @author jince
  * date: 2026/4/9 22:48
- * description:
+ * description: MybatisPlus 配置
  */
 @AutoConfiguration
-@RequiredArgsConstructor
 public class MybatisPlusConfiguration {
-    /**
-     * 用户认证上下文
-     */
-    private final AuthenticationContext authenticationContext;
 
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
@@ -40,7 +34,7 @@ public class MybatisPlusConfiguration {
      * 自动填充处理器
      */
     @Bean
-    public MetaObjectHandler AutoFillFieldHandler() {
+    public MetaObjectHandler autoFillFieldHandler(AuthenticationContext authenticationContext) {
         return new AutoFillFieldHandler(authenticationContext);
     }
 }
