@@ -43,11 +43,23 @@ public class AutoFillFieldHandler implements MetaObjectHandler {
     @Override
     public void updateFill(MetaObject metaObject) {
         if (Objects.nonNull(metaObject) && metaObject.getOriginalObject() instanceof BaseEntity baseEntity) {
-            if (Objects.isNull(baseEntity.getUpdateTime())) {
-                baseEntity.setUpdateTime(LocalDateTime.now());
+            LocalDateTime now = LocalDateTime.now();
+            boolean login = authenticationContext.isLogin();
+            Long userId = login ? authenticationContext.getCurrentUserInfo().getUserId() : null;
+            Object deleted = getFieldValByName("deleted", metaObject);
+
+            if (Objects.equals(deleted, 1)) {
+                baseEntity.setDeleteTime(now);
+                if (login) {
+                    baseEntity.setDeleteBy(userId);
+                }
+                return;
             }
-            if (authenticationContext.isLogin() && Objects.isNull(baseEntity.getUpdateBy())) {
-                baseEntity.setUpdateBy(authenticationContext.getCurrentUserInfo().getUserId());
+            if (Objects.isNull(baseEntity.getUpdateTime())) {
+                baseEntity.setUpdateTime(now);
+            }
+            if (login && Objects.isNull(baseEntity.getUpdateBy())) {
+                baseEntity.setUpdateBy(userId);
             }
         }
     }
