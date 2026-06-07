@@ -45,7 +45,12 @@ CREATE TABLE `sys_tenant`
     `delete_by`       bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time`     datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`         tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_tenant_code` (`tenant_code`) USING BTREE,
+    UNIQUE KEY `uk_tenant_company_code` (`company_code`) USING BTREE,
+    UNIQUE KEY `uk_tenant_domain` (`domain`) USING BTREE,
+    KEY `idx_tenant_user_id` (`user_id`) USING BTREE,
+    KEY `idx_tenant_package_id` (`package_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统租户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -71,7 +76,10 @@ CREATE TABLE `sys_user`
     `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_user_username` (`username`) USING BTREE,
+    KEY `idx_user_phone` (`phone`) USING BTREE,
+    KEY `idx_user_email` (`email`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -90,7 +98,9 @@ CREATE TABLE `sys_user_tenant`
     `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_user_tenant` (`user_id`, `tenant_id`) USING BTREE,
+    KEY `idx_user_tenant_tenant_id` (`tenant_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户租户关联表' ROW_FORMAT = DYNAMIC;
 
 
@@ -112,8 +122,64 @@ CREATE TABLE `sys_tenant_package`
     `delete_by`    bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time`  datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`      tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_tenant_package_name` (`package_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统租户套餐表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_dept
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_dept`;
+CREATE TABLE `sys_dept`
+(
+    `id`             bigint(20) NOT NULL COMMENT 'id',
+    `tenant_id`      bigint(20) NOT NULL COMMENT '租户ID',
+    `parent_id`      bigint(20) NOT NULL DEFAULT 0 COMMENT '父级部门ID',
+    `ancestors`      varchar(500) NULL DEFAULT NULL COMMENT '祖级部门ID集合',
+    `dept_name`      varchar(64) NOT NULL COMMENT '部门名称',
+    `leader_user_id` bigint(20) NULL DEFAULT NULL COMMENT '负责人用户ID',
+    `phone`          varchar(20) NULL DEFAULT NULL COMMENT '联系电话',
+    `email`          varchar(64) NULL DEFAULT NULL COMMENT '邮箱',
+    `sort`           int(11) NOT NULL DEFAULT 0 COMMENT '排序',
+    `status`         tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态(0-正常 1-停用)',
+    `remark`         varchar(255) NULL DEFAULT NULL COMMENT '备注',
+    `create_by`      bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time`    datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`      bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time`    datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`      bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time`    datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`        tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_dept_tenant_parent_name` (`tenant_id`, `parent_id`, `dept_name`) USING BTREE,
+    KEY `idx_dept_parent_id` (`parent_id`) USING BTREE,
+    KEY `idx_dept_tenant_parent` (`tenant_id`, `parent_id`) USING BTREE,
+    KEY `idx_dept_leader_user_id` (`leader_user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统部门表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_post
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_post`;
+CREATE TABLE `sys_post`
+(
+    `id`          bigint(20) NOT NULL COMMENT 'id',
+    `tenant_id`   bigint(20) NOT NULL COMMENT '租户ID',
+    `post_name`   varchar(64) NOT NULL COMMENT '岗位名称',
+    `post_code`   varchar(64) NOT NULL COMMENT '岗位编码',
+    `sort`        int(11) NOT NULL DEFAULT 0 COMMENT '排序',
+    `status`      tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态(0-正常 1-停用)',
+    `remark`      varchar(255) NULL DEFAULT NULL COMMENT '备注',
+    `create_by`   bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`   bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_post_tenant_code` (`tenant_id`, `post_code`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统岗位表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for sys_role
@@ -137,8 +203,33 @@ CREATE TABLE `sys_role`
     `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    KEY `idx_role_tenant_code` (`tenant_id`, `role_code`) USING BTREE,
+    KEY `idx_role_tenant_type` (`tenant_id`, `role_type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统角色表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_role_dept
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_role_dept`;
+CREATE TABLE `sys_role_dept`
+(
+    `id`          bigint(20) NOT NULL COMMENT 'id',
+    `role_id`     bigint(20) NOT NULL COMMENT '角色ID',
+    `dept_id`     bigint(20) NOT NULL COMMENT '部门ID',
+    `tenant_id`   bigint(20) NOT NULL COMMENT '租户ID',
+    `create_by`   bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`   bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_role_dept_tenant` (`role_id`, `dept_id`, `tenant_id`) USING BTREE,
+    KEY `idx_role_dept_dept_id` (`dept_id`) USING BTREE,
+    KEY `idx_role_dept_tenant_dept` (`tenant_id`, `dept_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统角色部门关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for sys_user_role
@@ -157,8 +248,34 @@ CREATE TABLE `sys_user_role`
     `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_user_role_tenant` (`user_id`, `role_id`, `tenant_id`) USING BTREE,
+    KEY `idx_user_role_role_id` (`role_id`) USING BTREE,
+    KEY `idx_user_role_tenant_role` (`tenant_id`, `role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户角色关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_user_post
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_user_post`;
+CREATE TABLE `sys_user_post`
+(
+    `id`          bigint(20) NOT NULL COMMENT 'id',
+    `user_id`     bigint(20) NOT NULL COMMENT '用户ID',
+    `post_id`     bigint(20) NOT NULL COMMENT '岗位ID',
+    `tenant_id`   bigint(20) NOT NULL COMMENT '租户ID',
+    `create_by`   bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`   bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_user_post_tenant` (`user_id`, `post_id`, `tenant_id`) USING BTREE,
+    KEY `idx_user_post_post_id` (`post_id`) USING BTREE,
+    KEY `idx_user_post_tenant_post` (`tenant_id`, `post_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户岗位关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for sys_permission
@@ -188,8 +305,54 @@ CREATE TABLE `sys_permission`
     `delete_by`   bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
     `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`) USING BTREE,
+    KEY `idx_permission_perms` (`perms`) USING BTREE,
+    KEY `idx_permission_parent_id` (`parent_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统权限菜单表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_role_permission
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_role_permission`;
+CREATE TABLE `sys_role_permission`
+(
+    `id`            bigint(20) NOT NULL COMMENT 'id',
+    `role_id`       bigint(20) NOT NULL COMMENT '角色ID',
+    `permission_id` bigint(20) NOT NULL COMMENT '权限ID',
+    `tenant_id`     bigint(20) NOT NULL COMMENT '租户ID',
+    `create_by`     bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time`   datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`     bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time`   datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`     bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time`   datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`       tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_role_permission_tenant` (`role_id`, `permission_id`, `tenant_id`) USING BTREE,
+    KEY `idx_role_permission_permission_id` (`permission_id`) USING BTREE,
+    KEY `idx_role_permission_tenant_permission` (`tenant_id`, `permission_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统角色权限关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for sys_tenant_package_permission
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_tenant_package_permission`;
+CREATE TABLE `sys_tenant_package_permission`
+(
+    `id`            bigint(20) NOT NULL COMMENT 'id',
+    `package_id`    bigint(20) NOT NULL COMMENT '租户套餐ID',
+    `permission_id` bigint(20) NOT NULL COMMENT '权限ID',
+    `create_by`     bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time`   datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`     bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time`   datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`     bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time`   datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`       tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_tenant_package_permission` (`package_id`, `permission_id`) USING BTREE,
+    KEY `idx_tenant_package_permission_id` (`permission_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统租户套餐权限关联表' ROW_FORMAT = DYNAMIC;
 
 SET
 FOREIGN_KEY_CHECKS = 1;
