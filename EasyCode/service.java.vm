@@ -1,0 +1,25 @@
+## 引入公共宏定义
+$!{define.vm}
+
+## 设置表后缀
+#setTableSuffix("Service")
+
+## 设置文件保存路径与后缀
+#save("/service", "Service.java")
+
+## 设置接口文件名
+$!{tool.call($callback.setFileName($tool.append("I", $tableInfo.name, "Service.java")))}
+
+## 设置包名后缀
+#setPackageSuffix("service")
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import $!{tableInfo.savePackageName}.model.entity.$!{tableInfo.name};
+
+/**
+ * @author $!{author}
+ * @date $!{time.currTime("yyyy/MM/dd")}
+ * @description $!{tableInfo.comment}服务接口
+ */
+public interface I$!{tableName} extends IService<$!{tableInfo.name}> {
+}

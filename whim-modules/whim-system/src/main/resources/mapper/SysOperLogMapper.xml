@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whim.system.mapper.SysOperLogMapper">
+
+    <resultMap id="SysOperLogMap" type="com.whim.system.model.entity.SysOperLog">
+        <id property="id" column="id" jdbcType=""/>
+        <result property="title" column="title" jdbcType=""/>
+        <result property="logType" column="log_type" jdbcType=""/>
+        <result property="methodName" column="method_name" jdbcType=""/>
+        <result property="requestMethod" column="request_method" jdbcType=""/>
+        <result property="operName" column="oper_name" jdbcType=""/>
+        <result property="operIp" column="oper_ip" jdbcType=""/>
+        <result property="requestUrl" column="request_url" jdbcType=""/>
+        <result property="operLocation" column="oper_location" jdbcType=""/>
+        <result property="requestParam" column="request_param" jdbcType=""/>
+        <result property="responseParam" column="response_param" jdbcType=""/>
+        <result property="status" column="status" jdbcType=""/>
+        <result property="errorMessage" column="error_message" jdbcType=""/>
+        <result property="operTime" column="oper_time" jdbcType=""/>
+        <result property="costTime" column="cost_time" jdbcType=""/>
+    </resultMap>
+
+</mapper>
+

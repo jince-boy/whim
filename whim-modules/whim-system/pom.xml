@@ -18,6 +18,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-satoken</artifactId>
         </dependency>
+        <!-- mybatis-plus认证模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-mybatisplus</artifactId>
+        </dependency>
         <!-- redis 模块 -->
         <dependency>
             <groupId>com.whim</groupId>

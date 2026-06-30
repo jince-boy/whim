@@ -1,0 +1,24 @@
+## 引入公共宏定义
+$!{define.vm}
+
+## 设置表后缀
+#setTableSuffix("Mapper")
+
+## 设置文件保存路径与后缀
+#save("/mapper", "Mapper.java")
+
+## 设置包名后缀
+#setPackageSuffix("mapper")
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import $!{tableInfo.savePackageName}.model.entity.$!{tableInfo.name};
+import org.apache.ibatis.annotations.Mapper;
+
+/**
+ * @author $!{author}
+ * @date $!{time.currTime("yyyy/MM/dd")}
+ * @description $!{tableInfo.comment}数据库访问层
+ */
+@Mapper
+public interface $!{tableName} extends BaseMapper<$!{tableInfo.name}> {
+}

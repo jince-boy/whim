@@ -1,0 +1,37 @@
+## 引入公共宏定义
+$!{define.vm}
+
+## 设置表后缀
+#setTableSuffix("Controller")
+
+## 设置文件保存路径与后缀
+#save("/controller", "Controller.java")
+
+## 设置包名后缀
+#setPackageSuffix("controller")
+
+## 定义服务名
+#set($serviceName = $!tool.append($!tool.firstLowerCase($!tableInfo.name), "Service"))
+
+import $!{tableInfo.savePackageName}.service.I$!{tableInfo.name}Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author $!{author}
+ * @date $!{time.currTime("yyyy/MM/dd")}
+ * @description $!{tableInfo.comment}控制层
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/$!tool.firstLowerCase($!tableInfo.name)")
+public class $!{tableName} {
+
+    /**
+     * $!{tableInfo.comment}服务对象
+     */
+    private final I$!{tableInfo.name}Service $!{serviceName};
+}
