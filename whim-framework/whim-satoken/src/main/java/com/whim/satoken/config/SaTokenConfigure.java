@@ -3,16 +3,20 @@ package com.whim.satoken.config;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.router.SaRouter;
+import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.handler.SaTokenExceptionHandler;
 import com.whim.satoken.security.StpAuthManager;
+import com.whim.satoken.service.IAuthQueryService;
+import com.whim.satoken.service.impl.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -77,6 +81,18 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @Bean
     public List<StpLogic> registeredStpLogics() {
         return StpAuthManager.allRegistered();
+    }
+
+    /**
+     * 注册 Sa-Token 权限查询适配器。
+     *
+     * @param authQueryServices 业务模块提供的授权查询扩展点
+     * @return Sa-Token 权限查询接口实现
+     */
+    @Bean
+    @ConditionalOnMissingBean(StpInterface.class)
+    public StpInterface stpInterface(ObjectProvider<IAuthQueryService> authQueryServices) {
+        return new StpInterfaceImpl(authQueryServices);
     }
 
     /**
