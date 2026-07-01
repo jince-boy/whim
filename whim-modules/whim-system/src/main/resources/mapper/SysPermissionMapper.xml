@@ -13,7 +13,7 @@
         <result property="component" column="component" jdbcType=""/>
         <result property="keepAlive" column="keep_alive" jdbcType=""/>
         <result property="sort" column="sort" jdbcType=""/>
-        <result property="code" column="code" jdbcType=""/>
+        <result property="code" column="perms" jdbcType=""/>
         <result property="visible" column="visible" jdbcType=""/>
         <result property="status" column="status" jdbcType=""/>
         <result property="icon" column="icon" jdbcType=""/>
@@ -26,5 +26,23 @@
         <result property="deleted" column="deleted" jdbcType=""/>
     </resultMap>
 
-</mapper>
+    <select id="selectPermissionCodeSetByUserId" resultType="java.lang.String">
+        SELECT p.perms
+        FROM sys_user_role ur
+                 INNER JOIN sys_role r
+                            ON r.id = ur.role_id
+                                AND r.deleted = 0
+                                AND r.status = 0
+                 INNER JOIN sys_role_permission rp
+                            ON rp.role_id = r.id
+                                AND rp.tenant_id = ur.tenant_id
+                                AND rp.deleted = 0
+                 INNER JOIN sys_permission p
+                            ON p.id = rp.permission_id
+                                AND p.deleted = 0
+                                AND p.status = 0
+        WHERE ur.user_id = #{userId}
+          AND ur.deleted = 0
+    </select>
 
+</mapper>

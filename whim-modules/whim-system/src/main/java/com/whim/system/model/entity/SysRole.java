@@ -1,14 +1,16 @@
 package com.whim.system.model.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/06/30
  * @description 系统角色表实体类
  */
@@ -31,6 +33,7 @@ public class SysRole implements Serializable {
     /**
      * 角色编码
      */
+    @TableField(value = "role_code")
     private String code;
 
     /**

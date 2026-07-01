@@ -250,6 +250,7 @@ CREATE TABLE `sys_user_role`
     `deleted`     tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_user_role_tenant` (`user_id`, `role_id`, `tenant_id`) USING BTREE,
+    KEY `idx_user_role_user_deleted_role_tenant` (`user_id`, `deleted`, `role_id`, `tenant_id`) USING BTREE,
     KEY `idx_user_role_role_id` (`role_id`) USING BTREE,
     KEY `idx_user_role_tenant_role` (`tenant_id`, `role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户角色关联表' ROW_FORMAT = DYNAMIC;
@@ -329,6 +330,7 @@ CREATE TABLE `sys_role_permission`
     `deleted`       tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_role_permission_tenant` (`role_id`, `permission_id`, `tenant_id`) USING BTREE,
+    KEY `idx_role_permission_role_tenant_deleted_permission` (`role_id`, `tenant_id`, `deleted`, `permission_id`) USING BTREE,
     KEY `idx_role_permission_permission_id` (`permission_id`) USING BTREE,
     KEY `idx_role_permission_tenant_permission` (`tenant_id`, `permission_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统角色权限关联表' ROW_FORMAT = DYNAMIC;

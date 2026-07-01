@@ -1,0 +1,4 @@
+interface:
+  display_name: "Whim Engineering Rules"
+  short_description: "Readable, fast, safe Whim backend rules"
+  default_prompt: "Use $whim-engineering-rules when editing the Whim backend project."

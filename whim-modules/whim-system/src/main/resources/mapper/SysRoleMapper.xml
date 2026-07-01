@@ -5,7 +5,7 @@
     <resultMap id="SysRoleMap" type="com.whim.system.model.entity.SysRole">
         <id property="id" column="id" jdbcType=""/>
         <result property="name" column="name" jdbcType=""/>
-        <result property="code" column="code" jdbcType=""/>
+        <result property="code" column="role_code" jdbcType=""/>
         <result property="dataScope" column="data_scope" jdbcType=""/>
         <result property="description" column="description" jdbcType=""/>
         <result property="status" column="status" jdbcType=""/>
@@ -17,5 +17,15 @@
         <result property="deleted" column="deleted" jdbcType=""/>
     </resultMap>
 
-</mapper>
+    <select id="selectRoleCodeSetByUserId" resultType="java.lang.String">
+        SELECT r.role_code
+        FROM sys_user_role ur
+                 INNER JOIN sys_role r
+                            ON r.id = ur.role_id
+                                AND r.deleted = 0
+                                AND r.status = 0
+        WHERE ur.user_id = #{userId}
+          AND ur.deleted = 0
+    </select>
 
+</mapper>

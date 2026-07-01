@@ -16,7 +16,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -91,7 +90,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
      */
     @Bean
     @ConditionalOnMissingBean(StpInterface.class)
-    public StpInterface stpInterface(ObjectProvider<IAuthQueryService> authQueryServices) {
+    public StpInterface stpInterface(List<IAuthQueryService> authQueryServices) {
         return new StpInterfaceImpl(authQueryServices);
     }
 

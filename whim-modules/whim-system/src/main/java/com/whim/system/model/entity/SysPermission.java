@@ -1,14 +1,16 @@
 package com.whim.system.model.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/06/30
  * @description 权限表(菜单和按钮权限)实体类
  */
@@ -71,6 +73,7 @@ public class SysPermission implements Serializable {
     /**
      * 权限标识(如:system:user:add)
      */
+    @TableField(value = "perms")
     private String code;
 
     /**
