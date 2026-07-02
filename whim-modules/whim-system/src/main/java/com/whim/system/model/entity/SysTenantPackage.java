@@ -12,13 +12,13 @@ import java.io.Serializable;
 /**
  * @author jince
  * @date 2026/07/02
- * @description 系统用户表实体类
+ * @description 系统租户套餐表实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SysUser extends BaseEntity implements Serializable {
+public class SysTenantPackage extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 612223036732363306L;
+    private static final long serialVersionUID = -13437993275111523L;
 
     /**
      * id
@@ -26,42 +26,17 @@ public class SysUser extends BaseEntity implements Serializable {
     private Long id;
 
     /**
-     * 用户名
+     * 套餐名称
      */
-    private String username;
+    private String packageName;
 
     /**
-     * 密码(加密存储)
+     * 排序
      */
-    private String password;
+    private Integer sort;
 
     /**
-     * 头像URL
-     */
-    private String avatar;
-
-    /**
-     * 真实姓名
-     */
-    private String name;
-
-    /**
-     * 电子邮箱
-     */
-    private String email;
-
-    /**
-     * 手机号码
-     */
-    private String phone;
-
-    /**
-     * 性别(0-未知 1-男 2-女)
-     */
-    private Integer gender;
-
-    /**
-     * 状态(0-启用 1-禁用)
+     * 状态(0-正常 1-停用)
      */
     private Integer status;
 

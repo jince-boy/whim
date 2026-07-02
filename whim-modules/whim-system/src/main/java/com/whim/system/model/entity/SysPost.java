@@ -12,33 +12,33 @@ import java.io.Serializable;
 /**
  * @author jince
  * @date 2026/07/02
- * @description 岗位表实体类
+ * @description 系统岗位表实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SysPost extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 133306610171905452L;
+    private static final long serialVersionUID = 666746659954323077L;
 
     /**
-     * 岗位ID
+     * id
      */
     private Long id;
 
     /**
-     * 部门ID
+     * 租户ID
      */
-    private Long deptId;
-
-    /**
-     * 岗位编码
-     */
-    private String code;
+    private Long tenantId;
 
     /**
      * 岗位名称
      */
-    private String name;
+    private String postName;
+
+    /**
+     * 岗位编码
+     */
+    private String postCode;
 
     /**
      * 排序
@@ -46,7 +46,7 @@ public class SysPost extends BaseEntity implements Serializable {
     private Integer sort;
 
     /**
-     * 状态(0启用，1禁用)
+     * 状态(0-正常 1-停用)
      */
     private Integer status;
 

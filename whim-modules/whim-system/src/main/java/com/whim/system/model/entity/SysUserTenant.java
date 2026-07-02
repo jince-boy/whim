@@ -12,13 +12,13 @@ import java.io.Serializable;
 /**
  * @author jince
  * @date 2026/07/02
- * @description 系统角色权限关联表实体类
+ * @description 系统用户租户关联表实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SysRolePermission extends BaseEntity implements Serializable {
+public class SysUserTenant extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 211867614786503794L;
+    private static final long serialVersionUID = 548438080425666766L;
 
     /**
      * id
@@ -26,14 +26,9 @@ public class SysRolePermission extends BaseEntity implements Serializable {
     private Long id;
 
     /**
-     * 角色ID
+     * 用户ID
      */
-    private Long roleId;
-
-    /**
-     * 权限ID
-     */
-    private Long permissionId;
+    private Long userId;
 
     /**
      * 租户ID

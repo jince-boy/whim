@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 权限表(菜单和按钮权限)控制层
+ * @date 2026/07/02
+ * @description 系统权限菜单表控制层
  */
 @Slf4j
 @RestController
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SysPermissionController {
 
     /**
-     * 权限表(菜单和按钮权限)服务对象
+     * 系统权限菜单表服务对象
      */
     private final ISysPermissionService sysPermissionService;
 }

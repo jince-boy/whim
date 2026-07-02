@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author Jince
- * @date 2026/06/30
+ * @author jince
+ * @date 2026/07/02
  * @description 系统角色表服务实现类
  */
 @Service
@@ -31,3 +31,4 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         return Objects.requireNonNullElse(baseMapper.selectRoleCodeSetByUserId(userId), Set.of());
     }
 }
+

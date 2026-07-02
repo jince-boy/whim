@@ -8,13 +8,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.Set;
 
 /**
- * @author Jince
- * @date 2026/06/30
- * @description 权限表(菜单和按钮权限)数据库访问层
+ * @author jince
+ * @date 2026/07/02
+ * @description 系统权限菜单表数据库访问层
  */
 @Mapper
 public interface SysPermissionMapper extends BaseMapper<SysPermission> {
-
     /**
      * 查询用户已启用权限编码列表。
      *
@@ -23,3 +22,4 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      */
     Set<String> selectPermissionCodeSetByUserId(@Param("userId") Long userId);
 }
+

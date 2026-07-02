@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 角色与部门关联表服务实现类
+ * @date 2026/07/02
+ * @description 系统角色部门关联表服务实现类
  */
 @Service
 public class SysRoleDeptServiceImpl extends ServiceImpl<SysRoleDeptMapper, SysRoleDept> implements ISysRoleDeptService {

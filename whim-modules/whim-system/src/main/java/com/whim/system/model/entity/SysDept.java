@@ -18,7 +18,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 public class SysDept extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = -76011267140552437L;
+    private static final long serialVersionUID = -63138490628218808L;
 
     /**
      * id

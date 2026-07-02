@@ -5,8 +5,8 @@ import com.whim.system.model.entity.SysDept;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 部门表服务接口
+ * @date 2026/07/02
+ * @description 系统部门表服务接口
  */
 public interface ISysDeptService extends IService<SysDept> {
 }

@@ -10,9 +10,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author Jince
- * @date 2026/06/30
- * @description 权限表(菜单和按钮权限)服务实现类
+ * @author jince
+ * @date 2026/07/02
+ * @description 系统权限菜单表服务实现类
  */
 @Service
 public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements ISysPermissionService {
@@ -31,3 +31,4 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         return Objects.requireNonNullElse(baseMapper.selectPermissionCodeSetByUserId(userId), Set.of());
     }
 }
+

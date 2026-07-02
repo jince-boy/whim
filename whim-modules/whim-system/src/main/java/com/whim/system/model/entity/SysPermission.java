@@ -12,88 +12,83 @@ import java.io.Serializable;
 /**
  * @author jince
  * @date 2026/07/02
- * @description 权限表(菜单和按钮权限)实体类
+ * @description 系统权限菜单表实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SysPermission extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = -20443111679735048L;
+    private static final long serialVersionUID = 568214924677591964L;
 
     /**
-     * 权限ID
+     * id
      */
     private Long id;
 
     /**
      * 路由名称
      */
-    private String name;
+    private String routeName;
 
     /**
      * 菜单名称
      */
-    private String title;
+    private String menuName;
 
     /**
-     * 父权限ID(0表示根节点)
+     * 权限标识
+     */
+    private String perms;
+
+    /**
+     * 父级ID(0为顶级菜单)
      */
     private Long parentId;
 
     /**
      * 类型(1-目录 2-菜单 3-按钮 4-外链)
      */
-    private Integer type;
+    private Integer menuType;
 
     /**
-     * 路由路径
+     * 前端路由路径
      */
     private String path;
 
     /**
      * 路由参数
      */
-    private String queryParam;
+    private String param;
 
     /**
-     * 组件路径
+     * 前端组件路径
      */
     private String component;
 
     /**
-     * 页面是否缓存(0不缓存，1缓存)
+     * 是否缓存(0-不缓存 1-缓存)
      */
-    private Integer keepAlive;
+    private Integer isCache;
 
     /**
-     * 显示排序(升序)
+     * 排序
      */
     private Integer sort;
 
     /**
-     * 权限标识(如:system:user:add)
-     */
-    private String code;
-
-    /**
-     * 是否可见(0-显示 1-隐藏)
-     */
-    private Integer visible;
-
-    /**
-     * 状态(0-启用 1-禁用)
-     */
-    private Integer status;
-
-    /**
-     * 图标名称
+     * 图标
      */
     private String icon;
 
     /**
-     * 重定向路径
+     * 可见性(0-显示 1-隐藏)
      */
-    private String redirect;
+    private Integer visible;
+
+    /**
+     * 状态(0-正常 1-停用)
+     */
+    private Integer status;
 
     /**
      * 备注

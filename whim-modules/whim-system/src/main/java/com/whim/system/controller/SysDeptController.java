@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 部门表控制层
+ * @date 2026/07/02
+ * @description 系统部门表控制层
  */
 @Slf4j
 @RestController
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SysDeptController {
 
     /**
-     * 部门表服务对象
+     * 系统部门表服务对象
      */
     private final ISysDeptService sysDeptService;
 }

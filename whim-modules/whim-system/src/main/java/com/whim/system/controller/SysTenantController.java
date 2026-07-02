@@ -1,7 +1,7 @@
 package com.whim.system.controller;
 
 
-import com.whim.system.service.ISysOperLogService;
+import com.whim.system.service.ISysTenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,18 +9,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 操作日志控制层
+ * @date 2026/07/02
+ * @description 系统租户表控制层
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/sysOperLog")
-public class SysOperLogController {
+@RequestMapping("/sysTenant")
+public class SysTenantController {
 
     /**
-     * 操作日志服务对象
+     * 系统租户表服务对象
      */
-    private final ISysOperLogService sysOperLogService;
+    private final ISysTenantService sysTenantService;
 }
 

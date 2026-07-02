@@ -18,35 +18,45 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 public class SysRole extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = -66704914167185983L;
+    private static final long serialVersionUID = 499195426849018744L;
 
     /**
-     * 角色ID
+     * id
      */
     private Long id;
 
     /**
      * 角色名称
      */
-    private String name;
+    private String roleName;
 
     /**
      * 角色编码
      */
-    private String code;
+    private String roleCode;
 
     /**
-     * 数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限 5：仅本人数据权限 6：部门及以下或本人数据权限）
+     * 角色类型(0-系统 1-租户)
+     */
+    private Integer roleType;
+
+    /**
+     * 数据范围(1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限 5：仅本人数据权限 6：部门及以下或本人数据权限)
      */
     private Integer dataScope;
 
     /**
-     * 角色描述
+     * 排序
      */
-    private String description;
+    private Integer sort;
 
     /**
-     * 状态(0-启用 1-禁用)
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
+     * 状态(0-正常 1-停用)
      */
     private Integer status;
 

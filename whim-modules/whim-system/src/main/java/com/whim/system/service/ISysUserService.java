@@ -5,9 +5,10 @@ import com.whim.satoken.service.IAuthQueryService;
 import com.whim.system.model.entity.SysUser;
 
 /**
- * @author Jince
- * @date 2026/06/30
+ * @author jince
+ * @date 2026/07/02
  * @description 系统用户表服务接口
  */
 public interface ISysUserService extends IService<SysUser>, IAuthQueryService {
 }
+

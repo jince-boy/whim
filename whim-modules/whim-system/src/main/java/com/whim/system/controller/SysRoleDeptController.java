@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 角色与部门关联表控制层
+ * @date 2026/07/02
+ * @description 系统角色部门关联表控制层
  */
 @Slf4j
 @RestController
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SysRoleDeptController {
 
     /**
-     * 角色与部门关联表服务对象
+     * 系统角色部门关联表服务对象
      */
     private final ISysRoleDeptService sysRoleDeptService;
 }
