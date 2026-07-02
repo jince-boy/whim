@@ -1,26 +1,27 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 用户岗位关联表实体类
  */
 @Data
-public class SysUserPost implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysUserPost extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 346965191634059521L;
+    private static final long serialVersionUID = -22619908774593753L;
 
     /**
      * ID
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -32,26 +33,6 @@ public class SysUserPost implements Serializable {
      * 岗位ID
      */
     private Long postId;
-
-    /**
-     * 创建人
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 修改人
-     */
-    private Long updateBy;
-
-    /**
-     * 修改时间
-     */
-    private LocalDateTime updateTime;
 
 }
 

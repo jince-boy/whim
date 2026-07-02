@@ -2,20 +2,5 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysPostMapper">
 
-    <resultMap id="SysPostMap" type="com.whim.system.model.entity.SysPost">
-        <id property="id" column="id" jdbcType=""/>
-        <result property="deptId" column="dept_id" jdbcType=""/>
-        <result property="code" column="code" jdbcType=""/>
-        <result property="name" column="name" jdbcType=""/>
-        <result property="sort" column="sort" jdbcType=""/>
-        <result property="status" column="status" jdbcType=""/>
-        <result property="remark" column="remark" jdbcType=""/>
-        <result property="createBy" column="create_by" jdbcType=""/>
-        <result property="createTime" column="create_time" jdbcType=""/>
-        <result property="updateBy" column="update_by" jdbcType=""/>
-        <result property="updateTime" column="update_time" jdbcType=""/>
-        <result property="deleted" column="deleted" jdbcType=""/>
-    </resultMap>
-
 </mapper>
 

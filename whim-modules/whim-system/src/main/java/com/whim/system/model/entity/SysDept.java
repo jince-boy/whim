@@ -1,62 +1,54 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author jince
- * @date 2026/06/30
- * @description 部门表实体类
+ * @date 2026/07/02
+ * @description 系统部门表实体类
  */
 @Data
-public class SysDept implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysDept extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 122178570630218390L;
+    private static final long serialVersionUID = -76011267140552437L;
 
     /**
-     * 部门ID
+     * id
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
-     * 父部门ID(0表示根部门)
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
+     * 父级部门ID
      */
     private Long parentId;
 
     /**
-     * 祖级列表(逗号分隔，如:0,1,2)
+     * 祖级部门ID集合
      */
     private String ancestors;
 
     /**
      * 部门名称
      */
-    private String name;
+    private String deptName;
 
     /**
-     * 部门编码
+     * 负责人用户ID
      */
-    private String code;
-
-    /**
-     * 排序(升序)
-     */
-    private Integer sort;
-
-    /**
-     * 部门负责人ID
-     */
-    private Long leaderId;
-
-    /**
-     * 部门负责人姓名
-     */
-    private String leaderName;
+    private Long leaderUserId;
 
     /**
      * 联系电话
@@ -69,6 +61,11 @@ public class SysDept implements Serializable {
     private String email;
 
     /**
+     * 排序
+     */
+    private Integer sort;
+
+    /**
      * 状态(0-正常 1-停用)
      */
     private Integer status;
@@ -79,28 +76,9 @@ public class SysDept implements Serializable {
     private String remark;
 
     /**
-     * 创建人ID
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新人ID
-     */
-    private Long updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
      * 删除标志(0-未删除 1-已删除)
      */
+    @TableLogic
     private Integer deleted;
 
 }

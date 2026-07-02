@@ -13,14 +13,4 @@ $!{tool.call($callback.setFileName($tool.append($tableInfo.name, "Mapper.xml")))
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="$!{tableInfo.savePackageName}.mapper.$!{tableName}">
 
-    <resultMap id="$!{tableInfo.name}Map" type="$!{tableInfo.savePackageName}.model.entity.$!{tableInfo.name}">
-#foreach($column in $tableInfo.fullColumn)
-        #if($tableInfo.pkColumn && $tableInfo.pkColumn.size() > 0 && $tableInfo.pkColumn.get(0).name.equals($column.name))
-        <id property="$!{column.name}" column="$!{column.obj.name}" jdbcType="$!{column.ext.jdbcType}"/>
-        #else
-        <result property="$!{column.name}" column="$!{column.obj.name}" jdbcType="$!{column.ext.jdbcType}"/>
-        #end
-#end
-    </resultMap>
-
 </mapper>

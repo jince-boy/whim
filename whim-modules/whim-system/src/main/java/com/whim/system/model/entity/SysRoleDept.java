@@ -1,26 +1,27 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 角色与部门关联表实体类
  */
 @Data
-public class SysRoleDept implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysRoleDept extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 294357337651206652L;
+    private static final long serialVersionUID = -91847725850598178L;
 
     /**
      *
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -32,26 +33,6 @@ public class SysRoleDept implements Serializable {
      *
      */
     private Long deptId;
-
-    /**
-     *
-     */
-    private Long createBy;
-
-    /**
-     *
-     */
-    private LocalDateTime createTime;
-
-    /**
-     *
-     */
-    private Long updateBy;
-
-    /**
-     *
-     */
-    private LocalDateTime updateTime;
 
 }
 

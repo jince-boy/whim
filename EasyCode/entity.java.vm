@@ -7,50 +7,31 @@ $!{define.vm}
 ## 设置包名后缀
 #setPackageSuffix("model.entity")
 
-## 公共审计字段识别：当表完整包含 BaseEntity 字段时，生成实体继承 BaseEntity 并跳过重复字段
-#set($hasCreateBy = false)
-#set($hasCreateTime = false)
-#set($hasUpdateBy = false)
-#set($hasUpdateTime = false)
-#set($hasDeleteBy = false)
-#set($hasDeleteTime = false)
-#set($baseColumnNameSet = $tool.newHashSet("create_by", "create_time", "update_by", "update_time", "delete_by", "delete_time"))
+#set($hasDeleted = false)
+#set($hasLocalDateTime = false)
 #foreach($column in $tableInfo.fullColumn)
-    #set($dbColumnNameLower = $column.obj.name.toLowerCase())
-    #if($dbColumnNameLower.equals("create_by"))
-        #set($hasCreateBy = true)
+    #if($column.name.equals("deleted"))
+        #set($hasDeleted = true)
     #end
-    #if($dbColumnNameLower.equals("create_time"))
-        #set($hasCreateTime = true)
+    #if(!$column.name.equals("createBy") && !$column.name.equals("createTime") && !$column.name.equals("updateBy") && !$column.name.equals("updateTime") && !$column.name.equals("deleteBy") && !$column.name.equals("deleteTime") && $tool.getClsNameByFullName($column.type).equals("LocalDateTime"))
+        #set($hasLocalDateTime = true)
     #end
-    #if($dbColumnNameLower.equals("update_by"))
-        #set($hasUpdateBy = true)
-    #end
-    #if($dbColumnNameLower.equals("update_time"))
-        #set($hasUpdateTime = true)
-    #end
-    #if($dbColumnNameLower.equals("delete_by"))
-        #set($hasDeleteBy = true)
-    #end
-    #if($dbColumnNameLower.equals("delete_time"))
-        #set($hasDeleteTime = true)
-    #end
-#end
-#set($useBaseEntity = false)
-#if($hasCreateBy && $hasCreateTime && $hasUpdateBy && $hasUpdateTime && $hasDeleteBy && $hasDeleteTime)
-    #set($useBaseEntity = true)
 #end
 
 ## 自动导入字段类型
 $!{autoImport.vm}
-import com.baomidou.mybatisplus.annotation.TableId;
-#if($useBaseEntity)
-import com.whim.mybatisplus.model.entity.BaseEntity;
+#if($hasDeleted)
+import com.baomidou.mybatisplus.annotation.TableLogic;
 #end
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
+#if($hasLocalDateTime)
+import java.time.LocalDateTime;
+#end
 
 /**
  * @author $!{author}
@@ -58,24 +39,18 @@ import java.io.Serializable;
  * @description $!{tableInfo.comment}实体类
  */
 @Data
-#if($useBaseEntity)
+@EqualsAndHashCode(callSuper = true)
 public class $!{tableInfo.name} extends BaseEntity implements Serializable {
-#else
-public class $!{tableInfo.name} implements Serializable {
-#end
     @Serial
     private static final long serialVersionUID = $!{tool.serial()};
 
 #foreach($column in $tableInfo.fullColumn)
-    #set($dbColumnName = $column.obj.name)
-    #set($dbColumnNameLower = $dbColumnName.toLowerCase())
-    #set($isBaseColumn = $baseColumnNameSet.contains($dbColumnNameLower))
-    #if(!$useBaseEntity || !$isBaseColumn)
+    #if(!$column.name.equals("createBy") && !$column.name.equals("createTime") && !$column.name.equals("updateBy") && !$column.name.equals("updateTime") && !$column.name.equals("deleteBy") && !$column.name.equals("deleteTime"))
     /**
      * $!{column.comment}
      */
-        #if($tableInfo.pkColumn && $tableInfo.pkColumn.size() > 0 && $tableInfo.pkColumn.get(0).name.equals($column.name))
-    @TableId(value = "$!{dbColumnName}")
+        #if($column.name.equals("deleted"))
+    @TableLogic
         #end
     private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
 

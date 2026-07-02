@@ -1,26 +1,28 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 操作日志实体类
  */
 @Data
-public class SysOperLog implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysOperLog extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = -22061317923986590L;
+    private static final long serialVersionUID = 650015566521618061L;
 
     /**
      * id
      */
-    @TableId(value = "id")
     private Long id;
 
     /**

@@ -1,26 +1,27 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 系统字典表实体类
  */
 @Data
-public class SysDictType implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysDictType extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 608323066902496727L;
+    private static final long serialVersionUID = -63631833626331945L;
 
     /**
      * 字典ID
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -37,26 +38,6 @@ public class SysDictType implements Serializable {
      * 备注
      */
     private String remark;
-
-    /**
-     * 创建人ID
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新人ID
-     */
-    private Long updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 
 }
 

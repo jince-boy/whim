@@ -1,28 +1,28 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * @author Jince
- * @date 2026/06/30
+ * @author jince
+ * @date 2026/07/02
  * @description 系统角色表实体类
  */
 @Data
-public class SysRole implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysRole extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 391720676612410140L;
+    private static final long serialVersionUID = -66704914167185983L;
 
     /**
      * 角色ID
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -33,7 +33,6 @@ public class SysRole implements Serializable {
     /**
      * 角色编码
      */
-    @TableField(value = "role_code")
     private String code;
 
     /**
@@ -57,28 +56,9 @@ public class SysRole implements Serializable {
     private String remark;
 
     /**
-     * 创建人ID
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新人ID
-     */
-    private Long updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
      * 删除标志(0-未删除 1-已删除)
      */
+    @TableLogic
     private Integer deleted;
 
 }

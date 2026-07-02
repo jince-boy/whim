@@ -1,27 +1,28 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 系统用户表实体类
  */
 @Data
-public class SysUser implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysUser extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = 837678515675498136L;
+    private static final long serialVersionUID = -34374351238205922L;
 
     /**
      * 用户ID
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -75,28 +76,9 @@ public class SysUser implements Serializable {
     private String remark;
 
     /**
-     * 创建人ID
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新人ID
-     */
-    private Long updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
      * 删除标志(0-未删除 1-已删除)
      */
+    @TableLogic
     private Integer deleted;
 
 }

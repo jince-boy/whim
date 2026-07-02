@@ -1,26 +1,27 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author jince
- * @date 2026/06/30
+ * @date 2026/07/02
  * @description 角色-权限关联表实体类
  */
 @Data
-public class SysRolePermission implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SysRolePermission extends BaseEntity implements Serializable {
     @Serial
-    private static final long serialVersionUID = -78327119827786473L;
+    private static final long serialVersionUID = -97642885482502548L;
 
     /**
      * 关联ID
      */
-    @TableId(value = "id")
     private Long id;
 
     /**
@@ -32,26 +33,6 @@ public class SysRolePermission implements Serializable {
      * 权限ID
      */
     private Long permissionId;
-
-    /**
-     * 创建人ID
-     */
-    private Long createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新人ID
-     */
-    private Long updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 
 }
 
