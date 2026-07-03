@@ -54,6 +54,34 @@ CREATE TABLE `sys_tenant`
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统租户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Table structure for sys_config
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_config`;
+CREATE TABLE `sys_config`
+(
+    `id`           bigint(20) NOT NULL COMMENT 'id',
+    `config_key`   varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配置键',
+    `config_value` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '配置值',
+    `remark`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+    `create_by`    bigint(20) NULL DEFAULT NULL COMMENT '创建人ID',
+    `create_time`  datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `update_by`    bigint(20) NULL DEFAULT NULL COMMENT '更新人ID',
+    `update_time`  datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `delete_by`    bigint(20) NULL DEFAULT NULL COMMENT '删除人ID',
+    `delete_time`  datetime NULL DEFAULT NULL COMMENT '删除时间',
+    `deleted`      tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志(0-未删除 1-已删除)',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_config_key` (`config_key`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统配置表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_config
+-- ----------------------------
+INSERT INTO `sys_config` (`id`, `config_key`, `config_value`, `remark`, `create_by`, `create_time`, `update_by`,
+                          `update_time`, `delete_by`, `delete_time`, `deleted`)
+VALUES (1, 'system.captcha.enabled', 'true', '是否开启验证码', NULL, NOW(), NULL, NULL, NULL, NULL, 0);
+
+-- ----------------------------
 -- Table structure for sys_user
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_user`;

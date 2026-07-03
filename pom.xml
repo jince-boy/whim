@@ -41,6 +41,8 @@
         <sa-token-version>1.45.0</sa-token-version>
         <mybatis-plus-version>3.5.15</mybatis-plus-version>
         <p6spy.version>2.0.0</p6spy.version>
+        <altcha.version>2.0.2</altcha.version>
+        <org-json.version>20240303</org-json.version>
     </properties>
 
     <dependencyManagement>
@@ -106,6 +108,18 @@
                 <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
                 <artifactId>owasp-java-html-sanitizer</artifactId>
                 <version>${owasp-java-html-sanitizer.version}</version>
+            </dependency>
+            <!-- ALTCHA 验证码 -->
+            <dependency>
+                <groupId>org.altcha</groupId>
+                <artifactId>altcha</artifactId>
+                <version>${altcha.version}</version>
+            </dependency>
+            <!-- ALTCHA 运行时 JSON 依赖 -->
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${org-json.version}</version>
             </dependency>
             <!--基于 MapStruct 的增强库，简化对象映射（如 DTO 与 Entity 转换）的集成-->
             <dependency>

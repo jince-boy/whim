@@ -211,7 +211,7 @@ public class CaffeineCacheDecorator implements Cache {
     /**
      * 广播缓存失效消息。格式：nodeId::cacheName::localCacheKey
      *
-     * @param localCacheKey 本地缓存稳定键，使用 "*" 表示清空整个缓存
+     * @param cacheKey 本地缓存稳定键，使用 "*" 表示清空整个缓存
      */
     private void publishInvalidation(String cacheKey) {
         try {

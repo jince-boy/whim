@@ -58,6 +58,16 @@
            <groupId>org.springframework.security</groupId>
            <artifactId>spring-security-crypto</artifactId>
        </dependency>
+       <!-- ALTCHA 验证码 -->
+       <dependency>
+           <groupId>org.altcha</groupId>
+           <artifactId>altcha</artifactId>
+       </dependency>
+       <!-- ALTCHA 运行时 JSON 依赖 -->
+       <dependency>
+           <groupId>org.json</groupId>
+           <artifactId>json</artifactId>
+       </dependency>
        <!--基于 MapStruct 的增强库，简化对象映射（如 DTO 与 Entity 转换）的集成-->
        <dependency>
            <groupId>io.github.linpeilie</groupId>

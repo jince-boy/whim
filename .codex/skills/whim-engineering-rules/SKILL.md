@@ -28,6 +28,19 @@ When adding or changing methods:
 - Use early returns only when they make the method simpler.
 - Keep method bodies readable before extracting helpers.
 
+Order service class methods consistently by business operation type:
+
+1. Paginated queries.
+2. Detail queries.
+3. Normal list or single-value queries.
+4. Create methods.
+5. Update methods.
+6. Delete methods.
+7. Export and import methods.
+8. Other business methods.
+
+Apply the same order to service interfaces and service implementations. Keep related cache refresh, permission checks, and helper methods close to the public method only when doing so makes the flow clearer; otherwise place private helpers after public business methods.
+
 ## Performance First
 
 Prefer speed, performance, and safety when choosing an implementation.

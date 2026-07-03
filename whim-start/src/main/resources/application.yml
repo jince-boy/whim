@@ -65,6 +65,15 @@ spring:
       #      password: ${REDIS_PASSWD:}
       database: ${REDIS_DB:0}
 
+whim:
+  auth:
+    altcha:
+      hmac-signature-secret: ${ALTCHA_SECRET:whim-altcha-dev-secret}
+      algorithm: SHA-256
+      max-number: 1000000
+      salt-length: 12
+      expires-in-seconds: 300
+
 # 全局线程池相关配置
 thread-pool:
   # 是否启用计算任务执行器，设为 false 可直接关闭
