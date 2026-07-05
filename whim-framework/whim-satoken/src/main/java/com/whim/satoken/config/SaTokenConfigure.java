@@ -8,7 +8,6 @@ import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.satoken.context.AuthContext;
-import com.whim.satoken.handler.SaTokenExceptionHandler;
 import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.service.IAuthQueryService;
 import com.whim.satoken.service.impl.StpInterfaceImpl;
@@ -102,13 +101,5 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @ConditionalOnMissingBean(AuthenticationContext.class)
     public AuthenticationContext authenticationContext() {
         return new AuthContext();
-    }
-
-    /**
-     * 异常处理器
-     */
-    @Bean
-    public SaTokenExceptionHandler saTokenExceptionHandler() {
-        return new SaTokenExceptionHandler();
     }
 }

@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whim Login Demo</title>
+    <script async defer src="https://cdn.jsdelivr.net/npm/altcha@3.1.0/dist/main/altcha.js" type="module"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f5f7fb;
+            color: #172033;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+        }
+
+        main {
+            width: min(960px, calc(100vw - 32px));
+            margin: 32px auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        form,
+        section,
+        .panel {
+            display: grid;
+            gap: 14px;
+            border: 1px solid #d8dee8;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        form,
+        section {
+            padding: 20px;
+        }
+
+        .panel {
+            padding: 16px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #c6ceda;
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #111827;
+            font: 14px/1.5 Arial, "Microsoft YaHei", sans-serif;
+            background: #ffffff;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        textarea {
+            min-height: 150px;
+            font-family: Consolas, "Microsoft YaHei", monospace;
+            resize: vertical;
+        }
+
+        button {
+            justify-self: start;
+            border: 1px solid #175cd3;
+            border-radius: 6px;
+            padding: 10px 16px;
+            color: #ffffff;
+            background: #175cd3;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        button.secondary {
+            color: #175cd3;
+            background: #ffffff;
+        }
+
+        button:disabled {
+            border-color: #98a2b3;
+            background: #98a2b3;
+            cursor: not-allowed;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .state {
+            min-height: 40px;
+            border-radius: 6px;
+            padding: 10px 12px;
+            background: #eef4ff;
+            color: #1849a9;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 720px) {
+            header,
+            .grid {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            header {
+                align-items: start;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <h1>Whim 登录 Demo</h1>
+        <button id="reloadWidget" class="secondary" type="button">刷新验证码</button>
+    </header>
+
+    <form id="loginForm">
+        <div class="grid">
+            <label>
+                登录接口
+                <input id="loginUrl" value="http://localhost:8089/system/auth/login">
+            </label>
+            <label>
+                验证码接口
+                <input id="challengeUrl" value="http://localhost:8089/system/auth/captcha">
+            </label>
+            <label>
+                用户名
+                <input id="username" autocomplete="username" value="jince">
+            </label>
+            <label>
+                密码
+                <input id="password" type="password" autocomplete="current-password" value="12345678">
+            </label>
+        </div>
+        <label>
+            <span class="checkbox">
+                <input id="rememberMe" type="checkbox">
+                记住我
+            </span>
+        </label>
+
+        <div class="panel">
+            <div id="widgetHost"></div>
+        </div>
+
+        <div id="state" class="state">等待验证码组件加载</div>
+
+        <div class="actions">
+            <button id="submitLogin" type="submit">登录</button>
+            <button id="copyPayload" class="secondary" type="button">复制验证码 base64</button>
+        </div>
+    </form>
+
+    <section>
+        <h2>调试输出</h2>
+        <label>
+            验证码 base64
+            <textarea id="payloadOutput" readonly></textarea>
+        </label>
+        <label>
+            登录接口响应
+            <textarea id="loginResponse" readonly></textarea>
+        </label>
+    </section>
+</main>
+
+<script type="module">
+    const loginForm = document.querySelector('#loginForm');
+    const loginUrl = document.querySelector('#loginUrl');
+    const challengeUrl = document.querySelector('#challengeUrl');
+    const username = document.querySelector('#username');
+    const password = document.querySelector('#password');
+    const rememberMe = document.querySelector('#rememberMe');
+    const widgetHost = document.querySelector('#widgetHost');
+    const state = document.querySelector('#state');
+    const payloadOutput = document.querySelector('#payloadOutput');
+    const loginResponse = document.querySelector('#loginResponse');
+    const reloadWidget = document.querySelector('#reloadWidget');
+    const copyPayload = document.querySelector('#copyPayload');
+    const submitLogin = document.querySelector('#submitLogin');
+
+    function readPayload() {
+        const input = loginForm.querySelector('input[name="altcha"]');
+        payloadOutput.value = input?.value || '';
+        submitLogin.disabled = !payloadOutput.value;
+        return payloadOutput.value;
+    }
+
+    function resolveChallengeData(responseBody) {
+        return responseBody && responseBody.data ? responseBody.data : responseBody;
+    }
+
+    async function loadChallenge() {
+        const response = await fetch(challengeUrl.value.trim(), {
+            headers: {
+                Accept: 'application/json'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`验证码接口请求失败：${response.status}`);
+        }
+        const responseBody = await response.json();
+        const challenge = resolveChallengeData(responseBody);
+        if (!challenge || !challenge.parameters || !challenge.signature) {
+            throw new Error('验证码接口响应格式不正确');
+        }
+        return challenge;
+    }
+
+    async function submitLoginRequest(altcha) {
+        const response = await fetch(loginUrl.value.trim(), {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username.value.trim(),
+                password: password.value,
+                altcha,
+                rememberMe: rememberMe.checked
+            })
+        });
+        const text = await response.text();
+        try {
+            return JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+            return text;
+        }
+    }
+
+    function bindWidget(widget) {
+        widget.addEventListener('statechange', (event) => {
+            state.textContent = `当前状态：${event.detail.state}`;
+            if (event.detail.state === 'verified') {
+                window.setTimeout(readPayload, 50);
+            }
+        });
+        widget.addEventListener('verified', () => window.setTimeout(readPayload, 50));
+    }
+
+    async function rebuildWidget() {
+        payloadOutput.value = '';
+        loginResponse.value = '';
+        submitLogin.disabled = true;
+        state.textContent = '正在请求验证码';
+        widgetHost.replaceChildren();
+        try {
+            await customElements.whenDefined('altcha-widget');
+            const challenge = await loadChallenge();
+            const widget = document.createElement('altcha-widget');
+            widget.setAttribute('name', 'altcha');
+            widget.setAttribute('auto', 'onload');
+            widget.setAttribute('challenge', JSON.stringify(challenge));
+            widgetHost.append(widget);
+            bindWidget(widget);
+            state.textContent = '验证码已加载';
+        } catch (error) {
+            state.textContent = error.message;
+        }
+    }
+
+    window.addEventListener('load', () => {
+        if (!window.isSecureContext) {
+            state.textContent = '当前页面不是安全上下文，浏览器可能无法计算验证码';
+        }
+        rebuildWidget();
+    });
+
+    reloadWidget.addEventListener('click', rebuildWidget);
+
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const altcha = readPayload();
+        if (!altcha) {
+            state.textContent = '请先完成验证码';
+            return;
+        }
+        submitLogin.disabled = true;
+        state.textContent = '正在登录';
+        loginResponse.value = '';
+        try {
+            loginResponse.value = await submitLoginRequest(altcha);
+            state.textContent = '登录接口已返回';
+        } catch (error) {
+            loginResponse.value = error.message;
+            state.textContent = '登录接口请求失败';
+        } finally {
+            submitLogin.disabled = false;
+        }
+    });
+
+    copyPayload.addEventListener('click', async () => {
+        const altcha = readPayload();
+        if (!altcha) {
+            state.textContent = '验证码 base64 为空';
+            return;
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(altcha);
+            state.textContent = '验证码 base64 已复制';
+            return;
+        }
+        payloadOutput.focus();
+        payloadOutput.select();
+        state.textContent = '已选中验证码 base64';
+    });
+</script>
+</body>
+</html>

@@ -1,12 +1,15 @@
 package com.whim.web.handler;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
-import com.whim.core.web.Result;
+import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,64 @@ import java.util.Optional;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * 处理 Sa-Token 未登录异常
+     *
+     * @param exception Sa-Token 未登录异常
+     * @param request   当前请求
+     * @return 未认证响应
+     */
+    @ExceptionHandler(NotLoginException.class)
+    public Result<Void> handleNotLoginException(NotLoginException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 认证异常：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        String message;
+        if (NotLoginException.NOT_TOKEN.equals(exception.getType())) {
+            message = "未能读取到有效 token";
+        } else if (NotLoginException.INVALID_TOKEN.equals(exception.getType())) {
+            message = "token 无效";
+        } else if (NotLoginException.TOKEN_TIMEOUT.equals(exception.getType())) {
+            message = "token 已过期";
+        } else if (NotLoginException.BE_REPLACED.equals(exception.getType())) {
+            message = "token 已被顶下线";
+        } else if (NotLoginException.KICK_OUT.equals(exception.getType())) {
+            message = "token 已被踢下线";
+        } else if (NotLoginException.TOKEN_FREEZE.equals(exception.getType())) {
+            message = "token 已被冻结";
+        } else if (NotLoginException.NO_PREFIX.equals(exception.getType())) {
+            message = "未按照指定前缀提交 token";
+        } else {
+            message = "当前会话未登录";
+        }
+        return Result.unauthorized(message);
+    }
+
+    /**
+     * 处理 Sa-Token 权限不足异常
+     *
+     * @param exception Sa-Token 权限异常
+     * @param request   当前请求
+     * @return 无权限响应
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    public Result<Void> handleNotPermissionException(NotPermissionException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 权限不足：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        return Result.permissionDenied("用户没有权限");
+    }
+
+    /**
+     * 处理 Sa-Token 角色不足异常
+     *
+     * @param exception Sa-Token 角色异常
+     * @param request   当前请求
+     * @return 无权限响应
+     */
+    @ExceptionHandler(NotRoleException.class)
+    public Result<Void> handleNotRoleException(NotRoleException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 角色权限不足：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        return Result.permissionDenied("用户没有权限");
+    }
+
     /**
      * 处理未捕获的系统异常
      *

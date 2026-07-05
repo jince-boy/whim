@@ -1,4 +1,4 @@
-package com.whim.system.controller;
+package com.whim.controller.system;
 
 
 import com.whim.system.service.ISysTenantPackagePermissionService;

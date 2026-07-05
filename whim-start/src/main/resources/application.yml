@@ -69,9 +69,8 @@ whim:
   auth:
     altcha:
       hmac-signature-secret: ${ALTCHA_SECRET:whim-altcha-dev-secret}
-      algorithm: SHA-256
-      max-number: 1000000
-      salt-length: 12
+      algorithm: PBKDF2/SHA-256
+      cost: 5000
       expires-in-seconds: 300
 
 # 全局线程池相关配置

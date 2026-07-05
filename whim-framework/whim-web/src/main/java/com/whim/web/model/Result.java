@@ -1,4 +1,4 @@
-package com.whim.core.web;
+package com.whim.web.model;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;

@@ -31,6 +31,16 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
+     * 注册接口前缀注解映射支持。
+     *
+     * @return Spring MVC 组件注册扩展
+     */
+    @Bean
+    public ApiPrefixWebMvcRegistrations apiPrefixWebMvcRegistrations() {
+        return new ApiPrefixWebMvcRegistrations();
+    }
+
+    /**
      * 向 Spring MVC 注册时间字符串转换器。
      *
      * @param registry Spring MVC 格式化注册表

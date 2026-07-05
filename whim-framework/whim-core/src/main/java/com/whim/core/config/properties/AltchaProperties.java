@@ -3,7 +3,7 @@ package com.whim.core.config.properties;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.altcha.altcha.v1.Altcha;
+import org.altcha.altcha.v2.Altcha;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,19 +31,13 @@ public class AltchaProperties {
      * 验证码算法
      */
     @NotBlank
-    private String algorithm = "SHA-256";
+    private String algorithm = "PBKDF2/SHA-256";
 
     /**
-     * 最大尝试数字
+     * 验证码计算成本
      */
     @Min(1)
-    private long maxNumber = 1_000_000L;
-
-    /**
-     * 随机盐值字节长度
-     */
-    @Min(1)
-    private long saltLength = 12L;
+    private int cost = 5_000;
 
     /**
      * 挑战有效秒数

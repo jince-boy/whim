@@ -1,8 +1,5 @@
 package com.whim.web.annotation;
 
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,13 +14,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@RequestMapping("/system")
+@ApiPrefix("/system")
 public @interface SystemApiPrefix {
-
-    /**
-     * 路径别名，支持在注解上追加子路径。
-     * 例如 @SystemApiPrefix("/user") 等效于 @RequestMapping("/system/user")
-     */
-    @AliasFor(annotation = RequestMapping.class, attribute = "path")
-    String[] value() default {};
 }
