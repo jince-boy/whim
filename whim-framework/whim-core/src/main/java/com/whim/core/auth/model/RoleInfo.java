@@ -7,8 +7,8 @@ import java.io.Serializable;
 
 /**
  * @author Jince
- * @date 2026/04/12
- * @description 当前登录用户关联的角色信息。
+ * @date 2026/07/06
+ * @description 当前登录用户角色上下文通用信息。
  */
 @Data
 public class RoleInfo implements Serializable {
@@ -16,22 +16,22 @@ public class RoleInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 角色标识
+     * 角色ID
      */
-    private Long id;
+    private Long roleId;
 
     /**
      * 角色名称
      */
-    private String name;
+    private String roleName;
 
     /**
      * 角色编码
      */
-    private String code;
+    private String roleCode;
 
     /**
      * 数据权限范围
      */
-    private String dataScope;
+    private Integer dataScope;
 }

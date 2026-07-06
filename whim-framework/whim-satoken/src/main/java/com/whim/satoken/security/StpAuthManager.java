@@ -40,6 +40,19 @@ public class StpAuthManager {
     }
 
     /**
+     * 按账号体系获取对应的 StpLogic。
+     *
+     * @param loginType 账号体系
+     * @return 账号体系对应的 StpLogic
+     */
+    public static StpLogic getStpLogic(String loginType) {
+        return getRegisteredStpLogics().stream()
+                .filter(stpLogic -> Objects.equals(stpLogic.getLoginType(), loginType))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("未注册的账号体系：" + loginType));
+    }
+
+    /**
      * 获取当前请求所属的账号体系。
      * 按照 Sa-Token 多账号体系的推荐方式，逐个判断各体系是否已登录，命中的体系即为当前认证体系。
      *

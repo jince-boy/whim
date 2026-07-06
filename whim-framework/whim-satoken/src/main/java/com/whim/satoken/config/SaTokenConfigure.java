@@ -9,7 +9,6 @@ import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.security.StpAuthManager;
-import com.whim.satoken.service.IAuthQueryService;
 import com.whim.satoken.service.impl.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -84,18 +83,17 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     /**
      * 注册 Sa-Token 权限查询适配器。
      *
-     * @param authQueryServices 业务模块提供的授权查询扩展点
      * @return Sa-Token 权限查询接口实现
      */
     @Bean
     @ConditionalOnMissingBean(StpInterface.class)
-    public StpInterface stpInterface(List<IAuthQueryService> authQueryServices) {
-        return new StpInterfaceImpl(authQueryServices);
+    public StpInterface stpInterface() {
+        return new StpInterfaceImpl();
     }
 
     /**
      * 注册认证上下文 Bean，对外暴露 {@link AuthenticationContext} 接口。
-     * 业务代码通过注入 {@link AuthenticationContext} 获取当前登录用户信息。
+     * 业务代码通过注入 {@link AuthenticationContext} 获取当前登录身份信息。
      */
     @Bean
     @ConditionalOnMissingBean(AuthenticationContext.class)

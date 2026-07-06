@@ -4,13 +4,15 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
  * @author Jince
- * @date 2026/04/12
- * @description 当前登录用户信息。
+ * @date 2026/07/06
+ * @description 当前登录用户上下文通用信息。
  */
 @Data
 public class UserInfo implements Serializable {
@@ -33,17 +35,22 @@ public class UserInfo implements Serializable {
     private Long deptId;
 
     /**
+     * 账号体系
+     */
+    private String loginType;
+
+    /**
      * 权限编码集合
      */
-    private Set<String> permissionCodeSet;
+    private Set<String> permissionCodeSet = new LinkedHashSet<>();
 
     /**
      * 角色编码集合
      */
-    private Set<String> roleCodeSet;
+    private Set<String> roleCodeSet = new LinkedHashSet<>();
 
     /**
-     * 角色信息集合
+     * 角色信息列表
      */
-    private List<RoleInfo> roleInfoList;
+    private List<RoleInfo> roleInfoList = new ArrayList<>();
 }

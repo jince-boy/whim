@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * @author jince
- * date: 2026/4/9 22:52
- * description: 自动填充字段处理器
+ * @author Jince
+ * @date 2026/04/09
+ * @description 自动填充字段处理器
  */
 @RequiredArgsConstructor
 public class AutoFillFieldHandler implements MetaObjectHandler {
@@ -30,7 +30,7 @@ public class AutoFillFieldHandler implements MetaObjectHandler {
                 baseEntity.setCreateTime(LocalDateTime.now());
             }
             if (authenticationContext.isLogin() && Objects.isNull(baseEntity.getCreateBy())) {
-                baseEntity.setCreateBy(authenticationContext.getCurrentUserInfo().getUserId());
+                baseEntity.setCreateBy(authenticationContext.getUserId());
             }
         }
     }
@@ -45,7 +45,7 @@ public class AutoFillFieldHandler implements MetaObjectHandler {
         if (Objects.nonNull(metaObject) && metaObject.getOriginalObject() instanceof BaseEntity baseEntity) {
             LocalDateTime now = LocalDateTime.now();
             boolean login = authenticationContext.isLogin();
-            Long userId = login ? authenticationContext.getCurrentUserInfo().getUserId() : null;
+            Long userId = login ? authenticationContext.getUserId() : null;
             Object deleted = getFieldValByName("deleted", metaObject);
 
             if (Objects.equals(deleted, 1)) {
