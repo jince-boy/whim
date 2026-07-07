@@ -50,6 +50,8 @@ public class AuthServiceImpl implements IAuthService {
             log.warn("验证码校验失败，expired={}, invalidSignature={}, invalidSolution={}",
                     result.expired(), result.invalidSignature(), result.invalidSolution());
             throw new ServiceException("验证码校验失败");
+        } else {
+
         }
         return null;
     }

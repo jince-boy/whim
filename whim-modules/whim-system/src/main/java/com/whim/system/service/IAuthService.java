@@ -1,7 +1,7 @@
 package com.whim.system.service;
 
-import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
 
 /**

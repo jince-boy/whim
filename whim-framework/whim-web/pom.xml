@@ -28,11 +28,6 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-json</artifactId>
         </dependency>
-        <!-- Sa-Token 异常类型适配 -->
-        <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot4-starter</artifactId>
-        </dependency>
         <!-- OWASP HTML Sanitizer（XSS 防护） -->
         <dependency>
             <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>

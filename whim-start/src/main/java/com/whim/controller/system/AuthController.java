@@ -1,11 +1,10 @@
 package com.whim.controller.system;
 
-import com.whim.web.model.Result;
-import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
 import com.whim.system.service.IAuthService;
-import com.whim.web.annotation.SystemApiPrefix;
+import com.whim.web.model.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,10 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2026/7/3
  * @description 认证控制器
  */
-@SystemApiPrefix
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/system/auth")
 public class AuthController {
 
     /**
