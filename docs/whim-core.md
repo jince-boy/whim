@@ -11,7 +11,7 @@
 | 能力 | 说明 | 典型入口 |
 | --- | --- | --- |
 | 统一返回 | 统一 API 响应结构，支持成功、失败、参数校验、文件响应 | `Result` |
-| 认证抽象 | 面向业务层暴露当前登录用户，不绑定具体认证实现 | `AuthenticationContext` |
+| 认证抽象 | 面向业务层暴露当前登录用户与认证会话操作，不绑定具体认证实现 | `AuthenticationContext`、`AuthenticationSession` |
 | 自动配置 | 提供通用计算任务线程池和 ALTCHA 参数绑定 | `ThreadPoolAutoConfiguration`、`AltchaProperties` |
 | 通用异常 | 定义业务、HTTP、认证、文件、锁等基础异常类型 | `ServiceException`、`HttpException` 等 |
 | 通用工具 | 提供金额、日期、HTTP、Servlet、IP、脱敏、密码、随机值等工具 | `AmountUtils`、`DateUtils`、`RestClientUtils` 等 |
@@ -118,10 +118,41 @@ public interface AuthenticationContext {
     boolean isLogin();
 
     boolean isSuperAdministrator();
+
+    default Long getUserId() {
+        return getCurrentUserInfo().getUserId();
+    }
+
+    default Long getDeptId() {
+        return getCurrentUserInfo().getDeptId();
+    }
+
+    default String getLoginType() {
+        return getCurrentUserInfo().getLoginType();
+    }
+
+    default List<RoleInfo> getRoleInfoList() {
+        return getCurrentUserInfo().getRoleInfoList();
+    }
 }
 ```
 
 它的设计目标很明确：业务代码不要直接依赖 Sa-Token API。业务只表达“我要当前用户”，而不是“我要从哪个 Token 框架、哪个 Session 字段里拿用户”。
+
+登录和退出属于认证会话操作，由独立的 `AuthenticationSession` 负责：
+
+```java
+public interface AuthenticationSession {
+
+    AuthenticationToken login(UserInfo userInfo, boolean rememberMe);
+
+    void logout();
+
+    void kickout(String loginType, Collection<Long> userIds);
+}
+```
+
+`AuthenticationSession` 返回与具体认证框架无关的 `AuthenticationToken`，包含令牌类型、访问令牌和剩余有效期；同时提供按账号体系批量强制下线的能力。Sa-Token 的具体实现位于 `whim-satoken`，不会把 `StpLogic` 等基础设施类型暴露给业务模块。
 
 当前登录用户模型为 `UserInfo`：
 
@@ -129,7 +160,12 @@ public interface AuthenticationContext {
 | --- | --- |
 | `userId` | 用户 ID |
 | `username` | 用户名 |
+| `name` | 用户姓名 |
+| `avatar` | 头像地址 |
 | `deptId` | 当前部门 ID |
+| `tenantIds` | 当前用户可访问的有效租户 ID 集合 |
+| `defaultTenantId` | 用户默认进入的租户 ID |
+| `loginType` | 登录账号体系 |
 | `permissionCodeSet` | 当前用户权限编码集合 |
 | `roleCodeSet` | 当前用户角色编码集合 |
 | `roleInfoList` | 当前用户角色信息集合 |
@@ -138,9 +174,9 @@ public interface AuthenticationContext {
 
 | 字段 | 说明 |
 | --- | --- |
-| `id` | 角色 ID |
-| `name` | 角色名称 |
-| `code` | 角色编码 |
+| `roleId` | 角色 ID |
+| `roleName` | 角色名称 |
+| `roleCode` | 角色编码 |
 | `dataScope` | 数据权限范围 |
 
 推荐用法：
@@ -157,8 +193,8 @@ UserInfo userInfo = authenticationContext.getCurrentUserInfo();
 
 | 模块 | 与 `AuthenticationContext` 的关系 |
 | --- | --- |
-| `whim-core` | 定义抽象和用户模型 |
-| `whim-satoken` | 提供基于 Sa-Token 的实现 |
+| `whim-core` | 定义认证上下文、认证会话抽象和通用模型 |
+| `whim-satoken` | 提供基于 Sa-Token 的上下文与会话实现 |
 | `whim-mybatisplus` | 在自动填充审计字段时读取当前用户 |
 | 业务模块 | 注入 `AuthenticationContext` 获取当前用户 |
 
@@ -268,7 +304,7 @@ public class CaptchaServiceImpl implements CaptchaService {
 | `FileStorageException` | 文件上传、下载、存储失败 | 500 |
 | `LockException` | 分布式锁获取或执行失败 | 业务自行处理 |
 | `UserNotFoundException` | 用户不存在 | 404 |
-| `UserPasswordNotMatchException` | 用户名或密码错误 | 401 |
+| `UserPasswordNotMatchException` | 用户名不存在或密码错误 | 401 |
 | `UserDisableException` | 用户已被禁用 | 403 |
 
 推荐写法：
@@ -279,7 +315,7 @@ if (user == null) {
 }
 
 if (!BCryptUtils.matches(password, user.getPassword())) {
-    throw new UserPasswordNotMatchException("用户名或密码错误");
+    throw new UserPasswordNotMatchException("用户名不存在或密码错误");
 }
 ```
 

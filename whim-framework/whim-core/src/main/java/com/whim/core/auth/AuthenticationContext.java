@@ -4,7 +4,6 @@ import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -43,24 +42,6 @@ public interface AuthenticationContext {
     }
 
     /**
-     * 获取当前登录用户名。
-     *
-     * @return 当前登录用户名
-     */
-    default String getUsername() {
-        return getCurrentUserInfo().getUsername();
-    }
-
-    /**
-     * 获取当前登录用户名。
-     *
-     * @return 当前登录用户名
-     */
-    default String getUserName() {
-        return getUsername();
-    }
-
-    /**
      * 获取当前登录用户所属部门ID。
      *
      * @return 当前登录用户所属部门ID
@@ -79,24 +60,6 @@ public interface AuthenticationContext {
     }
 
     /**
-     * 获取当前登录用户权限编码集合。
-     *
-     * @return 当前登录用户权限编码集合
-     */
-    default Set<String> getPermissionCodeSet() {
-        return getCurrentUserInfo().getPermissionCodeSet();
-    }
-
-    /**
-     * 获取当前登录用户角色编码集合。
-     *
-     * @return 当前登录用户角色编码集合
-     */
-    default Set<String> getRoleCodeSet() {
-        return getCurrentUserInfo().getRoleCodeSet();
-    }
-
-    /**
      * 获取当前登录用户角色信息列表。
      *
      * @return 当前登录用户角色信息列表
@@ -105,21 +68,4 @@ public interface AuthenticationContext {
         return getCurrentUserInfo().getRoleInfoList();
     }
 
-    /**
-     * 获取当前登录用户ID。
-     *
-     * @return 当前登录用户ID
-     */
-    default Long getCurrentUserId() {
-        return getUserId();
-    }
-
-    /**
-     * 获取当前登录账号体系。
-     *
-     * @return 当前登录账号体系
-     */
-    default String getCurrentLoginType() {
-        return getLoginType();
-    }
 }

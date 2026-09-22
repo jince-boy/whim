@@ -3,9 +3,9 @@ package com.whim.system.model.vo.auth;
 import lombok.Data;
 
 /**
- * @author jince
- * date: 2026/7/5 16:33
- * description: 登录响应参数
+ * @author Jince
+ * @date 2026/07/05
+ * @description 登录响应参数
  */
 @Data
 public class AuthLoginVO {

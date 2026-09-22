@@ -3,6 +3,7 @@ package com.whim.satoken.context;
 import cn.dev33.satoken.stp.StpLogic;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.model.UserInfo;
+import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
 
 import java.util.Objects;
@@ -14,19 +15,7 @@ import java.util.Objects;
  * 通过 {@link StpAuthManager} 动态识别当前请求所属的账号体系，避免与具体体系常量耦合。
  */
 public class AuthContext implements AuthenticationContext {
-    public static final String LOGIN_USER_SESSION_KEY = "userInfo";
     private static final String SUPER_ADMINISTRATOR_ROLE_CODE = "superadmin";
-
-    /**
-     * 完成登录并写入认证上下文。
-     *
-     * @param userInfo 登录用户上下文信息
-     */
-    public void login(UserInfo userInfo) {
-        StpLogic stpLogic = StpAuthManager.getStpLogic(userInfo.getLoginType());
-        stpLogic.login(userInfo.getUserId());
-        stpLogic.getSession().set(LOGIN_USER_SESSION_KEY, userInfo);
-    }
 
     /**
      * 获取当前登录用户信息。
@@ -121,7 +110,7 @@ public class AuthContext implements AuthenticationContext {
         if (!isLogin()) {
             return null;
         }
-        Object userInfo = getRequiredCurrentStpLogic().getSession().get(LOGIN_USER_SESSION_KEY);
+        Object userInfo = getRequiredCurrentStpLogic().getSession().get(AuthSessionKeys.LOGIN_USER);
         if (userInfo instanceof UserInfo currentUserInfo) {
             return currentUserInfo;
         }

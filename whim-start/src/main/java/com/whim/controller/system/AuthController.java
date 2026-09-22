@@ -3,6 +3,7 @@ package com.whim.controller.system;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
 import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
+import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.service.IAuthService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author jince
- * @date 2026/7/3
+ * @author Jince
+ * @date 2026/07/03
  * @description 认证控制器
  */
 @RestController
@@ -38,7 +39,30 @@ public class AuthController {
     @CrossOrigin
     @PostMapping("/login")
     public Result<AuthLoginVO> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
-        return Result.success("登录成功", (authService.login(loginDTO)));
+        return Result.success("登录成功", authService.login(loginDTO));
+    }
+
+    /**
+     * 注销当前登录会话。
+     *
+     * @return 注销结果
+     */
+    @CrossOrigin
+    @PostMapping("/logout")
+    public Result<Void> logout() {
+        authService.logout();
+        return Result.success("退出登录成功");
+    }
+
+    /**
+     * 获取当前登录用户信息。
+     *
+     * @return 当前登录用户信息
+     */
+    @CrossOrigin
+    @GetMapping("/userInfo")
+    public Result<AuthUserVO> userInfo() {
+        return Result.success("当前用户信息获取成功", authService.getUserInfo());
     }
 
     /**

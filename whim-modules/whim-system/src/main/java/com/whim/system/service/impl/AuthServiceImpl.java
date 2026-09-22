@@ -1,11 +1,21 @@
 package com.whim.system.service.impl;
 
+import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.config.properties.AltchaProperties;
 import com.whim.core.exception.ServiceException;
+import com.whim.core.exception.UserDisableException;
+import com.whim.core.exception.UserPasswordNotMatchException;
+import com.whim.core.utils.BCryptUtils;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
+import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.service.IAuthService;
+import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.altcha.altcha.v2.Altcha;
@@ -15,8 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @author jince
- * @date 2026/7/3
+ * @author Jince
+ * @date 2026/07/03
  * @description 认证服务实现类
  */
 @Slf4j
@@ -30,6 +40,21 @@ public class AuthServiceImpl implements IAuthService {
     private final AltchaProperties altchaProperties;
 
     /**
+     * 系统用户服务对象
+     */
+    private final ISysUserService sysUserService;
+
+    /**
+     * 当前请求认证上下文
+     */
+    private final AuthenticationContext authenticationContext;
+
+    /**
+     * 认证会话操作对象
+     */
+    private final AuthenticationSession authenticationSession;
+
+    /**
      * 登录。
      *
      * @param loginDTO 登录参数
@@ -37,23 +62,39 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public AuthLoginVO login(AuthLoginDTO loginDTO) {
-        Altcha.VerifySolutionResult result;
-        try {
-            result = Altcha.verifySolution(
-                    loginDTO.getAltcha(),
-                    altchaProperties.getHmacSignatureSecret(),
-                    Altcha.kdf(altchaProperties.getAlgorithm()));
-        } catch (Exception exception) {
-            throw new ServiceException("验证码校验失败", exception);
-        }
-        if (!result.verified()) {
-            log.warn("验证码校验失败，expired={}, invalidSignature={}, invalidSolution={}",
-                    result.expired(), result.invalidSignature(), result.invalidSolution());
-            throw new ServiceException("验证码校验失败");
-        } else {
+        verifyCaptcha(loginDTO.getAltcha());
 
+        SysUser user = sysUserService.getByUsername(loginDTO.getUsername());
+        if (user == null || !BCryptUtils.matches(loginDTO.getPassword(), user.getPassword())) {
+            throw new UserPasswordNotMatchException("用户名不存在或密码错误");
         }
-        return null;
+        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
+            throw new UserDisableException("用户已被禁用");
+        }
+
+        AuthenticationToken authenticationToken = authenticationSession.login(
+                sysUserService.buildUserInfo(user),
+                Boolean.TRUE.equals(loginDTO.getRememberMe())
+        );
+        return buildLoginVO(authenticationToken);
+    }
+
+    /**
+     * 注销当前登录会话。
+     */
+    @Override
+    public void logout() {
+        authenticationSession.logout();
+    }
+
+    /**
+     * 获取当前登录用户信息。
+     *
+     * @return 当前登录用户信息
+     */
+    @Override
+    public AuthUserVO getUserInfo() {
+        return AuthUserVO.from(authenticationContext.getCurrentUserInfo());
     }
 
     /**
@@ -111,5 +152,41 @@ public class AuthServiceImpl implements IAuthService {
         }
         result.put("salt", parameters.salt());
         return result;
+    }
+
+    /**
+     * 校验 ALTCHA 验证码答案。
+     *
+     * @param altcha 验证码答案
+     */
+    private void verifyCaptcha(String altcha) {
+        Altcha.VerifySolutionResult result;
+        try {
+            result = Altcha.verifySolution(
+                    altcha,
+                    altchaProperties.getHmacSignatureSecret(),
+                    Altcha.kdf(altchaProperties.getAlgorithm()));
+        } catch (Exception exception) {
+            throw new ServiceException("验证码校验失败", exception);
+        }
+        if (!result.verified()) {
+            log.warn("验证码校验失败，expired={}, invalidSignature={}, invalidSolution={}",
+                    result.expired(), result.invalidSignature(), result.invalidSolution());
+            throw new ServiceException("验证码校验失败");
+        }
+    }
+
+    /**
+     * 构建登录响应参数。
+     *
+     * @param authenticationToken 登录令牌信息
+     * @return 登录响应参数
+     */
+    private AuthLoginVO buildLoginVO(AuthenticationToken authenticationToken) {
+        AuthLoginVO loginVO = new AuthLoginVO();
+        loginVO.setPrefix(authenticationToken.getTokenType());
+        loginVO.setToken(authenticationToken.getAccessToken());
+        loginVO.setExpires(authenticationToken.getExpiresIn());
+        return loginVO;
     }
 }

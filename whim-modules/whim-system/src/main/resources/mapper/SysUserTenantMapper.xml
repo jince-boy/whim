@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserTenantMapper">
-
+    <select id="selectTenantIdsByUserId" resultType="java.lang.Long">
+        SELECT ut.tenant_id
+        FROM sys_user_tenant ut
+                 INNER JOIN sys_tenant t
+                            ON t.id = ut.tenant_id
+                                AND t.deleted = 0
+                                AND t.status = 0
+                                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+        WHERE ut.user_id = #{userId}
+          AND ut.deleted = 0
+    </select>
 </mapper>
 

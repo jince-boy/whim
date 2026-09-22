@@ -6,12 +6,29 @@ import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.service.ISysUserTenantService;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+import java.util.Set;
+
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统用户租户关联表服务实现类
  */
 @Service
 public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, SysUserTenant> implements ISysUserTenantService {
+
+    /**
+     * 查询用户当前可访问的租户ID集合。
+     *
+     * @param userId 用户ID
+     * @return 租户ID集合
+     */
+    @Override
+    public Set<Long> getTenantIdsByUserId(Long userId) {
+        if (Objects.isNull(userId)) {
+            return Set.of();
+        }
+        return Objects.requireNonNullElse(baseMapper.selectTenantIdsByUserId(userId), Set.of());
+    }
 }
 

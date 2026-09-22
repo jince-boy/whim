@@ -5,9 +5,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * @author jince
- * @date 2026/7/3
- * @description
+ * @author Jince
+ * @date 2026/07/03
+ * @description 登录请求参数
  */
 @Data
 public class AuthLoginDTO {

@@ -3,6 +3,7 @@ package com.whim.system.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.mybatisplus.model.entity.BaseEntity;
+import com.whim.system.model.enums.SysUserStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,7 +11,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统用户表实体类
  */
@@ -56,14 +57,19 @@ public class SysUser extends BaseEntity implements Serializable {
     private String phone;
 
     /**
-     * 性别(0-未知 1-男 2-女)
+     * 性别字典编码
      */
     private Integer gender;
 
     /**
-     * 状态(0-启用 1-禁用)
+     * 状态编码，取值见 {@link SysUserStatus}
      */
     private Integer status;
+
+    /**
+     * 默认进入租户ID
+     */
+    private Long defaultTenantId;
 
     /**
      * 备注

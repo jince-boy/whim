@@ -30,9 +30,29 @@ public class UserInfo implements Serializable {
     private String username;
 
     /**
+     * 真实姓名
+     */
+    private String name;
+
+    /**
+     * 头像地址
+     */
+    private String avatar;
+
+    /**
      * 部门ID
      */
     private Long deptId;
+
+    /**
+     * 可访问租户ID集合
+     */
+    private Set<Long> tenantIds = new LinkedHashSet<>();
+
+    /**
+     * 默认进入租户ID
+     */
+    private Long defaultTenantId;
 
     /**
      * 账号体系

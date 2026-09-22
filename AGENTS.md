@@ -67,6 +67,8 @@ If you change persistence behavior, review both the entity base class and the me
 
 The Sa-Token interceptor protects `/system/**` by default and allows unauthenticated access only to paths configured under `sa-token.exclude-paths` in `application.yml`.
 
+Static Controller route segments must use lower camel case and may contain only letters and numbers. Do not use hyphens, underscores, or other special characters in static route segments; use paths such as `/userInfo`, not `/user-info` or `/user_info`. Path-variable placeholders such as `/{userId}` are allowed, and their names must also use lower camel case.
+
 ### Business modules
 
 `whim-modules/whim-system` is the current business module. It depends on the auth and redis framework modules and is where system-domain controllers/services/entities should live. Right now the module appears to be in an early stage, with only a placeholder controller present.
@@ -76,6 +78,9 @@ The Sa-Token interceptor protects `/system/**` by default and allows unauthentic
 - Default runtime profile comes from Maven resource filtering: `spring.profiles.active: @profiles_active@`
 - Root Maven profiles define `dev` as the default and `prod` as the alternative
 - Main application config is in `whim-start/src/main/resources/application.yml`
+- Flyway migrations live in `whim-start/src/main/resources/db/migration`
+- Every database change must use a new, higher Flyway version; never edit, delete, or reuse an already-applied versioned migration
+- `V1__baseline.sql` is the initial schema baseline; existing non-empty databases are baselined at version 1 before later migrations run
 - The app runs on port `8089`
 - Sa-Token exclusion paths are configured in `application.yml`, not hardcoded in the app module
 

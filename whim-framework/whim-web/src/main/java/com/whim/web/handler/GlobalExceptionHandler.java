@@ -341,7 +341,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理用户名或密码错误异常
+     * 处理用户名不存在或密码错误异常
      *
      * @param exception 异常对象
      * @param request   当前请求
@@ -353,7 +353,9 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn("请求 [{} {}] 认证失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.unauthorized(StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户名或密码错误");
+        return Result.unauthorized(
+                StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户名不存在或密码错误"
+        );
     }
 
     /**

@@ -22,6 +22,17 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-system</artifactId>
         </dependency>
+        <!-- Flyway 数据库版本迁移 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- Flyway MySQL 数据库支持 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- webmvc-test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

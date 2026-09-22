@@ -7,8 +7,10 @@ import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.security.StpAuthManager;
+import com.whim.satoken.session.SaTokenAuthenticationSession;
 import com.whim.satoken.service.impl.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -29,7 +31,7 @@ import java.util.List;
 /**
  * @author Jince
  * @date 2026/04/13
- * @description Sa-Token 自动配置类，负责注册多账号体系、JWT 集成及认证上下文组件。
+ * @description Sa-Token 自动配置类，负责注册多账号体系、JWT 集成、认证上下文与认证会话组件。
  */
 @AutoConfiguration
 @ConfigurationProperties(prefix = "sa-token")
@@ -99,5 +101,16 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @ConditionalOnMissingBean(AuthenticationContext.class)
     public AuthenticationContext authenticationContext() {
         return new AuthContext();
+    }
+
+    /**
+     * 注册认证会话 Bean，对外暴露登录、退出和令牌创建能力。
+     *
+     * @return Sa-Token 认证会话实现
+     */
+    @Bean
+    @ConditionalOnMissingBean(AuthenticationSession.class)
+    public AuthenticationSession authenticationSession() {
+        return new SaTokenAuthenticationSession();
     }
 }

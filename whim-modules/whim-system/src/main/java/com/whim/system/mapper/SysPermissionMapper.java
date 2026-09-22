@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.Set;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统权限菜单表数据库访问层
  */
@@ -21,5 +21,13 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      * @return 权限编码集合
      */
     Set<String> selectPermissionCodeSetByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询当前拥有指定权限的用户ID集合。
+     *
+     * @param permissionId 权限ID
+     * @return 用户ID集合
+     */
+    Set<Long> selectUserIdSetByPermissionId(@Param("permissionId") Long permissionId);
 }
 
