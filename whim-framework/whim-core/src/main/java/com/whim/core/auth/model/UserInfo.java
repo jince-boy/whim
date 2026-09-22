@@ -55,6 +55,11 @@ public class UserInfo implements Serializable {
     private Long defaultTenantId;
 
     /**
+     * 当前操作租户ID
+     */
+    private Long currentTenantId;
+
+    /**
      * 账号体系
      */
     private String loginType;

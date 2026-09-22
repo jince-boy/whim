@@ -2,7 +2,7 @@ package com.whim.satoken.security;
 
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.stp.StpLogic;
-import com.whim.satoken.constants.AuthUserType;
+import com.whim.core.auth.constants.AuthUserType;
 import lombok.Getter;
 
 import java.util.List;

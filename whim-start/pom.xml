@@ -17,6 +17,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-web</artifactId>
         </dependency>
+        <!-- Sa-Token 认证模块 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-satoken</artifactId>
+        </dependency>
         <!-- 系统业务模块 -->
         <dependency>
             <groupId>com.whim</groupId>

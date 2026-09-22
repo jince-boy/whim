@@ -1,8 +1,10 @@
 package com.whim.controller.system;
 
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.dto.auth.SwitchTenantDTO;
 import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
+import com.whim.system.model.vo.auth.AuthTenantListVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.service.IAuthService;
 import com.whim.web.model.Result;
@@ -63,6 +65,40 @@ public class AuthController {
     @GetMapping("/userInfo")
     public Result<AuthUserVO> userInfo() {
         return Result.success("当前用户信息获取成功", authService.getUserInfo());
+    }
+
+    /**
+     * 获取当前登录用户可选择的租户列表。
+     *
+     * @return 租户选择列表
+     */
+    @CrossOrigin
+    @GetMapping("/tenantList")
+    public Result<AuthTenantListVO> tenantList() {
+        return Result.success("租户列表获取成功", authService.getTenantList());
+    }
+
+    /**
+     * 切换当前令牌正在操作的租户。
+     *
+     * @param switchTenantDTO 切换租户参数
+     * @return 切换后的当前用户信息
+     */
+    @CrossOrigin
+    @PostMapping("/switchTenant")
+    public Result<AuthUserVO> switchTenant(@RequestBody @Valid SwitchTenantDTO switchTenantDTO) {
+        return Result.success("租户切换成功", authService.switchTenant(switchTenantDTO.getTenantId()));
+    }
+
+    /**
+     * 将超级管理员切换回平台上下文。
+     *
+     * @return 切换后的当前用户信息
+     */
+    @CrossOrigin
+    @PostMapping("/switchPlatform")
+    public Result<AuthUserVO> switchPlatform() {
+        return Result.success("平台上下文切换成功", authService.switchPlatform());
     }
 
     /**

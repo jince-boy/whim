@@ -1,10 +1,12 @@
 package com.whim.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,5 +24,13 @@ public interface SysUserTenantMapper extends BaseMapper<SysUserTenant> {
      * @return 租户ID集合
      */
     Set<Long> selectTenantIdsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询用户当前可访问的租户。
+     *
+     * @param userId 用户ID
+     * @return 可访问租户列表
+     */
+    List<SysTenant> selectTenantListByUserId(@Param("userId") Long userId);
 }
 

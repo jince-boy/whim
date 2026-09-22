@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * @author Jince
  * @date 2026/09/22
- * @description 认证会话操作抽象，统一提供登录、退出、令牌创建与强制下线能力。
+ * @description 认证会话操作抽象，统一提供登录、上下文更新、退出与强制下线能力。
  */
 public interface AuthenticationSession {
 
@@ -20,6 +20,13 @@ public interface AuthenticationSession {
      * @return 登录令牌信息
      */
     AuthenticationToken login(UserInfo userInfo, boolean rememberMe);
+
+    /**
+     * 更新当前令牌的用户认证上下文。
+     *
+     * @param userInfo 最新用户认证信息
+     */
+    void updateUserInfo(UserInfo userInfo);
 
     /**
      * 注销当前登录会话。

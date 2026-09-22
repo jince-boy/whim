@@ -26,11 +26,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
      * @return 角色编码集合
      */
     @Override
-    public Set<String> getRoleCodeSetByUserId(Long userId) {
+    public Set<String> getRoleCodeSetByUserIdAndTenantId(Long userId, Long tenantId) {
         if (Objects.isNull(userId)) {
             return Set.of();
         }
-        return Objects.requireNonNullElse(baseMapper.selectRoleCodeSetByUserId(userId), Set.of());
+        return Objects.requireNonNullElse(
+                baseMapper.selectRoleCodeSetByUserIdAndTenantId(userId, tenantId),
+                Set.of()
+        );
     }
 
     /**
@@ -40,11 +43,25 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
      * @return 角色信息列表
      */
     @Override
-    public List<RoleInfo> getRoleInfoListByUserId(Long userId) {
+    public List<RoleInfo> getRoleInfoListByUserIdAndTenantId(Long userId, Long tenantId) {
         if (Objects.isNull(userId)) {
             return List.of();
         }
-        return Objects.requireNonNullElse(baseMapper.selectRoleInfoListByUserId(userId), List.of());
+        return Objects.requireNonNullElse(
+                baseMapper.selectRoleInfoListByUserIdAndTenantId(userId, tenantId),
+                List.of()
+        );
+    }
+
+    /**
+     * 判断用户是否拥有全局超级管理员角色。
+     *
+     * @param userId 用户ID
+     * @return true 表示拥有超级管理员角色
+     */
+    @Override
+    public boolean isSuperAdministrator(Long userId) {
+        return baseMapper.selectSuperAdministratorFlag(userId);
     }
 }
 

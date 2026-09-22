@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysPermissionMapper">
-    <select id="selectPermissionCodeSetByUserId" resultType="java.lang.String">
+    <select id="selectPermissionCodeSetByUserIdAndTenantId" resultType="java.lang.String">
         SELECT DISTINCT p.perms
         FROM sys_user_role ur
                  INNER JOIN sys_role r
@@ -21,6 +21,14 @@
           AND ur.deleted = 0
           AND p.perms IS NOT NULL
           AND p.perms != ''
+        <choose>
+            <when test="tenantId != null">
+                AND ur.tenant_id = #{tenantId}
+            </when>
+            <otherwise>
+                AND r.tenant_id IS NULL
+            </otherwise>
+        </choose>
     </select>
 
     <select id="selectUserIdSetByPermissionId" resultType="java.lang.Long">

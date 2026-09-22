@@ -31,7 +31,7 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
         SaLoginParameter loginParameter = stpLogic.createSaLoginParameter()
                 .setIsLastingCookie(rememberMe);
         stpLogic.login(userInfo.getUserId(), loginParameter);
-        stpLogic.getSession().set(AuthSessionKeys.LOGIN_USER, userInfo);
+        stpLogic.getTokenSession().set(AuthSessionKeys.LOGIN_USER, userInfo);
 
         AuthenticationToken authenticationToken = new AuthenticationToken();
         authenticationToken.setTokenType(stpLogic.getConfigOrGlobal().getTokenPrefix());
@@ -41,15 +41,25 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
     }
 
     /**
+     * 更新当前令牌的用户认证上下文。
+     *
+     * @param userInfo 最新用户认证信息
+     */
+    @Override
+    public void updateUserInfo(UserInfo userInfo) {
+        StpLogic stpLogic = getRequiredCurrentStpLogic();
+        if (!Objects.equals(stpLogic.getLoginIdAsLong(), userInfo.getUserId())) {
+            throw new IllegalArgumentException("不能修改其他用户的认证上下文");
+        }
+        stpLogic.getTokenSession().set(AuthSessionKeys.LOGIN_USER, userInfo);
+    }
+
+    /**
      * 注销当前登录会话。
      */
     @Override
     public void logout() {
-        StpLogic stpLogic = StpAuthManager.getCurrentStpLogic();
-        if (Objects.isNull(stpLogic)) {
-            throw new IllegalStateException("当前请求未登录，无法注销认证会话");
-        }
-        stpLogic.logout();
+        getRequiredCurrentStpLogic().logout();
     }
 
     /**
@@ -62,5 +72,18 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
     public void kickout(String loginType, Collection<Long> userIds) {
         StpLogic stpLogic = StpAuthManager.getStpLogic(loginType);
         userIds.forEach(stpLogic::kickout);
+    }
+
+    /**
+     * 获取当前请求对应的 Sa-Token 账号体系。
+     *
+     * @return 当前账号体系的 StpLogic
+     */
+    private StpLogic getRequiredCurrentStpLogic() {
+        StpLogic stpLogic = StpAuthManager.getCurrentStpLogic();
+        if (Objects.isNull(stpLogic)) {
+            throw new IllegalStateException("当前请求未登录，无法操作认证会话");
+        }
+        return stpLogic;
     }
 }

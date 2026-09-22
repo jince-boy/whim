@@ -12,5 +12,20 @@
         WHERE ut.user_id = #{userId}
           AND ut.deleted = 0
     </select>
+
+    <select id="selectTenantListByUserId" resultType="com.whim.system.model.entity.SysTenant">
+        SELECT t.id,
+               t.tenant_code,
+               t.company_name
+        FROM sys_user_tenant ut
+                 INNER JOIN sys_tenant t
+                            ON t.id = ut.tenant_id
+                                AND t.deleted = 0
+                                AND t.status = 0
+                                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+        WHERE ut.user_id = #{userId}
+          AND ut.deleted = 0
+        ORDER BY t.company_name, t.id
+    </select>
 </mapper>
 

@@ -51,6 +51,11 @@ public class AuthUserVO {
     private Long defaultTenantId;
 
     /**
+     * 当前操作租户ID
+     */
+    private Long currentTenantId;
+
+    /**
      * 账号体系
      */
     private String loginType;
@@ -85,6 +90,7 @@ public class AuthUserVO {
         userVO.setDeptId(userInfo.getDeptId());
         userVO.setTenantIds(new LinkedHashSet<>(userInfo.getTenantIds()));
         userVO.setDefaultTenantId(userInfo.getDefaultTenantId());
+        userVO.setCurrentTenantId(userInfo.getCurrentTenantId());
         userVO.setLoginType(userInfo.getLoginType());
         userVO.setRoleCodeSet(new LinkedHashSet<>(userInfo.getRoleCodeSet()));
         userVO.setPermissionCodeSet(new LinkedHashSet<>(userInfo.getPermissionCodeSet()));

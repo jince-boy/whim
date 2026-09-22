@@ -13,12 +13,12 @@
     <description>系统业务模块</description>
 
     <dependencies>
-        <!-- sa-token认证模块 -->
+        <!-- 核心模块 -->
         <dependency>
             <groupId>com.whim</groupId>
-            <artifactId>whim-satoken</artifactId>
+            <artifactId>whim-core</artifactId>
         </dependency>
-        <!-- mybatis-plus认证模块 -->
+        <!-- mybatis-plus模块 -->
         <dependency>
             <groupId>com.whim</groupId>
             <artifactId>whim-mybatisplus</artifactId>

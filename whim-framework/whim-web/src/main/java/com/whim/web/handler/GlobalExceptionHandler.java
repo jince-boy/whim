@@ -3,6 +3,7 @@ package com.whim.web.handler;
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
 import com.whim.core.exception.ServiceException;
+import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
@@ -318,6 +319,25 @@ public class GlobalExceptionHandler {
         return Result.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "业务处理失败"
+        );
+    }
+
+    /**
+     * 处理租户访问被拒绝异常。
+     *
+     * @param exception 异常对象
+     * @param request   当前请求
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(TenantAccessDeniedException.class)
+    public Result<Void> handleTenantAccessDeniedException(
+            TenantAccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        log.warn("请求 [{} {}] 的租户访问被拒绝：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
+        return Result.error(
+                HttpStatus.FORBIDDEN,
+                StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "无权访问该租户"
         );
     }
 

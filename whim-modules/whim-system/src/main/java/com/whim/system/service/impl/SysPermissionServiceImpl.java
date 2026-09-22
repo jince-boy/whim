@@ -2,7 +2,7 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationSession;
-import com.whim.satoken.constants.AuthUserType;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.service.ISysPermissionService;
@@ -36,11 +36,14 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      * @return 权限编码集合
      */
     @Override
-    public Set<String> getPermissionCodeSetByUserId(Long userId) {
+    public Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId) {
         if (Objects.isNull(userId)) {
             return Set.of();
         }
-        return Objects.requireNonNullElse(baseMapper.selectPermissionCodeSetByUserId(userId), Set.of());
+        return Objects.requireNonNullElse(
+                baseMapper.selectPermissionCodeSetByUserIdAndTenantId(userId, tenantId),
+                Set.of()
+        );
     }
 
     /**

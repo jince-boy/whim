@@ -1,5 +1,6 @@
 package com.whim.satoken.context;
 
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpLogic;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.model.UserInfo;
@@ -110,7 +111,11 @@ public class AuthContext implements AuthenticationContext {
         if (!isLogin()) {
             return null;
         }
-        Object userInfo = getRequiredCurrentStpLogic().getSession().get(AuthSessionKeys.LOGIN_USER);
+        SaSession tokenSession = getRequiredCurrentStpLogic().getTokenSession(false);
+        if (Objects.isNull(tokenSession)) {
+            return null;
+        }
+        Object userInfo = tokenSession.get(AuthSessionKeys.LOGIN_USER);
         if (userInfo instanceof UserInfo currentUserInfo) {
             return currentUserInfo;
         }

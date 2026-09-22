@@ -1,17 +1,21 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.UserInfo;
-import com.whim.satoken.constants.AuthUserType;
+import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
+import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserService;
 import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -25,6 +29,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysRoleService sysRoleService;
     private final ISysPermissionService sysPermissionService;
     private final ISysUserTenantService sysUserTenantService;
+    private final ISysTenantService sysTenantService;
 
     /**
      * 根据用户名查询未删除用户。
@@ -38,6 +43,39 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 查询用户当前可访问的租户ID集合。
+     *
+     * @param userId 用户ID
+     * @return 可访问租户ID集合
+     */
+    @Override
+    public Set<Long> getAccessibleTenantIds(Long userId) {
+        if (sysRoleService.isSuperAdministrator(userId)) {
+            return sysTenantService.getAvailableTenantIds();
+        }
+        return sysUserTenantService.getTenantIdsByUserId(userId);
+    }
+
+    /**
+     * 修改用户默认进入租户。
+     *
+     * @param userId   用户ID
+     * @param tenantId 默认租户ID
+     * @return 是否修改成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateDefaultTenantId(Long userId, Long tenantId) {
+        if (!getAccessibleTenantIds(userId).contains(tenantId)) {
+            throw new TenantAccessDeniedException("无权将该租户设置为默认租户");
+        }
+        SysUser user = new SysUser();
+        user.setId(userId);
+        user.setDefaultTenantId(tenantId);
+        return updateById(user);
+    }
+
+    /**
      * 构建系统账号认证上下文。
      *
      * @param user 用户实体
@@ -45,22 +83,71 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     @Override
     public UserInfo buildUserInfo(SysUser user) {
-        Set<Long> tenantIds = sysUserTenantService.getTenantIdsByUserId(user.getId());
+        Set<Long> tenantIds = getAccessibleTenantIds(user.getId());
+        Long currentTenantId = resolveInitialTenantId(user.getDefaultTenantId(), tenantIds);
+        return buildUserInfo(user, tenantIds, currentTenantId);
+    }
+
+    /**
+     * 按指定当前租户构建系统账号认证上下文。
+     *
+     * @param user            用户实体
+     * @param currentTenantId 当前租户ID，平台上下文时为空
+     * @return 用户认证信息
+     */
+    @Override
+    public UserInfo buildUserInfo(SysUser user, Long currentTenantId) {
+        Set<Long> tenantIds = getAccessibleTenantIds(user.getId());
+        if (currentTenantId != null && !tenantIds.contains(currentTenantId)) {
+            throw new TenantAccessDeniedException("无权访问该租户或租户不可用");
+        }
+        return buildUserInfo(user, tenantIds, currentTenantId);
+    }
+
+    /**
+     * 使用已经确认的租户范围构建用户认证上下文。
+     *
+     * @param user            用户实体
+     * @param tenantIds       可访问租户ID集合
+     * @param currentTenantId 当前租户ID
+     * @return 用户认证信息
+     */
+    private UserInfo buildUserInfo(SysUser user, Set<Long> tenantIds, Long currentTenantId) {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUserId(user.getId());
         userInfo.setUsername(user.getUsername());
         userInfo.setName(user.getName());
         userInfo.setAvatar(user.getAvatar());
-        userInfo.setTenantIds(tenantIds);
-        if (tenantIds.contains(user.getDefaultTenantId())) {
+        userInfo.setTenantIds(new LinkedHashSet<>(tenantIds));
+        if (user.getDefaultTenantId() != null && tenantIds.contains(user.getDefaultTenantId())) {
             userInfo.setDefaultTenantId(user.getDefaultTenantId());
         }
+        userInfo.setCurrentTenantId(currentTenantId);
         userInfo.setLoginType(AuthUserType.SYSTEM);
-        userInfo.setPermissionCodeSet(sysPermissionService.getPermissionCodeSetByUserId(user.getId()));
-        userInfo.setRoleCodeSet(sysRoleService.getRoleCodeSetByUserId(user.getId()));
-        userInfo.setRoleInfoList(sysRoleService.getRoleInfoListByUserId(user.getId()));
+        userInfo.setPermissionCodeSet(
+                sysPermissionService.getPermissionCodeSetByUserIdAndTenantId(user.getId(), currentTenantId)
+        );
+        userInfo.setRoleCodeSet(sysRoleService.getRoleCodeSetByUserIdAndTenantId(user.getId(), currentTenantId));
+        userInfo.setRoleInfoList(sysRoleService.getRoleInfoListByUserIdAndTenantId(user.getId(), currentTenantId));
         return userInfo;
+    }
+
+    /**
+     * 根据默认租户和可访问租户数量确定登录后的初始租户。
+     *
+     * @param defaultTenantId 默认租户ID
+     * @param tenantIds       可访问租户ID集合
+     * @return 初始租户ID，多租户且未配置有效默认租户时为空
+     */
+    private Long resolveInitialTenantId(Long defaultTenantId, Set<Long> tenantIds) {
+        if (defaultTenantId != null && tenantIds.contains(defaultTenantId)) {
+            return defaultTenantId;
+        }
+        if (tenantIds.size() == 1) {
+            return tenantIds.iterator().next();
+        }
+        return null;
     }
 }
 

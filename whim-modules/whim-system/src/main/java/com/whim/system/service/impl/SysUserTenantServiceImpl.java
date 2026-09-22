@@ -2,10 +2,12 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.system.mapper.SysUserTenantMapper;
+import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.service.ISysUserTenantService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,6 +31,20 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
             return Set.of();
         }
         return Objects.requireNonNullElse(baseMapper.selectTenantIdsByUserId(userId), Set.of());
+    }
+
+    /**
+     * 查询用户当前可访问的租户。
+     *
+     * @param userId 用户ID
+     * @return 可访问租户列表
+     */
+    @Override
+    public List<SysTenant> getTenantListByUserId(Long userId) {
+        if (Objects.isNull(userId)) {
+            return List.of();
+        }
+        return Objects.requireNonNullElse(baseMapper.selectTenantListByUserId(userId), List.of());
     }
 }
 

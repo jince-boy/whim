@@ -20,16 +20,32 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      * 查询用户已启用角色编码列表。
      *
      * @param userId 用户ID
+     * @param tenantId 当前租户ID，平台上下文时为空
      * @return 角色编码集合
      */
-    Set<String> selectRoleCodeSetByUserId(@Param("userId") Long userId);
+    Set<String> selectRoleCodeSetByUserIdAndTenantId(
+            @Param("userId") Long userId,
+            @Param("tenantId") Long tenantId
+    );
 
     /**
      * 查询用户已启用角色的完整信息。
      *
      * @param userId 用户ID
+     * @param tenantId 当前租户ID，平台上下文时为空
      * @return 角色信息列表
      */
-    List<RoleInfo> selectRoleInfoListByUserId(@Param("userId") Long userId);
+    List<RoleInfo> selectRoleInfoListByUserIdAndTenantId(
+            @Param("userId") Long userId,
+            @Param("tenantId") Long tenantId
+    );
+
+    /**
+     * 判断用户是否拥有全局超级管理员角色。
+     *
+     * @param userId 用户ID
+     * @return true 表示拥有超级管理员角色
+     */
+    boolean selectSuperAdministratorFlag(@Param("userId") Long userId);
 }
 

@@ -51,6 +51,15 @@ public interface AuthenticationContext {
     }
 
     /**
+     * 获取当前请求正在操作的租户ID。
+     *
+     * @return 当前租户ID，平台上下文或尚未选择租户时为空
+     */
+    default Long getTenantId() {
+        return getCurrentUserInfo().getCurrentTenantId();
+    }
+
+    /**
      * 获取当前登录账号体系。
      *
      * @return 当前登录账号体系

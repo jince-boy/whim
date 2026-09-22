@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysRoleMapper">
-    <select id="selectRoleCodeSetByUserId" resultType="java.lang.String">
+    <select id="selectRoleCodeSetByUserIdAndTenantId" resultType="java.lang.String">
         SELECT DISTINCT r.role_code
         FROM sys_user_role ur
                  INNER JOIN sys_role r
@@ -11,9 +11,17 @@
                                 AND r.status = 0
         WHERE ur.user_id = #{userId}
           AND ur.deleted = 0
+        <choose>
+            <when test="tenantId != null">
+                AND (ur.tenant_id = #{tenantId} OR r.tenant_id IS NULL)
+            </when>
+            <otherwise>
+                AND r.tenant_id IS NULL
+            </otherwise>
+        </choose>
     </select>
 
-    <select id="selectRoleInfoListByUserId" resultType="com.whim.core.auth.model.RoleInfo">
+    <select id="selectRoleInfoListByUserIdAndTenantId" resultType="com.whim.core.auth.model.RoleInfo">
         SELECT DISTINCT r.id AS role_id,
                         r.role_name,
                         r.role_code,
@@ -28,8 +36,27 @@
           AND ur.deleted = 0
           AND r.role_code IS NOT NULL
           AND r.role_code != ''
-          AND r.role_code IS NOT NULL
-          AND r.role_code != ''
+        <choose>
+            <when test="tenantId != null">
+                AND (ur.tenant_id = #{tenantId} OR r.tenant_id IS NULL)
+            </when>
+            <otherwise>
+                AND r.tenant_id IS NULL
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectSuperAdministratorFlag" resultType="boolean">
+        SELECT EXISTS(SELECT 1
+                      FROM sys_user_role ur
+                               INNER JOIN sys_role r
+                                          ON r.id = ur.role_id
+                                              AND r.tenant_id IS NULL
+                                              AND r.deleted = 0
+                                              AND r.status = 0
+                      WHERE ur.user_id = #{userId}
+                        AND ur.deleted = 0
+                        AND r.role_code = 'superadmin')
     </select>
 </mapper>
 

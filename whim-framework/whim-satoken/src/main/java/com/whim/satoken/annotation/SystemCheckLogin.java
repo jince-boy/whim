@@ -1,7 +1,7 @@
 package com.whim.satoken.annotation;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import com.whim.satoken.constants.AuthUserType;
+import com.whim.core.auth.constants.AuthUserType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

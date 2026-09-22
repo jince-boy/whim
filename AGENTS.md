@@ -47,6 +47,8 @@ Authentication is intentionally abstracted in two layers:
 
 `StpAuthManager` is the central facade for Sa-Token multi-account handling. Even though only the `SYSTEM` account type is currently registered, new account systems are meant to be added there. Business and infrastructure code should depend on `AuthenticationContext`, not directly on Sa-Token APIs, unless they are inside the auth framework module itself.
 
+`whim-satoken` and `whim-mybatisplus` are independent sibling infrastructure modules. Both may depend on `whim-core`, but they must never depend on each other. Business modules must use the abstractions in `whim-core`; `whim-start` is the composition root that assembles the concrete Sa-Token implementation with business and persistence modules.
+
 ### Persistence conventions
 
 `whim-mybatisplus` centralizes database behavior:
@@ -71,7 +73,7 @@ Static Controller route segments must use lower camel case and may contain only 
 
 ### Business modules
 
-`whim-modules/whim-system` is the current business module. It depends on the auth and redis framework modules and is where system-domain controllers/services/entities should live. Right now the module appears to be in an early stage, with only a placeholder controller present.
+`whim-modules/whim-system` is the current business module. It depends on `whim-core`, `whim-mybatisplus`, and `whim-redis`, but not on the concrete `whim-satoken` implementation. System-domain controllers, services, mappers, entities, DTOs, and VOs belong here.
 
 ## Configuration notes
 

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.system.model.entity.SysUser;
 
+import java.util.Set;
+
 /**
  * @author Jince
  * @date 2026/07/02
@@ -19,11 +21,38 @@ public interface ISysUserService extends IService<SysUser> {
     SysUser getByUsername(String username);
 
     /**
+     * 查询用户当前可访问的租户ID集合。
+     *
+     * @param userId 用户ID
+     * @return 可访问租户ID集合
+     */
+    Set<Long> getAccessibleTenantIds(Long userId);
+
+    /**
+     * 修改用户默认进入租户。
+     *
+     * @param userId   用户ID
+     * @param tenantId 默认租户ID
+     * @return 是否修改成功
+     */
+    boolean updateDefaultTenantId(Long userId, Long tenantId);
+
+    /**
      * 构建系统账号认证上下文。
      *
      * @param user 用户实体
      * @return 用户认证信息
      */
     UserInfo buildUserInfo(SysUser user);
+
+    /**
+     * 按指定当前租户构建系统账号认证上下文。
+     *
+     * @param user            用户实体
+     * @param currentTenantId 当前租户ID，平台上下文时为空
+     * @return 用户认证信息
+     */
+    UserInfo buildUserInfo(SysUser user, Long currentTenantId);
+
 }
 

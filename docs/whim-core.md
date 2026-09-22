@@ -127,6 +127,10 @@ public interface AuthenticationContext {
         return getCurrentUserInfo().getDeptId();
     }
 
+    default Long getTenantId() {
+        return getCurrentUserInfo().getCurrentTenantId();
+    }
+
     default String getLoginType() {
         return getCurrentUserInfo().getLoginType();
     }
@@ -146,13 +150,17 @@ public interface AuthenticationSession {
 
     AuthenticationToken login(UserInfo userInfo, boolean rememberMe);
 
+    void updateUserInfo(UserInfo userInfo);
+
     void logout();
 
     void kickout(String loginType, Collection<Long> userIds);
 }
 ```
 
-`AuthenticationSession` 返回与具体认证框架无关的 `AuthenticationToken`，包含令牌类型、访问令牌和剩余有效期；同时提供按账号体系批量强制下线的能力。Sa-Token 的具体实现位于 `whim-satoken`，不会把 `StpLogic` 等基础设施类型暴露给业务模块。
+`AuthenticationSession` 返回与具体认证框架无关的 `AuthenticationToken`，包含令牌类型、访问令牌和剩余有效期；同时提供当前令牌上下文更新和按账号体系批量强制下线能力。Sa-Token 的具体实现位于 `whim-satoken`，不会把 `StpLogic` 等基础设施类型暴露给业务模块。
+
+租户、角色和权限上下文按 Token 隔离。同一用户在不同终端分别切换租户时，只更新各自的 Token-Session，不会覆盖其他终端的当前租户。
 
 当前登录用户模型为 `UserInfo`：
 
@@ -165,6 +173,7 @@ public interface AuthenticationSession {
 | `deptId` | 当前部门 ID |
 | `tenantIds` | 当前用户可访问的有效租户 ID 集合 |
 | `defaultTenantId` | 用户默认进入的租户 ID |
+| `currentTenantId` | 当前 Token 正在操作的租户 ID |
 | `loginType` | 登录账号体系 |
 | `permissionCodeSet` | 当前用户权限编码集合 |
 | `roleCodeSet` | 当前用户角色编码集合 |

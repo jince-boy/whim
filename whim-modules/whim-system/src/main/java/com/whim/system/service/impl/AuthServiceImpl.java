@@ -3,26 +3,37 @@ package com.whim.system.service.impl;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.model.AuthenticationToken;
+import com.whim.core.auth.model.UserInfo;
 import com.whim.core.config.properties.AltchaProperties;
 import com.whim.core.exception.ServiceException;
+import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.core.exception.UserDisableException;
+import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
 import com.whim.core.utils.BCryptUtils;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
+import com.whim.system.model.vo.auth.AuthTenantListVO;
+import com.whim.system.model.vo.auth.AuthTenantVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.service.IAuthService;
+import com.whim.system.service.ISysRoleService;
+import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserService;
+import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.altcha.altcha.v2.Altcha;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -43,6 +54,21 @@ public class AuthServiceImpl implements IAuthService {
      * 系统用户服务对象
      */
     private final ISysUserService sysUserService;
+
+    /**
+     * 系统角色服务对象
+     */
+    private final ISysRoleService sysRoleService;
+
+    /**
+     * 系统租户服务对象
+     */
+    private final ISysTenantService sysTenantService;
+
+    /**
+     * 用户租户关系服务对象
+     */
+    private final ISysUserTenantService sysUserTenantService;
 
     /**
      * 当前请求认证上下文
@@ -95,6 +121,83 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public AuthUserVO getUserInfo() {
         return AuthUserVO.from(authenticationContext.getCurrentUserInfo());
+    }
+
+    /**
+     * 获取当前登录用户可选择的租户列表。
+     *
+     * @return 租户选择列表
+     */
+    @Override
+    public AuthTenantListVO getTenantList() {
+        UserInfo userInfo = authenticationContext.getCurrentUserInfo();
+        List<SysTenant> tenantList;
+        if (sysRoleService.isSuperAdministrator(userInfo.getUserId())) {
+            tenantList = sysTenantService.getAvailableTenantList();
+        } else {
+            tenantList = sysUserTenantService.getTenantListByUserId(userInfo.getUserId());
+        }
+
+        AuthTenantListVO tenantListVO = new AuthTenantListVO();
+        tenantListVO.setCurrentTenantId(userInfo.getCurrentTenantId());
+        tenantListVO.setDefaultTenantId(userInfo.getDefaultTenantId());
+        tenantListVO.setTenantList(tenantList.stream().map(AuthTenantVO::from).toList());
+        return tenantListVO;
+    }
+
+    /**
+     * 切换当前令牌正在操作的租户。
+     *
+     * @param tenantId 目标租户ID
+     * @return 切换后的当前用户信息
+     */
+    @Override
+    public AuthUserVO switchTenant(Long tenantId) {
+        SysUser user = getCurrentUserEntity();
+        UserInfo userInfo = sysUserService.buildUserInfo(user, tenantId);
+        authenticationSession.updateUserInfo(userInfo);
+        return AuthUserVO.from(userInfo);
+    }
+
+    /**
+     * 将超级管理员切换回平台上下文。
+     *
+     * @return 切换后的当前用户信息
+     */
+    @Override
+    public AuthUserVO switchPlatform() {
+        SysUser user = getCurrentUserEntity();
+        if (!sysRoleService.isSuperAdministrator(user.getId())) {
+            throw new TenantAccessDeniedException("只有超级管理员可以进入平台上下文");
+        }
+        UserInfo userInfo = sysUserService.buildUserInfo(user, null);
+        authenticationSession.updateUserInfo(userInfo);
+        return AuthUserVO.from(userInfo);
+    }
+
+    /**
+     * 设置当前用户默认进入的租户。
+     *
+     * @param tenantId 默认租户ID
+     * @return 更新后的当前用户信息
+     */
+    @Override
+    public AuthUserVO setDefaultTenant(Long tenantId) {
+        UserInfo currentUserInfo = authenticationContext.getCurrentUserInfo();
+        SysUser user = getCurrentUserEntity();
+        if (!sysUserService.updateDefaultTenantId(user.getId(), tenantId)) {
+            throw new ServiceException("默认租户设置失败");
+        }
+
+        user.setDefaultTenantId(tenantId);
+        Set<Long> tenantIds = sysUserService.getAccessibleTenantIds(user.getId());
+        Long currentTenantId = currentUserInfo.getCurrentTenantId();
+        if (currentTenantId == null || !tenantIds.contains(currentTenantId)) {
+            currentTenantId = tenantId;
+        }
+        UserInfo userInfo = sysUserService.buildUserInfo(user, currentTenantId);
+        authenticationSession.updateUserInfo(userInfo);
+        return AuthUserVO.from(userInfo);
     }
 
     /**
@@ -152,6 +255,22 @@ public class AuthServiceImpl implements IAuthService {
         }
         result.put("salt", parameters.salt());
         return result;
+    }
+
+    /**
+     * 查询并校验当前登录用户实体。
+     *
+     * @return 当前登录用户实体
+     */
+    private SysUser getCurrentUserEntity() {
+        SysUser user = sysUserService.getById(authenticationContext.getUserId());
+        if (user == null) {
+            throw new UserNotFoundException("当前登录用户不存在");
+        }
+        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
+            throw new UserDisableException("用户已被禁用");
+        }
+        return user;
     }
 
     /**
