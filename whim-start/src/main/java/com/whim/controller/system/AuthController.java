@@ -1,20 +1,18 @@
 package com.whim.controller.system;
 
 import com.whim.system.model.dto.auth.AuthLoginDTO;
-import com.whim.system.model.dto.auth.SwitchTenantDTO;
 import com.whim.system.model.vo.auth.AltchaCaptchaVO;
 import com.whim.system.model.vo.auth.AuthLoginVO;
-import com.whim.system.model.vo.auth.AuthTenantListVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.service.IAuthService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -38,7 +36,6 @@ public class AuthController {
      * @param loginDTO 登录参数
      * @return 登录结果
      */
-    @CrossOrigin
     @PostMapping("/login")
     public Result<AuthLoginVO> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
         return Result.success("登录成功", authService.login(loginDTO));
@@ -49,7 +46,6 @@ public class AuthController {
      *
      * @return 注销结果
      */
-    @CrossOrigin
     @PostMapping("/logout")
     public Result<Void> logout() {
         authService.logout();
@@ -57,48 +53,14 @@ public class AuthController {
     }
 
     /**
-     * 获取当前登录用户信息。
+     * 获取当前用户信息并按指定或默认租户刷新当前令牌上下文。
      *
-     * @return 当前登录用户信息
+     * @param tenantId 目标租户ID，不传时使用默认租户
+     * @return 当前用户信息
      */
-    @CrossOrigin
     @GetMapping("/userInfo")
-    public Result<AuthUserVO> userInfo() {
-        return Result.success("当前用户信息获取成功", authService.getUserInfo());
-    }
-
-    /**
-     * 获取当前登录用户可选择的租户列表。
-     *
-     * @return 租户选择列表
-     */
-    @CrossOrigin
-    @GetMapping("/tenantList")
-    public Result<AuthTenantListVO> tenantList() {
-        return Result.success("租户列表获取成功", authService.getTenantList());
-    }
-
-    /**
-     * 切换当前令牌正在操作的租户。
-     *
-     * @param switchTenantDTO 切换租户参数
-     * @return 切换后的当前用户信息
-     */
-    @CrossOrigin
-    @PostMapping("/switchTenant")
-    public Result<AuthUserVO> switchTenant(@RequestBody @Valid SwitchTenantDTO switchTenantDTO) {
-        return Result.success("租户切换成功", authService.switchTenant(switchTenantDTO.getTenantId()));
-    }
-
-    /**
-     * 将超级管理员切换回平台上下文。
-     *
-     * @return 切换后的当前用户信息
-     */
-    @CrossOrigin
-    @PostMapping("/switchPlatform")
-    public Result<AuthUserVO> switchPlatform() {
-        return Result.success("平台上下文切换成功", authService.switchPlatform());
+    public Result<AuthUserVO> userInfo(@RequestParam(name = "tenantId", required = false) Long tenantId) {
+        return Result.success("当前用户信息获取成功", authService.getUserInfo(tenantId));
     }
 
     /**
@@ -106,7 +68,6 @@ public class AuthController {
      *
      * @return ALTCHA 验证码挑战
      */
-    @CrossOrigin
     @GetMapping("/captcha")
     public Result<AltchaCaptchaVO> getCaptcha() {
         return Result.success("验证码获取成功", authService.getCaptcha());

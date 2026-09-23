@@ -2,6 +2,7 @@ package com.whim.system.model.vo.auth;
 
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
 import java.util.LinkedHashSet;
@@ -14,6 +15,7 @@ import java.util.Set;
  * @description 当前登录用户响应参数。
  */
 @Data
+@AutoMapper(target = UserInfo.class, convertGenerate = false)
 public class AuthUserVO {
     /**
      * 用户ID
@@ -41,9 +43,9 @@ public class AuthUserVO {
     private Long deptId;
 
     /**
-     * 可访问租户ID集合
+     * 当前可选择的有效租户
      */
-    private Set<Long> tenantIds = new LinkedHashSet<>();
+    private List<AuthTenantVO> tenantList = List.of();
 
     /**
      * 默认进入租户ID
@@ -75,26 +77,4 @@ public class AuthUserVO {
      */
     private List<RoleInfo> roleInfoList;
 
-    /**
-     * 将认证上下文转换为用户响应对象。
-     *
-     * @param userInfo 当前登录用户信息
-     * @return 当前登录用户响应对象
-     */
-    public static AuthUserVO from(UserInfo userInfo) {
-        AuthUserVO userVO = new AuthUserVO();
-        userVO.setUserId(userInfo.getUserId());
-        userVO.setUsername(userInfo.getUsername());
-        userVO.setName(userInfo.getName());
-        userVO.setAvatar(userInfo.getAvatar());
-        userVO.setDeptId(userInfo.getDeptId());
-        userVO.setTenantIds(new LinkedHashSet<>(userInfo.getTenantIds()));
-        userVO.setDefaultTenantId(userInfo.getDefaultTenantId());
-        userVO.setCurrentTenantId(userInfo.getCurrentTenantId());
-        userVO.setLoginType(userInfo.getLoginType());
-        userVO.setRoleCodeSet(new LinkedHashSet<>(userInfo.getRoleCodeSet()));
-        userVO.setPermissionCodeSet(new LinkedHashSet<>(userInfo.getPermissionCodeSet()));
-        userVO.setRoleInfoList(List.copyOf(userInfo.getRoleInfoList()));
-        return userVO;
-    }
 }

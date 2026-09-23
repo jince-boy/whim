@@ -19,11 +19,13 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      *
      * @param userId 用户ID
      * @param tenantId 当前租户ID，平台上下文时为空
+     * @param roleIds 当前用户已启用角色ID集合
      * @return 权限编码集合
      */
     Set<String> selectPermissionCodeSetByUserIdAndTenantId(
             @Param("userId") Long userId,
-            @Param("tenantId") Long tenantId
+            @Param("tenantId") Long tenantId,
+            @Param("roleIds") Set<Long> roleIds
     );
 
     /**

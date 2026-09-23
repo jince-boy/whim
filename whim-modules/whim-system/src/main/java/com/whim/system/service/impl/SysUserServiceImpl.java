@@ -2,6 +2,7 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.constants.AuthUserType;
+import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysUserMapper;
@@ -13,9 +14,10 @@ import com.whim.system.service.ISysUserService;
 import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -54,25 +56,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             return sysTenantService.getAvailableTenantIds();
         }
         return sysUserTenantService.getTenantIdsByUserId(userId);
-    }
-
-    /**
-     * 修改用户默认进入租户。
-     *
-     * @param userId   用户ID
-     * @param tenantId 默认租户ID
-     * @return 是否修改成功
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean updateDefaultTenantId(Long userId, Long tenantId) {
-        if (!getAccessibleTenantIds(userId).contains(tenantId)) {
-            throw new TenantAccessDeniedException("无权将该租户设置为默认租户");
-        }
-        SysUser user = new SysUser();
-        user.setId(userId);
-        user.setDefaultTenantId(tenantId);
-        return updateById(user);
     }
 
     /**
@@ -125,11 +108,22 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         userInfo.setCurrentTenantId(currentTenantId);
         userInfo.setLoginType(AuthUserType.SYSTEM);
+        List<RoleInfo> activeRoleList = sysRoleService.getRoleInfoListByUserIdAndTenantId(user.getId(), currentTenantId);
+        List<RoleInfo> roleInfoList = new ArrayList<>();
+        Set<Long> roleIds = new LinkedHashSet<>();
+        Set<String> roleCodeSet = new LinkedHashSet<>();
+        for (RoleInfo roleInfo : activeRoleList) {
+            roleIds.add(roleInfo.getRoleId());
+            if (!roleInfo.getRoleCode().isEmpty()) {
+                roleInfoList.add(roleInfo);
+                roleCodeSet.add(roleInfo.getRoleCode());
+            }
+        }
         userInfo.setPermissionCodeSet(
-                sysPermissionService.getPermissionCodeSetByUserIdAndTenantId(user.getId(), currentTenantId)
+                sysPermissionService.getPermissionCodeSetByUserIdAndTenantId(user.getId(), currentTenantId, roleIds)
         );
-        userInfo.setRoleCodeSet(sysRoleService.getRoleCodeSetByUserIdAndTenantId(user.getId(), currentTenantId));
-        userInfo.setRoleInfoList(sysRoleService.getRoleInfoListByUserIdAndTenantId(user.getId(), currentTenantId));
+        userInfo.setRoleCodeSet(roleCodeSet);
+        userInfo.setRoleInfoList(roleInfoList);
         return userInfo;
     }
 

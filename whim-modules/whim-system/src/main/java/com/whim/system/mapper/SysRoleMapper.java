@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -16,18 +15,6 @@ import java.util.Set;
  */
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
-    /**
-     * 查询用户已启用角色编码列表。
-     *
-     * @param userId 用户ID
-     * @param tenantId 当前租户ID，平台上下文时为空
-     * @return 角色编码集合
-     */
-    Set<String> selectRoleCodeSetByUserIdAndTenantId(
-            @Param("userId") Long userId,
-            @Param("tenantId") Long tenantId
-    );
-
     /**
      * 查询用户已启用角色的完整信息。
      *
@@ -46,6 +33,6 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      * @param userId 用户ID
      * @return true 表示拥有超级管理员角色
      */
-    boolean selectSuperAdministratorFlag(@Param("userId") Long userId);
+    Boolean selectSuperAdministratorFlag(@Param("userId") Long userId);
 }
 

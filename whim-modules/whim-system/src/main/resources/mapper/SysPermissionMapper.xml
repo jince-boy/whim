@@ -4,13 +4,8 @@
     <select id="selectPermissionCodeSetByUserIdAndTenantId" resultType="java.lang.String">
         SELECT DISTINCT p.perms
         FROM sys_user_role ur
-                 INNER JOIN sys_role r
-                            ON r.id = ur.role_id
-                                AND (r.tenant_id = ur.tenant_id OR r.tenant_id IS NULL)
-                                AND r.deleted = 0
-                                AND r.status = 0
                  INNER JOIN sys_role_permission rp
-                            ON rp.role_id = r.id
+                            ON rp.role_id = ur.role_id
                                 AND rp.tenant_id = ur.tenant_id
                                 AND rp.deleted = 0
                  INNER JOIN sys_permission p
@@ -19,16 +14,15 @@
                                 AND p.status = 0
         WHERE ur.user_id = #{userId}
           AND ur.deleted = 0
+          AND ur.role_id IN
+          <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+              #{roleId}
+          </foreach>
           AND p.perms IS NOT NULL
           AND p.perms != ''
-        <choose>
-            <when test="tenantId != null">
-                AND ur.tenant_id = #{tenantId}
-            </when>
-            <otherwise>
-                AND r.tenant_id IS NULL
-            </otherwise>
-        </choose>
+        <if test="tenantId != null">
+            AND ur.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="selectUserIdSetByPermissionId" resultType="java.lang.Long">

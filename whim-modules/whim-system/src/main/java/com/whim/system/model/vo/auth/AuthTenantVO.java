@@ -1,6 +1,8 @@
 package com.whim.system.model.vo.auth;
 
 import com.whim.system.model.entity.SysTenant;
+import io.github.linpeilie.annotations.AutoMapper;
+import io.github.linpeilie.annotations.ReverseAutoMapping;
 import lombok.Data;
 
 /**
@@ -9,11 +11,13 @@ import lombok.Data;
  * @description 登录用户可选择的租户信息。
  */
 @Data
+@AutoMapper(target = SysTenant.class, convertGenerate = false)
 public class AuthTenantVO {
 
     /**
      * 租户ID
      */
+    @ReverseAutoMapping(source = "id", target = "tenantId")
     private Long tenantId;
 
     /**
@@ -26,17 +30,4 @@ public class AuthTenantVO {
      */
     private String companyName;
 
-    /**
-     * 将租户实体转换为认证租户响应对象。
-     *
-     * @param tenant 租户实体
-     * @return 认证租户响应对象
-     */
-    public static AuthTenantVO from(SysTenant tenant) {
-        AuthTenantVO tenantVO = new AuthTenantVO();
-        tenantVO.setTenantId(tenant.getId());
-        tenantVO.setTenantCode(tenant.getTenantCode());
-        tenantVO.setCompanyName(tenant.getCompanyName());
-        return tenantVO;
-    }
 }

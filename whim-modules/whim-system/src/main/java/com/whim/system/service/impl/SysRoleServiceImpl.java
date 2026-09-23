@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -18,23 +17,6 @@ import java.util.Set;
  */
 @Service
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
-
-    /**
-     * 查询用户已启用角色编码集合。
-     *
-     * @param userId 用户ID
-     * @return 角色编码集合
-     */
-    @Override
-    public Set<String> getRoleCodeSetByUserIdAndTenantId(Long userId, Long tenantId) {
-        if (Objects.isNull(userId)) {
-            return Set.of();
-        }
-        return Objects.requireNonNullElse(
-                baseMapper.selectRoleCodeSetByUserIdAndTenantId(userId, tenantId),
-                Set.of()
-        );
-    }
 
     /**
      * 查询用户已启用角色的完整信息。
@@ -61,7 +43,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
      */
     @Override
     public boolean isSuperAdministrator(Long userId) {
-        return baseMapper.selectSuperAdministratorFlag(userId);
+        return Boolean.TRUE.equals(baseMapper.selectSuperAdministratorFlag(userId));
     }
 }
 

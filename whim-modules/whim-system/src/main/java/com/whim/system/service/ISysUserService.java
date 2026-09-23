@@ -29,15 +29,6 @@ public interface ISysUserService extends IService<SysUser> {
     Set<Long> getAccessibleTenantIds(Long userId);
 
     /**
-     * 修改用户默认进入租户。
-     *
-     * @param userId   用户ID
-     * @param tenantId 默认租户ID
-     * @return 是否修改成功
-     */
-    boolean updateDefaultTenantId(Long userId, Long tenantId);
-
-    /**
      * 构建系统账号认证上下文。
      *
      * @param user 用户实体

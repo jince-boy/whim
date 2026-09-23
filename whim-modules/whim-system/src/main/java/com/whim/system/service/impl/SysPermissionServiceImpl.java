@@ -33,15 +33,17 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      * 查询用户已启用权限编码集合。
      *
      * @param userId 用户ID
+     * @param tenantId 当前租户ID，平台上下文时为空
+     * @param roleIds 当前用户已启用角色ID集合
      * @return 权限编码集合
      */
     @Override
-    public Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId) {
-        if (Objects.isNull(userId)) {
+    public Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId, Set<Long> roleIds) {
+        if (Objects.isNull(userId) || roleIds.isEmpty()) {
             return Set.of();
         }
         return Objects.requireNonNullElse(
-                baseMapper.selectPermissionCodeSetByUserIdAndTenantId(userId, tenantId),
+                baseMapper.selectPermissionCodeSetByUserIdAndTenantId(userId, tenantId, roleIds),
                 Set.of()
         );
     }

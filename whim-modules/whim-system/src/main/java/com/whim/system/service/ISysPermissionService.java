@@ -16,9 +16,10 @@ public interface ISysPermissionService extends IService<SysPermission> {
      *
      * @param userId 用户ID
      * @param tenantId 当前租户ID，平台上下文时为空
+     * @param roleIds 当前用户已启用角色ID集合
      * @return 权限编码集合
      */
-    Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId);
+    Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId, Set<Long> roleIds);
 
     /**
      * 修改权限，并强制当前拥有该权限的用户退出登录。
