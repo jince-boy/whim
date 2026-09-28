@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserTenantMapper">
+    <select id="selectActiveMemberFlag" resultType="boolean">
+        SELECT 1
+        FROM sys_user_tenant
+        WHERE user_id = #{userId}
+          AND tenant_id = #{tenantId}
+          AND deleted = 0
+          AND status = 0
+        LIMIT 1
+    </select>
+
     <resultMap id="tenantOptionResultMap" type="com.whim.system.model.entity.SysTenant">
         <id column="id" property="id"/>
         <result column="tenant_code" property="tenantCode"/>
@@ -15,8 +25,13 @@
                                 AND t.deleted = 0
                                 AND t.status = 0
                                 AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+                 INNER JOIN sys_tenant_package tenant_package
+                            ON tenant_package.id = t.package_id
+                                AND tenant_package.deleted = 0
+                                AND tenant_package.status = 0
         WHERE ut.user_id = #{userId}
           AND ut.deleted = 0
+          AND ut.status = 0
     </select>
 
     <select id="selectTenantListByUserId" resultMap="tenantOptionResultMap">
@@ -29,9 +44,42 @@
                                 AND t.deleted = 0
                                 AND t.status = 0
                                 AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+                 INNER JOIN sys_tenant_package tenant_package
+                            ON tenant_package.id = t.package_id
+                                AND tenant_package.deleted = 0
+                                AND tenant_package.status = 0
         WHERE ut.user_id = #{userId}
           AND ut.deleted = 0
+          AND ut.status = 0
         ORDER BY t.company_name, t.id
+    </select>
+
+    <select id="selectMemberList" resultType="com.whim.system.model.vo.tenant.MemberVO">
+        SELECT u.id AS userId,
+               u.username,
+               u.name,
+               u.status AS userStatus,
+               ut.status AS memberStatus
+        FROM sys_user_tenant ut
+                 INNER JOIN sys_user u ON u.id = ut.user_id AND u.deleted = 0
+        WHERE ut.tenant_id = #{tenantId}
+          AND ut.deleted = 0
+        ORDER BY u.id
+    </select>
+
+    <select id="selectMemberUserIds" resultType="java.lang.Long">
+        SELECT user_id
+        FROM sys_user_tenant
+        WHERE tenant_id = #{tenantId}
+          AND deleted = 0
+    </select>
+
+    <select id="selectMemberUserIdsByPackageId" resultType="java.lang.Long">
+        SELECT DISTINCT ut.user_id
+        FROM sys_tenant t
+                 INNER JOIN sys_user_tenant ut ON ut.tenant_id = t.id AND ut.deleted = 0
+        WHERE t.package_id = #{packageId}
+          AND t.deleted = 0
     </select>
 </mapper>
 

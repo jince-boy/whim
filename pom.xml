@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
 
@@ -38,7 +38,7 @@
         <owasp-java-html-sanitizer.version>20260313.1</owasp-java-html-sanitizer.version>
         <redisson.version>4.3.0</redisson.version>
         <lock4j.version>2.2.7</lock4j.version>
-        <sa-token-version>1.45.0</sa-token-version>
+        <sa-token-version>1.46.0</sa-token-version>
         <mybatis-plus-version>3.5.15</mybatis-plus-version>
         <p6spy.version>2.0.0</p6spy.version>
         <altcha.version>2.0.2</altcha.version>
@@ -83,6 +83,12 @@
             <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+            <!-- 统一 Redisson 核心版本，避免 Sa-Token 传递的旧版本覆盖 Starter 使用的版本 -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
                 <version>${redisson.version}</version>
             </dependency>
             <!--lock 4j-->

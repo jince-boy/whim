@@ -9,24 +9,46 @@
     </resultMap>
 
     <select id="selectRoleInfoListByUserIdAndTenantId" resultMap="roleInfoResultMap">
-        SELECT DISTINCT r.id AS role_id,
+        SELECT r.id AS role_id,
                         r.role_name,
                         r.role_code,
                         r.data_scope
         FROM sys_user_role ur
+                 INNER JOIN sys_user u
+                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
                  INNER JOIN sys_role r
                             ON r.id = ur.role_id
-                                AND (r.tenant_id = ur.tenant_id OR r.tenant_id IS NULL)
+                                AND r.tenant_id &lt;=&gt; ur.tenant_id
                                 AND r.deleted = 0
                                 AND r.status = 0
+                                AND ((r.tenant_id IS NULL AND r.role_type = 0)
+                                    OR (r.tenant_id IS NOT NULL AND r.role_type = 1
+                                        AND r.role_code != 'superadmin'))
         WHERE ur.user_id = #{userId}
           AND ur.deleted = 0
+          AND (ur.tenant_id IS NULL OR EXISTS (
+              SELECT 1
+              FROM sys_user_tenant ut
+                       INNER JOIN sys_tenant t ON t.id = ut.tenant_id
+                       INNER JOIN sys_tenant_package tenant_package
+                                  ON tenant_package.id = t.package_id
+                                      AND tenant_package.deleted = 0
+                                      AND tenant_package.status = 0
+              WHERE ut.user_id = ur.user_id
+                AND ut.tenant_id = ur.tenant_id
+                AND ut.deleted = 0
+                AND ut.status = 0
+                AND t.deleted = 0
+                AND t.status = 0
+                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+          ))
         <choose>
             <when test="tenantId != null">
-                AND (ur.tenant_id = #{tenantId} OR r.tenant_id IS NULL)
+                AND (ur.tenant_id = #{tenantId}
+                    OR (ur.tenant_id IS NULL AND r.role_code = 'superadmin'))
             </when>
             <otherwise>
-                AND r.tenant_id IS NULL
+                AND ur.tenant_id IS NULL
             </otherwise>
         </choose>
     </select>
@@ -34,13 +56,17 @@
     <select id="selectSuperAdministratorFlag" resultType="boolean">
         SELECT 1
         FROM sys_user_role ur
+                 INNER JOIN sys_user u
+                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
                  INNER JOIN sys_role r
                             ON r.id = ur.role_id
                                 AND r.tenant_id IS NULL
+                                AND r.role_type = 0
                                 AND r.deleted = 0
                                 AND r.status = 0
         WHERE ur.user_id = #{userId}
           AND ur.deleted = 0
+          AND ur.tenant_id IS NULL
           AND r.role_code = 'superadmin'
         LIMIT 1
     </select>

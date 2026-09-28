@@ -2,7 +2,9 @@ package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.system.model.entity.SysPermission;
+import com.whim.system.model.vo.permission.PermissionVO;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -21,8 +23,17 @@ public interface ISysPermissionService extends IService<SysPermission> {
      */
     Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId, Set<Long> roleIds);
 
+    /** 查询当前租户套餐可分配的权限。 */
+    List<PermissionVO> listCurrentTenantAssignablePermissions();
+
+    /** 查询平台权限目录。 */
+    List<PermissionVO> listPlatformPermissions();
+
+    /** 修改平台权限状态。 */
+    void setPermissionStatus(Long permissionId, Integer status);
+
     /**
-     * 修改权限，并强制当前拥有该权限的用户退出登录。
+     * 修改权限，提交成功后使相关用户的旧授权失效。
      *
      * @param entity 权限实体
      * @return 是否修改成功

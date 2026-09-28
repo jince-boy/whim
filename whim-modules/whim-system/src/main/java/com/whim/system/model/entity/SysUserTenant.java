@@ -10,7 +10,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统用户租户关联表实体类
  */
@@ -34,6 +34,11 @@ public class SysUserTenant extends BaseEntity implements Serializable {
      * 租户ID
      */
     private Long tenantId;
+
+    /**
+     * 成员状态(0-正常 1-停用)
+     */
+    private Integer status;
 
     /**
      * 删除标志(0-未删除 1-已删除)

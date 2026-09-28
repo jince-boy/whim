@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统部门表控制层
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/sysDept")
+@RequestMapping("/system/dept")
 public class SysDeptController {
 
     /**

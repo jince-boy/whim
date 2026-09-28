@@ -3,6 +3,8 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.system.model.entity.SysRole;
+import com.whim.system.model.dto.role.RoleSaveDTO;
+import com.whim.system.model.vo.role.RoleVO;
 
 import java.util.List;
 
@@ -28,5 +30,20 @@ public interface ISysRoleService extends IService<SysRole> {
      * @return true 表示拥有超级管理员角色
      */
     boolean isSuperAdministrator(Long userId);
+
+    /** 查询当前租户的角色。 */
+    List<RoleVO> listCurrentTenantRoles();
+
+    /** 查询角色并确认其属于指定租户。 */
+    SysRole getRequiredTenantRole(Long roleId, Long tenantId);
+
+    /** 创建当前租户角色。 */
+    Long createCurrentTenantRole(RoleSaveDTO request);
+
+    /** 修改当前租户角色。 */
+    void updateCurrentTenantRole(Long roleId, RoleSaveDTO request);
+
+    /** 修改当前租户角色状态。 */
+    void setCurrentTenantRoleStatus(Long roleId, Integer status);
 }
 

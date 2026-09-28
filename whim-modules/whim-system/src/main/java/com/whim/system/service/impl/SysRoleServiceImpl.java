@@ -2,10 +2,18 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.model.RoleInfo;
+import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysRoleMapper;
+import com.whim.system.mapper.SysUserRoleMapper;
+import com.whim.system.model.dto.role.RoleSaveDTO;
 import com.whim.system.model.entity.SysRole;
+import com.whim.system.model.vo.role.RoleVO;
+import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysRoleService;
+import com.whim.system.service.ISysTenantService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +24,11 @@ import java.util.Objects;
  * @description 系统角色表服务实现类
  */
 @Service
+@RequiredArgsConstructor
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
+    private final ISysTenantService tenantService;
+    private final SysUserRoleMapper userRoleMapper;
+    private final AuthorizationSessionInvalidator sessionInvalidator;
 
     /**
      * 查询用户已启用角色的完整信息。
@@ -44,6 +56,91 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     public boolean isSuperAdministrator(Long userId) {
         return Boolean.TRUE.equals(baseMapper.selectSuperAdministratorFlag(userId));
+    }
+
+    /** 查询当前租户的角色。 */
+    @Override
+    public List<RoleVO> listCurrentTenantRoles() {
+        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
+        return lambdaQuery().eq(SysRole::getTenantId, tenantId)
+                .orderByAsc(SysRole::getSort, SysRole::getId).list().stream()
+                .map(role -> {
+                    RoleVO response = new RoleVO();
+                    response.setId(role.getId());
+                    response.setRoleName(role.getRoleName());
+                    response.setRoleCode(role.getRoleCode());
+                    response.setDataScope(role.getDataScope());
+                    response.setStatus(role.getStatus());
+                    return response;
+                }).toList();
+    }
+
+    /** 查询角色并确认其属于指定租户。 */
+    @Override
+    public SysRole getRequiredTenantRole(Long roleId, Long tenantId) {
+        SysRole role = getById(roleId);
+        if (role == null || !Objects.equals(role.getTenantId(), tenantId) || role.getRoleType() != 1) {
+            throw new TenantAccessDeniedException("目标角色不属于当前租户");
+        }
+        return role;
+    }
+
+    /** 创建当前租户角色。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long createCurrentTenantRole(RoleSaveDTO request) {
+        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
+        validateRoleCode(request.getRoleCode(), tenantId, null);
+        SysRole role = new SysRole();
+        role.setTenantId(tenantId);
+        role.setRoleType(1);
+        role.setRoleName(request.getRoleName().trim());
+        role.setRoleCode(request.getRoleCode().trim());
+        role.setDataScope(5);
+        role.setSort(0);
+        role.setStatus(0);
+        save(role);
+        return role.getId();
+    }
+
+    /** 修改当前租户角色。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCurrentTenantRole(Long roleId, RoleSaveDTO request) {
+        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
+        SysRole role = getRequiredTenantRole(roleId, tenantId);
+        validateRoleCode(request.getRoleCode(), tenantId, roleId);
+        role.setRoleName(request.getRoleName().trim());
+        role.setRoleCode(request.getRoleCode().trim());
+        updateById(role);
+        sessionInvalidator.kickoutAfterCommit(userRoleMapper.selectUserIdsByRole(roleId, tenantId));
+    }
+
+    /** 修改当前租户角色状态。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setCurrentTenantRoleStatus(Long roleId, Integer status) {
+        if (status == null || (status != 0 && status != 1)) {
+            throw new IllegalArgumentException("状态只能为0或1");
+        }
+        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
+        SysRole role = getRequiredTenantRole(roleId, tenantId);
+        role.setStatus(status);
+        updateById(role);
+        sessionInvalidator.kickoutAfterCommit(userRoleMapper.selectUserIdsByRole(roleId, tenantId));
+    }
+
+    /** 检查当前租户的角色编码唯一且不冒用平台超级管理员。 */
+    private void validateRoleCode(String roleCode, Long tenantId, Long excludedRoleId) {
+        String normalizedCode = roleCode.trim();
+        if (normalizedCode.equals("superadmin") || normalizedCode.equals("*")) {
+            throw new IllegalArgumentException("租户角色不能使用平台超级管理员编码");
+        }
+        List<SysRole> sameCodeRoles = lambdaQuery().eq(SysRole::getTenantId, tenantId)
+                .eq(SysRole::getRoleCode, normalizedCode).list();
+        if (sameCodeRoles.stream().anyMatch(role -> !Objects.equals(role.getId(), excludedRoleId))) {
+            throw new IllegalArgumentException("当前租户已存在相同角色编码");
+        }
     }
 }
 

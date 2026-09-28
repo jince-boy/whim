@@ -3,6 +3,7 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
+import com.whim.system.model.vo.tenant.MemberVO;
 
 import java.util.List;
 import java.util.Set;
@@ -29,5 +30,20 @@ public interface ISysUserTenantService extends IService<SysUserTenant> {
      * @return 可访问租户列表
      */
     List<SysTenant> getTenantListByUserId(Long userId);
+
+    /**
+     * 查询当前租户已有成员。
+     *
+     * @return 成员列表
+     */
+    List<MemberVO> listMembers();
+
+    /**
+     * 修改当前租户成员状态。
+     *
+     * @param userId 用户ID
+     * @param status 状态
+     */
+    void setMemberStatus(Long userId, Integer status);
 }
 

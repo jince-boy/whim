@@ -9,5 +9,7 @@ import com.whim.system.model.entity.SysTenantPackage;
  * @description 系统租户套餐表服务接口
  */
 public interface ISysTenantPackageService extends IService<SysTenantPackage> {
+    /** 修改套餐状态。 */
+    void setPackageStatus(Long packageId, Integer status);
 }
 

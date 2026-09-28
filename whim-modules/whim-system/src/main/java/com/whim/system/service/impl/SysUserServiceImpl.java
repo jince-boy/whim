@@ -12,8 +12,10 @@ import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserService;
 import com.whim.system.service.ISysUserTenantService;
+import com.whim.system.service.AuthorizationSessionInvalidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -32,6 +34,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysPermissionService sysPermissionService;
     private final ISysUserTenantService sysUserTenantService;
     private final ISysTenantService sysTenantService;
+    private final AuthorizationSessionInvalidator sessionInvalidator;
 
     /**
      * 根据用户名查询未删除用户。
@@ -85,6 +88,26 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new TenantAccessDeniedException("无权访问该租户或租户不可用");
         }
         return buildUserInfo(user, tenantIds, currentTenantId);
+    }
+
+    /** 修改全局用户状态并在提交后撤销其旧会话。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setUserStatus(Long userId, Integer status) {
+        sysTenantService.requirePlatformAdministrator();
+        if (status == null || (status != 0 && status != 1)) {
+            throw new IllegalArgumentException("状态只能为0或1");
+        }
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("目标用户不存在");
+        }
+        if (status == 1 && sysRoleService.isSuperAdministrator(userId)) {
+            throw new IllegalArgumentException("不能停用平台超级管理员");
+        }
+        user.setStatus(status);
+        updateById(user);
+        sessionInvalidator.kickoutAfterCommit(Set.of(userId));
     }
 
     /**

@@ -4,14 +4,44 @@
     <select id="selectPermissionCodeSetByUserIdAndTenantId" resultType="java.lang.String">
         SELECT DISTINCT p.perms
         FROM sys_user_role ur
+                 INNER JOIN sys_user u
+                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
+                 INNER JOIN sys_role r
+                            ON r.id = ur.role_id
+                                AND r.tenant_id &lt;=&gt; ur.tenant_id
+                                AND r.deleted = 0
+                                AND r.status = 0
+                                AND ((r.tenant_id IS NULL AND r.role_type = 0)
+                                    OR (r.tenant_id IS NOT NULL AND r.role_type = 1
+                                        AND r.role_code != 'superadmin'))
                  INNER JOIN sys_role_permission rp
                             ON rp.role_id = ur.role_id
-                                AND rp.tenant_id = ur.tenant_id
+                                AND rp.tenant_id &lt;=&gt; ur.tenant_id
                                 AND rp.deleted = 0
                  INNER JOIN sys_permission p
                             ON p.id = rp.permission_id
                                 AND p.deleted = 0
                                 AND p.status = 0
+        <if test="tenantId != null">
+            INNER JOIN sys_user_tenant ut
+            ON ut.user_id = ur.user_id
+                AND ut.tenant_id = ur.tenant_id
+                AND ut.deleted = 0
+                AND ut.status = 0
+            INNER JOIN sys_tenant t
+            ON t.id = ut.tenant_id
+                AND t.deleted = 0
+                AND t.status = 0
+                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
+            INNER JOIN sys_tenant_package tenant_package
+            ON tenant_package.id = t.package_id
+                AND tenant_package.deleted = 0
+                AND tenant_package.status = 0
+            INNER JOIN sys_tenant_package_permission package_permission
+            ON package_permission.package_id = tenant_package.id
+                AND package_permission.permission_id = p.id
+                AND package_permission.deleted = 0
+        </if>
         WHERE ur.user_id = #{userId}
           AND ur.deleted = 0
           AND ur.role_id IN
@@ -20,9 +50,15 @@
           </foreach>
           AND p.perms IS NOT NULL
           AND p.perms != ''
-        <if test="tenantId != null">
-            AND ur.tenant_id = #{tenantId}
-        </if>
+        <choose>
+            <when test="tenantId != null">
+                AND ur.tenant_id = #{tenantId}
+                AND p.perms NOT LIKE 'system:platform:%'
+            </when>
+            <otherwise>
+                AND ur.tenant_id IS NULL
+            </otherwise>
+        </choose>
     </select>
 
     <select id="selectUserIdSetByPermissionId" resultType="java.lang.Long">
@@ -30,11 +66,11 @@
         FROM sys_role_permission rp
                  INNER JOIN sys_user_role ur
                             ON ur.role_id = rp.role_id
-                                AND ur.tenant_id = rp.tenant_id
+                                AND ur.tenant_id &lt;=&gt; rp.tenant_id
                                 AND ur.deleted = 0
                  INNER JOIN sys_role r
                             ON r.id = rp.role_id
-                                AND (r.tenant_id = ur.tenant_id OR r.tenant_id IS NULL)
+                                AND r.tenant_id &lt;=&gt; ur.tenant_id
                                 AND r.deleted = 0
                                 AND r.status = 0
         WHERE rp.permission_id = #{permissionId}

@@ -45,5 +45,8 @@ public interface ISysUserService extends IService<SysUser> {
      */
     UserInfo buildUserInfo(SysUser user, Long currentTenantId);
 
+    /** 修改全局用户状态。 */
+    void setUserStatus(Long userId, Integer status);
+
 }
 

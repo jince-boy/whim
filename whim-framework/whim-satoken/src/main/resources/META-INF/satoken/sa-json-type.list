@@ -1,0 +1,3 @@
+# Sa-Token 会话中持久化的认证上下文类型
+com.whim.core.auth.model.UserInfo
+com.whim.core.auth.model.RoleInfo

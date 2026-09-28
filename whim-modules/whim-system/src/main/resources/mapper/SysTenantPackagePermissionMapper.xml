@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysTenantPackagePermissionMapper">
-
+    <insert id="upsertBinding">
+        INSERT INTO sys_tenant_package_permission (id, package_id, permission_id, deleted, create_by, create_time)
+        VALUES (#{id}, #{packageId}, #{permissionId}, 0, #{operatorId}, CURRENT_TIMESTAMP)
+        ON DUPLICATE KEY UPDATE deleted = 0, delete_by = NULL, delete_time = NULL,
+                                update_by = #{operatorId}, update_time = CURRENT_TIMESTAMP
+    </insert>
 </mapper>
 
