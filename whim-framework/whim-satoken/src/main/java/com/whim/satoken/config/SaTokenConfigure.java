@@ -11,7 +11,7 @@ import com.whim.core.auth.AuthenticationSession;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
-import com.whim.satoken.service.impl.StpInterfaceImpl;
+import com.whim.satoken.service.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;

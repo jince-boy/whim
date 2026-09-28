@@ -1,4 +1,4 @@
-package com.whim.satoken.service.impl;
+package com.whim.satoken.service;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
