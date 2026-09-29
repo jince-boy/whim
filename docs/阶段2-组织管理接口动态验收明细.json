@@ -1,0 +1,384 @@
+{
+  "passed": 38,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "验证码 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "admin 登录 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "验证码 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "o90678118625 登录 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "初始成员主部门为空",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "创建根部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "创建子部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝跨租户父部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "部门列表仅当前租户",
+      "actual": "{2104882707302158337, 2104882707474124801}",
+      "expected": "{2104882707302158337, 2104882707474124801}",
+      "passed": true
+    },
+    {
+      "name": "修改子部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝跨租户修改部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "创建租户角色",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "角色默认本人范围",
+      "actual": 5,
+      "expected": 5,
+      "passed": true
+    },
+    {
+      "name": "设置自定义部门范围",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "自定义部门回读",
+      "actual": [
+        2,
+        "{2104882707474124801}"
+      ],
+      "expected": [
+        2,
+        "{2104882707474124801}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝跨租户自定义部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝空自定义范围",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝非自定义范围携带部门",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝无效范围值",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "角色范围引用中不能停用部门",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "分配成员主部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "部门变更后旧令牌失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "o90678118625 登录 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "重新登录后主部门更新",
+      "actual": 2104882707474124801,
+      "expected": 2104882707474124801,
+      "passed": true
+    },
+    {
+      "name": "拒绝跨租户成员主部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝分配后原令牌仍有效",
+      "actual": [
+        200,
+        2104882707474124801
+      ],
+      "expected": [
+        200,
+        2104882707474124801
+      ],
+      "passed": true
+    },
+    {
+      "name": "成员归属中不能停用部门",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "清除成员主部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "清除主部门后旧令牌失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "o90678118625 登录 HTTP",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "重新登录后主部门为空",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "移除自定义部门绑定",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "解除引用后子部门可停用",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "拒绝向停用部门创建岗位",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "重新启用子部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "有有效子部门时不能停用父部门",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    }
+  ]
+}

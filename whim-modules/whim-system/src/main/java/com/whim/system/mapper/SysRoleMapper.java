@@ -27,6 +27,11 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
             @Param("tenantId") Long tenantId
     );
 
+    /** 查询当前租户中实际授予本次权限且受到套餐允许的有效角色。 */
+    List<RoleInfo> selectAuthorizedDataScopeRoles(@Param("userId") Long userId,
+                                                   @Param("tenantId") Long tenantId,
+                                                   @Param("permissionCode") String permissionCode);
+
     /**
      * 判断用户是否拥有全局超级管理员角色。
      *

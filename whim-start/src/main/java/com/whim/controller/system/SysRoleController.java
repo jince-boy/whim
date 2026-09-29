@@ -4,6 +4,8 @@ import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.role.RolePermissionAssignDTO;
 import com.whim.system.model.dto.role.RoleSaveDTO;
 import com.whim.system.model.dto.role.RoleStatusDTO;
+import com.whim.system.model.dto.role.RoleDataScopeDTO;
+import com.whim.system.model.vo.role.RoleDataScopeVO;
 import com.whim.system.model.vo.role.RoleVO;
 import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
@@ -65,6 +67,22 @@ public class SysRoleController {
     public Result<Void> setRoleStatus(@PathVariable Long roleId, @RequestBody @Valid RoleStatusDTO request) {
         sysRoleService.setCurrentTenantRoleStatus(roleId, request.getStatus());
         return Result.success("角色状态修改成功");
+    }
+
+    /** 查询当前租户角色的数据范围。 */
+    @GetMapping("/{roleId}/dataScope")
+    @SystemCheckPermission("system:role:dataScope")
+    public Result<RoleDataScopeVO> getRoleDataScope(@PathVariable Long roleId) {
+        return Result.success("角色数据范围查询成功", sysRoleService.getCurrentTenantDataScope(roleId));
+    }
+
+    /** 覆盖当前租户角色的数据范围。 */
+    @PutMapping("/{roleId}/dataScope")
+    @SystemCheckPermission("system:role:dataScope")
+    public Result<Void> replaceRoleDataScope(@PathVariable Long roleId,
+                                              @RequestBody @Valid RoleDataScopeDTO request) {
+        sysRoleService.replaceCurrentTenantDataScope(roleId, request.getDataScope(), request.getDeptIds());
+        return Result.success("角色数据范围修改成功");
     }
 
     /** 查询当前租户角色已分配的权限ID。 */

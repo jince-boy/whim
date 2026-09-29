@@ -7,6 +7,7 @@ import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -21,13 +22,15 @@ import java.util.Set;
  * @description 基于 Sa-Token 的认证会话实现。
  */
 @Slf4j
+@RequiredArgsConstructor
 public class SaTokenAuthenticationSession implements AuthenticationSession {
+    private final long nonRememberedTimeout;
 
     /**
      * 创建用户登录会话并保存认证上下文。
      *
      * @param userInfo  用户认证信息
-     * @param rememberMe 是否持久化客户端登录状态
+     * @param rememberMe 是否使用较长的令牌有效期并允许客户端持久化登录状态
      * @return 登录令牌信息
      */
     @Override
@@ -35,6 +38,12 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
         StpLogic stpLogic = StpAuthManager.getStpLogic(userInfo.getLoginType());
         SaLoginParameter loginParameter = stpLogic.createSaLoginParameter()
                 .setIsLastingCookie(rememberMe);
+        if (!rememberMe) {
+            long configuredTimeout = stpLogic.getConfigOrGlobal().getTimeout();
+            long shortTimeout = configuredTimeout < 0
+                    ? nonRememberedTimeout : Math.min(configuredTimeout, nonRememberedTimeout);
+            loginParameter.setTimeout(shortTimeout);
+        }
         stpLogic.login(userInfo.getUserId(), loginParameter);
         stpLogic.getTokenSession().set(AuthSessionKeys.LOGIN_USER, userInfo);
 

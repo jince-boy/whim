@@ -1,0 +1,84 @@
+{
+  "passed": 9,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "验证码 False",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "登录 False",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码 True",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "登录 True",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "非记住我绝对有效期约1天",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "记住我绝对有效期约7天",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "长短令牌不同",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "短令牌 可访问",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "长令牌 可访问",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    }
+  ]
+}

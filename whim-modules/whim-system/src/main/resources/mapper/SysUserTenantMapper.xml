@@ -49,12 +49,48 @@
                u.username,
                u.name,
                u.status AS userStatus,
-               ut.status AS memberStatus
+               ut.status AS memberStatus,
+               ut.dept_id AS deptId
         FROM sys_user_tenant ut
                  INNER JOIN sys_user u ON u.id = ut.user_id AND u.deleted = 0
-        WHERE ut.tenant_id = #{tenantId}
+        WHERE ut.tenant_id = #{scope.tenantId}
           AND ut.deleted = 0
+        <if test="!scope.all">
+            AND (
+            <choose>
+                <when test="scope.deptIds != null and !scope.deptIds.isEmpty()">
+                    ut.dept_id IN
+                    <foreach collection="scope.deptIds" item="deptId" open="(" separator="," close=")">
+                        #{deptId}
+                    </foreach>
+                    <if test="scope.self">
+                        OR ut.user_id = #{scope.userId}
+                    </if>
+                </when>
+                <when test="scope.self">
+                    ut.user_id = #{scope.userId}
+                </when>
+                <otherwise>
+                    1 = 0
+                </otherwise>
+            </choose>
+            )
+        </if>
         ORDER BY u.id
+    </select>
+
+    <select id="selectActiveDepartmentId" resultType="java.lang.Long">
+        SELECT ut.dept_id
+        FROM sys_user_tenant ut
+                 INNER JOIN sys_dept d
+                            ON d.id = ut.dept_id
+                                AND d.tenant_id = ut.tenant_id
+                                AND d.deleted = 0
+                                AND d.status = 0
+        WHERE ut.user_id = #{userId}
+          AND ut.tenant_id = #{tenantId}
+          AND ut.deleted = 0
+          AND ut.status = 0
     </select>
 
     <select id="selectMemberUserIdsByPackageId" resultType="java.lang.Long">

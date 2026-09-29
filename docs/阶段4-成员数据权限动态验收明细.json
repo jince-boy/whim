@@ -1,0 +1,576 @@
+{
+  "passed": 52,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "三个成员权限码",
+      "actual": "{'system:member:status', 'system:member:list', 'system:member:department'}",
+      "expected": "{'system:member:status', 'system:member:list', 'system:member:department'}",
+      "passed": true
+    },
+    {
+      "name": "验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "成员范围用户登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "未登录成员列表",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1成员列表",
+      "actual": [
+        200,
+        "{1, 1790678130997, 1790678130998, 1790678130999, 1790678131000, 1790678131001}"
+      ],
+      "expected": [
+        200,
+        "{1, 1790678130997, 1790678130998, 1790678130999, 1790678131000, 1790678131001}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2成员列表",
+      "actual": [
+        200,
+        "{1790678130999}"
+      ],
+      "expected": [
+        200,
+        "{1790678130999}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2同租户越权状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2同租户越权部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3成员列表",
+      "actual": [
+        200,
+        "{1790678130997, 1790678130998}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997, 1790678130998}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3同租户越权状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3同租户越权部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4成员列表",
+      "actual": [
+        200,
+        "{1790678130997, 1790678130998, 1790678130999}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997, 1790678130998, 1790678130999}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4同租户越权状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4同租户越权部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5成员列表",
+      "actual": [
+        200,
+        "{1790678130997}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5同租户越权状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5同租户越权部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6成员列表",
+      "actual": [
+        200,
+        "{1790678130997, 1790678130998, 1790678130999}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997, 1790678130998, 1790678130999}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6跨租户状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6跨租户部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6同租户越权状态拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6同租户越权部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "自定义范围新部门越权拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "自定义范围内主部门分配",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "成员主部门仍为子部门",
+      "actual": 1790678130968,
+      "expected": 1790678130968,
+      "passed": true
+    },
+    {
+      "name": "自定义范围内停用成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用成员写入",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "本部门范围内状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "仅本人不能换到任意部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "仅本人主部门未变",
+      "actual": 1790678130967,
+      "expected": 1790678130967,
+      "passed": true
+    },
+    {
+      "name": "仅本人可操作自身状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "成员范围用户登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "仅本人可清除自身部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "自身主部门已清除",
+      "actual": null,
+      "expected": null,
+      "passed": true
+    },
+    {
+      "name": "验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "成员范围用户登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "空主部门仍可见本人",
+      "actual": [
+        200,
+        "{1790678130997}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "本部门范围在空主部门时拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "无列表权限的全部角色不放大成员列表",
+      "actual": [
+        200,
+        "{1790678130997, 1790678130998}"
+      ],
+      "expected": [
+        200,
+        "{1790678130997, 1790678130998}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "有状态权限的全部角色可操作同级成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "按动作状态变更写入",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    }
+  ]
+}

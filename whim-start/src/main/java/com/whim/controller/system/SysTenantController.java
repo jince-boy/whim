@@ -2,6 +2,7 @@ package com.whim.controller.system;
 
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.tenant.MemberStatusDTO;
+import com.whim.system.model.dto.tenant.MemberDepartmentDTO;
 import com.whim.system.model.dto.tenant.TenantPackagePermissionAssignDTO;
 import com.whim.system.model.dto.tenant.TenantPackageStatusDTO;
 import com.whim.system.model.dto.tenant.TenantPackageUpdateDTO;
@@ -54,6 +55,15 @@ public class SysTenantController {
     public Result<Void> setMemberStatus(@PathVariable Long userId, @RequestBody @Valid MemberStatusDTO request) {
         sysUserTenantService.setMemberStatus(userId, request.getStatus());
         return Result.success("成员状态修改成功");
+    }
+
+    /** 分配或清除当前租户成员的主部门。 */
+    @PutMapping("/current/members/{userId}/department")
+    @SystemCheckPermission("system:member:department")
+    public Result<Void> setMemberDepartment(@PathVariable Long userId,
+                                             @RequestBody @Valid MemberDepartmentDTO request) {
+        sysUserTenantService.setMemberDepartment(userId, request.getDeptId());
+        return Result.success("成员部门修改成功");
     }
 
     /** 修改租户状态。 */

@@ -16,7 +16,7 @@ public interface AuthenticationSession {
      * 创建用户登录会话。
      *
      * @param userInfo  用户认证信息
-     * @param rememberMe 是否持久化客户端登录状态
+     * @param rememberMe 是否使用较长的令牌有效期并允许客户端持久化登录状态
      * @return 登录令牌信息
      */
     AuthenticationToken login(UserInfo userInfo, boolean rememberMe);

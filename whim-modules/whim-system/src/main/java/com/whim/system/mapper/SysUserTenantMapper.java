@@ -3,6 +3,7 @@ package com.whim.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
+import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.vo.tenant.MemberVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -40,7 +41,10 @@ public interface SysUserTenantMapper extends BaseMapper<SysUserTenant> {
      * @param tenantId 租户ID
      * @return 成员列表
      */
-    List<MemberVO> selectMemberList(@Param("tenantId") Long tenantId);
+    List<MemberVO> selectMemberList(@Param("scope") DataScopeDecisionDTO scope);
+
+    /** 查询有效成员在指定租户的有效主部门ID，缺失时返回空。 */
+    Long selectActiveDepartmentId(@Param("userId") Long userId, @Param("tenantId") Long tenantId);
 
     /**
      * 查询使用指定套餐的租户成员，用于套餐变更后撤销旧授权。

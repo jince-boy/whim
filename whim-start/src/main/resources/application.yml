@@ -107,6 +107,8 @@ sa-token:
   jwt-secret-key: 3i8ztwg38p2GvMrFgp48fv9CWAXCI5oBCDO2Pqcutdd
   # Token 有效期（单位：秒），默认30天，-1代表永不过期
   timeout: 604800 # 7天
+  # 未勾选“记住我”的 Token 绝对有效期（秒）；前端仍需按勾选状态选择会话或本地存储。
+  non-remembered-timeout: 86400 # 1天
   # Token 最低活跃频率（单位：秒）
   active-timeout: 86400 # 1天
   # 是否允许同一账号并发登录
@@ -137,6 +139,13 @@ sa-token:
     - /error
 
 # Mybatis plus
+whim:
+  persistence:
+    tenant:
+      # 仅对已审查 SQL 的独立租户业务表启用默认隔离；混合表与认证引导表使用显式校验。
+      protected-tables:
+        - sys_post
+
 mybatis-plus:
   # 搜索指定包别名
   type-aliases-package: com.whim.**.mapper

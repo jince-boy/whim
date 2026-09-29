@@ -1,0 +1,86 @@
+{
+  "rows": 3000,
+  "cleaned": 3000,
+  "plans": {
+    "tenant_list": [
+      {
+        "id": 1,
+        "select_type": "SIMPLE",
+        "table": "sys_post",
+        "partitions": null,
+        "type": "ref",
+        "possible_keys": "uk_post_tenant_code,idx_post_tenant_dept,idx_post_tenant_creator,idx_post_tenant_sort",
+        "key": "idx_post_tenant_sort",
+        "key_len": "8",
+        "ref": "const",
+        "rows": 1500,
+        "filtered": 10.0,
+        "Extra": "Using index condition; Using where"
+      }
+    ],
+    "department_list": [
+      {
+        "id": 1,
+        "select_type": "SIMPLE",
+        "table": "sys_post",
+        "partitions": null,
+        "type": "ref",
+        "possible_keys": "uk_post_tenant_code,idx_post_tenant_dept,idx_post_tenant_creator,idx_post_tenant_sort",
+        "key": "idx_post_tenant_sort",
+        "key_len": "8",
+        "ref": "const",
+        "rows": 1500,
+        "filtered": 2.0,
+        "Extra": "Using index condition; Using where"
+      }
+    ],
+    "creator_count": [
+      {
+        "id": 1,
+        "select_type": "SIMPLE",
+        "table": "sys_post",
+        "partitions": null,
+        "type": "ref",
+        "possible_keys": "uk_post_tenant_code,idx_post_tenant_dept,idx_post_tenant_creator,idx_post_tenant_sort",
+        "key": "idx_post_tenant_creator",
+        "key_len": "18",
+        "ref": "const,const,const",
+        "rows": 333,
+        "filtered": 100.0,
+        "Extra": "Using index"
+      }
+    ],
+    "detail": [
+      {
+        "id": 1,
+        "select_type": "SIMPLE",
+        "table": "sys_post",
+        "partitions": null,
+        "type": "const",
+        "possible_keys": "PRIMARY,uk_post_tenant_code,idx_post_tenant_dept,idx_post_tenant_creator,idx_post_tenant_sort",
+        "key": "PRIMARY",
+        "key_len": "8",
+        "ref": "const",
+        "rows": 1,
+        "filtered": 100.0,
+        "Extra": null
+      }
+    ],
+    "scoped_update": [
+      {
+        "id": 1,
+        "select_type": "UPDATE",
+        "table": "sys_post",
+        "partitions": null,
+        "type": "range",
+        "possible_keys": "PRIMARY,uk_post_tenant_code,idx_post_tenant_dept,idx_post_tenant_creator,idx_post_tenant_sort",
+        "key": "PRIMARY",
+        "key_len": "8",
+        "ref": "const",
+        "rows": 1,
+        "filtered": 100.0,
+        "Extra": "Using where"
+      }
+    ]
+  }
+}

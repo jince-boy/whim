@@ -36,6 +36,11 @@ public class SysUserTenant extends BaseEntity implements Serializable {
     private Long tenantId;
 
     /**
+     * 当前租户主部门ID，未分配时为空
+     */
+    private Long deptId;
+
+    /**
      * 成员状态(0-正常 1-停用)
      */
     private Integer status;

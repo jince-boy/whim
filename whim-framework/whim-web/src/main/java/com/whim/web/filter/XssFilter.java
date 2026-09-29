@@ -79,9 +79,8 @@ public class XssFilter extends OncePerRequestFilter {
      *
      * @param request 当前请求
      * @return true 表示跳过 XSS 过滤
-     * @throws ServletException 解析处理器失败时抛出
      */
-    private boolean isIgnoredRequest(HttpServletRequest request) throws ServletException {
+    private boolean isIgnoredRequest(HttpServletRequest request) {
         HandlerExecutionChain handlerExecutionChain = resolveHandlerExecutionChain(request);
         if (handlerExecutionChain == null) {
             return false;
@@ -99,13 +98,13 @@ public class XssFilter extends OncePerRequestFilter {
      *
      * @param request 当前请求
      * @return 处理器执行链
-     * @throws ServletException 解析失败时抛出
      */
-    private HandlerExecutionChain resolveHandlerExecutionChain(HttpServletRequest request) throws ServletException {
+    private HandlerExecutionChain resolveHandlerExecutionChain(HttpServletRequest request) {
         try {
             return handlerMapping.getHandler(request);
-        } catch (Exception exception) {
-            throw new ServletException("解析请求处理器失败", exception);
+        } catch (Exception ignored) {
+            // 预解析失败时交由 DispatcherServlet 正常处理并生成对应的 HTTP 错误。
+            return null;
         }
     }
 }

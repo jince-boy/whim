@@ -1,0 +1,458 @@
+{
+  "passed": 45,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "Flyway V9 成功",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "V9 两个权限码",
+      "actual": "{'system:post:member:assign', 'system:post:member:list'}",
+      "expected": "{'system:post:member:assign', 'system:post:member:list'}",
+      "passed": true
+    },
+    {
+      "name": "默认租户套餐获新权限",
+      "actual": "{'system:post:member:assign', 'system:post:member:list'}",
+      "expected": "{'system:post:member:assign', 'system:post:member:list'}",
+      "passed": true
+    },
+    {
+      "name": "默认租户角色获新权限",
+      "actual": "{'system:post:member:assign', 'system:post:member:list'}",
+      "expected": "{'system:post:member:assign', 'system:post:member:list'}",
+      "passed": true
+    },
+    {
+      "name": "admin 验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "admin 登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "p06781281970 验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "p06781281970 登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "未登录查询",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "未登录分配",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "初始成员为空",
+      "actual": [
+        200,
+        []
+      ],
+      "expected": [
+        200,
+        []
+      ],
+      "passed": true
+    },
+    {
+      "name": "分配两个有效成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "成员回读",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "关联租户一致",
+      "actual": [
+        [
+          1
+        ]
+      ],
+      "expected": [
+        [
+          1
+        ]
+      ],
+      "passed": true
+    },
+    {
+      "name": "关联数为2",
+      "actual": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "name": "覆盖移除一个成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "软删审计",
+      "actual": [
+        1,
+        1,
+        1
+      ],
+      "expected": [
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "name": "恢复软删绑定",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "恢复复用原绑定",
+      "actual": [
+        2104882747659751426,
+        0,
+        null,
+        null
+      ],
+      "expected": [
+        2104882747659751426,
+        0,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "name": "其他租户成员 整批拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "其他租户成员 原绑定不变",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "停用成员 整批拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用成员 原绑定不变",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "停用账号 整批拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用账号 原绑定不变",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "非成员 整批拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "非成员 原绑定不变",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "空值参数拒绝",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "缺少参数拒绝",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "超过200人拒绝",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "批量校验失败不改关系",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "GET 跨租户岗位拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "PUT 跨租户岗位拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "其他租户岗位无绑定",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "读角色可看根岗位",
+      "actual": "{1790678128238, 1790678128239}",
+      "expected": "{1790678128238, 1790678128239}",
+      "passed": true
+    },
+    {
+      "name": "读角色看不到同级岗位",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "写角色不能改根岗位",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "写角色可改同级岗位",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "有写无读仍不能查看同级岗位",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "有关联成员不能删岗位",
+      "actual": [
+        400,
+        400
+      ],
+      "expected": [
+        400,
+        400
+      ],
+      "passed": true
+    },
+    {
+      "name": "空集合清空关联",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "清空后回读",
+      "actual": [
+        200,
+        []
+      ],
+      "expected": [
+        200,
+        []
+      ],
+      "passed": true
+    },
+    {
+      "name": "清空后软删数",
+      "actual": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "name": "清空后可删岗位",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "已删岗位不能查询成员",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    }
+  ]
+}

@@ -65,9 +65,9 @@ public class AuthController {
     }
 
     /**
-     * 获取当前用户信息并按指定或默认租户刷新当前令牌上下文。
+     * 获取当前用户信息并按指定或当前租户刷新令牌上下文。
      *
-     * @param tenantId 目标租户ID，不传时使用默认租户
+     * @param tenantId 目标租户ID，不传时保留当前租户
      * @return 当前用户信息
      */
     @GetMapping("/userInfo")

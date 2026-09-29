@@ -148,9 +148,9 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     /**
-     * 获取当前用户信息并按指定或默认租户刷新当前令牌上下文。
+     * 获取当前用户信息，显式切换租户或保留当前令牌的有效租户。
      *
-     * @param tenantId 目标租户ID，不传时使用默认租户
+     * @param tenantId 目标租户ID，不传时保留当前租户；尚未选租户时使用默认租户
      * @return 当前登录用户信息
      */
     @Override
@@ -163,9 +163,11 @@ public class AuthServiceImpl implements IAuthService {
             throw new UserDisableException("用户已被禁用");
         }
 
-        UserInfo userInfo = tenantId == null
+        Long selectedTenantId = tenantId != null
+                ? tenantId : authenticationContext.getCurrentUserInfo().getCurrentTenantId();
+        UserInfo userInfo = selectedTenantId == null
                 ? sysUserService.buildUserInfo(user)
-                : sysUserService.buildUserInfo(user, tenantId);
+                : sysUserService.buildUserInfo(user, selectedTenantId);
         List<SysTenant> tenantList = sysRoleService.isSuperAdministrator(user.getId())
                 ? sysTenantService.getAvailableTenantList()
                 : sysUserTenantService.getTenantListByUserId(user.getId());

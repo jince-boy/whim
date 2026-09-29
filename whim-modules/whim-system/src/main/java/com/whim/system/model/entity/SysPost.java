@@ -31,6 +31,11 @@ public class SysPost extends BaseEntity implements Serializable {
     private Long tenantId;
 
     /**
+     * 所属部门ID，未归属时为空
+     */
+    private Long deptId;
+
+    /**
      * 岗位名称
      */
     private String postName;

@@ -13,6 +13,7 @@ import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
 import com.whim.satoken.service.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
@@ -22,6 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -36,6 +38,7 @@ import java.util.List;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "sa-token")
 @EnableConfigurationProperties(SaTokenConfigure.class)
+@Validated
 public class SaTokenConfigure implements WebMvcConfigurer {
 
     /**
@@ -44,6 +47,12 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @Getter
     @Setter
     private List<String> excludePaths = new ArrayList<>();
+
+    /** 未勾选“记住我”时的令牌绝对有效期，单位秒。 */
+    @Getter
+    @Setter
+    @Min(value = 1, message = "非记住我令牌有效期必须大于0")
+    private long nonRememberedTimeout = 86400;
 
     /**
      * 注册 Sa-Token 拦截器；放行路径由 {@code sa-token.exclude-paths} 配置。
@@ -111,6 +120,6 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @Bean
     @ConditionalOnMissingBean(AuthenticationSession.class)
     public AuthenticationSession authenticationSession() {
-        return new SaTokenAuthenticationSession();
+        return new SaTokenAuthenticationSession(nonRememberedTimeout);
     }
 }

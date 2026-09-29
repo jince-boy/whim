@@ -1,0 +1,1830 @@
+{
+  "passed": 168,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "验证码 HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "登录 HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "初始租户",
+      "passed": true,
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "name": "初始主部门",
+      "passed": true,
+      "actual": 1790678110060,
+      "expected": 1790678110060
+    },
+    {
+      "name": "范围1列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围1列表记录",
+      "passed": true,
+      "actual": "{1790678110150, 1790678110151, 1790678110152, 1790678110153, 1790678110154, 1790678110155, 1790678110156}",
+      "expected": "{1790678110150, 1790678110151, 1790678110152, 1790678110153, 1790678110154, 1790678110155, 1790678110156}"
+    },
+    {
+      "name": "范围1分页总数",
+      "passed": true,
+      "actual": 7,
+      "expected": 7
+    },
+    {
+      "name": "范围1详情root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情other_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1状态other_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围1状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围1修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围1创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围1创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围1跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围2列表记录",
+      "passed": true,
+      "actual": "{1790678110151}",
+      "expected": "{1790678110151}"
+    },
+    {
+      "name": "范围2分页总数",
+      "passed": true,
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "name": "范围2详情root",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态root",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围2状态child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围2详情grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围2跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围2删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围2创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围2跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围3列表记录",
+      "passed": true,
+      "actual": "{1790678110150}",
+      "expected": "{1790678110150}"
+    },
+    {
+      "name": "范围3分页总数",
+      "passed": true,
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "name": "范围3详情root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围3状态root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围3详情child",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态child",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围3跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围3删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围3创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围4列表记录",
+      "passed": true,
+      "actual": "{1790678110152, 1790678110150, 1790678110151}",
+      "expected": "{1790678110152, 1790678110150, 1790678110151}"
+    },
+    {
+      "name": "范围4分页总数",
+      "passed": true,
+      "actual": 3,
+      "expected": 3
+    },
+    {
+      "name": "范围4详情root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4状态root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4详情child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4状态child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4详情grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4状态grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4详情sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4状态sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4详情self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4状态self_sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4详情self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4状态self_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4详情other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4状态other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围4创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围5列表记录",
+      "passed": true,
+      "actual": "{1790678110154, 1790678110155}",
+      "expected": "{1790678110154, 1790678110155}"
+    },
+    {
+      "name": "范围5分页总数",
+      "passed": true,
+      "actual": 2,
+      "expected": 2
+    },
+    {
+      "name": "范围5详情root",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态root",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5详情child",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态child",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5详情grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态grandchild",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5详情sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5详情self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5状态self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5详情self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5状态self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5详情other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围5创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6列表HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "范围6列表记录",
+      "passed": true,
+      "actual": "{1790678110150, 1790678110151, 1790678110152, 1790678110154, 1790678110155}",
+      "expected": "{1790678110150, 1790678110151, 1790678110152, 1790678110154, 1790678110155}"
+    },
+    {
+      "name": "范围6分页总数",
+      "passed": true,
+      "actual": 5,
+      "expected": 5
+    },
+    {
+      "name": "范围6详情root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6状态root",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6详情child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6状态child",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6详情grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6状态grandchild",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6详情sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6状态sibling",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6详情self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6状态self_sibling",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6详情self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6状态self_null",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6详情other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6状态other_null",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6详情foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6状态foreign",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6修改可见目标",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6跨租户修改拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6创建允许部门",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6删除新建岗位",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "范围6创建拒绝部门",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围6跨租户删除拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "自定义部门停用后范围为空",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围3空主部门拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围4空主部门拒绝",
+      "passed": true,
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ]
+    },
+    {
+      "name": "范围5空主部门保留本人",
+      "passed": true,
+      "actual": "{1790678110154, 1790678110155}",
+      "expected": "{1790678110154, 1790678110155}"
+    },
+    {
+      "name": "范围6空主部门保留本人",
+      "passed": true,
+      "actual": "{1790678110154, 1790678110155}",
+      "expected": "{1790678110154, 1790678110155}"
+    },
+    {
+      "name": "无列表权限的全量角色不放大列表",
+      "passed": true,
+      "actual": "{1790678110150}",
+      "expected": "{1790678110150}"
+    },
+    {
+      "name": "有更新权限的全量角色只放大更新",
+      "passed": true,
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ]
+    },
+    {
+      "name": "切租户后主部门",
+      "passed": true,
+      "actual": 1790678110064,
+      "expected": 1790678110064
+    },
+    {
+      "name": "切租户后岗位列表",
+      "passed": true,
+      "actual": "{1790678110157}",
+      "expected": "{1790678110157}"
+    },
+    {
+      "name": "省略租户参数保留已选租户",
+      "passed": true,
+      "actual": 1790678110051,
+      "expected": 1790678110051
+    },
+    {
+      "name": "验证码 HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "登录 HTTP",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "第二令牌独立使用默认租户",
+      "passed": true,
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "name": "第一令牌仍保持其他租户",
+      "passed": true,
+      "actual": "{1790678110157}",
+      "expected": "{1790678110157}"
+    }
+  ]
+}

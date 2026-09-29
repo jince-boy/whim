@@ -1,0 +1,63 @@
+{
+  "passed": 6,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "有效租户可登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "到期前可访问岗位",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "到期前仅当前租户岗位",
+      "actual": "{1790678141253}",
+      "expected": "{1790678141253}",
+      "passed": true
+    },
+    {
+      "name": "自然到期后旧令牌不能访问岗位",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "自然到期后用户信息实际结果",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": "记录观察值",
+      "passed": true
+    }
+  ]
+}

@@ -1,14 +1,19 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
+import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.vo.tenant.MemberVO;
 import com.whim.system.service.ISysTenantService;
+import com.whim.system.service.ISysDeptService;
 import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +32,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, SysUserTenant> implements ISysUserTenantService {
     private final ISysTenantService tenantService;
+    private final ISysDeptService deptService;
     private final AuthenticationSession authenticationSession;
+    private final SysDataScopeService dataScopeService;
 
     /**
      * 查询用户当前可访问的租户ID集合。
@@ -57,10 +64,48 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         return baseMapper.selectTenantListByUserId(userId);
     }
 
-    /** 查询当前租户已有成员。 */
+    /** 按本次列表授权角色的数据范围查询当前租户成员。 */
     @Override
     public List<MemberVO> listMembers() {
-        return baseMapper.selectMemberList(tenantService.getRequiredCurrentTenant().getId());
+        return baseMapper.selectMemberList(dataScopeService.resolveCurrentTenantDataScope("system:member:list"));
+    }
+
+    /** 查询有效成员在指定租户的有效主部门ID。 */
+    @Override
+    public Long getActiveDepartmentId(Long userId, Long tenantId) {
+        Long deptId = baseMapper.selectActiveDepartmentId(userId, tenantId);
+        if (deptId == null) {
+            return null;
+        }
+        try {
+            deptService.getRequiredActiveDepartment(deptId, tenantId);
+            return deptId;
+        } catch (TenantAccessDeniedException exception) {
+            return null;
+        }
+    }
+
+    /** 修改当前租户成员的主部门并在事务提交后撤销旧会话。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setMemberDepartment(Long userId, Long deptId) {
+        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:member:department");
+        Long tenantId = scope.getTenantId();
+        SysUserTenant member = getOne(scopedMemberQuery(userId, scope));
+        if (member == null) {
+            throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
+        }
+        if (deptId != null) {
+            deptService.getRequiredActiveDepartment(deptId, tenantId);
+            if (!scope.isAll() && !scope.getDeptIds().contains(deptId)) {
+                throw new TenantAccessDeniedException("目标部门不在本次操作范围内");
+            }
+        }
+        if (!update(new SysUserTenant(), scopedMemberUpdate(member.getId(), userId, scope)
+                .set(SysUserTenant::getDeptId, deptId))) {
+            throw new TenantAccessDeniedException("目标成员已不可操作");
+        }
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
     /** 修改当前租户成员状态并在提交后撤销旧会话。 */
@@ -70,18 +115,57 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
+        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:member:status");
         SysTenant tenant = tenantService.getRequiredCurrentTenant();
         if (status == 1 && Objects.equals(tenant.getUserId(), userId)) {
             throw new IllegalArgumentException("不能停用租户管理员成员关系");
         }
-        SysUserTenant member = lambdaQuery().eq(SysUserTenant::getUserId, userId)
-                .eq(SysUserTenant::getTenantId, tenant.getId()).one();
+        SysUserTenant member = getOne(scopedMemberQuery(userId, scope));
         if (member == null) {
-            throw new TenantAccessDeniedException("目标用户不是当前租户成员");
+            throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
         }
-        member.setStatus(status);
-        updateById(member);
+        SysUserTenant changes = new SysUserTenant();
+        changes.setStatus(status);
+        if (!update(changes, scopedMemberUpdate(member.getId(), userId, scope))) {
+            throw new TenantAccessDeniedException("目标成员已不可操作");
+        }
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
+    }
+
+    /** 为成员目标查询同时约束租户和本次动作的数据范围。 */
+    private LambdaQueryWrapper<SysUserTenant> scopedMemberQuery(Long userId, DataScopeDecisionDTO scope) {
+        LambdaQueryWrapper<SysUserTenant> query = Wrappers.<SysUserTenant>lambdaQuery()
+                .eq(SysUserTenant::getUserId, userId).eq(SysUserTenant::getTenantId, scope.getTenantId());
+        if (scope.isAll()) {
+            return query;
+        }
+        if (scope.getDeptIds().isEmpty()) {
+            return query.eq(SysUserTenant::getUserId, scope.getUserId());
+        }
+        if (scope.isSelf()) {
+            return query.and(condition -> condition.in(SysUserTenant::getDeptId, scope.getDeptIds())
+                    .or().eq(SysUserTenant::getUserId, scope.getUserId()));
+        }
+        return query.in(SysUserTenant::getDeptId, scope.getDeptIds());
+    }
+
+    /** 最终写入再次约束成员目标，防止校验后越过租户或部门范围。 */
+    private LambdaUpdateWrapper<SysUserTenant> scopedMemberUpdate(Long memberId, Long userId,
+                                                                   DataScopeDecisionDTO scope) {
+        LambdaUpdateWrapper<SysUserTenant> update = Wrappers.<SysUserTenant>lambdaUpdate()
+                .eq(SysUserTenant::getId, memberId).eq(SysUserTenant::getUserId, userId)
+                .eq(SysUserTenant::getTenantId, scope.getTenantId());
+        if (scope.isAll()) {
+            return update;
+        }
+        if (scope.getDeptIds().isEmpty()) {
+            return update.eq(SysUserTenant::getUserId, scope.getUserId());
+        }
+        if (scope.isSelf()) {
+            return update.and(condition -> condition.in(SysUserTenant::getDeptId, scope.getDeptIds())
+                    .or().eq(SysUserTenant::getUserId, scope.getUserId()));
+        }
+        return update.in(SysUserTenant::getDeptId, scope.getDeptIds());
     }
 }
 

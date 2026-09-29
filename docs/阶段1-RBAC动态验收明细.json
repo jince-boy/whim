@@ -1,0 +1,423 @@
+{
+  "date": "2026-09-29",
+  "checks": [
+    {
+      "name": "Flyway V5 已执行",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "两租户及五账号夹具已创建",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "未登录成员列表返回 401",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "未登录 userInfo 返回 401",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "未登录角色列表返回 401",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "平台管理员登录",
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "错误密码返回 401",
+      "passed": true,
+      "detail": "HTTP 401/code 401"
+    },
+    {
+      "name": "非法租户 ID 返回 400",
+      "passed": true,
+      "detail": "HTTP 400/code 400，期望 400/400"
+    },
+    {
+      "name": "不存在的 API 返回 404",
+      "passed": true,
+      "detail": "HTTP 404/code 404，期望 404/404"
+    },
+    {
+      "name": "错误请求方法返回 405",
+      "passed": true,
+      "detail": "HTTP 405/code 405，期望 405/405"
+    },
+    {
+      "name": "管理员初始进入默认租户",
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "平台权限目录可访问",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "默认租户管理员可读默认租户成员",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "管理员选择租户 A",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "角色请求缺少必填字段返回 400",
+      "passed": true,
+      "detail": "HTTP 400/code 400，期望 400/400"
+    },
+    {
+      "name": "角色状态缺失返回 400",
+      "passed": true,
+      "detail": "HTTP 400/code 400，期望 400/400"
+    },
+    {
+      "name": "平台超级管理员不自动获得 A 的成员数据范围",
+      "passed": true,
+      "detail": "HTTP 403 / code 403"
+    },
+    {
+      "name": "A 角色列表隔离 B 角色",
+      "passed": true,
+      "detail": "HTTP 200 / 角色数 2"
+    },
+    {
+      "name": "A 上下文不可读取 B 角色权限",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "A 上下文不可给 B 成员分配角色",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "被拒绝的跨租户角色分配未写库",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "A 上下文不可修改 B 专属成员状态",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "被拒绝的跨租户成员变更未写库",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "A 上下文不可分配 B 角色权限",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "B 角色权限未被跨租户修改",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "双租户用户登录",
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "双租户用户初始无当前租户",
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "未选租户用户不能读成员",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "双租户用户选择 A",
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "A 授权包含角色与套餐交集",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "套餐未包含的 role:create 被剔除",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "A 有权读取成员",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "A 有权读取角色",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "A 无套餐权限时不能创建角色",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "租户普通角色不能读平台权限目录",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "同一用户第二令牌登录",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "第二令牌选择 B",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "B 只具备 B 的有效权限",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "B 令牌可读角色",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "B 令牌不可读成员",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "两个令牌的当前租户互不覆盖",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "单租户 A 管理员登录",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "A 管理员可查询角色权限",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "A 管理员不可查询 B 角色权限",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "A 管理员不能给角色授予套餐外权限",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "非法套餐外授权未修改数据库",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "普通租户管理员不能修改平台租户状态",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "B 专属用户登录",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "B 专属用户可读 B 角色",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "B 专属用户不能切换 A",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "无角色成员可以登录",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "无角色成员不能读成员",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "停用用户不能登录",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "插入失败触发事务回滚",
+      "passed": true,
+      "detail": "HTTP 500 / code 500"
+    },
+    {
+      "name": "回滚恢复已删除的角色权限",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "回滚后原用户令牌仍有效",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "有效修改角色权限",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "角色权限写入结果正确",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "授权变更后 A 令牌被踢出",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "授权变更后 B 令牌也被踢出",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "重新登录后恢复 A 的当前权限",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "平台修改 A 套餐权限",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "套餐变化后旧令牌被踢出",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "套餐变化后 A 管理员旧令牌也被踢出",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "套餐收回的 role:list 不再生效",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "套餐收回后角色列表被拒绝",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "套餐保留的成员列表仍可访问",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "A 管理员停用 A 成员",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "成员停用后当前令牌被踢出",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "停用成员不能切回 A",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "成员在 B 仍可使用 B 角色",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "平台切换到 B",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "平台停用 B 角色",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "B 角色停用后旧令牌失效",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "B 角色停用后新令牌无角色列表权限",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "平台停用 B 租户",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "B 租户停用后旧令牌失效",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "B 租户停用后不能选择 B",
+      "passed": true,
+      "detail": "HTTP 403/code 403，期望 403/403"
+    },
+    {
+      "name": "平台停用无角色用户",
+      "passed": true,
+      "detail": "HTTP 200/code 200，期望 200/200"
+    },
+    {
+      "name": "用户停用后旧令牌失效",
+      "passed": true,
+      "detail": "HTTP 401/code 401，期望 401/401"
+    },
+    {
+      "name": "用户停用后新登录被拒绝",
+      "passed": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "name": "用户名登录限流触发 HTTP 429",
+      "passed": true,
+      "detail": "前 10 次 [400, 400, 400, 400, 400, 400, 400, 400, 400, 400]，第 11 次 429"
+    },
+    {
+      "name": "测试数据清理",
+      "passed": true,
+      "detail": "剩余主记录 0"
+    }
+  ],
+  "passed": 83,
+  "failed": 0,
+  "duration_seconds": 3.938
+}

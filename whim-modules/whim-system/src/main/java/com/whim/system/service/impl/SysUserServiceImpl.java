@@ -132,6 +132,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             userInfo.setDefaultTenantId(user.getDefaultTenantId());
         }
         userInfo.setCurrentTenantId(currentTenantId);
+        userInfo.setDeptId(currentTenantId == null ? null
+                : sysUserTenantService.getActiveDepartmentId(user.getId(), currentTenantId));
         userInfo.setLoginType(AuthUserType.SYSTEM);
         List<RoleInfo> activeRoleList = sysRoleService.getRoleInfoListByUserIdAndTenantId(user.getId(), currentTenantId);
         List<RoleInfo> roleInfoList = new ArrayList<>();

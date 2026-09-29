@@ -1,0 +1,516 @@
+{
+  "passed": 54,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "未登录返回401",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "伪造令牌返回401",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "未登录仍返回401",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "admin 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "并发令牌互不相同",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "并发令牌1有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "并发令牌2有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "并发令牌3有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "第四次登录替换最旧令牌",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "保留令牌2有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "保留令牌3有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "保留令牌4有效",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "退出当前令牌",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "退出令牌失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "其他令牌3未受退出影响",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "其他令牌4未受退出影响",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用租户成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "成员停用令牌3失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "成员停用令牌4失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "恢复租户成员",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "恢复成员后可重新登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用全局账号",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "全局账号停用令牌失效",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "停用账号不能重新登录",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "恢复全局账号",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "验证码状态",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "t90678134345 登录状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "令牌类型",
+      "actual": "Bearer",
+      "expected": "Bearer",
+      "passed": true
+    },
+    {
+      "name": "令牌剩余时间为正",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "Redis含该令牌的会话键",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "令牌会话到期后拒绝",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    }
+  ]
+}

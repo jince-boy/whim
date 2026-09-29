@@ -1,0 +1,579 @@
+{
+  "checks": [
+    {
+      "name": "V8 六个岗位权限码",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "默认租户存在",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "默认套餐含六个岗位权限",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "V6-V8 Flyway 成功",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "未登录岗位列表返回 401",
+      "passed": true,
+      "detail": {
+        "code": 401,
+        "data": null,
+        "message": "未能读取到有效 token",
+        "success": false
+      }
+    },
+    {
+      "name": "admin 验证码",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "admin 登录",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJzeXN0ZW0iLCJsb2dpbklkIjoxLCJyblN0ciI6IkhmdHYyTW1HWWNhN0hndHhsUHIxSmFzSFJWN1B5NnRHIn0.ggOnOreTJtA9uzyYkXiqz0dVWbu6VFMssQIryBBqBIE",
+          "expiresIn": 86399,
+          "tokenType": "Bearer"
+        },
+        "message": "登录成功",
+        "success": true
+      }
+    },
+    {
+      "name": "管理员进入默认租户",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "avatar": null,
+          "currentTenantId": 1,
+          "defaultTenantId": 1,
+          "deptId": null,
+          "loginType": "system",
+          "name": "平台管理员",
+          "permissionCodeSet": [
+            "system:role:status",
+            "system:post:create",
+            "system:post:list",
+            "system:role:list",
+            "system:member:status",
+            "system:role:dataScope",
+            "system:post:member:list",
+            "system:dept:list",
+            "system:dept:update",
+            "system:post:member:assign",
+            "system:rolePermission:assign",
+            "system:permission:list",
+            "system:role:update",
+            "system:dept:create",
+            "system:rolePermission:list",
+            "system:userRole:assign",
+            "system:post:detail",
+            "system:post:delete",
+            "system:member:list",
+            "system:dept:status",
+            "system:userRole:list",
+            "system:post:status",
+            "system:role:create",
+            "system:post:update",
+            "system:member:department"
+          ],
+          "roleCodeSet": [
+            "superadmin",
+            "tenant_admin"
+          ],
+          "roleInfoList": [
+            {
+              "dataScope": 1,
+              "roleCode": "superadmin",
+              "roleId": 1,
+              "roleName": "平台超级管理员"
+            },
+            {
+              "dataScope": 1,
+              "roleCode": "tenant_admin",
+              "roleId": 2,
+              "roleName": "默认租户管理员"
+            }
+          ],
+          "tenantList": [
+            {
+              "companyName": "范围验收租户",
+              "tenantCode": "accept1790678125268",
+              "tenantId": 1790678125269
+            },
+            {
+              "companyName": "默认租户",
+              "tenantCode": "default",
+              "tenantId": 1
+            }
+          ],
+          "userId": 1,
+          "username": "admin"
+        },
+        "message": "当前用户信息获取成功",
+        "success": true
+      }
+    },
+    {
+      "name": "平台管理员可显式选择其他租户",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "avatar": null,
+          "currentTenantId": 1790678125269,
+          "defaultTenantId": 1,
+          "deptId": null,
+          "loginType": "system",
+          "name": "平台管理员",
+          "permissionCodeSet": [],
+          "roleCodeSet": [
+            "superadmin"
+          ],
+          "roleInfoList": [
+            {
+              "dataScope": 1,
+              "roleCode": "superadmin",
+              "roleId": 1,
+              "roleName": "平台超级管理员"
+            }
+          ],
+          "tenantList": [
+            {
+              "companyName": "范围验收租户",
+              "tenantCode": "accept1790678125268",
+              "tenantId": 1790678125269
+            },
+            {
+              "companyName": "默认租户",
+              "tenantCode": "default",
+              "tenantId": 1
+            }
+          ],
+          "userId": 1,
+          "username": "admin"
+        },
+        "message": "当前用户信息获取成功",
+        "success": true
+      }
+    },
+    {
+      "name": "平台权限通配符不自动获得其他租户岗位数据范围",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "本次操作没有可用的数据范围授权",
+        "success": false
+      }
+    },
+    {
+      "name": "s90678125268 验证码",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "s90678125268 登录",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJzeXN0ZW0iLCJsb2dpbklkIjoxNzkwNjc4MTI1MjY4LCJyblN0ciI6IlpnclV2VWxXdU5zN0EwbGJzMHFGZjJWY2d0QTVMYndIIn0.7tgR88h-TWHv6hSUZ1lADw72yHITXIAk8KvH44KKBPc",
+          "expiresIn": 86399,
+          "tokenType": "Bearer"
+        },
+        "message": "登录成功",
+        "success": true
+      }
+    },
+    {
+      "name": "普通成员进入默认租户并取到部门",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "avatar": null,
+          "currentTenantId": 1,
+          "defaultTenantId": 1,
+          "deptId": 1790678125278,
+          "loginType": "system",
+          "name": "范围验收用户",
+          "permissionCodeSet": [
+            "system:post:create",
+            "system:post:delete",
+            "system:post:list",
+            "system:post:status",
+            "system:post:update",
+            "system:post:detail"
+          ],
+          "roleCodeSet": [
+            "scope_union_1790678125268",
+            "scope_update_1790678125268"
+          ],
+          "roleInfoList": [
+            {
+              "dataScope": 6,
+              "roleCode": "scope_union_1790678125268",
+              "roleId": 1790678125288,
+              "roleName": "部门或本人验收"
+            },
+            {
+              "dataScope": 1,
+              "roleCode": "scope_update_1790678125268",
+              "roleId": 1790678125289,
+              "roleName": "仅修改全部验收"
+            }
+          ],
+          "tenantList": [
+            {
+              "companyName": "默认租户",
+              "tenantCode": "default",
+              "tenantId": 1
+            }
+          ],
+          "userId": 1790678125268,
+          "username": "s90678125268"
+        },
+        "message": "当前用户信息获取成功",
+        "success": true
+      }
+    },
+    {
+      "name": "分页总数只计范围内岗位",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "currentPage": 1,
+          "data": [
+            {
+              "createBy": 1,
+              "createTime": "2026-09-29 18:35:25",
+              "deptId": 1790678125278,
+              "id": 1790678125368,
+              "postCode": "accept_1790678125268_root",
+              "postName": "root",
+              "remark": null,
+              "sort": 0,
+              "status": 0
+            },
+            {
+              "createBy": 1,
+              "createTime": "2026-09-29 18:35:25",
+              "deptId": 1790678125279,
+              "id": 1790678125369,
+              "postCode": "accept_1790678125268_child",
+              "postName": "child",
+              "remark": null,
+              "sort": 0,
+              "status": 0
+            }
+          ],
+          "pages": 2,
+          "size": 2,
+          "total": 3
+        },
+        "message": "岗位查询成功",
+        "success": true
+      }
+    },
+    {
+      "name": "部门子树与本人并集且租户隔离",
+      "passed": true,
+      "detail": "{1790678125368, 1790678125369, 1790678125370}"
+    },
+    {
+      "name": "详情可见 root",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "createBy": 1,
+          "createTime": "2026-09-29 18:35:25",
+          "deptId": 1790678125278,
+          "id": 1790678125368,
+          "postCode": "accept_1790678125268_root",
+          "postName": "root",
+          "remark": null,
+          "sort": 0,
+          "status": 0
+        },
+        "message": "岗位详情查询成功",
+        "success": true
+      }
+    },
+    {
+      "name": "详情可见 child",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "createBy": 1,
+          "createTime": "2026-09-29 18:35:25",
+          "deptId": 1790678125279,
+          "id": 1790678125369,
+          "postCode": "accept_1790678125268_child",
+          "postName": "child",
+          "remark": null,
+          "sort": 0,
+          "status": 0
+        },
+        "message": "岗位详情查询成功",
+        "success": true
+      }
+    },
+    {
+      "name": "详情可见 self_sibling",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": {
+          "createBy": 1790678125268,
+          "createTime": "2026-09-29 18:35:25",
+          "deptId": 1790678125280,
+          "id": 1790678125370,
+          "postCode": "accept_1790678125268_self_sibling",
+          "postName": "self_sibling",
+          "remark": null,
+          "sort": 0,
+          "status": 0
+        },
+        "message": "岗位详情查询成功",
+        "success": true
+      }
+    },
+    {
+      "name": "详情拒绝 other_sibling",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "详情拒绝 other_tenant",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "创建拒绝范围外部门",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "目标部门不在本次操作的数据范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "创建拒绝其他租户部门",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "部门层级不属于当前租户或不可用",
+        "success": false
+      }
+    },
+    {
+      "name": "创建子部门岗位",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": "2104882736712617985",
+        "message": "岗位创建成功",
+        "success": true
+      }
+    },
+    {
+      "name": "新岗位租户与创建人服务端赋值",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "修改权限全部范围不被列表范围缩小",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": null,
+        "message": "岗位修改成功",
+        "success": true
+      }
+    },
+    {
+      "name": "全部修改范围仍拒绝跨租户",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "状态权限不被全部修改角色放大",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "范围内状态修改",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": null,
+        "message": "岗位状态修改成功",
+        "success": true
+      }
+    },
+    {
+      "name": "删除拒绝范围外岗位",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "删除拒绝其他租户岗位",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "岗位关联成员时不能删除",
+      "passed": true,
+      "detail": {
+        "code": 400,
+        "data": null,
+        "message": "岗位仍关联成员，不能删除",
+        "success": false
+      }
+    },
+    {
+      "name": "范围内岗位软删除",
+      "passed": true,
+      "detail": {
+        "code": 200,
+        "data": null,
+        "message": "岗位删除成功",
+        "success": true
+      }
+    },
+    {
+      "name": "软删除审计字段",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "软删岗位详情不可见",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "岗位不存在或不在本次操作范围内",
+        "success": false
+      }
+    },
+    {
+      "name": "已删除岗位编码冲突返回业务错误",
+      "passed": true,
+      "detail": {
+        "code": 400,
+        "data": null,
+        "message": "当前租户已有相同岗位编码",
+        "success": false
+      }
+    },
+    {
+      "name": "有效岗位编码冲突返回业务错误",
+      "passed": true,
+      "detail": {
+        "code": 400,
+        "data": null,
+        "message": "当前租户已有相同岗位编码",
+        "success": false
+      }
+    },
+    {
+      "name": "修改不能复用已删除岗位编码",
+      "passed": true,
+      "detail": {
+        "code": 400,
+        "data": null,
+        "message": "当前租户已有相同岗位编码",
+        "success": false
+      }
+    },
+    {
+      "name": "旧令牌不能绕过已撤销的列表授权",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "本次操作没有可用的数据范围授权",
+        "success": false
+      }
+    },
+    {
+      "name": "旧令牌不能绕过套餐撤权",
+      "passed": true,
+      "detail": {
+        "code": 403,
+        "data": null,
+        "message": "本次操作没有可用的数据范围授权",
+        "success": false
+      }
+    },
+    {
+      "name": "分页错误返回 400",
+      "passed": true,
+      "detail": {
+        "code": 400,
+        "data": null,
+        "message": "页码必须大于0，且每页数量必须在1到100之间",
+        "success": false
+      }
+    },
+    {
+      "name": "跨租户拒绝未改动目标",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "拒绝创建未写入数据库",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": 42,
+  "failed": 0
+}

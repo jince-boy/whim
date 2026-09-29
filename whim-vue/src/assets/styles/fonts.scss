@@ -1,0 +1,13 @@
+:root {
+  --app-font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+  --app-font-mono: 'JetBrains Mono', 'Noto Sans SC', monospace;
+
+  font-family: var(--app-font-sans);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--app-font-mono);
+}

@@ -38,6 +38,12 @@ public interface ISysUserTenantService extends IService<SysUserTenant> {
      */
     List<MemberVO> listMembers();
 
+    /** 查询有效成员在指定租户的有效主部门ID。 */
+    Long getActiveDepartmentId(Long userId, Long tenantId);
+
+    /** 修改当前租户成员的主部门；空值表示取消归属。 */
+    void setMemberDepartment(Long userId, Long deptId);
+
     /**
      * 修改当前租户成员状态。
      *

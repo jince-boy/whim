@@ -14,4 +14,5 @@ public class MemberVO {
     private String name;
     private Integer userStatus;
     private Integer memberStatus;
+    private Long deptId;
 }

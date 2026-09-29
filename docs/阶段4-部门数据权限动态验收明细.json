@@ -1,0 +1,636 @@
+{
+  "passed": 57,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "四个部门权限码",
+      "actual": "{'system:dept:list', 'system:dept:status', 'system:dept:update', 'system:dept:create'}",
+      "expected": "{'system:dept:list', 'system:dept:status', 'system:dept:update', 'system:dept:create'}",
+      "passed": true
+    },
+    {
+      "name": "验证码",
+      "actual": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "范围用户登录",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "未登录部门列表",
+      "actual": [
+        401,
+        401
+      ],
+      "expected": [
+        401,
+        401
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1部门列表",
+      "actual": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811, 1790678121812}"
+      ],
+      "expected": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811, 1790678121812}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1创建部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1新部门租户",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "范围1修改部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围1同级部门状态",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2部门列表",
+      "actual": [
+        200,
+        "{1790678121810}"
+      ],
+      "expected": [
+        200,
+        "{1790678121810}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2创建部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2新部门租户",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "范围2不能建根部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2修改部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围2同级部门状态",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3部门列表",
+      "actual": [
+        200,
+        "{1790678121809}"
+      ],
+      "expected": [
+        200,
+        "{1790678121809}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3创建部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3新部门租户",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "范围3不能建根部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3修改部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3同级部门状态",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4部门列表",
+      "actual": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811}"
+      ],
+      "expected": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4创建部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4新部门租户",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "范围4不能建根部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4修改部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4同级部门状态",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5部门列表拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5创建部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5不能建根部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5修改部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围5同级部门状态",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6部门列表",
+      "actual": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811}"
+      ],
+      "expected": [
+        200,
+        "{1790678121809, 1790678121810, 1790678121811}"
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6跨租户修改拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6跨租户父部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6创建部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6新部门租户",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "范围6不能建根部门",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6修改部门",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6同级部门状态",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "自定义部门祖先停用后拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围3空主部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围4空主部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "范围6空主部门拒绝",
+      "actual": [
+        403,
+        403
+      ],
+      "expected": [
+        403,
+        403
+      ],
+      "passed": true
+    },
+    {
+      "name": "无列表权限的全部角色不放大列表",
+      "actual": "{1790678121809}",
+      "expected": "{1790678121809}",
+      "passed": true
+    },
+    {
+      "name": "有更新权限的全部角色可改同级",
+      "actual": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "passed": true
+    },
+    {
+      "name": "更新后列表仍只见本部门",
+      "actual": "{1790678121809}",
+      "expected": "{1790678121809}",
+      "passed": true
+    }
+  ]
+}
