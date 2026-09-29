@@ -1,10 +1,11 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysTenantPackageMapper;
 import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.system.model.entity.SysTenantPackage;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysTenantPackageService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SysTenantPackageServiceImpl extends ServiceImpl<SysTenantPackageMapper, SysTenantPackage> implements ISysTenantPackageService {
     private final ISysTenantService tenantService;
     private final SysUserTenantMapper userTenantMapper;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /** 修改套餐状态并在提交后撤销受影响成员的旧会话。 */
     @Override
@@ -37,7 +38,8 @@ public class SysTenantPackageServiceImpl extends ServiceImpl<SysTenantPackageMap
         }
         tenantPackage.setStatus(status);
         updateById(tenantPackage);
-        sessionInvalidator.kickoutAfterCommit(userTenantMapper.selectMemberUserIdsByPackageId(packageId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM,
+                userTenantMapper.selectMemberUserIdsByPackageId(packageId));
     }
 }
 

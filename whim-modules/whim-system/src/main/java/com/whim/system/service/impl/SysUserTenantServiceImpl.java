@@ -1,12 +1,13 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.model.vo.tenant.MemberVO;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, SysUserTenant> implements ISysUserTenantService {
     private final ISysTenantService tenantService;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /**
      * 查询用户当前可访问的租户ID集合。
@@ -39,7 +40,7 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         if (Objects.isNull(userId)) {
             return Set.of();
         }
-        return Objects.requireNonNullElse(baseMapper.selectTenantIdsByUserId(userId), Set.of());
+        return baseMapper.selectTenantIdsByUserId(userId);
     }
 
     /**
@@ -53,7 +54,7 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         if (Objects.isNull(userId)) {
             return List.of();
         }
-        return Objects.requireNonNullElse(baseMapper.selectTenantListByUserId(userId), List.of());
+        return baseMapper.selectTenantListByUserId(userId);
     }
 
     /** 查询当前租户已有成员。 */
@@ -80,7 +81,7 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         }
         member.setStatus(status);
         updateById(member);
-        sessionInvalidator.kickoutAfterCommit(Set.of(userId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 }
 

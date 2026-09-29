@@ -2,8 +2,11 @@ package com.whim.system.model.entity;
 
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.whim.core.auth.model.UserInfo;
 import com.whim.mybatisplus.model.entity.BaseEntity;
 import com.whim.system.model.enums.SysUserStatus;
+import io.github.linpeilie.annotations.AutoMapper;
+import io.github.linpeilie.annotations.AutoMapping;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,6 +20,7 @@ import java.io.Serializable;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@AutoMapper(target = UserInfo.class, reverseConvertGenerate = false)
 public class SysUser extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 612223036732363306L;
@@ -24,6 +28,7 @@ public class SysUser extends BaseEntity implements Serializable {
     /**
      * id
      */
+    @AutoMapping(target = "userId")
     private Long id;
 
     /**
@@ -69,6 +74,7 @@ public class SysUser extends BaseEntity implements Serializable {
     /**
      * 默认进入租户ID
      */
+    @AutoMapping(ignore = true)
     private Long defaultTenantId;
 
     /**

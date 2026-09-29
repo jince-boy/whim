@@ -41,8 +41,7 @@
         <sa-token-version>1.46.0</sa-token-version>
         <mybatis-plus-version>3.5.15</mybatis-plus-version>
         <p6spy.version>2.0.0</p6spy.version>
-        <altcha.version>2.0.2</altcha.version>
-        <org-json.version>20240303</org-json.version>
+        <easy-captcha.version>1.6.2</easy-captcha.version>
     </properties>
 
     <dependencyManagement>
@@ -115,18 +114,6 @@
                 <artifactId>owasp-java-html-sanitizer</artifactId>
                 <version>${owasp-java-html-sanitizer.version}</version>
             </dependency>
-            <!-- ALTCHA 验证码 -->
-            <dependency>
-                <groupId>org.altcha</groupId>
-                <artifactId>altcha</artifactId>
-                <version>${altcha.version}</version>
-            </dependency>
-            <!-- ALTCHA 运行时 JSON 依赖 -->
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${org-json.version}</version>
-            </dependency>
             <!--基于 MapStruct 的增强库，简化对象映射（如 DTO 与 Entity 转换）的集成-->
             <dependency>
                 <groupId>io.github.linpeilie</groupId>
@@ -145,13 +132,42 @@
                 <artifactId>yauaa</artifactId>
                 <version>${yauaa.version}</version>
             </dependency>
-            <!--whim-bom-->
+            <!-- 验证码 -->
+            <dependency>
+                <groupId>com.github.whvcse</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${easy-captcha.version}</version>
+            </dependency>
+            <!-- 框架内部模块统一版本 -->
             <dependency>
                 <groupId>com.whim</groupId>
-                <artifactId>whim-bom</artifactId>
+                <artifactId>whim-core</artifactId>
                 <version>${revision}</version>
-                <type>pom</type>
-                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-json</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-satoken</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-mybatisplus</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-web</artifactId>
+                <version>${revision}</version>
             </dependency>
             <!--system 系统业务模块-->
             <dependency>

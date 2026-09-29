@@ -2,7 +2,8 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.whim.system.service.AuthorizationSessionInvalidator;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.mapper.SysTenantPackagePermissionMapper;
 import com.whim.system.model.entity.SysPermission;
@@ -32,7 +33,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     /**
      * 认证会话操作对象
      */
-    private final AuthorizationSessionInvalidator authorizationSessionInvalidator;
+    private final AuthenticationSession authenticationSession;
     private final ISysTenantService tenantService;
     private final SysTenantPackagePermissionMapper packagePermissionMapper;
 
@@ -49,10 +50,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         if (Objects.isNull(userId) || roleIds.isEmpty()) {
             return Set.of();
         }
-        return Objects.requireNonNullElse(
-                baseMapper.selectPermissionCodeSetByUserIdAndTenantId(userId, tenantId, roleIds),
-                Set.of()
-        );
+        return baseMapper.selectPermissionCodeSetByUserIdAndTenantId(userId, tenantId, roleIds);
     }
 
     /** 查询当前租户套餐内可分配的功能权限。 */
@@ -111,7 +109,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         Set<Long> affectedUserIds = baseMapper.selectUserIdSetByPermissionId(entity.getId());
         boolean updated = super.updateById(entity);
         if (updated && !affectedUserIds.isEmpty()) {
-            authorizationSessionInvalidator.kickoutAfterCommit(affectedUserIds);
+            authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, affectedUserIds);
         }
         return updated;
     }

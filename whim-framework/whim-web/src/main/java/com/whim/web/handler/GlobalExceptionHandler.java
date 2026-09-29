@@ -4,6 +4,7 @@ import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.TenantAccessDeniedException;
+import com.whim.core.exception.TooManyRequestsException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
 import com.whim.core.exception.UserPasswordNotMatchException;
@@ -37,6 +38,20 @@ import java.util.Optional;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    /**
+     * 处理请求频率超过限制的异常。
+     *
+     * @param exception 限流异常
+     * @param request 当前请求
+     * @return HTTP 429 错误响应
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Result<Void>> handleTooManyRequestsException(
+            TooManyRequestsException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 超过频率限制：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
+        return Result.error(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage()).toResponseEntity();
+    }
+
     /**
      * 处理未捕获的系统异常
      *

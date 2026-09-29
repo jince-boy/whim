@@ -1,7 +1,10 @@
 package com.whim.system.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysTenantMapper;
 import com.whim.system.mapper.SysTenantPackageMapper;
@@ -10,7 +13,7 @@ import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysTenantPackage;
 import com.whim.system.model.entity.SysUser;
-import com.whim.system.service.AuthorizationSessionInvalidator;
+import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.service.ISysTenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,7 +35,7 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
     private final SysUserMapper userMapper;
     private final SysUserTenantMapper userTenantMapper;
     private final SysTenantPackageMapper tenantPackageMapper;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /**
      * 查询全部当前可用租户。
@@ -41,7 +44,7 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
      */
     @Override
     public List<SysTenant> getAvailableTenantList() {
-        return Objects.requireNonNullElse(baseMapper.selectAvailableTenantList(), List.of());
+        return baseMapper.selectAvailableTenantList();
     }
 
     /**
@@ -51,7 +54,7 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
      */
     @Override
     public Set<Long> getAvailableTenantIds() {
-        return Objects.requireNonNullElse(baseMapper.selectAvailableTenantIds(), Set.of());
+        return baseMapper.selectAvailableTenantIds();
     }
 
     /** 获取当前可用租户并检查当前账号的成员资格。 */
@@ -70,7 +73,11 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
             throw new TenantAccessDeniedException("当前租户不可用");
         }
         if (!authenticationContext.isSuperAdministrator()
-                && !Boolean.TRUE.equals(userTenantMapper.selectActiveMemberFlag(userId, tenantId))) {
+                && userTenantMapper.selectOne(Wrappers.<SysUserTenant>lambdaQuery()
+                        .select(SysUserTenant::getId)
+                        .eq(SysUserTenant::getUserId, userId)
+                        .eq(SysUserTenant::getTenantId, tenantId)
+                        .eq(SysUserTenant::getStatus, 0)) == null) {
             throw new TenantAccessDeniedException("当前租户成员不可用");
         }
         return tenant;
@@ -93,7 +100,7 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
         SysTenant tenant = requireExistingTenant(tenantId);
         tenant.setStatus(status);
         updateById(tenant);
-        sessionInvalidator.kickoutAfterCommit(userTenantMapper.selectMemberUserIds(tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getMemberUserIds(tenantId));
     }
 
     /** 修改租户套餐并在提交后撤销成员的旧会话。 */
@@ -108,7 +115,7 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
         }
         tenant.setPackageId(packageId);
         updateById(tenant);
-        sessionInvalidator.kickoutAfterCommit(userTenantMapper.selectMemberUserIds(tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getMemberUserIds(tenantId));
     }
 
     /** 查询未删除的目标租户。 */
@@ -124,6 +131,14 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
     private boolean isActiveUser(Long userId) {
         SysUser user = userMapper.selectById(userId);
         return user != null && user.getStatus() == 0;
+    }
+
+    /** 查询租户内未删除成员的用户ID。 */
+    private List<Long> getMemberUserIds(Long tenantId) {
+        return userTenantMapper.selectObjs(Wrappers.<SysUserTenant>lambdaQuery()
+                        .select(SysUserTenant::getUserId)
+                        .eq(SysUserTenant::getTenantId, tenantId))
+                .stream().map(Long.class::cast).toList();
     }
 
     /** 检查启停状态。 */

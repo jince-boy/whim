@@ -1,6 +1,6 @@
 # Whim Core 核心模块
 
-`whim-core` 是 Whim 框架的基础能力层。它不承载具体业务，却为所有业务模块提供一组稳定、统一、可复用的底座能力：统一响应模型、认证上下文抽象、通用异常、线程池自动配置、ALTCHA 配置属性、Web 请求工具、HTTP 调用工具、对象转换、金额、日期、IP、脱敏、密码加密等常用工具。
+`whim-core` 是 Whim 框架的基础能力层。它不承载具体业务，却为所有业务模块提供一组稳定、统一、可复用的底座能力：统一响应模型、认证上下文抽象、通用异常、线程池自动配置、Web 请求工具、HTTP 调用工具、对象转换、金额、日期、IP、脱敏、密码加密等常用工具。
 
 如果把 Whim 看成一个完整的后台框架，`whim-core` 就是最先被其他模块依赖的“公共语言”。业务模块不需要关心底层认证框架怎么取用户、全局异常怎么组织响应、IP 归属地数据怎么加载，只需要使用 `whim-core` 暴露出来的清晰入口。
 
@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | 统一返回 | 统一 API 响应结构，支持成功、失败、参数校验、文件响应 | `Result` |
 | 认证抽象 | 面向业务层暴露当前登录用户与认证会话操作，不绑定具体认证实现 | `AuthenticationContext`、`AuthenticationSession` |
-| 自动配置 | 提供通用计算任务线程池和 ALTCHA 参数绑定 | `ThreadPoolAutoConfiguration`、`AltchaProperties` |
+| 自动配置 | 提供通用计算任务线程池 | `ThreadPoolAutoConfiguration` |
 | 通用异常 | 定义业务、HTTP、认证、文件、锁等基础异常类型 | `ServiceException`、`HttpException` 等 |
 | 通用工具 | 提供金额、日期、HTTP、Servlet、IP、脱敏、密码、随机值等工具 | `AmountUtils`、`DateUtils`、`RestClientUtils` 等 |
 | 跨模块基础模型 | 定义当前用户、角色等认证侧共享模型 | `UserInfo`、`RoleInfo` |
@@ -258,49 +258,6 @@ public class ReportServiceImpl implements ReportService {
 ```
 
 线程池拒绝策略使用 `CallerRunsPolicy`。当线程池和队列都满了时，任务会回退到提交线程执行，避免任务被静默丢弃。
-
-## ALTCHA 配置
-
-`AltchaProperties` 用于绑定 ALTCHA 验证码相关参数，配置前缀为 `whim.auth.altcha`。
-
-```yaml
-whim:
-  auth:
-    altcha:
-      hmac-signature-secret: ${ALTCHA_SECRET:whim-altcha-dev-secret}
-      algorithm: PBKDF2/SHA-256
-      cost: 5000
-      expires-in-seconds: 300
-```
-
-配置项说明：
-
-| 配置项 | 默认值 | 说明 |
-| --- | --- | --- |
-| `hmac-signature-secret` | `whim-altcha-dev-secret` | 挑战签名密钥，生产环境必须使用安全随机值 |
-| `algorithm` | `PBKDF2/SHA-256` | ALTCHA 验证算法 |
-| `cost` | `5000` | 计算成本，值越高验证成本越高 |
-| `expires-in-seconds` | `300` | 挑战有效秒数 |
-
-在业务服务中使用：
-
-```java
-@Service
-@RequiredArgsConstructor
-public class CaptchaServiceImpl implements CaptchaService {
-
-    private final AltchaProperties altchaProperties;
-
-    @Override
-    public void createChallenge() {
-        String secret = altchaProperties.getHmacSignatureSecret();
-        int cost = altchaProperties.getCost();
-        // 根据业务需要创建 ALTCHA challenge
-    }
-}
-```
-
-生产环境请务必通过环境变量或安全配置中心覆盖 `hmac-signature-secret`，不要使用默认开发密钥。
 
 ## 通用异常
 
@@ -638,8 +595,6 @@ public static final String SYS_CONFIG = "sys_config";
 时间用 Java Time：新代码优先使用 `LocalDate`、`LocalDateTime`、`Instant`，只在边界处转换旧类型。
 
 敏感信息先脱敏再输出：手机号、身份证、银行卡、邮箱进入响应或日志前，应根据场景使用 `DesensitizationUtils`。
-
-生产密钥必须外部化：`whim.auth.altcha.hmac-signature-secret` 不能使用默认开发值。
 
 ## 常见问题
 

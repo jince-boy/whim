@@ -1,14 +1,17 @@
 package com.whim.system.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysRoleMapper;
 import com.whim.system.mapper.SysUserRoleMapper;
 import com.whim.system.model.dto.role.RoleSaveDTO;
 import com.whim.system.model.entity.SysRole;
+import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.vo.role.RoleVO;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysTenantService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +31,7 @@ import java.util.Objects;
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
     private final ISysTenantService tenantService;
     private final SysUserRoleMapper userRoleMapper;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /**
      * 查询用户已启用角色的完整信息。
@@ -41,10 +44,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (Objects.isNull(userId)) {
             return List.of();
         }
-        return Objects.requireNonNullElse(
-                baseMapper.selectRoleInfoListByUserIdAndTenantId(userId, tenantId),
-                List.of()
-        );
+        return baseMapper.selectRoleInfoListByUserIdAndTenantId(userId, tenantId);
     }
 
     /**
@@ -113,7 +113,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         role.setRoleName(request.getRoleName().trim());
         role.setRoleCode(request.getRoleCode().trim());
         updateById(role);
-        sessionInvalidator.kickoutAfterCommit(userRoleMapper.selectUserIdsByRole(roleId, tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getUserIdsByRole(roleId, tenantId));
     }
 
     /** 修改当前租户角色状态。 */
@@ -127,7 +127,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         SysRole role = getRequiredTenantRole(roleId, tenantId);
         role.setStatus(status);
         updateById(role);
-        sessionInvalidator.kickoutAfterCommit(userRoleMapper.selectUserIdsByRole(roleId, tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getUserIdsByRole(roleId, tenantId));
     }
 
     /** 检查当前租户的角色编码唯一且不冒用平台超级管理员。 */
@@ -141,6 +141,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sameCodeRoles.stream().anyMatch(role -> !Objects.equals(role.getId(), excludedRoleId))) {
             throw new IllegalArgumentException("当前租户已存在相同角色编码");
         }
+    }
+
+    /** 查询绑定指定租户角色的用户ID。 */
+    private List<Long> getUserIdsByRole(Long roleId, Long tenantId) {
+        return userRoleMapper.selectObjs(Wrappers.<SysUserRole>lambdaQuery()
+                        .select(SysUserRole::getUserId)
+                        .eq(SysUserRole::getRoleId, roleId)
+                        .eq(SysUserRole::getTenantId, tenantId))
+                .stream().map(Long.class::cast).toList();
     }
 }
 

@@ -3,13 +3,14 @@ package com.whim.system.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysUserRoleMapper;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.entity.SysUserTenant;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserRoleService;
@@ -37,7 +38,7 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
     private final ISysRoleService roleService;
     private final ISysUserService userService;
     private final AuthenticationContext authenticationContext;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /** 查询成员在当前租户的角色ID。 */
     @Override
@@ -83,7 +84,7 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
                         authenticationContext.getUserId());
             }
         }
-        sessionInvalidator.kickoutAfterCommit(Set.of(userId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
     /** 查询用户在目标租户中的成员关系。 */

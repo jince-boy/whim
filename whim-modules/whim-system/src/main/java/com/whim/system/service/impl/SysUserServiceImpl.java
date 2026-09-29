@@ -1,10 +1,13 @@
 package com.whim.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.TenantAccessDeniedException;
+import com.whim.core.utils.BeanConvertUtils;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.service.ISysPermissionService;
@@ -12,7 +15,6 @@ import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserService;
 import com.whim.system.service.ISysUserTenantService;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +36,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysPermissionService sysPermissionService;
     private final ISysUserTenantService sysUserTenantService;
     private final ISysTenantService sysTenantService;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /**
      * 根据用户名查询未删除用户。
@@ -44,7 +46,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     @Override
     public SysUser getByUsername(String username) {
-        return baseMapper.selectByUsername(username);
+        LambdaQueryWrapper<SysUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(SysUser::getUsername, username);
+        return this.getOne(lambdaQueryWrapper);
     }
 
     /**
@@ -90,7 +94,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return buildUserInfo(user, tenantIds, currentTenantId);
     }
 
-    /** 修改全局用户状态并在提交后撤销其旧会话。 */
+    /**
+     * 修改全局用户状态并在提交后撤销其旧会话。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void setUserStatus(Long userId, Integer status) {
@@ -107,7 +113,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         user.setStatus(status);
         updateById(user);
-        sessionInvalidator.kickoutAfterCommit(Set.of(userId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
     /**
@@ -120,11 +126,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     private UserInfo buildUserInfo(SysUser user, Set<Long> tenantIds, Long currentTenantId) {
 
-        UserInfo userInfo = new UserInfo();
-        userInfo.setUserId(user.getId());
-        userInfo.setUsername(user.getUsername());
-        userInfo.setName(user.getName());
-        userInfo.setAvatar(user.getAvatar());
+        UserInfo userInfo = BeanConvertUtils.convert(user, UserInfo.class);
         userInfo.setTenantIds(new LinkedHashSet<>(tenantIds));
         if (user.getDefaultTenantId() != null && tenantIds.contains(user.getDefaultTenantId())) {
             userInfo.setDefaultTenantId(user.getDefaultTenantId());

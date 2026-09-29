@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserRoleMapper">
-    <select id="selectUserIdsByRole" resultType="java.lang.Long">
-        SELECT user_id
-        FROM sys_user_role
-        WHERE role_id = #{roleId}
-          AND tenant_id = #{tenantId}
-          AND deleted = 0
-    </select>
-
     <insert id="upsertBinding">
         INSERT INTO sys_user_role (id, user_id, role_id, tenant_id, deleted, create_by, create_time)
         VALUES (#{id}, #{userId}, #{roleId}, #{tenantId}, 0, #{operatorId}, CURRENT_TIMESTAMP)

@@ -40,4 +40,12 @@ public interface AuthenticationSession {
      * @param userIds   用户ID集合
      */
     void kickout(String loginType, Collection<Long> userIds);
+
+    /**
+     * 在事务提交后强制指定账号体系下的用户退出全部会话；没有事务时立即执行。
+     *
+     * @param loginType 账号体系
+     * @param userIds   用户ID集合
+     */
+    void kickoutAfterCommit(String loginType, Collection<Long> userIds);
 }

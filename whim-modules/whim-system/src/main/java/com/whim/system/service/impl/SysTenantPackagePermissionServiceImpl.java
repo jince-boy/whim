@@ -3,13 +3,14 @@ package com.whim.system.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysTenantPackagePermissionMapper;
 import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.entity.SysTenantPackage;
 import com.whim.system.model.entity.SysTenantPackagePermission;
-import com.whim.system.service.AuthorizationSessionInvalidator;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysTenantPackageService;
 import com.whim.system.service.ISysTenantPackagePermissionService;
@@ -35,7 +36,7 @@ public class SysTenantPackagePermissionServiceImpl extends ServiceImpl<SysTenant
     private final ISysPermissionService permissionService;
     private final SysUserTenantMapper userTenantMapper;
     private final AuthenticationContext authenticationContext;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /** 覆盖套餐权限并在提交后撤销受影响成员的旧会话。 */
     @Override
@@ -70,7 +71,8 @@ public class SysTenantPackagePermissionServiceImpl extends ServiceImpl<SysTenant
                         authenticationContext.getUserId());
             }
         }
-        sessionInvalidator.kickoutAfterCommit(userTenantMapper.selectMemberUserIdsByPackageId(packageId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM,
+                userTenantMapper.selectMemberUserIdsByPackageId(packageId));
     }
 }
 

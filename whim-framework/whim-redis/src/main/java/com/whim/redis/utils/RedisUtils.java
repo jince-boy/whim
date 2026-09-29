@@ -225,6 +225,17 @@ public final class RedisUtils {
     }
 
     /**
+     * 原子读取并删除对象缓存。
+     *
+     * @param key 缓存键
+     * @param <T> 值类型
+     * @return 删除前的缓存值，不存在时返回 null
+     */
+    public static <T> T takeCacheObject(String key) {
+        return client().<T>getBucket(key).getAndDelete();
+    }
+
+    /**
      * 删除指定对象缓存。
      *
      * @param key 缓存键

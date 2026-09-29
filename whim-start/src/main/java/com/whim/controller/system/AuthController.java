@@ -1,9 +1,10 @@
 package com.whim.controller.system;
 
+import com.whim.core.auth.model.AuthenticationToken;
+import com.whim.core.utils.IPUtils;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
-import com.whim.system.model.vo.auth.AltchaCaptchaVO;
-import com.whim.system.model.vo.auth.AuthLoginVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
+import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
@@ -31,13 +32,24 @@ public class AuthController {
     private final IAuthService authService;
 
     /**
+     * 获取与客户端地址绑定的 GIF 验证码。
+     *
+     * @return 验证码 UUID、GIF 图片和有效期
+     */
+    @GetMapping("/captcha")
+    public Result<LoginCaptchaVO> captcha() {
+        LoginCaptchaVO captcha = authService.createCaptcha(IPUtils.getClientIpAddress());
+        return Result.success("验证码获取成功", captcha);
+    }
+
+    /**
      * 用户登录并返回认证信息。
      *
      * @param loginDTO 登录参数
      * @return 登录结果
      */
     @PostMapping("/login")
-    public Result<AuthLoginVO> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
+    public Result<AuthenticationToken> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
         return Result.success("登录成功", authService.login(loginDTO));
     }
 
@@ -61,15 +73,5 @@ public class AuthController {
     @GetMapping("/userInfo")
     public Result<AuthUserVO> userInfo(@RequestParam(name = "tenantId", required = false) Long tenantId) {
         return Result.success("当前用户信息获取成功", authService.getUserInfo(tenantId));
-    }
-
-    /**
-     * 获取 ALTCHA 验证码挑战。
-     *
-     * @return ALTCHA 验证码挑战
-     */
-    @GetMapping("/captcha")
-    public Result<AltchaCaptchaVO> getCaptcha() {
-        return Result.success("验证码获取成功", authService.getCaptcha());
     }
 }

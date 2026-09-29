@@ -5,8 +5,6 @@ import com.whim.system.model.entity.SysUserRole;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Set;
-
 /**
  * @author jince
  * @date 2026/07/02
@@ -14,15 +12,6 @@ import java.util.Set;
  */
 @Mapper
 public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
-    /**
-     * 查询绑定当前租户角色的用户ID。
-     *
-     * @param roleId 角色ID
-     * @param tenantId 租户ID
-     * @return 用户ID集合
-     */
-    Set<Long> selectUserIdsByRole(@Param("roleId") Long roleId, @Param("tenantId") Long tenantId);
-
     /**
      * 创建或恢复用户角色绑定。
      *

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whim Login Demo</title>
-    <script async defer src="https://cdn.jsdelivr.net/npm/altcha@3.1.0/dist/main/altcha.js" type="module"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -49,8 +48,7 @@
         }
 
         form,
-        section,
-        .panel {
+        section {
             display: grid;
             gap: 14px;
             border: 1px solid #d8dee8;
@@ -61,10 +59,6 @@
         form,
         section {
             padding: 20px;
-        }
-
-        .panel {
-            padding: 16px;
         }
 
         .grid {
@@ -115,21 +109,10 @@
             font-weight: 600;
         }
 
-        button.secondary {
-            color: #175cd3;
-            background: #ffffff;
-        }
-
         button:disabled {
             border-color: #98a2b3;
             background: #98a2b3;
             cursor: not-allowed;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
         .checkbox {
@@ -137,6 +120,20 @@
             align-items: center;
             gap: 8px;
             font-weight: 600;
+        }
+
+        .captcha {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .captcha img {
+            width: 160px;
+            height: 60px;
+            border: 1px solid #c6ceda;
+            border-radius: 6px;
         }
 
         .state {
@@ -166,27 +163,34 @@
 <main>
     <header>
         <h1>Whim 登录 Demo</h1>
-        <button id="reloadWidget" class="secondary" type="button">刷新验证码</button>
     </header>
 
     <form id="loginForm">
         <div class="grid">
             <label>
                 登录接口
-                <input id="loginUrl" value="http://localhost:8089/system/auth/login">
+                <input id="loginUrl" value="/system/auth/login">
             </label>
             <label>
                 验证码接口
-                <input id="challengeUrl" value="http://localhost:8089/system/auth/captcha">
+                <input id="captchaUrl" value="/system/auth/captcha">
             </label>
             <label>
                 用户名
-                <input id="username" autocomplete="username" value="jince">
+                <input id="username" autocomplete="username" placeholder="用户名" minlength="5" maxlength="18" required>
             </label>
             <label>
                 密码
-                <input id="password" type="password" autocomplete="current-password" value="12345678">
+                <input id="password" type="password" autocomplete="current-password" placeholder="密码" minlength="8" maxlength="18" required>
             </label>
+            <label>
+                GIF 验证码
+                <input id="captchaCode" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" placeholder="请输入图片中的四位字符" required>
+            </label>
+        </div>
+        <div class="captcha">
+            <img id="captchaImage" alt="四位字母数字验证码">
+            <button id="refreshCaptcha" type="button">换一张</button>
         </div>
         <label>
             <span class="checkbox">
@@ -195,75 +199,75 @@
             </span>
         </label>
 
-        <div class="panel">
-            <div id="widgetHost"></div>
-        </div>
-
-        <div id="state" class="state">等待验证码组件加载</div>
-
-        <div class="actions">
-            <button id="submitLogin" type="submit">登录</button>
-            <button id="copyPayload" class="secondary" type="button">复制验证码 base64</button>
-        </div>
+        <div id="state" class="state" role="status" aria-live="polite">正在获取验证码</div>
+        <button id="submitLogin" type="submit">登录</button>
     </form>
 
     <section>
-        <h2>调试输出</h2>
+        <h2>登录结果</h2>
+        <div class="grid">
+            <label>
+                令牌类型
+                <input id="tokenType" readonly>
+            </label>
+            <label>
+                剩余有效期（秒）
+                <input id="tokenExpiresIn" readonly>
+            </label>
+        </div>
         <label>
-            验证码 base64
-            <textarea id="payloadOutput" readonly></textarea>
+            访问令牌
+            <textarea id="accessToken" readonly></textarea>
         </label>
         <label>
-            登录接口响应
+            原始响应
             <textarea id="loginResponse" readonly></textarea>
         </label>
     </section>
 </main>
 
-<script type="module">
+<script>
     const loginForm = document.querySelector('#loginForm');
     const loginUrl = document.querySelector('#loginUrl');
-    const challengeUrl = document.querySelector('#challengeUrl');
+    const captchaUrl = document.querySelector('#captchaUrl');
     const username = document.querySelector('#username');
     const password = document.querySelector('#password');
     const rememberMe = document.querySelector('#rememberMe');
-    const widgetHost = document.querySelector('#widgetHost');
+    const captchaCode = document.querySelector('#captchaCode');
+    const captchaImage = document.querySelector('#captchaImage');
+    const refreshCaptcha = document.querySelector('#refreshCaptcha');
     const state = document.querySelector('#state');
-    const payloadOutput = document.querySelector('#payloadOutput');
+    const tokenType = document.querySelector('#tokenType');
+    const tokenExpiresIn = document.querySelector('#tokenExpiresIn');
+    const accessToken = document.querySelector('#accessToken');
     const loginResponse = document.querySelector('#loginResponse');
-    const reloadWidget = document.querySelector('#reloadWidget');
-    const copyPayload = document.querySelector('#copyPayload');
     const submitLogin = document.querySelector('#submitLogin');
+    let uuid = '';
 
-    function readPayload() {
-        const input = loginForm.querySelector('input[name="altcha"]');
-        payloadOutput.value = input?.value || '';
-        submitLogin.disabled = !payloadOutput.value;
-        return payloadOutput.value;
-    }
-
-    function resolveChallengeData(responseBody) {
-        return responseBody && responseBody.data ? responseBody.data : responseBody;
-    }
-
-    async function loadChallenge() {
-        const response = await fetch(challengeUrl.value.trim(), {
-            headers: {
-                Accept: 'application/json'
-            }
+    /** 获取新的 GIF 验证码及其 UUID。 */
+    async function loadCaptcha() {
+        uuid = '';
+        captchaImage.removeAttribute('src');
+        captchaCode.value = '';
+        submitLogin.disabled = true;
+        const response = await fetch(captchaUrl.value.trim(), {
+            headers: {Accept: 'application/json'},
+            cache: 'no-store',
+            signal: AbortSignal.timeout(10000)
         });
-        if (!response.ok) {
-            throw new Error(`验证码接口请求失败：${response.status}`);
+        const result = await response.json();
+        if (!response.ok || result.code !== 200 || !result.data?.uuid || !result.data?.image) {
+            throw new Error(result.message || '验证码获取失败');
         }
-        const responseBody = await response.json();
-        const challenge = resolveChallengeData(responseBody);
-        if (!challenge || !challenge.parameters || !challenge.signature) {
-            throw new Error('验证码接口响应格式不正确');
-        }
-        return challenge;
+        captchaImage.src = result.data.image.startsWith('data:image/gif;base64,')
+            ? result.data.image
+            : `data:image/gif;base64,${result.data.image}`;
+        uuid = result.data.uuid;
+        submitLogin.disabled = false;
     }
 
-    async function submitLoginRequest(altcha) {
+    /** 向登录接口提交表单并展示认证令牌和原始响应。 */
+    async function submitLoginRequest() {
         const response = await fetch(loginUrl.value.trim(), {
             method: 'POST',
             headers: {
@@ -273,94 +277,75 @@
             body: JSON.stringify({
                 username: username.value.trim(),
                 password: password.value,
-                altcha,
+                uuid,
+                captchaCode: captchaCode.value.trim(),
                 rememberMe: rememberMe.checked
-            })
+            }),
+            signal: AbortSignal.timeout(10000)
         });
-        const text = await response.text();
+        const responseText = await response.text();
+        let result;
         try {
-            return JSON.stringify(JSON.parse(text), null, 2);
+            result = JSON.parse(responseText);
+            loginResponse.value = JSON.stringify(result, null, 2);
         } catch {
-            return text;
+            loginResponse.value = responseText;
+            throw new Error(`登录接口返回了非 JSON 响应（HTTP ${response.status}）`);
         }
+        if (!response.ok || result.code !== 200) {
+            throw new Error(result.message || `登录失败（HTTP ${response.status}）`);
+        }
+        if (!result.data?.accessToken) {
+            throw new Error('登录响应缺少 accessToken');
+        }
+        tokenType.value = result.data.tokenType ?? '';
+        accessToken.value = result.data.accessToken;
+        tokenExpiresIn.value = result.data.expiresIn ?? '';
     }
 
-    function bindWidget(widget) {
-        widget.addEventListener('statechange', (event) => {
-            state.textContent = `当前状态：${event.detail.state}`;
-            if (event.detail.state === 'verified') {
-                window.setTimeout(readPayload, 50);
-            }
-        });
-        widget.addEventListener('verified', () => window.setTimeout(readPayload, 50));
-    }
-
-    async function rebuildWidget() {
-        payloadOutput.value = '';
-        loginResponse.value = '';
-        submitLogin.disabled = true;
-        state.textContent = '正在请求验证码';
-        widgetHost.replaceChildren();
+    /** 刷新验证码并显示获取结果。 */
+    refreshCaptcha.addEventListener('click', async () => {
+        refreshCaptcha.disabled = true;
         try {
-            await customElements.whenDefined('altcha-widget');
-            const challenge = await loadChallenge();
-            const widget = document.createElement('altcha-widget');
-            widget.setAttribute('name', 'altcha');
-            widget.setAttribute('auto', 'onload');
-            widget.setAttribute('challenge', JSON.stringify(challenge));
-            widgetHost.append(widget);
-            bindWidget(widget);
-            state.textContent = '验证码已加载';
+            await loadCaptcha();
+            state.textContent = '请填写图片中的四位字符';
         } catch (error) {
             state.textContent = error.message;
+        } finally {
+            refreshCaptcha.disabled = false;
         }
-    }
-
-    window.addEventListener('load', () => {
-        if (!window.isSecureContext) {
-            state.textContent = '当前页面不是安全上下文，浏览器可能无法计算验证码';
-        }
-        rebuildWidget();
     });
 
-    reloadWidget.addEventListener('click', rebuildWidget);
-
+    /** 阻止表单跳转并展示登录接口响应。 */
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const altcha = readPayload();
-        if (!altcha) {
-            state.textContent = '请先完成验证码';
+        if (!uuid) {
+            state.textContent = '请先获取验证码';
             return;
         }
         submitLogin.disabled = true;
         state.textContent = '正在登录';
         loginResponse.value = '';
+        tokenType.value = '';
+        accessToken.value = '';
+        tokenExpiresIn.value = '';
         try {
-            loginResponse.value = await submitLoginRequest(altcha);
-            state.textContent = '登录接口已返回';
+            await submitLoginRequest();
+            state.textContent = '登录成功';
         } catch (error) {
-            loginResponse.value = error.message;
-            state.textContent = '登录接口请求失败';
+            state.textContent = error.message;
         } finally {
-            submitLogin.disabled = false;
+            try {
+                await loadCaptcha();
+            } catch (error) {
+                state.textContent += `；刷新验证码失败：${error.message}`;
+            }
         }
     });
 
-    copyPayload.addEventListener('click', async () => {
-        const altcha = readPayload();
-        if (!altcha) {
-            state.textContent = '验证码 base64 为空';
-            return;
-        }
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(altcha);
-            state.textContent = '验证码 base64 已复制';
-            return;
-        }
-        payloadOutput.focus();
-        payloadOutput.select();
-        state.textContent = '已选中验证码 base64';
-    });
+    loadCaptcha()
+        .then(() => { state.textContent = '填写账号、密码和验证码后登录'; })
+        .catch((error) => { state.textContent = error.message; });
 </script>
 </body>
 </html>

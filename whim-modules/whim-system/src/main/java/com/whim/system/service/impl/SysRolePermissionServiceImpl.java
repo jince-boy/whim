@@ -1,8 +1,11 @@
 package com.whim.system.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysRolePermissionMapper;
 import com.whim.system.mapper.SysUserRoleMapper;
@@ -11,7 +14,7 @@ import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRolePermission;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysTenantPackagePermission;
-import com.whim.system.service.AuthorizationSessionInvalidator;
+import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysRolePermissionService;
@@ -40,7 +43,7 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     private final ISysTenantPackagePermissionService packagePermissionService;
     private final SysUserRoleMapper userRoleMapper;
     private final AuthenticationContext authenticationContext;
-    private final AuthorizationSessionInvalidator sessionInvalidator;
+    private final AuthenticationSession authenticationSession;
 
     /** 查询当前租户角色已分配的权限ID。 */
     @Override
@@ -96,7 +99,11 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
                         tenant.getId(), authenticationContext.getUserId());
             }
         }
-        sessionInvalidator.kickoutAfterCommit(userRoleMapper.selectUserIdsByRole(roleId, tenant.getId()));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, userRoleMapper.selectObjs(Wrappers.<SysUserRole>lambdaQuery()
+                        .select(SysUserRole::getUserId)
+                        .eq(SysUserRole::getRoleId, roleId)
+                        .eq(SysUserRole::getTenantId, tenant.getId()))
+                .stream().map(Long.class::cast).toList());
     }
 }
 

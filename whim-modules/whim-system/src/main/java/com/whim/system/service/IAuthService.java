@@ -1,9 +1,9 @@
 package com.whim.system.service;
 
+import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
-import com.whim.system.model.vo.auth.AltchaCaptchaVO;
-import com.whim.system.model.vo.auth.AuthLoginVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
+import com.whim.system.model.vo.auth.LoginCaptchaVO;
 
 /**
  * @author Jince
@@ -12,12 +12,20 @@ import com.whim.system.model.vo.auth.AuthUserVO;
  */
 public interface IAuthService {
     /**
+     * 生成与当前客户端地址绑定的登录 GIF 验证码。
+     *
+     * @param clientAddress 客户端地址
+     * @return GIF 验证码
+     */
+    LoginCaptchaVO createCaptcha(String clientAddress);
+
+    /**
      * 登录。
      *
      * @param loginDTO 登录参数
      * @return 登录结果
      */
-    AuthLoginVO login(AuthLoginDTO loginDTO);
+    AuthenticationToken login(AuthLoginDTO loginDTO);
 
     /**
      * 注销当前登录会话。
@@ -31,11 +39,4 @@ public interface IAuthService {
      * @return 当前登录用户信息
      */
     AuthUserVO getUserInfo(Long tenantId);
-
-    /**
-     * 获取 ALTCHA 验证码挑战。
-     *
-     * @return ALTCHA 验证码挑战
-     */
-    AltchaCaptchaVO getCaptcha();
 }

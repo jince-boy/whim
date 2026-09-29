@@ -28,6 +28,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-redis</artifactId>
         </dependency>
+        <!-- 登录 GIF 验证码 -->
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
