@@ -81,6 +81,7 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
                 .eq(SysUserPost::getPostId, postId).orderByAsc(SysUserPost::getUserId))) {
             userIds.add(binding.getUserId());
         }
+        userTenantService.requireMembersInDataScope(userIds, scope);
         return userIds;
     }
 
@@ -159,12 +160,18 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
     public void replaceCurrentTenantPostMembers(Long postId, Set<Long> userIds) {
         DataScopeDecisionDTO scope = roleService.resolveCurrentTenantDataScope("system:post:member:assign");
         requireVisiblePost(postId, scope);
+        List<SysUserPost> existing = userPostMapper.selectList(Wrappers.<SysUserPost>lambdaQuery()
+                .eq(SysUserPost::getTenantId, scope.getTenantId())
+                .eq(SysUserPost::getPostId, postId));
+        Set<Long> existingUserIds = new HashSet<>();
+        existing.forEach(binding -> existingUserIds.add(binding.getUserId()));
+        Set<Long> involvedUserIds = new HashSet<>(userIds);
+        involvedUserIds.addAll(existingUserIds);
+        List<SysUserTenant> members = userTenantService.lockMembersInDataScope(involvedUserIds, scope);
         if (!userIds.isEmpty()) {
-            List<SysUserTenant> members = userTenantService.lambdaQuery()
-                    .eq(SysUserTenant::getTenantId, scope.getTenantId())
-                    .eq(SysUserTenant::getStatus, 0)
-                    .in(SysUserTenant::getUserId, userIds).list();
-            if (members.size() != userIds.size()) {
+            long activeMembers = members.stream().filter(member -> userIds.contains(member.getUserId())
+                    && member.getStatus() == 0).count();
+            if (activeMembers != userIds.size()) {
                 throw new TenantAccessDeniedException("目标用户不是当前租户的有效成员");
             }
             long activeUsers = userService.lambdaQuery().in(SysUser::getId, userIds)
@@ -173,11 +180,6 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
                 throw new TenantAccessDeniedException("目标成员账号不可用");
             }
         }
-        List<SysUserPost> existing = userPostMapper.selectList(Wrappers.<SysUserPost>lambdaQuery()
-                .eq(SysUserPost::getTenantId, scope.getTenantId())
-                .eq(SysUserPost::getPostId, postId));
-        Set<Long> existingUserIds = new HashSet<>();
-        existing.forEach(binding -> existingUserIds.add(binding.getUserId()));
         userPostMapper.removeExcludedMembers(postId, scope.getTenantId(), userIds, scope.getUserId());
         for (Long userId : userIds) {
             if (!existingUserIds.contains(userId)) {

@@ -70,6 +70,53 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         return baseMapper.selectMemberList(dataScopeService.resolveCurrentTenantDataScope("system:member:list"));
     }
 
+    /** 使用目标成员主部门或本人归属校验本次读取范围。 */
+    @Override
+    public SysUserTenant getRequiredMemberInDataScope(Long userId, DataScopeDecisionDTO scope) {
+        SysUserTenant member = getOne(scopedMemberQuery(scope).eq(SysUserTenant::getUserId, userId));
+        if (member == null) {
+            throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
+        }
+        return member;
+    }
+
+    /** 写入前锁定目标成员，保持归属校验到事务提交。 */
+    @Override
+    public SysUserTenant lockRequiredMemberInDataScope(Long userId, DataScopeDecisionDTO scope) {
+        SysUserTenant member = getOne(scopedMemberQuery(scope)
+                .eq(SysUserTenant::getUserId, userId).last("FOR UPDATE"));
+        if (member == null) {
+            throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
+        }
+        return member;
+    }
+
+    /** 岗位成员关系查询不得泄露范围外成员的用户 ID。 */
+    @Override
+    public void requireMembersInDataScope(Set<Long> userIds, DataScopeDecisionDTO scope) {
+        if (userIds.isEmpty() || scope.isAll()) {
+            return;
+        }
+        long visibleCount = count(scopedMemberQuery(scope).in(SysUserTenant::getUserId, userIds));
+        if (visibleCount != userIds.size()) {
+            throw new TenantAccessDeniedException("岗位包含本次操作范围外的成员");
+        }
+    }
+
+    /** 批量覆盖前锁定成员归属，范围外的已有或新增成员使整批操作失败。 */
+    @Override
+    public List<SysUserTenant> lockMembersInDataScope(Set<Long> userIds, DataScopeDecisionDTO scope) {
+        if (userIds.isEmpty()) {
+            return List.of();
+        }
+        List<SysUserTenant> members = list(scopedMemberQuery(scope)
+                .in(SysUserTenant::getUserId, userIds).last("FOR UPDATE"));
+        if (!scope.isAll() && members.size() != userIds.size()) {
+            throw new TenantAccessDeniedException("岗位成员不在本次操作范围内");
+        }
+        return members;
+    }
+
     /** 查询有效成员在指定租户的有效主部门ID。 */
     @Override
     public Long getActiveDepartmentId(Long userId, Long tenantId) {
@@ -91,7 +138,7 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
     public void setMemberDepartment(Long userId, Long deptId) {
         DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:member:department");
         Long tenantId = scope.getTenantId();
-        SysUserTenant member = getOne(scopedMemberQuery(userId, scope));
+        SysUserTenant member = getOne(scopedMemberQuery(scope).eq(SysUserTenant::getUserId, userId));
         if (member == null) {
             throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
         }
@@ -120,7 +167,7 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         if (status == 1 && Objects.equals(tenant.getUserId(), userId)) {
             throw new IllegalArgumentException("不能停用租户管理员成员关系");
         }
-        SysUserTenant member = getOne(scopedMemberQuery(userId, scope));
+        SysUserTenant member = getOne(scopedMemberQuery(scope).eq(SysUserTenant::getUserId, userId));
         if (member == null) {
             throw new TenantAccessDeniedException("目标成员不在本次操作范围内");
         }
@@ -132,10 +179,10 @@ public class SysUserTenantServiceImpl extends ServiceImpl<SysUserTenantMapper, S
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
-    /** 为成员目标查询同时约束租户和本次动作的数据范围。 */
-    private LambdaQueryWrapper<SysUserTenant> scopedMemberQuery(Long userId, DataScopeDecisionDTO scope) {
+    /** 为单个或一组成员查询同时约束租户和本次动作的数据范围。 */
+    private LambdaQueryWrapper<SysUserTenant> scopedMemberQuery(DataScopeDecisionDTO scope) {
         LambdaQueryWrapper<SysUserTenant> query = Wrappers.<SysUserTenant>lambdaQuery()
-                .eq(SysUserTenant::getUserId, userId).eq(SysUserTenant::getTenantId, scope.getTenantId());
+                .eq(SysUserTenant::getTenantId, scope.getTenantId());
         if (scope.isAll()) {
             return query;
         }

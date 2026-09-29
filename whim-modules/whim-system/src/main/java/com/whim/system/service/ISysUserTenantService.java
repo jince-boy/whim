@@ -3,6 +3,7 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUserTenant;
+import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.vo.tenant.MemberVO;
 
 import java.util.List;
@@ -37,6 +38,18 @@ public interface ISysUserTenantService extends IService<SysUserTenant> {
      * @return 成员列表
      */
     List<MemberVO> listMembers();
+
+    /** 按本次操作范围读取目标成员。 */
+    SysUserTenant getRequiredMemberInDataScope(Long userId, DataScopeDecisionDTO scope);
+
+    /** 在写事务中锁定并校验目标成员。 */
+    SysUserTenant lockRequiredMemberInDataScope(Long userId, DataScopeDecisionDTO scope);
+
+    /** 确认一组已关联成员都处于本次读取范围内。 */
+    void requireMembersInDataScope(Set<Long> userIds, DataScopeDecisionDTO scope);
+
+    /** 在写事务中锁定一组成员，并确认受限范围内没有越权目标。 */
+    List<SysUserTenant> lockMembersInDataScope(Set<Long> userIds, DataScopeDecisionDTO scope);
 
     /** 查询有效成员在指定租户的有效主部门ID。 */
     Long getActiveDepartmentId(Long userId, Long tenantId);

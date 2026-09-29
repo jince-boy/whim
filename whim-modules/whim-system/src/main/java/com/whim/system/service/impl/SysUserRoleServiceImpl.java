@@ -7,12 +7,12 @@ import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysUserRoleMapper;
+import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.service.ISysRoleService;
-import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserRoleService;
 import com.whim.system.service.ISysUserService;
 import com.whim.system.service.ISysUserTenantService;
@@ -33,18 +33,18 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements ISysUserRoleService {
-    private final ISysTenantService tenantService;
     private final ISysUserTenantService userTenantService;
     private final ISysRoleService roleService;
     private final ISysUserService userService;
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
 
-    /** 查询成员在当前租户的角色ID。 */
+    /** 按角色查询动作的数据范围读取目标成员的角色 ID。 */
     @Override
     public Set<Long> getCurrentTenantRoleIds(Long userId) {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        requireMember(userId, tenantId);
+        DataScopeDecisionDTO scope = roleService.resolveCurrentTenantDataScope("system:userRole:list");
+        Long tenantId = scope.getTenantId();
+        userTenantService.getRequiredMemberInDataScope(userId, scope);
         Set<Long> roleIds = new LinkedHashSet<>();
         for (SysUserRole binding : lambdaQuery().eq(SysUserRole::getUserId, userId)
                 .eq(SysUserRole::getTenantId, tenantId).list()) {
@@ -53,12 +53,13 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
         return roleIds;
     }
 
-    /** 覆盖成员在当前租户的角色并在提交后撤销旧会话。 */
+    /** 按角色分配动作的数据范围覆盖目标成员角色并撤销旧会话。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void replaceCurrentTenantRoles(Long userId, Set<Long> roleIds) {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        SysUserTenant member = requireMember(userId, tenantId);
+        DataScopeDecisionDTO scope = roleService.resolveCurrentTenantDataScope("system:userRole:assign");
+        Long tenantId = scope.getTenantId();
+        SysUserTenant member = userTenantService.lockRequiredMemberInDataScope(userId, scope);
         SysUser user = userService.getById(userId);
         if (member.getStatus() != 0 || user == null || user.getStatus() != 0) {
             throw new TenantAccessDeniedException("目标成员不可用");
@@ -87,14 +88,5 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
-    /** 查询用户在目标租户中的成员关系。 */
-    private SysUserTenant requireMember(Long userId, Long tenantId) {
-        SysUserTenant member = userTenantService.lambdaQuery().eq(SysUserTenant::getUserId, userId)
-                .eq(SysUserTenant::getTenantId, tenantId).one();
-        if (member == null) {
-            throw new TenantAccessDeniedException("目标用户不是当前租户成员");
-        }
-        return member;
-    }
 }
 
