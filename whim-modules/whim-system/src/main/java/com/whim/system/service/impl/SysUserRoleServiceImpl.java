@@ -1,92 +1,106 @@
 package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
-import com.whim.core.exception.TenantAccessDeniedException;
+import com.whim.core.exception.DataAccessDeniedException;
+import com.whim.mybatisplus.annotation.DataPermission;
+import com.whim.mybatisplus.annotation.DataPermissionTable;
+import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.mapper.SysUserRoleMapper;
-import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserRole;
-import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserRoleService;
-import com.whim.system.service.ISysUserService;
-import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jince
- * @date 2026/07/02
- * @description 系统用户角色关联表服务实现类
+ * @date 2026/09/30
+ * @description 用户角色分配，独立核验目标用户范围与角色可委派范围。
  */
 @Service
 @RequiredArgsConstructor
 public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements ISysUserRoleService {
-    private final ISysUserTenantService userTenantService;
+    private final SysUserMapper userMapper;
     private final ISysRoleService roleService;
-    private final ISysUserService userService;
+    private final SysAuthorizationService authorizationService;
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
 
-    /** 按角色查询动作的数据范围读取目标成员的角色 ID。 */
+    /** 只有本次操作可见用户的角色关联可以读取。 */
     @Override
-    public Set<Long> getCurrentTenantRoleIds(Long userId) {
-        DataScopeDecisionDTO scope = roleService.resolveCurrentTenantDataScope("system:userRole:list");
-        Long tenantId = scope.getTenantId();
-        userTenantService.getRequiredMemberInDataScope(userId, scope);
-        Set<Long> roleIds = new LinkedHashSet<>();
-        for (SysUserRole binding : lambdaQuery().eq(SysUserRole::getUserId, userId)
-                .eq(SysUserRole::getTenantId, tenantId).list()) {
-            roleIds.add(binding.getRoleId());
+    @DataPermission(permission = "system:userRole:list",
+            tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public Set<Long> getRoleIds(Long userId) {
+        if (userMapper.selectById(userId) == null) {
+            throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
         }
-        return roleIds;
+        return lambdaQuery().eq(SysUserRole::getUserId, userId).list().stream()
+                .map(SysUserRole::getRoleId).collect(Collectors.toSet());
     }
 
-    /** 按角色分配动作的数据范围覆盖目标成员角色并撤销旧会话。 */
+    /** 全部候选和移除角色验证通过后替换关联，并保护最后一个管理员。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void replaceCurrentTenantRoles(Long userId, Set<Long> roleIds) {
-        DataScopeDecisionDTO scope = roleService.resolveCurrentTenantDataScope("system:userRole:assign");
-        Long tenantId = scope.getTenantId();
-        SysUserTenant member = userTenantService.lockRequiredMemberInDataScope(userId, scope);
-        SysUser user = userService.getById(userId);
-        if (member.getStatus() != 0 || user == null || user.getStatus() != 0) {
-            throw new TenantAccessDeniedException("目标成员不可用");
+    @DataPermission(permission = "system:userRole:assign",
+            tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public void replaceRoles(Long userId, Set<Long> roleIds) {
+        authorizationService.lockAdministratorMembership();
+        SysUser user = userMapper.selectForUpdate(userId);
+        if (user == null) {
+            throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
         }
-        for (Long roleId : roleIds) {
-            SysRole role = roleService.getRequiredTenantRole(roleId, tenantId);
-            if (role.getStatus() != 0) {
-                throw new IllegalArgumentException("不能分配已停用的角色");
+        authorizationService.requireManageableUser(userId);
+        if (Objects.equals(userId, authenticationContext.getUserId())
+                && !authorizationService.isSuperAdministrator()) {
+            throw new DataAccessDeniedException("不能修改本人的角色关联");
+        }
+        if (user.getStatus() != 0 && !roleIds.isEmpty()) {
+            throw new IllegalArgumentException("不能为停用账号分配角色");
+        }
+        List<SysUserRole> existing = lambdaQuery().eq(SysUserRole::getUserId, userId).list();
+        Set<Long> existingIds = existing.stream().map(SysUserRole::getRoleId).collect(Collectors.toSet());
+        Set<Long> involved = new HashSet<>(existingIds);
+        involved.addAll(roleIds);
+        boolean retainsAdministrator = false;
+        for (Long roleId : involved.stream().sorted().toList()) {
+            SysRole role = roleService.getRequiredRole(roleId);
+            if (roleIds.contains(roleId)) {
+                authorizationService.requireDelegableRole(role, user);
+                retainsAdministrator |= "superadmin".equals(role.getRoleCode());
+            } else if (!authorizationService.isSuperAdministrator() && role.getStatus() == 0) {
+                authorizationService.requireDelegableRole(role, user);
             }
         }
-        List<SysUserRole> existing = lambdaQuery().eq(SysUserRole::getUserId, userId)
-                .eq(SysUserRole::getTenantId, tenantId).list();
-        List<Long> removedIds = existing.stream().filter(binding -> !roleIds.contains(binding.getRoleId()))
-                .map(SysUserRole::getId).toList();
-        if (!removedIds.isEmpty()) {
-            removeByIds(removedIds);
+        if (!retainsAdministrator) {
+            authorizationService.requireAdministratorCanBeRemoved(userId);
         }
-        Set<Long> existingRoleIds = new HashSet<>();
-        existing.forEach(binding -> existingRoleIds.add(binding.getRoleId()));
-        for (Long roleId : roleIds) {
-            if (!existingRoleIds.contains(roleId)) {
-                baseMapper.upsertBinding(IdWorker.getId(), userId, roleId, tenantId,
-                        authenticationContext.getUserId());
-            }
+        var removals = lambdaUpdate().eq(SysUserRole::getUserId, userId);
+        if (!roleIds.isEmpty()) {
+            removals.notIn(SysUserRole::getRoleId, roleIds);
+        }
+        removals.remove();
+        List<SysUserRole> additions = roleIds.stream().filter(id -> !existingIds.contains(id)).map(roleId -> {
+            SysUserRole binding = new SysUserRole();
+            binding.setUserId(userId);
+            binding.setRoleId(roleId);
+            return binding;
+        }).toList();
+        if (!additions.isEmpty()) {
+            saveBatch(additions);
         }
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
-
 }
 

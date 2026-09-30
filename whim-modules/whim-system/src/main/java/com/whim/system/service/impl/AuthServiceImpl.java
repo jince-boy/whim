@@ -15,23 +15,17 @@ import com.whim.core.utils.IPUtils;
 import com.whim.core.utils.IdUtils;
 import com.whim.redis.utils.RedisUtils;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
-import com.whim.system.model.entity.SysTenant;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.enums.SysUserStatus;
-import com.whim.system.model.vo.auth.AuthTenantVO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
-import com.whim.system.service.ISysRoleService;
-import com.whim.system.service.ISysTenantService;
 import com.whim.system.service.ISysUserService;
-import com.whim.system.service.ISysUserTenantService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RateType;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
 
 /**
  * @author Jince
@@ -50,21 +44,6 @@ public class AuthServiceImpl implements IAuthService {
      * 系统用户服务对象
      */
     private final ISysUserService sysUserService;
-
-    /**
-     * 系统角色服务对象
-     */
-    private final ISysRoleService sysRoleService;
-
-    /**
-     * 系统租户服务对象
-     */
-    private final ISysTenantService sysTenantService;
-
-    /**
-     * 用户租户关系服务对象
-     */
-    private final ISysUserTenantService sysUserTenantService;
 
     /**
      * 当前请求认证上下文
@@ -147,14 +126,9 @@ public class AuthServiceImpl implements IAuthService {
         authenticationSession.logout();
     }
 
-    /**
-     * 获取当前用户信息，显式切换租户或保留当前令牌的有效租户。
-     *
-     * @param tenantId 目标租户ID，不传时保留当前租户；尚未选租户时使用默认租户
-     * @return 当前登录用户信息
-     */
+    /** 查询当前账号并刷新角色、权限和主部门信息。 */
     @Override
-    public AuthUserVO getUserInfo(Long tenantId) {
+    public AuthUserVO getUserInfo() {
         SysUser user = sysUserService.getById(authenticationContext.getUserId());
         if (user == null) {
             throw new UserNotFoundException("当前登录用户不存在");
@@ -162,21 +136,8 @@ public class AuthServiceImpl implements IAuthService {
         if (SysUserStatus.DISABLED.matches(user.getStatus())) {
             throw new UserDisableException("用户已被禁用");
         }
-
-        Long selectedTenantId = tenantId != null
-                ? tenantId : authenticationContext.getCurrentUserInfo().getCurrentTenantId();
-        UserInfo userInfo = selectedTenantId == null
-                ? sysUserService.buildUserInfo(user)
-                : sysUserService.buildUserInfo(user, selectedTenantId);
-        List<SysTenant> tenantList = sysRoleService.isSuperAdministrator(user.getId())
-                ? sysTenantService.getAvailableTenantList()
-                : sysUserTenantService.getTenantListByUserId(user.getId());
-        AuthUserVO userVO = BeanConvertUtils.convert(userInfo, AuthUserVO.class);
-        if (userVO != null) {
-            userVO.setTenantList(BeanConvertUtils.convertList(tenantList, AuthTenantVO.class));
-        }
+        UserInfo userInfo = sysUserService.buildUserInfo(user);
         authenticationSession.updateUserInfo(userInfo);
-        return userVO;
+        return BeanConvertUtils.convert(userInfo, AuthUserVO.class);
     }
-
 }

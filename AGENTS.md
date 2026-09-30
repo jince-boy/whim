@@ -78,7 +78,7 @@ Authentication is intentionally abstracted in two layers:
 
 `whim-mybatisplus` centralizes database behavior:
 
-- `MybatisPlusConfiguration` installs pagination, optimistic locking, and block-attack protection
+- `MybatisPlusConfiguration` installs operation-level data permissions before pagination, plus optimistic locking and block-attack protection
 - `BaseEntity` defines shared audit fields (`createBy/createTime/updateBy/updateTime/deleteBy/deleteTime`)
 - `AutoFillFieldHandler` fills those audit fields from `AuthenticationContext`
 
@@ -117,7 +117,11 @@ After any API-related change, including adding, modifying, or removing endpoints
 - Main application config is in `whim-start/src/main/resources/application.yml`
 - Flyway migrations live in `whim-start/src/main/resources/db/migration`
 - Every database change must use a new, higher Flyway version; never edit, delete, or reuse an already-applied versioned migration
-- `V1__baseline.sql` is the initial schema baseline; existing non-empty databases are baselined at version 1 before later migrations run
+- `V1__initialize.sql` initializes single-organization RBAC on an empty database; automatic baselining is disabled
+- Users have globally unique usernames, one primary department, multiple roles and multiple posts. Posts never implicitly grant roles.
+- Data-protected public service methods declare `@DataPermission` with the exact operation and table mappings. New records and ownership changes also call `DataPermissionContext.checkOwnership`.
+- Only roles granting the exact operation contribute data scopes. Role defaults support per-operation overrides; codes are 1 (all), 2 (custom departments), 3 (own department), 4 (department and descendants), and 5 (self).
+- See `docs/rbac-data-permission.md` for authorization boundaries and extension rules, and `docs/openapi.json` for the API contract.
 - The app runs on port `8089`
 - Sa-Token exclusion paths are configured in `application.yml`, not hardcoded in the app module
 

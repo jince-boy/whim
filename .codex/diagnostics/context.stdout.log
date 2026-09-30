@@ -1,0 +1,66 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-30T18:02:58.572+08:00  INFO 41236 --- [whim] [           main] com.whim.WhimApplication                 : Starting WhimApplication v0.0.1 using Java 25.0.1 with PID 41236 (C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-start\target\whim-start-0.0.1.jar started by jince in C:\Users\jince\Desktop\桌面文件\myproject\whim)
+2026-09-30T18:02:58.576+08:00  INFO 41236 --- [whim] [           main] com.whim.WhimApplication                 : The following 1 profile is active: "dev"
+2026-09-30T18:02:59.334+08:00  INFO 41236 --- [whim] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-09-30T18:02:59.337+08:00  INFO 41236 --- [whim] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-09-30T18:02:59.369+08:00  INFO 41236 --- [whim] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 17 ms. Found 0 Redis repository interfaces.
+2026-09-30T18:02:59.924+08:00  WARN 41236 --- [whim] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'stringOrNumberMigrationVersionConverter' of type [org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration$StringOrNumberToMigrationVersionConverter] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [meterRegistryPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-09-30T18:03:00.422+08:00  INFO 41236 --- [whim] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-30T18:03:00.611+08:00  INFO 41236 --- [whim] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5ddb302
+2026-09-30T18:03:00.613+08:00  INFO 41236 --- [whim] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-30T18:03:00.642+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：9ms | 执行语句：SELECT version()
+2026-09-30T18:03:00.645+08:00  INFO 41236 --- [whim] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:mysql://127.0.0.1:3306/whim?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC (MySQL 8.0)
+2026-09-30T18:03:00.662+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：2ms | 执行语句：select VARIABLE_VALUE from performance_schema.global_variables where variable_name = 'pxc_strict_mode'
+2026-09-30T18:03:00.664+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT @@GLOBAL.ENFORCE_GTID_CONSISTENCY
+2026-09-30T18:03:00.667+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT DATABASE()
+2026-09-30T18:03:00.667+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT version()
+2026-09-30T18:03:00.669+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.669+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT @@foreign_key_checks
+2026-09-30T18:03:00.670+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT @@sql_safe_updates
+2026-09-30T18:03:00.672+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：1ms | 执行语句：SHOW DATABASES LIKE 'RDSAdmin';
+2026-09-30T18:03:00.672+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT DATABASE()
+2026-09-30T18:03:00.674+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT DATABASE()
+2026-09-30T18:03:00.674+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT SUBSTRING_INDEX(USER(),'@',1)
+2026-09-30T18:03:00.692+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：1ms | 执行语句：SELECT COUNT(1) FROM information_schema.schemata WHERE schema_name='whim' LIMIT 1
+2026-09-30T18:03:00.703+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.705+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SET foreign_key_checks=1, sql_safe_updates=0
+2026-09-30T18:03:00.712+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT `installed_rank`,`version`,`description`,`type`,`script`,`checksum`,`installed_on`,`installed_by`,`execution_time`,`success` FROM `whim`.`flyway_schema_history` WHERE `installed_rank` > -1 ORDER BY `installed_rank`
+2026-09-30T18:03:00.718+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：
+2026-09-30T18:03:00.719+08:00  INFO 41236 --- [whim] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.025s)
+2026-09-30T18:03:00.721+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT COUNT(1) FROM information_schema.schemata WHERE schema_name='whim' LIMIT 1
+2026-09-30T18:03:00.722+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：
+2026-09-30T18:03:00.723+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.723+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SET foreign_key_checks=1, sql_safe_updates=0
+2026-09-30T18:03:00.728+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.728+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SET foreign_key_checks=1, sql_safe_updates=0
+2026-09-30T18:03:00.730+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT GET_LOCK('Flyway--490410780',10)
+2026-09-30T18:03:00.730+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.731+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SET foreign_key_checks=1, sql_safe_updates=0
+2026-09-30T18:03:00.733+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT `installed_rank`,`version`,`description`,`type`,`script`,`checksum`,`installed_on`,`installed_by`,`execution_time`,`success` FROM `whim`.`flyway_schema_history` WHERE `installed_rank` > 1 ORDER BY `installed_rank`
+2026-09-30T18:03:00.733+08:00  INFO 41236 --- [whim] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema `whim`: 1
+2026-09-30T18:03:00.734+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT RELEASE_LOCK('Flyway--490410780')
+2026-09-30T18:03:00.737+08:00  INFO 41236 --- [whim] [           main] o.f.core.internal.command.DbMigrate      : Schema `whim` is up to date. No migration necessary.
+2026-09-30T18:03:00.738+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SELECT variable_name FROM performance_schema.user_variables_by_thread WHERE variable_value IS NOT NULL
+2026-09-30T18:03:00.739+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：SET foreign_key_checks=1, sql_safe_updates=0
+2026-09-30T18:03:00.741+08:00  INFO 41236 --- [whim] [           main] p6spy                                    : SQL耗时：0ms | 执行语句：
+2026-09-30T18:03:01.536+08:00  INFO 41236 --- [whim] [           main] org.redisson.Version                     : Redisson 4.3.0
+2026-09-30T18:03:01.886+08:00  INFO 41236 --- [whim] [     redisson-3] o.redisson.connection.ConnectionsHolder  : 1 connections initialized for 127.0.0.1/127.0.0.1:6379
+2026-09-30T18:03:01.957+08:00  INFO 41236 --- [whim] [    redisson-18] o.redisson.connection.ConnectionsHolder  : 24 connections initialized for 127.0.0.1/127.0.0.1:6379
+2026-09-30T18:03:02.027+08:00  INFO 41236 --- [whim] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.context.annotation.AnnotationConfigApplicationContext@25e2a451
+2026-09-30T18:03:02.424+08:00  INFO 41236 --- [whim] [           main] com.whim.WhimApplication                 : Started WhimApplication in 4.315 seconds (process running for 4.827)
+2026-09-30T18:03:02.428+08:00  INFO 41236 --- [whim] [           main] com.whim.WhimApplication                 : 
+------------------------------------------
+本地地址: 	http://localhost:8089
+外部地址: 	http://198.18.0.1:8089
+------------------------------------------
+
+=================Whim �����ɹ�=================

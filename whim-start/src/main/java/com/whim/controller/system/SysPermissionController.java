@@ -32,23 +32,16 @@ public class SysPermissionController {
      */
     private final ISysPermissionService sysPermissionService;
 
-    /** 查询当前租户套餐可分配的权限。 */
+    /** 查询系统权限目录。 */
     @GetMapping
     @SystemCheckPermission("system:permission:list")
     public Result<List<PermissionVO>> listAssignablePermissions() {
-        return Result.success("权限查询成功", sysPermissionService.listCurrentTenantAssignablePermissions());
-    }
-
-    /** 查询平台权限目录。 */
-    @GetMapping("/platform")
-    @SystemCheckPermission("system:platform:permission:list")
-    public Result<List<PermissionVO>> listPlatformPermissions() {
-        return Result.success("平台权限查询成功", sysPermissionService.listPlatformPermissions());
+        return Result.success("权限查询成功", sysPermissionService.listPermissions());
     }
 
     /** 修改全局权限状态。 */
     @PutMapping("/{permissionId}/status")
-    @SystemCheckPermission("system:platform:permission:status")
+    @SystemCheckPermission("system:permission:status")
     public Result<Void> setPermissionStatus(@PathVariable Long permissionId,
                                             @RequestBody @Valid PermissionStatusDTO request) {
         sysPermissionService.setPermissionStatus(permissionId, request.getStatus());

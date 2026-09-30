@@ -1,0 +1,284 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] whim                                                               [pom]
+[INFO] whim-framework                                                     [pom]
+[INFO] whim-core                                                          [jar]
+[INFO] whim-json                                                          [jar]
+[INFO] whim-web                                                           [jar]
+[INFO] whim-redis                                                         [jar]
+[INFO] whim-satoken                                                       [jar]
+[INFO] whim-mybatisplus                                                   [jar]
+[INFO] whim-modules                                                       [pom]
+[INFO] whim-system                                                        [jar]
+[INFO] whim-start                                                         [jar]
+[INFO] 
+[INFO] ---------------------------< com.whim:whim >----------------------------
+[INFO] Building whim 0.0.1                                               [1/11]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim ---
+[INFO] 
+[INFO] ----------------------< com.whim:whim-framework >-----------------------
+[INFO] Building whim-framework 0.0.1                                     [2/11]
+[INFO]   from whim-framework\pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-framework ---
+[INFO] 
+[INFO] -------------------------< com.whim:whim-core >-------------------------
+[INFO] Building whim-core 0.0.1                                          [3/11]
+[INFO]   from whim-framework\whim-core\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-core ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-core\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-core ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-core ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 32 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-core ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-core ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-core ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-core ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-core\target\whim-core-0.0.1.jar
+[INFO] 
+[INFO] -------------------------< com.whim:whim-json >-------------------------
+[INFO] Building whim-json 0.0.1                                          [4/11]
+[INFO]   from whim-framework\whim-json\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-json ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-json\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-json ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-json ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 4 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-json ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-json ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-json ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-json ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-json\target\whim-json-0.0.1.jar
+[INFO] 
+[INFO] -------------------------< com.whim:whim-web >--------------------------
+[INFO] Building whim-web 0.0.1                                           [5/11]
+[INFO]   from whim-framework\whim-web\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-web ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-web\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-web ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-web ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-web ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-web ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-web ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-web ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-web\target\whim-web-0.0.1.jar
+[INFO] 
+[INFO] ------------------------< com.whim:whim-redis >-------------------------
+[INFO] Building whim-redis 0.0.1                                         [6/11]
+[INFO]   from whim-framework\whim-redis\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-redis ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-redis\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-redis ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-redis ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 9 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-redis ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-redis ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-redis ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-redis ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-redis\target\whim-redis-0.0.1.jar
+[INFO] 
+[INFO] -----------------------< com.whim:whim-satoken >------------------------
+[INFO] Building whim-satoken 0.0.1                                       [7/11]
+[INFO]   from whim-framework\whim-satoken\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-satoken ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-satoken\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-satoken ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-satoken ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-satoken ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-satoken ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-satoken ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-satoken ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-satoken\target\whim-satoken-0.0.1.jar
+[INFO] 
+[INFO] ---------------------< com.whim:whim-mybatisplus >----------------------
+[INFO] Building whim-mybatisplus 0.0.1                                   [8/11]
+[INFO]   from whim-framework\whim-mybatisplus\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-mybatisplus ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-mybatisplus\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-mybatisplus ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-mybatisplus ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 12 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-mybatisplus ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-mybatisplus ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-mybatisplus ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-mybatisplus ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-framework\whim-mybatisplus\target\whim-mybatisplus-0.0.1.jar
+[INFO] 
+[INFO] -----------------------< com.whim:whim-modules >------------------------
+[INFO] Building whim-modules 0.0.1                                       [9/11]
+[INFO]   from whim-modules\pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-modules ---
+[INFO] 
+[INFO] ------------------------< com.whim:whim-system >------------------------
+[INFO] Building whim-system 0.0.1                                       [10/11]
+[INFO]   from whim-modules\whim-system\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-system ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-modules\whim-system\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-system ---
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-system ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 78 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-system ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-system ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-system ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-system ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-modules\whim-system\target\whim-system-0.0.1.jar
+[INFO] 
+[INFO] ------------------------< com.whim:whim-start >-------------------------
+[INFO] Building whim-start 0.0.1                                        [11/11]
+[INFO]   from whim-start\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ whim-start ---
+[INFO] Deleting C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-start\target
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ whim-start ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ whim-start ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug parameters release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ whim-start ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ whim-start ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ whim-start ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ whim-start ---
+[INFO] Building jar: C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-start\target\whim-start-0.0.1.jar
+[INFO] 
+[INFO] --- spring-boot:4.1.1:repackage (repackage) @ whim-start ---
+[INFO] Replacing main artifact C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-start\target\whim-start-0.0.1.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to C:\Users\jince\Desktop\桌面文件\myproject\whim\whim-start\target\whim-start-0.0.1.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for whim 0.0.1:
+[INFO] 
+[INFO] whim ............................................... SUCCESS [  0.053 s]
+[INFO] whim-framework ..................................... SUCCESS [  0.004 s]
+[INFO] whim-core .......................................... SUCCESS [  4.084 s]
+[INFO] whim-json .......................................... SUCCESS [  0.855 s]
+[INFO] whim-web ........................................... SUCCESS [  1.521 s]
+[INFO] whim-redis ......................................... SUCCESS [  1.421 s]
+[INFO] whim-satoken ....................................... SUCCESS [  1.366 s]
+[INFO] whim-mybatisplus ................................... SUCCESS [  1.122 s]
+[INFO] whim-modules ....................................... SUCCESS [  0.003 s]
+[INFO] whim-system ........................................ SUCCESS [  2.887 s]
+[INFO] whim-start ......................................... SUCCESS [  1.709 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.647 s
+[INFO] Finished at: 2026-09-30T17:56:51+08:00
+[INFO] ------------------------------------------------------------------------

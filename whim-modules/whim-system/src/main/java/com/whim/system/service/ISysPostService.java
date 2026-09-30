@@ -3,40 +3,34 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatisplus.model.dto.PageQueryDTO;
 import com.whim.mybatisplus.model.vo.PageDataVO;
-import com.whim.system.model.dto.post.PostSaveDTO;
 import com.whim.system.model.entity.SysPost;
+import com.whim.system.model.dto.post.PostSaveDTO;
 import com.whim.system.model.vo.post.PostVO;
 
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author jince
- * @date 2026/07/02
- * @description 系统岗位表服务接口
+ * @author Jince
+ * @date 2026/09/30
+ * @description SysPost业务服务。
  */
 public interface ISysPostService extends IService<SysPost> {
-    /** 分页查询本次列表权限可见的岗位。 */
-    PageDataVO<PostVO> pageCurrentTenantPosts(PageQueryDTO query);
-
-    /** 查询本次详情权限可见的岗位。 */
-    PostVO getCurrentTenantPost(Long postId);
-
-    /** 查询本次成员查看权限可见岗位的成员ID。 */
-    Set<Long> getCurrentTenantPostMemberIds(Long postId);
-
-    /** 在当前租户创建岗位。 */
-    Long createCurrentTenantPost(PostSaveDTO request);
-
-    /** 修改本次更新权限可操作的岗位。 */
-    void updateCurrentTenantPost(Long postId, PostSaveDTO request);
-
-    /** 启用或停用本次状态权限可操作的岗位。 */
-    void setCurrentTenantPostStatus(Long postId, Integer status);
-
-    /** 覆盖本次成员分配权限可操作岗位的成员。 */
-    void replaceCurrentTenantPostMembers(Long postId, Set<Long> userIds);
-
-    /** 删除本次删除权限可操作且未关联成员的岗位。 */
-    void deleteCurrentTenantPost(Long postId);
+    /** 分页查询可见岗位，计数与列表使用同一范围。 */
+    PageDataVO<PostVO> pagePosts(PageQueryDTO query);
+    /** 查询本次操作可见岗位详情。 */
+    PostVO getPost(Long postId);
+    /** 查询岗位中本次操作可见的用户ID。 */
+    Set<Long> getPostMemberIds(Long postId);
+    /** 校验归属后创建岗位。 */
+    Long createPost(PostSaveDTO request);
+    /** 校验原记录及新归属后修改岗位。 */
+    void updatePost(Long postId, PostSaveDTO request);
+    /** 启用或停用可见岗位。 */
+    void setPostStatus(Long postId, Integer status);
+    /** 全量校验后覆盖岗位用户关联，不改变任何角色授权。 */
+    void replacePostMembers(Long postId, Set<Long> userIds);
+    /** 删除没有用户关联的岗位。 */
+    void deletePost(Long postId);
 }
 

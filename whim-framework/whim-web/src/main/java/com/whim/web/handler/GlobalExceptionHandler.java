@@ -3,7 +3,7 @@ package com.whim.web.handler;
 import com.whim.core.exception.FileStorageException;
 import com.whim.core.exception.HttpException;
 import com.whim.core.exception.ServiceException;
-import com.whim.core.exception.TenantAccessDeniedException;
+import com.whim.core.exception.DataAccessDeniedException;
 import com.whim.core.exception.TooManyRequestsException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
@@ -12,6 +12,7 @@ import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -60,9 +61,28 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(Throwable.class)
-    public ResponseEntity<Result<Void>> handleGeneralException(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<Result<Void>> handleGeneralException(Throwable exception, HttpServletRequest request) {
+        // 持久化框架可能包装拦截器异常，保留数据访问拒绝和唯一键冲突的业务状态。
+        Throwable cause = exception;
+        for (int depth = 0; cause != null && depth < 20; depth++) {
+            if (cause instanceof DataAccessDeniedException denied) {
+                return handleDataAccessDeniedException(denied, request);
+            }
+            if (cause instanceof DuplicateKeyException duplicate) {
+                return handleDuplicateKeyException(duplicate, request);
+            }
+            cause = cause.getCause();
+        }
         log.error("请求 [{} {}] 发生未处理异常", request.getMethod(), request.getRequestURI(), exception);
         return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部异常，请稍后重试").toResponseEntity();
+    }
+
+    /** 唯一约束冲突统一返回409，不泄露数据库语句或隐藏账号明细。 */
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<Result<Void>> handleDuplicateKeyException(
+            DuplicateKeyException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 的数据唯一约束发生冲突", request.getMethod(), request.getRequestURI());
+        return Result.error(HttpStatus.CONFLICT, "数据唯一标识已被使用").toResponseEntity();
     }
 
     /**
@@ -338,21 +358,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理租户访问被拒绝异常。
+     * 处理数据访问被拒绝异常。
      *
      * @param exception 异常对象
      * @param request   当前请求
      * @return 统一错误响应
      */
-    @ExceptionHandler(TenantAccessDeniedException.class)
-    public ResponseEntity<Result<Void>> handleTenantAccessDeniedException(
-            TenantAccessDeniedException exception,
+    @ExceptionHandler(DataAccessDeniedException.class)
+    public ResponseEntity<Result<Void>> handleDataAccessDeniedException(
+            DataAccessDeniedException exception,
             HttpServletRequest request
     ) {
-        log.warn("请求 [{} {}] 的租户访问被拒绝：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
+        log.warn("请求 [{} {}] 的数据访问被拒绝：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
         return Result.error(
                 HttpStatus.FORBIDDEN,
-                StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "无权访问该租户"
+                StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "无权访问该数据"
         ).toResponseEntity();
     }
 

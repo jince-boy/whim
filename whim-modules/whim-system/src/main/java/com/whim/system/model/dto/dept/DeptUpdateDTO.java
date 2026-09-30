@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 租户部门基础信息修改参数，不允许隐式移动部门树。
+ * @description 组织部门基础信息修改参数，不允许隐式移动部门树。
  */
 @Data
 public class DeptUpdateDTO {

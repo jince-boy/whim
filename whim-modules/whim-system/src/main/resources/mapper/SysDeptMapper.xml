@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysDeptMapper">
+    <select id="selectAuthorizationDepartment" resultType="com.whim.system.model.entity.SysDept">
+        SELECT id, parent_id, ancestors, status FROM sys_dept
+        WHERE id = #{deptId} AND deleted = 0 AND status = 0
+    </select>
+
     <select id="selectActiveDescendantIds" resultType="java.lang.Long">
         WITH RECURSIVE department_tree AS (
-            SELECT id
-            FROM sys_dept
-            WHERE id = #{deptId}
-              AND tenant_id = #{tenantId}
-              AND deleted = 0
-              AND status = 0
+            SELECT id FROM sys_dept WHERE id = #{deptId} AND deleted = 0 AND status = 0
             UNION ALL
-            SELECT child.id
-            FROM sys_dept child
-                     INNER JOIN department_tree parent ON child.parent_id = parent.id
-            WHERE child.tenant_id = #{tenantId}
-              AND child.deleted = 0
-              AND child.status = 0
+            SELECT child.id FROM sys_dept child
+            INNER JOIN department_tree parent ON child.parent_id = parent.id
+            WHERE child.deleted = 0 AND child.status = 0
         )
         SELECT id FROM department_tree
+    </select>
+
+    <select id="hasDepartmentReferences" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM sys_dept WHERE parent_id = #{deptId} AND deleted = 0)
+            OR EXISTS (SELECT 1 FROM sys_user WHERE dept_id = #{deptId} AND deleted = 0)
+            OR EXISTS (SELECT 1 FROM sys_post WHERE dept_id = #{deptId} AND deleted = 0)
+            OR EXISTS (SELECT 1 FROM sys_role_dept WHERE dept_id = #{deptId})
+            OR EXISTS (SELECT 1 FROM sys_role_permission_dept WHERE dept_id = #{deptId})
     </select>
 </mapper>

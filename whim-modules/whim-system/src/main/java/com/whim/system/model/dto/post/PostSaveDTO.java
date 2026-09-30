@@ -9,7 +9,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 当前租户岗位保存参数。
+ * @description 系统岗位保存参数。
  */
 @Data
 public class PostSaveDTO {

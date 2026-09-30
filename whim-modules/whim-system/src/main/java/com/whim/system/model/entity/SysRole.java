@@ -36,12 +36,7 @@ public class SysRole extends BaseEntity implements Serializable {
     private String roleCode;
 
     /**
-     * 角色类型(0-系统 1-租户)
-     */
-    private Integer roleType;
-
-    /**
-     * 数据范围(1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限 5：仅本人数据权限 6：部门及以下或本人数据权限)
+     * 默认数据范围(1-全部 2-自定义部门 3-本部门 4-本部门及下级 5-本人)
      */
     private Integer dataScope;
 
@@ -49,11 +44,6 @@ public class SysRole extends BaseEntity implements Serializable {
      * 排序
      */
     private Integer sort;
-
-    /**
-     * 租户ID
-     */
-    private Long tenantId;
 
     /**
      * 状态(0-正常 1-停用)

@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 租户部门树节点响应。
+ * @description 组织部门树节点响应。
  */
 @Data
 public class DeptVO {

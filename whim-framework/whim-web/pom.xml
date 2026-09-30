@@ -13,6 +13,11 @@
     <description>web模块</description>
 
     <dependencies>
+        <!-- Spring 数据访问异常抽象，统一映射唯一约束冲突 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
         <!-- webmvc -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

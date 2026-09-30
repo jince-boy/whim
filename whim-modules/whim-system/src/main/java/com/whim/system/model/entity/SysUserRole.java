@@ -1,7 +1,6 @@
 package com.whim.system.model.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,16 +34,6 @@ public class SysUserRole extends BaseEntity implements Serializable {
      */
     private Long roleId;
 
-    /**
-     * 租户ID
-     */
-    private Long tenantId;
-
-    /**
-     * 删除标志(0-未删除 1-已删除)
-     */
-    @TableLogic
-    private Integer deleted;
 
 }
 

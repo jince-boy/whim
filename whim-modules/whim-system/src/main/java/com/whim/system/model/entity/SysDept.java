@@ -26,11 +26,6 @@ public class SysDept extends BaseEntity implements Serializable {
     private Long id;
 
     /**
-     * 租户ID
-     */
-    private Long tenantId;
-
-    /**
      * 父级部门ID
      */
     private Long parentId;

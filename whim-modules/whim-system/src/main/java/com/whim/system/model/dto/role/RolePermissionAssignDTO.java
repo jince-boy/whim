@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * @author Jince
  * @date 2026/09/28
- * @description 租户角色权限覆盖式分配参数。
+ * @description 系统角色权限覆盖式分配参数。
  */
 @Data
 public class RolePermissionAssignDTO {

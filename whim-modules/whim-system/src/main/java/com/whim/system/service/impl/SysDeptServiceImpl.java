@@ -1,19 +1,14 @@
 package com.whim.system.service.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.whim.core.exception.TenantAccessDeniedException;
+import com.whim.core.exception.DataAccessDeniedException;
+import com.whim.mybatisplus.annotation.DataPermission;
+import com.whim.mybatisplus.annotation.DataPermissionTable;
+import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysDeptMapper;
-import com.whim.system.mapper.SysPostMapper;
-import com.whim.system.mapper.SysRoleDeptMapper;
-import com.whim.system.mapper.SysUserTenantMapper;
 import com.whim.system.model.dto.dept.DeptCreateDTO;
 import com.whim.system.model.dto.dept.DeptUpdateDTO;
-import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.entity.SysDept;
-import com.whim.system.model.entity.SysPost;
-import com.whim.system.model.entity.SysRoleDept;
-import com.whim.system.model.entity.SysUserTenant;
 import com.whim.system.model.vo.dept.DeptVO;
 import com.whim.system.service.ISysDeptService;
 import lombok.RequiredArgsConstructor;
@@ -25,31 +20,21 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author jince
- * @date 2026/07/02
- * @description 系统部门表服务实现类
+ * @author Jince
+ * @date 2026/09/30
+ * @description 单组织部门管理及组织引用完整性校验。
  */
 @Service
 @RequiredArgsConstructor
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
-    private final SysDataScopeService dataScopeService;
     private final SysDeptPathService deptPathService;
-    private final SysUserTenantMapper userTenantMapper;
-    private final SysPostMapper postMapper;
-    private final SysRoleDeptMapper roleDeptMapper;
 
-    /** 按本次列表动作的数据范围查询当前租户部门节点。 */
+    /** 按本次操作范围返回部门节点，不补出未授权的其他节点。 */
     @Override
-    public List<DeptVO> listCurrentTenantDepartments() {
-        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:dept:list");
-        var query = Wrappers.<SysDept>lambdaQuery().eq(SysDept::getTenantId, scope.getTenantId());
-        if (!scope.isAll()) {
-            if (scope.getDeptIds().isEmpty()) {
-                throw new TenantAccessDeniedException("本次部门查询没有可用的数据范围");
-            }
-            query.in(SysDept::getId, scope.getDeptIds());
-        }
-        return list(query.orderByAsc(SysDept::getParentId, SysDept::getSort, SysDept::getId))
+    @DataPermission(permission = "system:dept:list",
+            tables = @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = ""))
+    public List<DeptVO> listDepartments() {
+        return lambdaQuery().orderByAsc(SysDept::getParentId, SysDept::getSort, SysDept::getId).list()
                 .stream().map(department -> {
                     DeptVO response = new DeptVO();
                     response.setId(department.getId());
@@ -61,47 +46,47 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
                 }).toList();
     }
 
-    /** 查询当前租户有效部门，不允许跨租户或停用部门参与授权。 */
+    /** 内部核验部门及其祖先链，业务访问另由操作范围控制。 */
     @Override
-    public SysDept getRequiredActiveDepartment(Long deptId, Long tenantId) {
-        return deptPathService.getRequiredActiveDepartment(deptId, tenantId);
+    public SysDept getRequiredActiveDepartment(Long deptId) {
+        SysDept department = lambdaQuery().eq(SysDept::getId, deptId).last("FOR UPDATE").one();
+        deptPathService.buildActiveDepartmentPath(department);
+        return department;
     }
 
-    /** 查询当前租户有效部门及其沿有效父子链可达的子部门。 */
+    /** 返回有效部门及其有效下级节点，供数据权限计算使用。 */
     @Override
-    public Set<Long> getActiveDescendantIds(Long deptId, Long tenantId) {
-        return baseMapper.selectActiveDescendantIds(deptId, tenantId);
+    public Set<Long> getActiveDescendantIds(Long deptId) {
+        getRequiredActiveDepartment(deptId);
+        return baseMapper.selectActiveDescendantIds(deptId);
     }
 
-    /** 创建当前租户部门并固定祖先路径。 */
+    /** 创建根部门需全部范围，创建子部门需父部门处于创建范围。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long createCurrentTenantDepartment(DeptCreateDTO request) {
-        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:dept:create");
-        Long tenantId = scope.getTenantId();
+    @DataPermission(permission = "system:dept:create",
+            tables = @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = ""))
+    public Long createDepartment(DeptCreateDTO request) {
         Long parentId = request.getParentId();
         if (parentId < 0) {
             throw new IllegalArgumentException("父部门ID不能为负数");
         }
         String ancestors = "0";
         if (parentId == 0) {
-            if (!scope.isAll()) {
-                throw new TenantAccessDeniedException("只有全部范围可以创建根部门");
+            DataPermissionContext.checkOwnership("sys_dept", null, 0L);
+            if (!DataPermissionContext.requiredScope().isAll()) {
+                throw new DataAccessDeniedException("只有全部范围可以创建根部门");
             }
         } else {
-            SysDept parent = getById(parentId);
-            ancestors = deptPathService.buildActiveDepartmentPath(parent, tenantId);
-            if (!scope.isAll() && !scope.getDeptIds().contains(parentId)) {
-                throw new TenantAccessDeniedException("父部门不在本次创建范围内");
-            }
+            DataPermissionContext.checkOwnership("sys_dept", null, parentId);
+            SysDept parent = lambdaQuery().eq(SysDept::getId, parentId).last("FOR UPDATE").one();
+            ancestors = deptPathService.buildActiveDepartmentPath(parent);
         }
         String name = request.getDeptName().trim();
-        if (lambdaQuery().eq(SysDept::getTenantId, tenantId).eq(SysDept::getParentId, parentId)
-                .eq(SysDept::getDeptName, name).exists()) {
+        if (lambdaQuery().eq(SysDept::getParentId, parentId).eq(SysDept::getDeptName, name).exists()) {
             throw new IllegalArgumentException("同一父部门下已存在该部门名称");
         }
         SysDept department = new SysDept();
-        department.setTenantId(tenantId);
         department.setParentId(parentId);
         department.setAncestors(ancestors);
         department.setDeptName(name);
@@ -111,70 +96,73 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         return department.getId();
     }
 
-    /** 修改当前租户部门名称和排序，不隐式变更部门树路径。 */
+    /** 修改部门名称和排序，不隐式变更组织归属或历史路径。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateCurrentTenantDepartment(Long deptId, DeptUpdateDTO request) {
-        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:dept:update");
-        Long tenantId = scope.getTenantId();
-        if (!scope.isAll() && !scope.getDeptIds().contains(deptId)) {
-            throw new TenantAccessDeniedException("目标部门不在本次修改范围内");
-        }
-        SysDept department = getById(deptId);
-        if (department == null || !Objects.equals(department.getTenantId(), tenantId)) {
-            throw new TenantAccessDeniedException("目标部门不属于当前租户");
-        }
+    @DataPermission(permission = "system:dept:update",
+            tables = @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = ""))
+    public void updateDepartment(Long deptId, DeptUpdateDTO request) {
+        SysDept department = requiredDepartment(deptId);
         String name = request.getDeptName().trim();
-        if (lambdaQuery().eq(SysDept::getTenantId, tenantId)
-                .eq(SysDept::getParentId, department.getParentId()).eq(SysDept::getDeptName, name)
-                .ne(SysDept::getId, deptId).exists()) {
+        if (lambdaQuery().eq(SysDept::getParentId, department.getParentId())
+                .eq(SysDept::getDeptName, name).ne(SysDept::getId, deptId).exists()) {
             throw new IllegalArgumentException("同一父部门下已存在该部门名称");
         }
-        if (!lambdaUpdate().eq(SysDept::getId, deptId).eq(SysDept::getTenantId, tenantId)
-                .set(SysDept::getDeptName, name).set(SysDept::getSort, request.getSort()).update()) {
-            throw new TenantAccessDeniedException("目标部门已不可修改");
+        department.setDeptName(name);
+        department.setSort(request.getSort());
+        if (!updateById(department)) {
+            throw new DataAccessDeniedException("部门已不可修改");
         }
     }
 
-    /** 停用前确认部门无有效子部门及归属，启用前确认父部门有效。 */
+    /** 启用前确认父节点有效，停用前确认没有任何组织和授权引用。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void setCurrentTenantDepartmentStatus(Long deptId, Integer status) {
+    @DataPermission(permission = "system:dept:status",
+            tables = @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = ""))
+    public void setDepartmentStatus(Long deptId, Integer status) {
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
-        DataScopeDecisionDTO scope = dataScopeService.resolveCurrentTenantDataScope("system:dept:status");
-        Long tenantId = scope.getTenantId();
-        if (!scope.isAll() && !scope.getDeptIds().contains(deptId)) {
-            throw new TenantAccessDeniedException("目标部门不在本次状态操作范围内");
-        }
-        SysDept department = getById(deptId);
-        if (department == null || !Objects.equals(department.getTenantId(), tenantId)) {
-            throw new TenantAccessDeniedException("目标部门不属于当前租户");
+        SysDept department = requiredDepartment(deptId);
+        if (Objects.equals(department.getStatus(), status)) {
+            return;
         }
         if (status == 0 && department.getParentId() != 0) {
-            getRequiredActiveDepartment(department.getParentId(), tenantId);
+            getRequiredActiveDepartment(department.getParentId());
         }
-        if (status == 1) {
-            boolean hasActiveChild = lambdaQuery().eq(SysDept::getTenantId, tenantId)
-                    .eq(SysDept::getParentId, deptId).eq(SysDept::getStatus, 0).exists();
-            boolean hasMembers = userTenantMapper.exists(Wrappers
-                    .<SysUserTenant>lambdaQuery().eq(SysUserTenant::getTenantId, tenantId)
-                    .eq(SysUserTenant::getDeptId, deptId));
-            boolean hasPosts = postMapper.exists(Wrappers
-                    .<SysPost>lambdaQuery().eq(SysPost::getTenantId, tenantId)
-                    .eq(SysPost::getDeptId, deptId));
-            boolean hasRoleScopes = roleDeptMapper.exists(Wrappers
-                    .<SysRoleDept>lambdaQuery().eq(SysRoleDept::getTenantId, tenantId)
-                    .eq(SysRoleDept::getDeptId, deptId));
-            if (hasActiveChild || hasMembers || hasPosts || hasRoleScopes) {
-                throw new IllegalArgumentException("部门仍被子部门、成员、岗位或角色范围使用");
-            }
+        if (status == 1 && baseMapper.hasDepartmentReferences(deptId)) {
+            throw new IllegalArgumentException("部门仍被子部门、用户、岗位或角色数据范围使用");
         }
-        if (!lambdaUpdate().eq(SysDept::getId, deptId).eq(SysDept::getTenantId, tenantId)
-                .set(SysDept::getStatus, status).update()) {
-            throw new TenantAccessDeniedException("目标部门已不可操作");
+        department.setStatus(status);
+        if (!updateById(department)) {
+            throw new DataAccessDeniedException("部门已不可操作");
         }
+    }
+
+    /** 仅允许删除没有任何引用的部门。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @DataPermission(permission = "system:dept:delete",
+            tables = @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = ""))
+    public void deleteDepartment(Long deptId) {
+        SysDept department = requiredDepartment(deptId);
+        if (baseMapper.hasDepartmentReferences(deptId)) {
+            throw new IllegalArgumentException("部门仍被引用，不能删除");
+        }
+        department.setDeleted(1);
+        if (!removeById(department)) {
+            throw new DataAccessDeniedException("部门已不可删除");
+        }
+    }
+
+    /** 锁定本次操作可见的节点。 */
+    private SysDept requiredDepartment(Long deptId) {
+        SysDept department = lambdaQuery().eq(SysDept::getId, deptId).last("FOR UPDATE").one();
+        if (department == null) {
+            throw new DataAccessDeniedException("部门不存在或不在本次操作范围内");
+        }
+        return department;
     }
 }
 

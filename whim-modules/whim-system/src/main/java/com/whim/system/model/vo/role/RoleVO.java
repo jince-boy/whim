@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/28
- * @description 租户角色响应。
+ * @description 系统角色响应。
  */
 @Data
 public class RoleVO {

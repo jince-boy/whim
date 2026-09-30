@@ -1,107 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysRoleMapper">
-    <resultMap id="roleInfoResultMap" type="com.whim.core.auth.model.RoleInfo">
-        <id column="role_id" property="roleId"/>
-        <result column="role_name" property="roleName"/>
-        <result column="role_code" property="roleCode"/>
-        <result column="data_scope" property="dataScope"/>
-    </resultMap>
-
-    <select id="selectRoleInfoListByUserIdAndTenantId" resultMap="roleInfoResultMap">
-        SELECT r.id AS role_id,
-                        r.role_name,
-                        r.role_code,
-                        r.data_scope
+    <select id="selectRoleInfoListByUserId" resultType="com.whim.core.auth.model.RoleInfo">
+        SELECT r.id AS role_id, r.role_name, r.role_code, r.data_scope
         FROM sys_user_role ur
-                 INNER JOIN sys_user u
-                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
-                 INNER JOIN sys_role r
-                            ON r.id = ur.role_id
-                                AND r.tenant_id &lt;=&gt; ur.tenant_id
-                                AND r.deleted = 0
-                                AND r.status = 0
-                                AND ((r.tenant_id IS NULL AND r.role_type = 0)
-                                    OR (r.tenant_id IS NOT NULL AND r.role_type = 1
-                                        AND r.role_code != 'superadmin'))
+        INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0 AND r.status = 0
+        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
         WHERE ur.user_id = #{userId}
-          AND ur.deleted = 0
-          AND (ur.tenant_id IS NULL OR EXISTS (
-              SELECT 1
-              FROM sys_user_tenant ut
-                       INNER JOIN sys_tenant t ON t.id = ut.tenant_id
-                       INNER JOIN sys_tenant_package tenant_package
-                                  ON tenant_package.id = t.package_id
-                                      AND tenant_package.deleted = 0
-                                      AND tenant_package.status = 0
-              WHERE ut.user_id = ur.user_id
-                AND ut.tenant_id = ur.tenant_id
-                AND ut.deleted = 0
-                AND ut.status = 0
-                AND t.deleted = 0
-                AND t.status = 0
-                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
-          ))
-        <choose>
-            <when test="tenantId != null">
-                AND (ur.tenant_id = #{tenantId}
-                    OR (ur.tenant_id IS NULL AND r.role_code = 'superadmin'))
-            </when>
-            <otherwise>
-                AND ur.tenant_id IS NULL
-            </otherwise>
-        </choose>
     </select>
 
-    <select id="selectAuthorizedDataScopeRoles" resultMap="roleInfoResultMap">
-        SELECT DISTINCT r.id AS role_id, r.role_name, r.role_code, r.data_scope
+    <select id="selectAuthorizedDataScopeRoles" resultType="com.whim.system.model.dto.permission.DataScopeGrantDTO">
+        SELECT r.id AS role_id, p.id AS permission_id,
+               COALESCE(rp.data_scope, r.data_scope) AS data_scope,
+               (rp.data_scope IS NOT NULL) AS overridden, p.data_permission
         FROM sys_user_role ur
-                 INNER JOIN sys_user u
-                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
-                 INNER JOIN sys_user_tenant ut
-                            ON ut.user_id = ur.user_id AND ut.tenant_id = ur.tenant_id
-                                AND ut.deleted = 0 AND ut.status = 0
-                 INNER JOIN sys_tenant t
-                            ON t.id = ur.tenant_id AND t.deleted = 0 AND t.status = 0
-                                AND (t.expire_time IS NULL OR t.expire_time &gt; CURRENT_TIMESTAMP)
-                 INNER JOIN sys_tenant_package tenant_package
-                            ON tenant_package.id = t.package_id
-                                AND tenant_package.deleted = 0 AND tenant_package.status = 0
-                 INNER JOIN sys_role r
-                            ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
-                                AND r.role_type = 1 AND r.role_code != 'superadmin'
-                                AND r.deleted = 0 AND r.status = 0
-                 INNER JOIN sys_role_permission rp
-                            ON rp.role_id = r.id AND rp.tenant_id = ur.tenant_id AND rp.deleted = 0
-                 INNER JOIN sys_permission p
-                            ON p.id = rp.permission_id AND p.deleted = 0 AND p.status = 0
-                 INNER JOIN sys_tenant_package_permission package_permission
-                            ON package_permission.package_id = tenant_package.id
-                                AND package_permission.permission_id = p.id
-                                AND package_permission.deleted = 0
-        WHERE ur.user_id = #{userId}
-          AND ur.tenant_id = #{tenantId}
-          AND ur.deleted = 0
-          AND p.perms = #{permissionCode}
-          AND p.perms NOT LIKE 'system:platform:%'
+        INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0 AND r.status = 0
+        INNER JOIN sys_role_permission rp ON rp.role_id = r.id
+        INNER JOIN sys_permission p ON p.id = rp.permission_id AND p.deleted = 0 AND p.status = 0
+        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
+        WHERE ur.user_id = #{userId} AND p.perms = #{permissionCode}
+    </select>
+
+    <select id="selectRoleGrants" resultType="com.whim.system.model.dto.permission.DataScopeGrantDTO">
+        SELECT r.id AS role_id, p.id AS permission_id,
+               COALESCE(rp.data_scope, r.data_scope) AS data_scope,
+               (rp.data_scope IS NOT NULL) AS overridden, p.data_permission
+        FROM sys_role_permission rp
+        INNER JOIN sys_role r ON r.id = rp.role_id AND r.deleted = 0
+        INNER JOIN sys_permission p ON p.id = rp.permission_id AND p.deleted = 0 AND p.status = 0
+        WHERE rp.role_id = #{roleId}
     </select>
 
     <select id="selectSuperAdministratorFlag" resultType="boolean">
-        SELECT 1
-        FROM sys_user_role ur
-                 INNER JOIN sys_user u
-                            ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
-                 INNER JOIN sys_role r
-                            ON r.id = ur.role_id
-                                AND r.tenant_id IS NULL
-                                AND r.role_type = 0
-                                AND r.deleted = 0
-                                AND r.status = 0
+        SELECT EXISTS (
+            SELECT 1 FROM sys_user_role ur
+            INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0 AND r.status = 0
+            INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
+            WHERE ur.user_id = #{userId} AND r.role_code = 'superadmin'
+        )
+    </select>
+
+    <select id="selectUserIdsByRole" resultType="java.lang.Long">
+        SELECT ur.user_id FROM sys_user_role ur
+        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0
+        WHERE ur.role_id = #{roleId}
+    </select>
+    <select id="lockSuperAdministratorRole" resultType="java.lang.Long">
+        SELECT id FROM sys_role WHERE role_code = 'superadmin' AND deleted = 0 FOR UPDATE
+    </select>
+    <select id="selectHasSuperAdministratorRole" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM sys_user_role ur
+            INNER JOIN sys_role r ON r.id = ur.role_id AND r.role_code = 'superadmin' AND r.deleted = 0
+            INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0
+            WHERE ur.user_id = #{userId}
+        )
+    </select>
+    <select id="selectAdministrativeRolesByUserId" resultType="com.whim.system.model.entity.SysRole">
+        SELECT r.* FROM sys_user_role ur
+        INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0
         WHERE ur.user_id = #{userId}
-          AND ur.deleted = 0
-          AND ur.tenant_id IS NULL
-          AND r.role_code = 'superadmin'
-        LIMIT 1
+    </select>
+    <select id="countActiveSuperAdministrators" resultType="long">
+        SELECT COUNT(*) FROM sys_user_role ur
+        INNER JOIN sys_role r ON r.id = ur.role_id AND r.role_code = 'superadmin'
+            AND r.deleted = 0 AND r.status = 0
+        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
     </select>
 </mapper>
 

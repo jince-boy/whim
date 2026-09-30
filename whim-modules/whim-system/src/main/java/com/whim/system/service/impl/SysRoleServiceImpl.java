@@ -1,129 +1,93 @@
 package com.whim.system.service.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.RoleInfo;
-import com.whim.core.exception.TenantAccessDeniedException;
 import com.whim.system.mapper.SysRoleMapper;
-import com.whim.system.mapper.SysRoleDeptMapper;
-import com.whim.system.mapper.SysUserRoleMapper;
-import com.whim.system.model.dto.permission.DataScopeDecisionDTO;
 import com.whim.system.model.dto.role.RoleSaveDTO;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRoleDept;
-import com.whim.system.model.entity.SysUserRole;
-import com.whim.system.model.vo.role.RoleVO;
+import com.whim.system.model.entity.SysRolePermissionDept;
+import com.whim.system.model.entity.SysRolePermission;
 import com.whim.system.model.vo.role.RoleDataScopeVO;
+import com.whim.system.model.vo.role.RoleVO;
 import com.whim.system.service.ISysDeptService;
+import com.whim.system.service.ISysRoleDeptService;
+import com.whim.system.service.ISysRolePermissionDeptService;
 import com.whim.system.service.ISysRoleService;
-import com.whim.system.service.ISysTenantService;
+import com.whim.system.service.ISysRolePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jince
- * @date 2026/07/02
- * @description 系统角色表服务实现类
+ * @date 2026/09/30
+ * @description 系统角色及默认数据范围管理。
  */
 @Service
 @RequiredArgsConstructor
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
-    private final ISysTenantService tenantService;
-    private final SysUserRoleMapper userRoleMapper;
-    private final SysRoleDeptMapper roleDeptMapper;
+    private final SysAuthorizationService authorizationService;
+    private final ISysRoleDeptService roleDeptService;
+    private final ISysRolePermissionDeptService permissionDeptService;
+    private final ObjectProvider<ISysRolePermissionService> permissionServices;
     private final ISysDeptService deptService;
-    private final SysDataScopeService dataScopeService;
-    private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
 
-    /**
-     * 查询用户已启用角色的完整信息。
-     *
-     * @param userId 用户ID
-     * @return 角色信息列表
-     */
+    /** 查询当前有效角色。 */
     @Override
-    public List<RoleInfo> getRoleInfoListByUserIdAndTenantId(Long userId, Long tenantId) {
-        if (Objects.isNull(userId)) {
-            return List.of();
-        }
-        return baseMapper.selectRoleInfoListByUserIdAndTenantId(userId, tenantId);
+    public List<RoleInfo> getRoleInfoListByUserId(Long userId) {
+        return baseMapper.selectRoleInfoListByUserId(userId);
     }
 
-    /** 根据功能权限码取得实际授予本次操作的有效租户角色。 */
-    @Override
-    public List<RoleInfo> getAuthorizedDataScopeRoles(Long userId, Long tenantId, String permissionCode) {
-        if (userId == null || tenantId == null || permissionCode == null || permissionCode.isBlank()) {
-            return List.of();
-        }
-        return baseMapper.selectAuthorizedDataScopeRoles(userId, tenantId, permissionCode);
-    }
-
-    /** 只合并实际授予本次权限的角色范围，缺少任何有效分支时拒绝。 */
-    @Override
-    public DataScopeDecisionDTO resolveCurrentTenantDataScope(String permissionCode) {
-        return dataScopeService.resolveCurrentTenantDataScope(permissionCode);
-    }
-
-    /**
-     * 判断用户是否拥有全局超级管理员角色。
-     *
-     * @param userId 用户ID
-     * @return true 表示拥有超级管理员角色
-     */
+    /** 查询有效超级管理员身份。 */
     @Override
     public boolean isSuperAdministrator(Long userId) {
         return Boolean.TRUE.equals(baseMapper.selectSuperAdministratorFlag(userId));
     }
 
-    /** 查询当前租户的角色。 */
+    /** 查询系统角色目录。 */
     @Override
-    public List<RoleVO> listCurrentTenantRoles() {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        return lambdaQuery().eq(SysRole::getTenantId, tenantId)
-                .orderByAsc(SysRole::getSort, SysRole::getId).list().stream()
-                .map(role -> {
-                    RoleVO response = new RoleVO();
-                    response.setId(role.getId());
-                    response.setRoleName(role.getRoleName());
-                    response.setRoleCode(role.getRoleCode());
-                    response.setDataScope(role.getDataScope());
-                    response.setStatus(role.getStatus());
-                    return response;
-                }).toList();
+    public List<RoleVO> listRoles() {
+        authorizationService.requirePermission("system:role:list");
+        return lambdaQuery().orderByAsc(SysRole::getSort, SysRole::getId).list().stream().map(role -> {
+            RoleVO response = new RoleVO();
+            response.setId(role.getId());
+            response.setRoleName(role.getRoleName());
+            response.setRoleCode(role.getRoleCode());
+            response.setDataScope(role.getDataScope());
+            response.setStatus(role.getStatus());
+            return response;
+        }).toList();
     }
 
-    /** 查询角色并确认其属于指定租户。 */
+    /** 获取角色并锁定；写操作在服务事务内调用。 */
     @Override
-    public SysRole getRequiredTenantRole(Long roleId, Long tenantId) {
-        SysRole role = getById(roleId);
-        if (role == null || !Objects.equals(role.getTenantId(), tenantId) || role.getRoleType() != 1) {
-            throw new TenantAccessDeniedException("目标角色不属于当前租户");
+    public SysRole getRequiredRole(Long roleId) {
+        SysRole role = lambdaQuery().eq(SysRole::getId, roleId).last("FOR UPDATE").one();
+        if (role == null) {
+            throw new IllegalArgumentException("目标角色不存在");
         }
         return role;
     }
 
-    /** 创建当前租户角色。 */
+    /** 创建未授予任何功能且默认仅本人范围的角色。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long createCurrentTenantRole(RoleSaveDTO request) {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        validateRoleCode(request.getRoleCode(), tenantId, null);
+    public Long createRole(RoleSaveDTO request) {
+        authorizationService.requirePermission("system:role:create");
         SysRole role = new SysRole();
-        role.setTenantId(tenantId);
-        role.setRoleType(1);
         role.setRoleName(request.getRoleName().trim());
-        role.setRoleCode(request.getRoleCode().trim());
+        role.setRoleCode(validateRoleCode(request.getRoleCode(), null));
         role.setDataScope(5);
         role.setSort(0);
         role.setStatus(0);
@@ -131,124 +95,115 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         return role.getId();
     }
 
-    /** 修改当前租户角色。 */
+    /** 修改普通角色并在提交后撤销旧角色快照。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateCurrentTenantRole(Long roleId, RoleSaveDTO request) {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        SysRole role = getRequiredTenantRole(roleId, tenantId);
-        validateRoleCode(request.getRoleCode(), tenantId, roleId);
+    public void updateRole(Long roleId, RoleSaveDTO request) {
+        authorizationService.requirePermission("system:role:update");
+        SysRole role = getRequiredRole(roleId);
+        authorizationService.requireMutableRole(role);
         role.setRoleName(request.getRoleName().trim());
-        role.setRoleCode(request.getRoleCode().trim());
+        role.setRoleCode(validateRoleCode(request.getRoleCode(), roleId));
         updateById(role);
-        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getUserIdsByRole(roleId, tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, baseMapper.selectUserIdsByRole(roleId));
     }
 
-    /** 修改当前租户角色状态。 */
+    /** 修改角色状态，内置超级管理员角色不可停用。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void setCurrentTenantRoleStatus(Long roleId, Integer status) {
+    public void setRoleStatus(Long roleId, Integer status) {
+        authorizationService.requirePermission("system:role:status");
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        SysRole role = getRequiredTenantRole(roleId, tenantId);
+        SysRole role = getRequiredRole(roleId);
+        authorizationService.requireMutableRole(role);
         role.setStatus(status);
         updateById(role);
-        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getUserIdsByRole(roleId, tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, baseMapper.selectUserIdsByRole(roleId));
     }
 
-    /** 查询角色数据范围及当前租户自定义部门ID。 */
+    /** 读取角色默认范围及其自定义部门。 */
     @Override
-    public RoleDataScopeVO getCurrentTenantDataScope(Long roleId) {
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        SysRole role = getRequiredTenantRole(roleId, tenantId);
+    public RoleDataScopeVO getDataScope(Long roleId) {
+        authorizationService.requirePermission("system:role:dataScope:list");
+        SysRole role = getRequiredRole(roleId);
         RoleDataScopeVO response = new RoleDataScopeVO();
         response.setRoleId(roleId);
         response.setDataScope(role.getDataScope());
-        Set<Long> deptIds = new LinkedHashSet<>();
-        if (role.getDataScope() == 2) {
-            deptIds.addAll(getEffectiveCustomDepartmentIds(roleId, tenantId));
-        }
-        response.setDeptIds(deptIds);
+        response.setDeptIds(role.getDataScope() == 2
+                ? roleDeptService.lambdaQuery().eq(SysRoleDept::getRoleId, roleId).list().stream()
+                .map(SysRoleDept::getDeptId).collect(Collectors.toSet()) : Set.of());
         return response;
     }
 
-    /** 覆盖数据范围；自定义范围必须只引用当前租户的有效部门。 */
+    /** 覆盖默认范围并使引用该角色的旧会话失效。 */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void replaceCurrentTenantDataScope(Long roleId, Integer dataScope, Set<Long> deptIds) {
-        if (dataScope == null || dataScope < 1 || dataScope > 6) {
-            throw new IllegalArgumentException("数据范围只能为1至6");
-        }
-        if (dataScope == 2 && deptIds.isEmpty()) {
-            throw new IllegalArgumentException("自定义数据范围至少需要一个部门");
-        }
-        if (dataScope != 2 && !deptIds.isEmpty()) {
-            throw new IllegalArgumentException("非自定义数据范围不能指定部门");
-        }
-        Long tenantId = tenantService.getRequiredCurrentTenant().getId();
-        SysRole role = getRequiredTenantRole(roleId, tenantId);
-        if (role.getStatus() != 0) {
-            throw new IllegalArgumentException("不能修改已停用角色的数据范围");
-        }
-        for (Long deptId : deptIds) {
-            deptService.getRequiredActiveDepartment(deptId, tenantId);
-        }
-        List<SysRoleDept> existing = roleDeptMapper.selectList(Wrappers.<SysRoleDept>lambdaQuery()
-                .eq(SysRoleDept::getRoleId, roleId).eq(SysRoleDept::getTenantId, tenantId));
-        Set<Long> existingDeptIds = new LinkedHashSet<>();
-        List<Long> removedIds = existing.stream().filter(binding -> !deptIds.contains(binding.getDeptId()))
-                .map(SysRoleDept::getId).toList();
-        if (!removedIds.isEmpty()) {
-            roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery().in(SysRoleDept::getId, removedIds));
-        }
-        existing.forEach(binding -> existingDeptIds.add(binding.getDeptId()));
-        for (Long deptId : deptIds) {
-            if (!existingDeptIds.contains(deptId)) {
-                roleDeptMapper.upsertBinding(IdWorker.getId(), roleId, deptId, tenantId,
-                        authenticationContext.getUserId());
-            }
+    public void replaceDataScope(Long roleId, Integer dataScope, Set<Long> deptIds) {
+        authorizationService.requirePermission("system:role:dataScope:assign");
+        SysRole role = getRequiredRole(roleId);
+        authorizationService.requireMutableRole(role);
+        validateDataScope(dataScope, deptIds);
+        roleDeptService.lambdaUpdate().eq(SysRoleDept::getRoleId, roleId).remove();
+        if (!deptIds.isEmpty()) {
+            roleDeptService.saveBatch(deptIds.stream().map(departmentId -> {
+                SysRoleDept binding = new SysRoleDept();
+                binding.setRoleId(roleId);
+                binding.setDeptId(departmentId);
+                return binding;
+            }).toList());
         }
         role.setDataScope(dataScope);
         updateById(role);
-        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, getUserIdsByRole(roleId, tenantId));
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, baseMapper.selectUserIdsByRole(roleId));
     }
 
-    /** 检查当前租户的角色编码唯一且不冒用平台超级管理员。 */
-    private void validateRoleCode(String roleCode, Long tenantId, Long excludedRoleId) {
-        String normalizedCode = roleCode.trim();
-        if (normalizedCode.equals("superadmin") || normalizedCode.equals("*")) {
-            throw new IllegalArgumentException("租户角色不能使用平台超级管理员编码");
+    /** 删除未被用户持有的普通角色，软删后其操作授权不再生效。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRole(Long roleId) {
+        authorizationService.requirePermission("system:role:delete");
+        SysRole role = getRequiredRole(roleId);
+        authorizationService.requireMutableRole(role);
+        if (!baseMapper.selectUserIdsByRole(roleId).isEmpty()) {
+            throw new IllegalArgumentException("角色仍关联用户，不能删除");
         }
-        List<SysRole> sameCodeRoles = lambdaQuery().eq(SysRole::getTenantId, tenantId)
-                .eq(SysRole::getRoleCode, normalizedCode).list();
-        if (sameCodeRoles.stream().anyMatch(role -> !Objects.equals(role.getId(), excludedRoleId))) {
-            throw new IllegalArgumentException("当前租户已存在相同角色编码");
+        roleDeptService.lambdaUpdate().eq(SysRoleDept::getRoleId, roleId).remove();
+        permissionDeptService.lambdaUpdate().eq(SysRolePermissionDept::getRoleId, roleId).remove();
+        permissionServices.getObject().lambdaUpdate().eq(SysRolePermission::getRoleId, roleId).remove();
+        role.setDeleted(1);
+        removeById(role);
+    }
+
+    /** 默认与操作级配置共用五种范围参数验证。 */
+    @Override
+    public void validateDataScope(Integer dataScope, Set<Long> deptIds) {
+        if (dataScope == null || dataScope < 1 || dataScope > 5) {
+            throw new IllegalArgumentException("数据范围只能为1至5");
+        }
+        if (dataScope == 2 && deptIds.isEmpty()) {
+            throw new IllegalArgumentException("自定义范围至少需要一个部门");
+        }
+        if (dataScope != 2 && !deptIds.isEmpty()) {
+            throw new IllegalArgumentException("非自定义范围不能指定部门");
+        }
+        for (Long departmentId : deptIds) {
+            deptService.getRequiredActiveDepartment(departmentId);
         }
     }
 
-    /** 查询绑定指定租户角色的用户ID。 */
-    private List<Long> getUserIdsByRole(Long roleId, Long tenantId) {
-        return userRoleMapper.selectObjs(Wrappers.<SysUserRole>lambdaQuery()
-                        .select(SysUserRole::getUserId)
-                        .eq(SysUserRole::getRoleId, roleId)
-                        .eq(SysUserRole::getTenantId, tenantId))
-                .stream().map(Long.class::cast).toList();
-    }
-
-    /** 过滤历史异常绑定，只保留整条部门祖先链有效的自定义部门。 */
-    private Set<Long> getEffectiveCustomDepartmentIds(Long roleId, Long tenantId) {
-        Set<Long> departmentIds = new LinkedHashSet<>();
-        for (Long deptId : roleDeptMapper.selectActiveDepartmentIds(roleId, tenantId)) {
-            try {
-                deptService.getRequiredActiveDepartment(deptId, tenantId);
-                departmentIds.add(deptId);
-            } catch (TenantAccessDeniedException ignored) {
-                // 历史异常部门关系仅缩小范围，不得放宽为全部。
-            }
+    /** 标准化角色编码并保留内置管理员编码，活动角色编码全局唯一。 */
+    private String validateRoleCode(String roleCode, Long excludedRoleId) {
+        String code = roleCode.trim().toLowerCase(Locale.ROOT);
+        if (!code.matches("[a-z][a-z0-9:]*") || "superadmin".equals(code)) {
+            throw new IllegalArgumentException("角色编码须为字母、数字或冒号，且不能使用内置管理员编码");
         }
-        return departmentIds;
+        if (lambdaQuery().eq(SysRole::getRoleCode, code).list().stream()
+                .anyMatch(role -> !Objects.equals(role.getId(), excludedRoleId))) {
+            throw new IllegalArgumentException("已存在相同角色编码");
+        }
+        return code;
     }
 }
 

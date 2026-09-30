@@ -55,10 +55,8 @@ public class AutoFillFieldHandler implements MetaObjectHandler {
                 }
                 return;
             }
-            if (Objects.isNull(baseEntity.getUpdateTime())) {
-                baseEntity.setUpdateTime(now);
-            }
-            if (login && Objects.isNull(baseEntity.getUpdateBy())) {
+            baseEntity.setUpdateTime(now);
+            if (login) {
                 baseEntity.setUpdateBy(userId);
             }
         }

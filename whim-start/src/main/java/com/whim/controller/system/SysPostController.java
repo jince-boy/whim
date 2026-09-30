@@ -42,35 +42,35 @@ public class SysPostController {
     @GetMapping
     @SystemCheckPermission("system:post:list")
     public Result<PageDataVO<PostVO>> pagePosts(@Valid @ModelAttribute PageQueryDTO query) {
-        return Result.success("岗位查询成功", sysPostService.pageCurrentTenantPosts(query));
+        return Result.success("岗位查询成功", sysPostService.pagePosts(query));
     }
 
     /** 查询本次详情权限可见的岗位。 */
     @GetMapping("/{postId}")
     @SystemCheckPermission("system:post:detail")
     public Result<PostVO> getPost(@PathVariable Long postId) {
-        return Result.success("岗位详情查询成功", sysPostService.getCurrentTenantPost(postId));
+        return Result.success("岗位详情查询成功", sysPostService.getPost(postId));
     }
 
     /** 查询本次成员查看权限可见岗位的成员。 */
     @GetMapping("/{postId}/members")
     @SystemCheckPermission("system:post:member:list")
     public Result<Set<Long>> getPostMemberIds(@PathVariable Long postId) {
-        return Result.success("岗位成员查询成功", sysPostService.getCurrentTenantPostMemberIds(postId));
+        return Result.success("岗位成员查询成功", sysPostService.getPostMemberIds(postId));
     }
 
-    /** 创建当前租户岗位。 */
+    /** 创建系统岗位。 */
     @PostMapping
     @SystemCheckPermission("system:post:create")
     public Result<Long> createPost(@RequestBody @Valid PostSaveDTO request) {
-        return Result.success("岗位创建成功", sysPostService.createCurrentTenantPost(request));
+        return Result.success("岗位创建成功", sysPostService.createPost(request));
     }
 
     /** 修改本次更新权限可操作的岗位。 */
     @PutMapping("/{postId}")
     @SystemCheckPermission("system:post:update")
     public Result<Void> updatePost(@PathVariable Long postId, @RequestBody @Valid PostSaveDTO request) {
-        sysPostService.updateCurrentTenantPost(postId, request);
+        sysPostService.updatePost(postId, request);
         return Result.success("岗位修改成功");
     }
 
@@ -78,7 +78,7 @@ public class SysPostController {
     @PutMapping("/{postId}/status")
     @SystemCheckPermission("system:post:status")
     public Result<Void> setPostStatus(@PathVariable Long postId, @RequestBody @Valid PostStatusDTO request) {
-        sysPostService.setCurrentTenantPostStatus(postId, request.getStatus());
+        sysPostService.setPostStatus(postId, request.getStatus());
         return Result.success("岗位状态修改成功");
     }
 
@@ -87,7 +87,7 @@ public class SysPostController {
     @SystemCheckPermission("system:post:member:assign")
     public Result<Void> replacePostMembers(@PathVariable Long postId,
                                            @RequestBody @Valid PostMemberAssignDTO request) {
-        sysPostService.replaceCurrentTenantPostMembers(postId, request.getUserIds());
+        sysPostService.replacePostMembers(postId, request.getUserIds());
         return Result.success("岗位成员分配成功");
     }
 
@@ -95,7 +95,7 @@ public class SysPostController {
     @DeleteMapping("/{postId}")
     @SystemCheckPermission("system:post:delete")
     public Result<Void> deletePost(@PathVariable Long postId) {
-        sysPostService.deleteCurrentTenantPost(postId);
+        sysPostService.deletePost(postId);
         return Result.success("岗位删除成功");
     }
 }

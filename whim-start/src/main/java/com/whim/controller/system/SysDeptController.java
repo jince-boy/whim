@@ -11,6 +11,7 @@ import com.whim.web.model.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -35,34 +36,41 @@ public class SysDeptController {
      */
     private final ISysDeptService sysDeptService;
 
-    /** 查询当前租户部门节点。 */
+    /** 查询系统部门节点。 */
     @GetMapping
     @SystemCheckPermission("system:dept:list")
     public Result<List<DeptVO>> listDepartments() {
-        return Result.success("部门查询成功", sysDeptService.listCurrentTenantDepartments());
+        return Result.success("部门查询成功", sysDeptService.listDepartments());
     }
 
-    /** 创建当前租户部门。 */
+    /** 创建系统部门。 */
     @PostMapping
     @SystemCheckPermission("system:dept:create")
     public Result<Long> createDepartment(@RequestBody @Valid DeptCreateDTO request) {
-        return Result.success("部门创建成功", sysDeptService.createCurrentTenantDepartment(request));
+        return Result.success("部门创建成功", sysDeptService.createDepartment(request));
     }
 
-    /** 修改当前租户部门名称与排序。 */
+    /** 修改系统部门名称与排序。 */
     @PutMapping("/{deptId}")
     @SystemCheckPermission("system:dept:update")
     public Result<Void> updateDepartment(@PathVariable Long deptId, @RequestBody @Valid DeptUpdateDTO request) {
-        sysDeptService.updateCurrentTenantDepartment(deptId, request);
+        sysDeptService.updateDepartment(deptId, request);
         return Result.success("部门修改成功");
     }
 
-    /** 启用或停用当前租户部门。 */
+    /** 启用或停用系统部门。 */
     @PutMapping("/{deptId}/status")
     @SystemCheckPermission("system:dept:status")
     public Result<Void> setDepartmentStatus(@PathVariable Long deptId, @RequestBody @Valid DeptStatusDTO request) {
-        sysDeptService.setCurrentTenantDepartmentStatus(deptId, request.getStatus());
+        sysDeptService.setDepartmentStatus(deptId, request.getStatus());
         return Result.success("部门状态修改成功");
+    }
+    /** 删除没有组织及授权引用的部门。 */
+    @DeleteMapping("/{deptId}")
+    @SystemCheckPermission("system:dept:delete")
+    public Result<Void> deleteDepartment(@PathVariable Long deptId) {
+        sysDeptService.deleteDepartment(deptId);
+        return Result.success("部门删除成功");
     }
 }
 

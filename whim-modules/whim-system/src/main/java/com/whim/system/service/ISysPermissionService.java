@@ -9,35 +9,17 @@ import java.util.Set;
 
 /**
  * @author Jince
- * @date 2026/07/02
- * @description 系统权限菜单表服务接口
+ * @date 2026/09/30
+ * @description SysPermission业务服务。
  */
 public interface ISysPermissionService extends IService<SysPermission> {
-    /**
-     * 查询用户已启用权限编码集合。
-     *
-     * @param userId 用户ID
-     * @param tenantId 当前租户ID，平台上下文时为空
-     * @param roleIds 当前用户已启用角色ID集合
-     * @return 权限编码集合
-     */
-    Set<String> getPermissionCodeSetByUserIdAndTenantId(Long userId, Long tenantId, Set<Long> roleIds);
-
-    /** 查询当前租户套餐可分配的权限。 */
-    List<PermissionVO> listCurrentTenantAssignablePermissions();
-
-    /** 查询平台权限目录。 */
-    List<PermissionVO> listPlatformPermissions();
-
-    /** 修改平台权限状态。 */
+    /** 查询账号的有效操作权限码集合。 */
+    Set<String> getPermissionCodeSetByUserId(Long userId);
+    /** 查询系统权限目录。 */
+    List<PermissionVO> listPermissions();
+    /** 修改权限状态并在事务提交后撤销相关会话。 */
     void setPermissionStatus(Long permissionId, Integer status);
-
-    /**
-     * 修改权限，提交成功后使相关用户的旧授权失效。
-     *
-     * @param entity 权限实体
-     * @return 是否修改成功
-     */
+    /** 修改权限后撤销旧授权。 */
     @Override
     boolean updateById(SysPermission entity);
 }

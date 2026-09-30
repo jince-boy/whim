@@ -7,12 +7,13 @@ import java.time.LocalDateTime;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 当前租户岗位响应。
+ * @description 系统岗位响应。
  */
 @Data
 public class PostVO {
     private Long id;
     private Long deptId;
+    private Long ownerUserId;
     private String postName;
     private String postCode;
     private Integer sort;

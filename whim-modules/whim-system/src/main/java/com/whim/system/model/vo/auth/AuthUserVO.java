@@ -43,21 +43,6 @@ public class AuthUserVO {
     private Long deptId;
 
     /**
-     * 当前可选择的有效租户
-     */
-    private List<AuthTenantVO> tenantList = List.of();
-
-    /**
-     * 默认进入租户ID
-     */
-    private Long defaultTenantId;
-
-    /**
-     * 当前操作租户ID
-     */
-    private Long currentTenantId;
-
-    /**
      * 账号体系
      */
     private String loginType;

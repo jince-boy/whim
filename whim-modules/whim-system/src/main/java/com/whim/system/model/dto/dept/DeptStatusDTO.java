@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 租户部门启停参数。
+ * @description 组织部门启停参数。
  */
 @Data
 public class DeptStatusDTO {

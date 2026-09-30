@@ -26,14 +26,12 @@ public class SysPost extends BaseEntity implements Serializable {
     private Long id;
 
     /**
-     * 租户ID
-     */
-    private Long tenantId;
-
-    /**
      * 所属部门ID，未归属时为空
      */
     private Long deptId;
+
+    /** 岗位业务负责人ID，与创建审计分别存储。 */
+    private Long ownerUserId;
 
     /**
      * 岗位名称

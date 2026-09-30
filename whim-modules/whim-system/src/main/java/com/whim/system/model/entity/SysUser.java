@@ -71,11 +71,8 @@ public class SysUser extends BaseEntity implements Serializable {
      */
     private Integer status;
 
-    /**
-     * 默认进入租户ID
-     */
-    @AutoMapping(ignore = true)
-    private Long defaultTenantId;
+    /** 用户主部门ID。 */
+    private Long deptId;
 
     /**
      * 备注

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whim.system.mapper.SysRolePermissionDeptMapper">
+    <select id="selectDepartmentIds" resultType="java.lang.Long">
+        SELECT binding.dept_id FROM sys_role_permission_dept binding
+        INNER JOIN sys_dept department ON department.id = binding.dept_id
+            AND department.deleted = 0 AND department.status = 0
+        WHERE binding.role_id = #{roleId} AND binding.permission_id = #{permissionId}
+    </select>
+</mapper>

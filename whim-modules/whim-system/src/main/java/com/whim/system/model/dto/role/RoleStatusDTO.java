@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/28
- * @description 租户角色状态修改参数。
+ * @description 系统角色状态修改参数。
  */
 @Data
 public class RoleStatusDTO {

@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 租户部门创建参数，父部门ID为0表示根部门。
+ * @description 组织部门创建参数，父部门ID为0表示根部门。
  */
 @Data
 public class DeptCreateDTO {

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -64,14 +63,9 @@ public class AuthController {
         return Result.success("退出登录成功");
     }
 
-    /**
-     * 获取当前用户信息并按指定或当前租户刷新令牌上下文。
-     *
-     * @param tenantId 目标租户ID，不传时保留当前租户
-     * @return 当前用户信息
-     */
+    /** 获取当前用户信息和当前有效授权。 */
     @GetMapping("/userInfo")
-    public Result<AuthUserVO> userInfo(@RequestParam(name = "tenantId", required = false) Long tenantId) {
-        return Result.success("当前用户信息获取成功", authService.getUserInfo(tenantId));
+    public Result<AuthUserVO> userInfo() {
+        return Result.success("当前用户信息获取成功", authService.getUserInfo());
     }
 }

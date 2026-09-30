@@ -13,4 +13,7 @@ public class PermissionVO {
     private String menuName;
     private String perms;
     private Integer status;
+    private Long parentId;
+    private Integer menuType;
+    private Integer dataPermission;
 }

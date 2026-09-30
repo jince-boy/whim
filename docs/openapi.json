@@ -1,0 +1,5589 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Whim 单组织 RBAC API",
+    "version": "1.0.0",
+    "description": "用户全局唯一，单主部门，多角色、多岗位。数据范围：1全部、2自定义部门、3本部门、4本部门及下级、5本人。岗位不会隐式授予角色。Long 超出 JavaScript 安全整数时序列化为字符串。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8089"
+    }
+  ],
+  "tags": [
+    {
+      "name": "认证"
+    },
+    {
+      "name": "用户"
+    },
+    {
+      "name": "角色"
+    },
+    {
+      "name": "部门"
+    },
+    {
+      "name": "岗位"
+    },
+    {
+      "name": "权限"
+    }
+  ],
+  "paths": {
+    "/system/permission": {
+      "get": {
+        "tags": [
+          "权限"
+        ],
+        "summary": "查询系统权限目录。",
+        "operationId": "listAssignablePermissions",
+        "description": "操作权限：`system:permission:list`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPermissionList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/permission/{permissionId}/status": {
+      "put": {
+        "tags": [
+          "权限"
+        ],
+        "summary": "修改全局权限状态。",
+        "operationId": "setPermissionStatus",
+        "description": "操作权限：`system:permission:status`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role": {
+      "get": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "查询系统角色。",
+        "operationId": "listRoles",
+        "description": "操作权限：`system:role:list`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultRoleList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "创建系统角色。",
+        "operationId": "createRole",
+        "description": "操作权限：`system:role:create`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultId"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleSaveRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role/{roleId}": {
+      "put": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "修改系统角色。",
+        "operationId": "updateRole",
+        "description": "操作权限：`system:role:update`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleSaveRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "删除未被用户持有的普通角色。",
+        "operationId": "deleteRole",
+        "description": "操作权限：`system:role:delete`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role/{roleId}/status": {
+      "put": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "修改系统角色状态。",
+        "operationId": "setRoleStatus",
+        "description": "操作权限：`system:role:status`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role/{roleId}/dataScope": {
+      "get": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "查询系统角色的数据范围。",
+        "operationId": "getRoleDataScope",
+        "description": "操作权限：`system:role:dataScope:list`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultRoleDataScopeVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "覆盖系统角色的数据范围。",
+        "operationId": "replaceRoleDataScope",
+        "description": "操作权限：`system:role:dataScope:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleDataScopeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role/{roleId}/permissions": {
+      "get": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "查询系统角色已分配的权限ID。",
+        "operationId": "getRolePermissionIds",
+        "description": "操作权限：`system:rolePermission:list`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "覆盖系统角色的权限。",
+        "operationId": "replaceRolePermissions",
+        "description": "操作权限：`system:rolePermission:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionAssignRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/role/{roleId}/permissions/{permissionId}/dataScope": {
+      "get": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "查询某个操作的覆盖数据范围，空范围编码表示继承角色默认值。",
+        "operationId": "getPermissionDataScope",
+        "description": "操作权限：`system:role:dataScope:list`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultRoleDataScopeVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "角色"
+        ],
+        "summary": "设置某个操作的数据范围覆盖，或恢复继承角色默认值。",
+        "operationId": "replacePermissionDataScope",
+        "description": "操作权限：`system:role:dataScope:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionDataScopeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user": {
+      "get": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "分页查询本次操作可见用户。",
+        "operationId": "pageUsers",
+        "description": "操作权限：`system:user:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "页码"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "每页数量"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageDataVOUserVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "创建账号，角色和岗位通过独立操作分配。",
+        "operationId": "createUser",
+        "description": "操作权限：`system:user:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultId"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{userId}": {
+      "get": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "查询本次操作可见用户详情。",
+        "operationId": "getUser",
+        "description": "操作权限：`system:user:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultUserVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "修改用户基础信息。",
+        "operationId": "updateUser",
+        "description": "操作权限：`system:user:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "删除用户并清理角色和岗位关联。",
+        "operationId": "deleteUser",
+        "description": "操作权限：`system:user:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{userId}/department": {
+      "put": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "分配用户主部门，重新核验迁移后的角色数据范围。",
+        "operationId": "setDepartment",
+        "description": "操作权限：`system:user:department`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDepartmentRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{userId}/status": {
+      "put": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "修改用户状态并撤销旧会话。",
+        "operationId": "setUserStatus",
+        "description": "操作权限：`system:user:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{userId}/password": {
+      "put": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "独立授权重置密码，成功后撤销全部旧会话。",
+        "operationId": "resetPassword",
+        "description": "操作权限：`system:user:resetPassword`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{userId}/roles": {
+      "get": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "查询本次操作可见用户的角色ID。",
+        "operationId": "getUserRoleIds",
+        "description": "操作权限：`system:userRole:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "用户"
+        ],
+        "summary": "覆盖用户角色并核验每个候选角色的委派范围。",
+        "operationId": "replaceUserRoles",
+        "description": "操作权限：`system:userRole:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRoleAssignRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/auth/captcha": {
+      "get": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "获取与客户端地址绑定的 GIF 验证码。",
+        "operationId": "captcha",
+        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "parameters": [],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultCaptcha"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/auth/login": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "用户登录并返回认证信息。",
+        "operationId": "login",
+        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "parameters": [],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultAuthLogin"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLoginRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/auth/logout": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "注销当前登录会话。",
+        "operationId": "logout",
+        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/auth/userInfo": {
+      "get": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "获取当前用户信息和当前有效授权。",
+        "operationId": "userInfo",
+        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultAuthUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/dept": {
+      "get": {
+        "tags": [
+          "部门"
+        ],
+        "summary": "查询系统部门节点。",
+        "operationId": "listDepartments",
+        "description": "操作权限：`system:dept:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListDeptVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "部门"
+        ],
+        "summary": "创建系统部门。",
+        "operationId": "createDepartment",
+        "description": "操作权限：`system:dept:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultId"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptCreateRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/dept/{deptId}": {
+      "put": {
+        "tags": [
+          "部门"
+        ],
+        "summary": "修改系统部门名称与排序。",
+        "operationId": "updateDepartment",
+        "description": "操作权限：`system:dept:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "deptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptUpdateRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "部门"
+        ],
+        "summary": "删除没有组织及授权引用的部门。",
+        "operationId": "deleteDepartment",
+        "description": "操作权限：`system:dept:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "deptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/dept/{deptId}/status": {
+      "put": {
+        "tags": [
+          "部门"
+        ],
+        "summary": "启用或停用系统部门。",
+        "operationId": "setDepartmentStatus",
+        "description": "操作权限：`system:dept:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "deptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/post": {
+      "get": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "分页查询本次列表权限可见的岗位。",
+        "operationId": "pagePosts",
+        "description": "操作权限：`system:post:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "页码"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "每页数量"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageDataVOPostVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "创建系统岗位。",
+        "operationId": "createPost",
+        "description": "操作权限：`system:post:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultId"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostSaveRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/post/{postId}": {
+      "get": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "查询本次详情权限可见的岗位。",
+        "operationId": "getPost",
+        "description": "操作权限：`system:post:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPostVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "修改本次更新权限可操作的岗位。",
+        "operationId": "updatePost",
+        "description": "操作权限：`system:post:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostSaveRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "软删本次删除权限可操作的岗位。",
+        "operationId": "deletePost",
+        "description": "操作权限：`system:post:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/post/{postId}/members": {
+      "get": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "查询本次成员查看权限可见岗位的成员。",
+        "operationId": "getPostMemberIds",
+        "description": "操作权限：`system:post:member:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "覆盖本次成员分配权限可操作岗位的成员。",
+        "operationId": "replacePostMembers",
+        "description": "操作权限：`system:post:member:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostMemberAssignRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/post/{postId}/status": {
+      "put": {
+        "tags": [
+          "岗位"
+        ],
+        "summary": "启用或停用本次状态权限可操作的岗位。",
+        "operationId": "setPostStatus",
+        "description": "操作权限：`system:post:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$"
+            },
+            "description": "目标主键 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数校验或业务规则不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录或令牌失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "缺少操作权限或目标数据不可访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "唯一键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求过于频繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "AuthLoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "minLength": 3,
+            "maxLength": 32
+          },
+          "password": {
+            "type": "string",
+            "description": "密码",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "uuid": {
+            "type": "string",
+            "description": "验证码 UUID。",
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            "minLength": 1
+          },
+          "captchaCode": {
+            "type": "string",
+            "description": "GIF 图片中的四位字符。",
+            "pattern": "[A-Za-z0-9]{4}",
+            "minLength": 1
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "记住我"
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "uuid",
+          "captchaCode"
+        ],
+        "description": "登录请求参数"
+      },
+      "AuthLoginData": {
+        "type": "object",
+        "properties": {
+          "tokenType": {
+            "type": "string",
+            "description": "令牌类型"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "访问令牌"
+          },
+          "expiresIn": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n剩余有效期，单位为秒"
+          }
+        },
+        "description": "认证成功后的通用令牌信息。"
+      },
+      "CaptchaData": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "验证码唯一标识。"
+          },
+          "image": {
+            "type": "string",
+            "description": "GIF 图片的纯 Base64 编码。"
+          },
+          "expiresIn": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n验证码剩余有效期，单位为秒。"
+          }
+        },
+        "description": "登录 GIF 验证码响应参数"
+      },
+      "AuthUserData": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n用户ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "name": {
+            "type": "string",
+            "description": "真实姓名"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "头像地址"
+          },
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n所属部门ID"
+          },
+          "loginType": {
+            "type": "string",
+            "description": "账号体系"
+          },
+          "roleCodeSet": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "角色编码集合"
+          },
+          "permissionCodeSet": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "权限编码集合"
+          },
+          "roleInfoList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleInfo"
+            },
+            "description": "角色信息列表"
+          }
+        },
+        "description": "当前登录用户响应参数。"
+      },
+      "PermissionData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "menuName": {
+            "type": "string"
+          },
+          "perms": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "menuType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataPermission": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "功能权限响应。"
+      },
+      "RoleData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "roleCode": {
+            "type": "string"
+          },
+          "dataScope": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "系统角色响应。"
+      },
+      "RoleInfo": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n角色ID"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "roleCode": {
+            "type": "string",
+            "description": "角色编码"
+          },
+          "dataScope": {
+            "type": "integer",
+            "format": "int32",
+            "description": "数据权限范围"
+          }
+        },
+        "description": "当前登录用户角色上下文通用信息。"
+      },
+      "UserData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "example": "2026-09-30 12:00:00"
+          }
+        },
+        "description": "用户管理响应，永远不返回密码及认证凭证。"
+      },
+      "DeptData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "parentId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "deptName": {
+            "type": "string"
+          },
+          "sort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "组织部门树节点响应。"
+      },
+      "PostData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "ownerUserId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "postName": {
+            "type": "string"
+          },
+          "postCode": {
+            "type": "string"
+          },
+          "sort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": "string"
+          },
+          "createBy": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "createTime": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "example": "2026-09-30 12:00:00"
+          }
+        },
+        "description": "系统岗位响应。"
+      },
+      "RoleSaveRequest": {
+        "type": "object",
+        "properties": {
+          "roleName": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "roleCode": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "roleName",
+          "roleCode"
+        ],
+        "description": "系统角色保存参数。"
+      },
+      "RoleDataScopeRequest": {
+        "type": "object",
+        "properties": {
+          "dataScope": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deptIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "dataScope",
+          "deptIds"
+        ],
+        "description": "系统角色数据范围配置参数。"
+      },
+      "RolePermissionDataScopeRequest": {
+        "type": "object",
+        "properties": {
+          "dataScope": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 5,
+            "nullable": true,
+            "description": "1全部、2自定义部门、3本部门、4本部门及下级、5本人。操作级值为 null 时继承角色默认值。"
+          },
+          "deptIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "deptIds"
+        ],
+        "description": "操作级范围覆盖，dataScope为空时恢复继承角色默认范围。"
+      },
+      "RoleDataScopeData": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "dataScope": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "description": "1全部、2自定义部门、3本部门、4本部门及下级、5本人。操作级值为 null 时继承角色默认值。"
+          },
+          "deptIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          },
+          "permissionId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。\n操作覆盖范围的权限ID，角色默认范围响应时为空。"
+          }
+        },
+        "description": "系统角色数据范围及自定义部门响应。"
+      },
+      "RolePermissionAssignRequest": {
+        "type": "object",
+        "properties": {
+          "permissionIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "permissionIds"
+        ],
+        "description": "系统角色权限覆盖式分配参数。"
+      },
+      "UserRoleAssignRequest": {
+        "type": "object",
+        "properties": {
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "roleIds"
+        ],
+        "description": "成员角色覆盖式分配参数。"
+      },
+      "UserCreateRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 32,
+            "pattern": "[A-Za-z0-9][A-Za-z0-9._@-]*"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 64,
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "gender": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 0
+          },
+          "remark": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "deptId",
+          "name"
+        ],
+        "description": "创建系统账号及主部门，角色和岗位通过独立授权接口分配。"
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1
+          },
+          "avatar": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 64,
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "gender": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "remark": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "name",
+          "gender"
+        ],
+        "description": "用户基础信息修改，账号名、密码、部门及授权通过独立操作管理。"
+      },
+      "UserDepartmentRequest": {
+        "type": "object",
+        "properties": {
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          }
+        },
+        "required": [
+          "deptId"
+        ],
+        "description": "系统用户主部门分配参数。"
+      },
+      "UserPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "description": "管理员重置目标账号密码参数。"
+      },
+      "PostSaveRequest": {
+        "type": "object",
+        "properties": {
+          "postName": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "postCode": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "deptId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "sort": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "remark": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "postName",
+          "postCode",
+          "sort"
+        ],
+        "description": "系统岗位保存参数。"
+      },
+      "PostMemberAssignRequest": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "userIds"
+        ],
+        "description": "岗位成员覆盖式分配参数。"
+      },
+      "DeptCreateRequest": {
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "deptName": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "sort": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "parentId",
+          "deptName",
+          "sort"
+        ],
+        "description": "组织部门创建参数，父部门ID为0表示根部门。"
+      },
+      "DeptUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "deptName": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "sort": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "deptName",
+          "sort"
+        ],
+        "description": "组织部门基础信息修改参数，不允许隐式移动部门树。"
+      },
+      "StatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "description": "全局权限状态修改参数。"
+      },
+      "ErrorResult": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "与 HTTP 状态码一致。"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "success": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "success"
+        ]
+      },
+      "ResultPermissionList": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionData"
+            }
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultVoid": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "nullable": true,
+            "description": "无返回数据，值为 null。"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultRoleList": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleData"
+            }
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultId": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultRoleDataScopeVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RoleDataScopeData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultIdList": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^-?[0-9]+$"
+                }
+              ],
+              "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+            },
+            "uniqueItems": true
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "PageUserData": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserData"
+            }
+          },
+          "pages": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "size": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "total": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          }
+        },
+        "required": [
+          "currentPage",
+          "data",
+          "pages",
+          "size",
+          "total"
+        ]
+      },
+      "ResultPageDataVOUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageUserData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultCaptcha": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CaptchaData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultAuthLogin": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AuthLoginData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultAuthUser": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AuthUserData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultListDeptVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeptData"
+            }
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "PagePostData": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostData"
+            }
+          },
+          "pages": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "size": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          },
+          "total": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "string",
+                "pattern": "^-?[0-9]+$"
+              }
+            ],
+            "description": "Java Long；响应超出 JavaScript 安全整数范围时为字符串，请保持 ID 原始值。"
+          }
+        },
+        "required": [
+          "currentPage",
+          "data",
+          "pages",
+          "size",
+          "total"
+        ]
+      },
+      "ResultPageDataVOPostVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagePostData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      },
+      "ResultPostVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PostData"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "success"
+        ]
+      }
+    }
+  }
+}

@@ -33,6 +33,7 @@ public class PageDataVO<T> {
      */
     private Long total;
 
+    /** 将分页结果转换为统一响应，保留过滤后的总数及分页信息。 */
     public PageDataVO(IPage<T> page) {
         this.currentPage = page.getCurrent();
         this.data = page.getRecords();

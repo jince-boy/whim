@@ -45,21 +45,6 @@ public class UserInfo implements Serializable {
     private Long deptId;
 
     /**
-     * 可访问租户ID集合
-     */
-    private Set<Long> tenantIds = new LinkedHashSet<>();
-
-    /**
-     * 默认进入租户ID
-     */
-    private Long defaultTenantId;
-
-    /**
-     * 当前操作租户ID
-     */
-    private Long currentTenantId;
-
-    /**
      * 账号体系
      */
     private String loginType;

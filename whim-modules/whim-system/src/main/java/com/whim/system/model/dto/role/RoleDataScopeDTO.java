@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * @author Jince
  * @date 2026/09/29
- * @description 租户角色数据范围配置参数。
+ * @description 系统角色数据范围配置参数。
  */
 @Data
 public class RoleDataScopeDTO {
