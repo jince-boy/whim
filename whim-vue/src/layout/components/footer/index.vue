@@ -1,20 +1,22 @@
 <script setup lang="ts">
-defineOptions({ name: 'LayoutFooter' })
+import systemSetting from '@/config/SystemSetting.ts'
 
-const footerText = import.meta.env.VITE_APP_FOOTER_TEXT.replace(
-  '{year}',
-  String(new Date().getFullYear()),
-)
+defineOptions({
+  name: 'LayoutFooter',
+})
 </script>
 
 <template>
-  <n-flex class="footer" justify="center" align="center">
-    <n-text depth="3">{{ footerText }}</n-text>
-  </n-flex>
+  <n-el class="footer">
+    {{ systemSetting.copyright }}
+  </n-el>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .footer {
+  width: 100%;
   height: 100%;
+  text-align: center;
+  line-height: 50px;
 }
 </style>

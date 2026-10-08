@@ -14,7 +14,6 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
@@ -47,10 +46,10 @@ public class GlobalExceptionHandler {
      * @return HTTP 429 错误响应
      */
     @ExceptionHandler(TooManyRequestsException.class)
-    public ResponseEntity<Result<Void>> handleTooManyRequestsException(
+    public Result<Void> handleTooManyRequestsException(
             TooManyRequestsException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 超过频率限制：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
-        return Result.error(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage()).toResponseEntity();
+        return Result.error(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
     }
 
     /**
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(Throwable.class)
-    public ResponseEntity<Result<Void>> handleGeneralException(Throwable exception, HttpServletRequest request) {
+    public Result<Void> handleGeneralException(Throwable exception, HttpServletRequest request) {
         // 持久化框架可能包装拦截器异常，保留数据访问拒绝和唯一键冲突的业务状态。
         Throwable cause = exception;
         for (int depth = 0; cause != null && depth < 20; depth++) {
@@ -74,15 +73,15 @@ public class GlobalExceptionHandler {
             cause = cause.getCause();
         }
         log.error("请求 [{} {}] 发生未处理异常", request.getMethod(), request.getRequestURI(), exception);
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部异常，请稍后重试").toResponseEntity();
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部异常，请稍后重试");
     }
 
     /** 唯一约束冲突统一返回409，不泄露数据库语句或隐藏账号明细。 */
     @ExceptionHandler(DuplicateKeyException.class)
-    public ResponseEntity<Result<Void>> handleDuplicateKeyException(
+    public Result<Void> handleDuplicateKeyException(
             DuplicateKeyException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 的数据唯一约束发生冲突", request.getMethod(), request.getRequestURI());
-        return Result.error(HttpStatus.CONFLICT, "数据唯一标识已被使用").toResponseEntity();
+        return Result.error(HttpStatus.CONFLICT, "数据唯一标识已被使用");
     }
 
     /**
@@ -93,7 +92,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<Result<Void>> handleHttpRequestMethodNotSupportedException(
+    public Result<Void> handleHttpRequestMethodNotSupportedException(
             HttpRequestMethodNotSupportedException exception,
             HttpServletRequest request
     ) {
@@ -105,7 +104,7 @@ public class GlobalExceptionHandler {
                 supportedMethods == null || supportedMethods.length == 0 ? "未知" : String.join(", ", supportedMethods),
                 exception
         );
-        return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式不受支持").toResponseEntity();
+        return Result.error(HttpStatus.METHOD_NOT_ALLOWED, "请求方式不受支持");
     }
 
     /**
@@ -116,12 +115,12 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Result<Void>> handleNoResourceFoundException(
+    public Result<Void> handleNoResourceFoundException(
             NoResourceFoundException exception,
             HttpServletRequest request
     ) {
         log.warn("请求 [{} {}] 的资源不存在", request.getMethod(), request.getRequestURI(), exception);
-        return Result.error(HttpStatus.NOT_FOUND, "请求资源不存在").toResponseEntity();
+        return Result.error(HttpStatus.NOT_FOUND, "请求资源不存在");
     }
 
     /**
@@ -132,7 +131,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Result<Void>> handleIllegalArgumentException(
+    public Result<Void> handleIllegalArgumentException(
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
@@ -140,7 +139,7 @@ public class GlobalExceptionHandler {
         return Result.error(
                 HttpStatus.BAD_REQUEST,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "请求参数非法"
-        ).toResponseEntity();
+        );
     }
 
     /**
@@ -151,7 +150,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<Result<List<Result.ValidationError>>> handleMethodArgumentTypeMismatchException(
+    public Result<List<Result.ValidationError>> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request
     ) {
@@ -166,7 +165,7 @@ public class GlobalExceptionHandler {
         var errors = List.of(Result.fieldError(exception.getName(), message));
 
         log.warn("请求 [{} {}] 的参数类型不匹配：{}", request.getMethod(), request.getRequestURI(), message, exception);
-        return Result.validationError("请求参数类型不匹配", errors).toResponseEntity();
+        return Result.validationError("请求参数类型不匹配", errors);
     }
 
     /**
@@ -177,7 +176,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Result<List<Result.ValidationError>>> handleMethodArgumentNotValidException(
+    public Result<List<Result.ValidationError>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
@@ -202,7 +201,7 @@ public class GlobalExceptionHandler {
                 .orElse("未知校验错误");
 
         log.warn("请求 [{} {}] 的请求体参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
-        return Result.validationError("参数校验失败", errors).toResponseEntity();
+        return Result.validationError("参数校验失败", errors);
     }
 
     /**
@@ -213,7 +212,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<Result<List<Result.ValidationError>>> handleBindException(
+    public Result<List<Result.ValidationError>> handleBindException(
             BindException exception,
             HttpServletRequest request
     ) {
@@ -238,7 +237,7 @@ public class GlobalExceptionHandler {
                 .orElse("未知校验错误");
 
         log.warn("请求 [{} {}] 的绑定参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
-        return Result.validationError("参数校验失败", errors).toResponseEntity();
+        return Result.validationError("参数校验失败", errors);
     }
 
     /**
@@ -249,7 +248,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Result<List<Result.ValidationError>>> handleConstraintViolationException(
+    public Result<List<Result.ValidationError>> handleConstraintViolationException(
             ConstraintViolationException exception,
             HttpServletRequest request
     ) {
@@ -274,7 +273,7 @@ public class GlobalExceptionHandler {
                 .orElse("未知校验错误");
 
         log.warn("请求 [{} {}] 的方法级参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
-        return Result.validationError("参数校验失败", errors).toResponseEntity();
+        return Result.validationError("参数校验失败", errors);
     }
 
     /**
@@ -285,7 +284,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<Result<List<Result.ValidationError>>> handleMissingServletRequestParameterException(
+    public Result<List<Result.ValidationError>> handleMissingServletRequestParameterException(
             MissingServletRequestParameterException exception,
             HttpServletRequest request
     ) {
@@ -293,7 +292,7 @@ public class GlobalExceptionHandler {
         var errors = List.of(Result.fieldError(exception.getParameterName(), message));
 
         log.warn("请求 [{} {}] 缺少必要参数：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.validationError(message, errors).toResponseEntity();
+        return Result.validationError(message, errors);
     }
 
     /**
@@ -304,12 +303,12 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(ServletRequestBindingException.class)
-    public ResponseEntity<Result<Void>> handleServletRequestBindingException(
+    public Result<Void> handleServletRequestBindingException(
             ServletRequestBindingException exception,
             HttpServletRequest request
     ) {
         log.warn("请求 [{} {}] 的 Servlet 绑定失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.error(HttpStatus.BAD_REQUEST, "请求头或绑定信息缺失").toResponseEntity();
+        return Result.error(HttpStatus.BAD_REQUEST, "请求头或绑定信息缺失");
     }
 
     /**
@@ -320,12 +319,12 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Result<Void>> handleHttpMessageNotReadableException(
+    public Result<Void> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException exception,
             HttpServletRequest request
     ) {
         log.warn("请求 [{} {}] 的请求体不可读：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺少必要字段").toResponseEntity();
+        return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺少必要字段");
     }
 
     /**
@@ -336,9 +335,9 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(HttpException.class)
-    public ResponseEntity<Result<Void>> handleHttpException(HttpException exception, HttpServletRequest request) {
+    public Result<Void> handleHttpException(HttpException exception, HttpServletRequest request) {
         log.error("请求 [{} {}] 的远程 HTTP 调用失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.error(HttpStatus.BAD_GATEWAY, "远程服务调用失败").toResponseEntity();
+        return Result.error(HttpStatus.BAD_GATEWAY, "远程服务调用失败");
     }
 
     /**
@@ -349,12 +348,12 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(ServiceException.class)
-    public ResponseEntity<Result<Void>> handleServiceException(ServiceException exception, HttpServletRequest request) {
+    public Result<Void> handleServiceException(ServiceException exception, HttpServletRequest request) {
         log.error("请求 [{} {}] 发生业务异常：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "业务处理失败"
-        ).toResponseEntity();
+        );
     }
 
     /**
@@ -365,7 +364,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(DataAccessDeniedException.class)
-    public ResponseEntity<Result<Void>> handleDataAccessDeniedException(
+    public Result<Void> handleDataAccessDeniedException(
             DataAccessDeniedException exception,
             HttpServletRequest request
     ) {
@@ -373,7 +372,7 @@ public class GlobalExceptionHandler {
         return Result.error(
                 HttpStatus.FORBIDDEN,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "无权访问该数据"
-        ).toResponseEntity();
+        );
     }
 
     /**
@@ -384,7 +383,7 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Result<Void>> handleUserNotFoundException(
+    public Result<Void> handleUserNotFoundException(
             UserNotFoundException exception,
             HttpServletRequest request
     ) {
@@ -392,7 +391,7 @@ public class GlobalExceptionHandler {
         return Result.error(
                 HttpStatus.NOT_FOUND,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户不存在"
-        ).toResponseEntity();
+        );
     }
 
     /**
@@ -403,14 +402,14 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(UserPasswordNotMatchException.class)
-    public ResponseEntity<Result<Void>> handleUserPasswordNotMatchException(
+    public Result<Void> handleUserPasswordNotMatchException(
             UserPasswordNotMatchException exception,
             HttpServletRequest request
     ) {
         log.warn("请求 [{} {}] 认证失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.unauthorized(
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户名不存在或密码错误"
-        ).toResponseEntity();
+        );
     }
 
     /**
@@ -421,10 +420,9 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(UserDisableException.class)
-    public ResponseEntity<Result<Void>> handleUserDisableException(UserDisableException exception, HttpServletRequest request) {
+    public Result<Void> handleUserDisableException(UserDisableException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 的禁用用户访问被拦截：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        return Result.permissionDenied(StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户已被禁用")
-                .toResponseEntity();
+        return Result.permissionDenied(StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "用户已被禁用");
     }
 
     /**
@@ -435,11 +433,11 @@ public class GlobalExceptionHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(FileStorageException.class)
-    public ResponseEntity<Result<Void>> handleFileStorageException(FileStorageException exception, HttpServletRequest request) {
+    public Result<Void> handleFileStorageException(FileStorageException exception, HttpServletRequest request) {
         log.error("请求 [{} {}] 发生文件存储异常：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "文件存储失败"
-        ).toResponseEntity();
+        );
     }
 }

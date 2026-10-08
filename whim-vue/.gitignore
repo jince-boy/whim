@@ -14,6 +14,14 @@ dist-ssr
 coverage
 *.local
 
+# Local environment configuration
+.env
+.env.*
+!.env.example
+
+/cypress/videos/
+/cypress/screenshots/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -25,15 +33,3 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-
-.eslintcache
-
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-
-# Vitest
-__screenshots__/
-
-# Vite
-*.timestamp-*-*.mjs

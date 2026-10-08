@@ -1,8 +1,7 @@
 import { globalIgnores } from 'eslint/config'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from 'eslint-plugin-vue'
-import pluginOxlint from 'eslint-plugin-oxlint'
-import skipFormatting from 'eslint-config-prettier/flat'
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 
 // To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
 // import { configureVueProject } from '@vue/eslint-config-typescript'
@@ -10,29 +9,20 @@ import skipFormatting from 'eslint-config-prettier/flat'
 // More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
 
 export default defineConfigWithVueTs(
+  globalIgnores([
+    '**/dist/**',
+    '**/dist-ssr/**',
+    '**/coverage/**',
+    'src/assets/iconfont/iconfont.js', // 图标库生成的脚本
+  ]),
+  skipFormatting,
+  pluginVue.configs['flat/essential'],
+  vueTsConfigs.recommended,
   {
     name: 'app/files-to-lint',
-    files: ['**/*.{vue,ts,mts,tsx}'],
-  },
-
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
-
-  ...pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
-
-  {
-    name: 'app/vue-template-component-casing',
-    files: ['**/*.vue'],
+    files: ['**/*.{ts,mts,tsx,vue}'],
     rules: {
-      'vue/component-name-in-template-casing': [
-        'error',
-        'kebab-case',
-        { registeredComponentsOnly: false },
-      ],
+      'vue/multi-word-component-names': 'off',
     },
   },
-
-  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
-
-  skipFormatting,
 )

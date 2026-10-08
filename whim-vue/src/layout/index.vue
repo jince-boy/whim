@@ -1,87 +1,91 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import LayoutHeader from './components/header/index.vue'
-import LayoutSidebar from './components/sidebar/index.vue'
-import LayoutTabbar from './components/tabbar/index.vue'
-import LayoutFooter from './components/footer/index.vue'
-import AppMain from './components/appMain/index.vue'
+import LayoutSidebar from '@/layout/components/sidebar/index.vue'
+import tarBar from '@/layout/components/tabbar/index.vue'
+import appMain from '@/layout/components/appMain/index.vue'
+import LayoutHeader from '@/layout/components/header/index.vue'
+import LayoutFooter from '@/layout/components/footer/index.vue'
+import screenfull from 'screenfull'
+import { useThemeStore } from '@/stores/modules/theme.ts'
 
-defineOptions({ name: 'AppLayout' })
+defineOptions({
+  name: 'LayoutIndex',
+})
 
-const route = useRoute()
+const themeStore = useThemeStore()
+
+// tab-bar 调用内容全屏的方法
+const appMainRef = useTemplateRef<InstanceType<typeof appMain>>('appMainRef')
+
+const toggleFullScreen = () => {
+  const el = appMainRef.value?.appMainRef
+  if (el && screenfull.isEnabled) {
+    screenfull.toggle(el)
+  }
+}
+
+// 刷新组件
+const refreshAppMain = () => {
+  appMainRef.value?.refresh()
+}
+// 折叠状态
 const collapsed = ref(false)
-const mobileMenuOpen = ref(false)
-const appMainRef = ref<InstanceType<typeof AppMain> | null>(null)
-
-/** 路由变化后关闭移动端导航。 */
-watch(
-  () => route.fullPath,
-  () => {
-    mobileMenuOpen.value = false
-  },
-)
+// 监听折叠状态
+const handleCollapsed = (val: boolean) => {
+  collapsed.value = val
+}
 </script>
 
 <template>
-  <n-layout has-sider position="absolute">
-    <n-layout-sider
-      v-model:collapsed="collapsed"
-      class="desktop-sider"
-      bordered
-      :width="240"
-      :collapsed-width="64"
-      collapse-mode="width"
-      show-trigger="arrow-circle"
-      :native-scrollbar="false"
-    >
-      <layout-sidebar :collapsed="collapsed" />
-    </n-layout-sider>
-
-    <n-layout>
-      <n-layout-header bordered position="absolute" class="layout-header">
-        <layout-header @open-menu="mobileMenuOpen = true" />
-      </n-layout-header>
-
-      <n-layout-content
-        position="absolute"
-        class="layout-content"
-        embedded
+  <n-el>
+    <n-watermark
+      v-if="themeStore.getShowWatermark"
+      :content="themeStore.getWatermarkText"
+      cross
+      fullscreen
+      :font-size="18"
+      :line-height="16"
+      :width="300"
+      :height="300"
+      :x-offset="12"
+      :y-offset="60"
+      :rotate="-15"
+    />
+    <n-layout has-sider position="absolute">
+      <n-layout-sider
+        :width="240"
+        bordered
         :native-scrollbar="false"
+        show-trigger="arrow-circle"
+        :collapsed-width="64"
+        collapse-mode="width"
+        @update:collapsed="handleCollapsed"
+        :inverted="themeStore.getMenuInverted"
       >
-        <layout-tabbar @refresh="appMainRef?.refresh()" />
-        <app-main ref="appMainRef" />
-      </n-layout-content>
-
-      <n-layout-footer bordered position="absolute" class="layout-footer">
-        <layout-footer />
-      </n-layout-footer>
+        <layout-sidebar :collapsed="collapsed"></layout-sidebar>
+      </n-layout-sider>
+      <n-layout>
+        <n-layout-header bordered style="height: 50px" position="absolute">
+          <layout-header></layout-header>
+        </n-layout-header>
+        <n-layout-content
+          position="absolute"
+          style="top: 50px; bottom: 50px"
+          :native-scrollbar="false"
+          embedded
+        >
+          <tar-bar
+            @full-screen="toggleFullScreen"
+            @refresh="refreshAppMain"
+            v-if="themeStore.getShowTabs"
+          ></tar-bar>
+          <app-main ref="appMainRef"></app-main>
+        </n-layout-content>
+        <n-layout-footer bordered position="absolute" style="height: 50px">
+          <layout-footer></layout-footer>
+        </n-layout-footer>
+      </n-layout>
     </n-layout>
-
-    <n-drawer v-model:show="mobileMenuOpen" placement="left" :width="240">
-      <n-drawer-content :show-header="false" body-content-style="padding: 0">
-        <layout-sidebar @navigate="mobileMenuOpen = false" />
-      </n-drawer-content>
-    </n-drawer>
-  </n-layout>
+  </n-el>
 </template>
 
-<style scoped>
-.layout-header {
-  height: 50px;
-}
-
-.layout-content {
-  top: 50px;
-  bottom: 50px;
-}
-
-.layout-footer {
-  height: 50px;
-}
-
-@media (max-width: 768px) {
-  .desktop-sider {
-    display: none;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

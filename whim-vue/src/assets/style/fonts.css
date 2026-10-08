@@ -1,0 +1,9 @@
+@import '../fonts/inter/font.css';
+@import '../fonts/noto-sans-sc/font.css';
+@import '../fonts/jetbrains-mono/font.css';
+
+:root {
+  /* 与参考页面保持一致：英文和数字使用 Inter，中文使用 Noto Sans SC。 */
+  --app-font-family: 'Inter Variable', 'Noto Sans SC Variable', sans-serif;
+  --app-font-family-mono: 'JetBrains Mono Variable', 'Noto Sans SC Variable', monospace;
+}

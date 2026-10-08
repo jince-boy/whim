@@ -72,4 +72,8 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 接口契约见 `openapi.json`，包含 40 个接口。登录不接收组织上下文；`GET /system/auth/userInfo` 无切换参数。用户部门、状态、密码、角色分别管理。角色默认范围和操作覆盖范围分别配置，操作级 `dataScope=null` 恢复继承，`deptIds` 须为空集合。
 
-主键由 MyBatis-Plus 生成。超出 JavaScript 安全整数范围的 Long 在响应中输出字符串，前端不能强转为 Number。日期时间默认 `yyyy-MM-dd HH:mm:ss`。错误响应使用统一 `Result`，`code` 与 HTTP 状态码一致。
+主键由 MyBatis-Plus 生成。超出 JavaScript 安全整数范围的 Long 在响应中输出字符串，前端不能强转为 Number。日期时间默认 `yyyy-MM-dd HH:mm:ss`。
+
+业务接口、全局异常处理器和 Sa-Token 异常处理器直接返回 `Result<T>`。`whim-web` 自动配置注册 `ResultResponseBodyAdvice`，在 MVC 写出响应体前读取 `Result.code` 设置 HTTP 状态，响应内容保持原样。`code` 使用 HTTP 状态码：成功通常为 200，参数错误为 400，未登录为 401，无权限为 403，唯一约束冲突为 409，限流为 429，系统异常为 500。非 `Result` 返回类型（如文件下载）不参与此处理。
+
+前端在 Axios 成功和异常拦截器中读取相同的 `Result` 结构；非 2xx 进入异常拦截器，消息和字段校验详情仍从响应体读取。网络或网关未返回 `Result` 时按 HTTP 状态或网络错误兜底，页面无需重复同步状态码。

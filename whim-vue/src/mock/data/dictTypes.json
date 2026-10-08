@@ -1,0 +1,98 @@
+[
+  {
+    "id": "200",
+    "name": "菜单类型",
+    "type": "sys_menu_type",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "201",
+    "name": "显示状态",
+    "type": "sys_show_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "202",
+    "name": "运行状态",
+    "type": "sys_run_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "203",
+    "name": "菜单缓存状态",
+    "type": "sys_menu_keepAlive_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "204",
+    "name": "执行结果",
+    "type": "sys_result_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "205",
+    "name": "操作类型",
+    "type": "sys_oper_type",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "206",
+    "name": "用户性别",
+    "type": "sys_user_gender",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "207",
+    "name": "通知类型",
+    "type": "sys_notice_type",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "208",
+    "name": "任务状态",
+    "type": "sys_task_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "209",
+    "name": "审核状态",
+    "type": "sys_audit_status",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "210",
+    "name": "是否选项",
+    "type": "sys_yes_no",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "211",
+    "name": "主题模式",
+    "type": "sys_theme_mode",
+    "status": 0,
+    "remark": "用于前端组件和表单开发",
+    "createTime": "2026-10-08 09:00:00"
+  }
+]

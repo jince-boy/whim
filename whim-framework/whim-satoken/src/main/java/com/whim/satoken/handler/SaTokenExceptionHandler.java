@@ -7,7 +7,6 @@ import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -28,8 +27,8 @@ public class SaTokenExceptionHandler {
      * @return 无业务数据的失败响应，消息体为提示文案
      */
     @ExceptionHandler(NotLoginException.class)
-    public ResponseEntity<Result<Void>> handleNotLoginException(NotLoginException exception,
-                                                               HttpServletRequest request) {
+    public Result<Void> handleNotLoginException(
+            NotLoginException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 认证失败，原因类型：{}",
                 request.getMethod(), request.getRequestURI(), exception.getType());
         String message = switch (exception.getType()) {
@@ -42,7 +41,7 @@ public class SaTokenExceptionHandler {
             case NotLoginException.NO_PREFIX -> "未按照指定前缀提交 token";
             default -> "当前会话未登录";
         };
-        return Result.error(HttpStatus.UNAUTHORIZED, message).toResponseEntity();
+        return Result.error(HttpStatus.UNAUTHORIZED, message);
     }
 
     /**
@@ -53,10 +52,10 @@ public class SaTokenExceptionHandler {
      * @return 无业务数据的失败响应
      */
     @ExceptionHandler(NotPermissionException.class)
-    public ResponseEntity<Result<Void>> handleNotPermissionException(NotPermissionException exception,
-                                                                    HttpServletRequest request) {
+    public Result<Void> handleNotPermissionException(
+            NotPermissionException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 缺少功能权限", request.getMethod(), request.getRequestURI());
-        return Result.error(HttpStatus.FORBIDDEN, "用户没有权限").toResponseEntity();
+        return Result.error(HttpStatus.FORBIDDEN, "用户没有权限");
     }
 
     /**
@@ -67,9 +66,9 @@ public class SaTokenExceptionHandler {
      * @return 无业务数据的失败响应
      */
     @ExceptionHandler(NotRoleException.class)
-    public ResponseEntity<Result<Void>> handleNotRoleException(NotRoleException exception,
-                                                              HttpServletRequest request) {
+    public Result<Void> handleNotRoleException(
+            NotRoleException exception, HttpServletRequest request) {
         log.warn("请求 [{} {}] 缺少所需角色", request.getMethod(), request.getRequestURI());
-        return Result.error(HttpStatus.FORBIDDEN, "用户没有权限").toResponseEntity();
+        return Result.error(HttpStatus.FORBIDDEN, "用户没有权限");
     }
 }

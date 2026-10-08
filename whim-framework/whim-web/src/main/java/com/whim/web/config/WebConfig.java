@@ -3,6 +3,7 @@ package com.whim.web.config;
 import com.whim.json.config.properties.DateTimeProperties;
 import com.whim.web.converter.StringToLocalDateTimeConverter;
 import com.whim.web.handler.GlobalExceptionHandler;
+import com.whim.web.handler.ResultResponseBodyAdvice;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public GlobalExceptionHandler globalExceptionHandler() {
         return new GlobalExceptionHandler();
+    }
+
+    /** 注册统一响应的 HTTP 状态同步处理器。 */
+    @Bean
+    public ResultResponseBodyAdvice resultResponseBodyAdvice() {
+        return new ResultResponseBodyAdvice();
     }
 
     /**

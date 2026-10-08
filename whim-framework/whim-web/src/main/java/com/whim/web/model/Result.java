@@ -33,6 +33,7 @@ public final class Result<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /** HTTP 状态码，由 Web 响应处理器在写出响应前统一同步。 */
     private final int code;
     @NonNull
     private final String message;
@@ -45,15 +46,6 @@ public final class Result<T> implements Serializable {
      */
     public boolean isSuccess() {
         return HttpStatusCode.valueOf(code).is2xxSuccessful();
-    }
-
-    /**
-     * 将当前响应转换为 ResponseEntity
-     *
-     * @return HTTP 响应实体
-     */
-    public ResponseEntity<Result<T>> toResponseEntity() {
-        return ResponseEntity.status(HttpStatusCode.valueOf(code)).body(this);
     }
 
     /**

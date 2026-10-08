@@ -1,0 +1,352 @@
+[
+  {
+    "id": "300",
+    "dictType": "sys_menu_type",
+    "label": "目录",
+    "value": "1",
+    "listClass": "info",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "301",
+    "dictType": "sys_menu_type",
+    "label": "菜单",
+    "value": "2",
+    "listClass": "success",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "302",
+    "dictType": "sys_menu_type",
+    "label": "按钮",
+    "value": "3",
+    "listClass": "warning",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "303",
+    "dictType": "sys_menu_type",
+    "label": "外链",
+    "value": "4",
+    "listClass": "primary",
+    "sort": 4,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "304",
+    "dictType": "sys_show_status",
+    "label": "显示",
+    "value": "0",
+    "listClass": "success",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "305",
+    "dictType": "sys_show_status",
+    "label": "隐藏",
+    "value": "1",
+    "listClass": "warning",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "306",
+    "dictType": "sys_run_status",
+    "label": "启用",
+    "value": "0",
+    "listClass": "success",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "307",
+    "dictType": "sys_run_status",
+    "label": "停用",
+    "value": "1",
+    "listClass": "error",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "308",
+    "dictType": "sys_menu_keepAlive_status",
+    "label": "不缓存",
+    "value": "0",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "309",
+    "dictType": "sys_menu_keepAlive_status",
+    "label": "缓存",
+    "value": "1",
+    "listClass": "success",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "310",
+    "dictType": "sys_result_status",
+    "label": "成功",
+    "value": "0",
+    "listClass": "success",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "311",
+    "dictType": "sys_result_status",
+    "label": "失败",
+    "value": "1",
+    "listClass": "error",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "312",
+    "dictType": "sys_oper_type",
+    "label": "其他",
+    "value": "0",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "313",
+    "dictType": "sys_oper_type",
+    "label": "新增",
+    "value": "1",
+    "listClass": "success",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "314",
+    "dictType": "sys_oper_type",
+    "label": "修改",
+    "value": "2",
+    "listClass": "info",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "315",
+    "dictType": "sys_oper_type",
+    "label": "删除",
+    "value": "3",
+    "listClass": "error",
+    "sort": 4,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "316",
+    "dictType": "sys_oper_type",
+    "label": "导出",
+    "value": "4",
+    "listClass": "warning",
+    "sort": 5,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "317",
+    "dictType": "sys_oper_type",
+    "label": "导入",
+    "value": "5",
+    "listClass": "primary",
+    "sort": 6,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "318",
+    "dictType": "sys_user_gender",
+    "label": "未知",
+    "value": "0",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "319",
+    "dictType": "sys_user_gender",
+    "label": "男",
+    "value": "1",
+    "listClass": "info",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "320",
+    "dictType": "sys_user_gender",
+    "label": "女",
+    "value": "2",
+    "listClass": "success",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "321",
+    "dictType": "sys_notice_type",
+    "label": "通知",
+    "value": "1",
+    "listClass": "info",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "322",
+    "dictType": "sys_notice_type",
+    "label": "公告",
+    "value": "2",
+    "listClass": "warning",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "323",
+    "dictType": "sys_task_status",
+    "label": "待开始",
+    "value": "0",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "324",
+    "dictType": "sys_task_status",
+    "label": "进行中",
+    "value": "1",
+    "listClass": "info",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "325",
+    "dictType": "sys_task_status",
+    "label": "已完成",
+    "value": "2",
+    "listClass": "success",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "326",
+    "dictType": "sys_task_status",
+    "label": "已取消",
+    "value": "3",
+    "listClass": "warning",
+    "sort": 4,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "327",
+    "dictType": "sys_audit_status",
+    "label": "待审核",
+    "value": "0",
+    "listClass": "warning",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "328",
+    "dictType": "sys_audit_status",
+    "label": "已通过",
+    "value": "1",
+    "listClass": "success",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "329",
+    "dictType": "sys_audit_status",
+    "label": "已拒绝",
+    "value": "2",
+    "listClass": "error",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "330",
+    "dictType": "sys_yes_no",
+    "label": "否",
+    "value": "0",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "331",
+    "dictType": "sys_yes_no",
+    "label": "是",
+    "value": "1",
+    "listClass": "success",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "332",
+    "dictType": "sys_theme_mode",
+    "label": "跟随系统",
+    "value": "system",
+    "listClass": "default",
+    "sort": 1,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "333",
+    "dictType": "sys_theme_mode",
+    "label": "浅色",
+    "value": "light",
+    "listClass": "info",
+    "sort": 2,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  },
+  {
+    "id": "334",
+    "dictType": "sys_theme_mode",
+    "label": "深色",
+    "value": "dark",
+    "listClass": "primary",
+    "sort": 3,
+    "remark": "本地测试选项",
+    "createTime": "2026-10-08 09:00:00"
+  }
+]

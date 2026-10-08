@@ -3,7 +3,7 @@
   "info": {
     "title": "Whim 单组织 RBAC API",
     "version": "1.0.0",
-    "description": "用户全局唯一，单主部门，多角色、多岗位。数据范围：1全部、2自定义部门、3本部门、4本部门及下级、5本人。岗位不会隐式授予角色。Long 超出 JavaScript 安全整数时序列化为字符串。"
+    "description": "用户全局唯一，单主部门，多角色、多岗位。数据范围：1全部、2自定义部门、3本部门、4本部门及下级、5本人。岗位不会隐式授予角色。Long 超出 JavaScript 安全整数时序列化为字符串。统一 JSON 响应采用 Result；业务接口与异常处理器直接返回 Result，由 whim-web 响应处理器读取 code 设置实际 HTTP 状态，响应体保持原样。非 2xx 响应仍返回 Result，前端在统一异常拦截器读取 message 和 data。"
   },
   "servers": [
     {
@@ -5025,7 +5025,7 @@
         "properties": {
           "code": {
             "type": "integer",
-            "description": "与 HTTP 状态码一致。"
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5065,7 +5065,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5093,7 +5094,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5119,7 +5121,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5147,7 +5150,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5182,7 +5186,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5207,7 +5212,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5316,7 +5322,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5341,7 +5348,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5366,7 +5374,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5391,7 +5400,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5416,7 +5426,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5441,7 +5452,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5539,7 +5551,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"
@@ -5564,7 +5577,8 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "HTTP 状态码，由统一响应处理器同步到实际 HTTP 响应状态；例如 200、400、401、403、409、429、500。"
           },
           "message": {
             "type": "string"

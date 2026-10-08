@@ -1,130 +1,311 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import type { ScrollbarInst } from 'naive-ui'
-import { ChevronBackOutline, ChevronForwardOutline, RefreshOutline } from '@vicons/ionicons5'
+import { useIcon } from '@/components/icon/useIcon.ts'
+import type { ScrollbarInst, DropdownOption } from 'naive-ui'
+import { useTabStore } from '@/stores/modules/tab.ts'
+import type { TabState } from '@/stores/type.ts'
+import { useThemeStore } from '@/stores/modules/theme.ts'
 
-defineOptions({ name: 'LayoutTabbar' })
+defineOptions({
+  name: 'LayoutTabBar',
+})
 
-interface OpenTab {
-  path: string
-  title: string
-}
-
-defineEmits<{ refresh: [] }>()
-
-const route = useRoute()
+const emit = defineEmits<{
+  fullScreen: []
+  refresh: []
+}>()
+const { createIcon } = useIcon()
+const themeStore = useThemeStore()
 const router = useRouter()
-const scrollbar = ref<ScrollbarInst | null>(null)
-const tabs = ref<OpenTab[]>([{ path: '/', title: '工作台' }])
+const tabStore = useTabStore()
+const clickedTab = ref<TabState | null>(null)
 
-/** 访问新页面时将其加入页签。 */
-watch(
-  () => route.path,
-  (path) => {
-    if (!tabs.value.some((tab) => tab.path === path)) {
-      tabs.value.push({ path, title: String(route.meta.title ?? '未命名页面') })
-    }
-  },
-  { immediate: true },
-)
+const scrollbar = useTemplateRef<ScrollbarInst>('scrollbar')
 
-/** 切换到选中的页签。 */
-function selectTab(path: string): void {
-  void router.push(path)
+const showDropdown = ref(false)
+const x = ref(0)
+const y = ref(0)
+
+const dropdownOptions = computed<DropdownOption[]>(() => {
+  const isSelf = clickedTab.value?.focused
+  return [
+    {
+      label: '内容全屏',
+      key: 'fullscreen',
+      icon: createIcon('full-screen'),
+      disabled: !isSelf,
+    },
+    {
+      type: 'divider',
+      key: 'd1',
+    },
+    {
+      label: '刷新当前',
+      key: 'refreshCurrent',
+      icon: createIcon('refresh-2'),
+      disabled: !isSelf,
+    },
+    {
+      label: '关闭当前',
+      key: 'closeCurrent',
+      icon: createIcon('add-3'),
+      disabled: !clickedTab.value?.closeable,
+    },
+    {
+      label: '关闭其他',
+      key: 'closeOther',
+      icon: createIcon('guanbiqita'),
+    },
+    {
+      label: '关闭左侧',
+      key: 'closeLeft',
+      icon: createIcon('d-left'),
+    },
+    {
+      label: '关闭右侧',
+      key: 'closeRight',
+      icon: createIcon('d-right'),
+    },
+    {
+      label: '关闭全部',
+      key: 'closeAll',
+      icon: createIcon('closure'),
+    },
+  ]
+})
+
+/**
+ * 右击按钮弹出菜单
+ */
+const handleContextMenu = (e: MouseEvent, tab: TabState) => {
+  e.preventDefault()
+  clickedTab.value = tab
+  showDropdown.value = false
+  nextTick().then(() => {
+    showDropdown.value = true
+    x.value = e.clientX
+    y.value = e.clientY
+  })
 }
 
-/** 关闭页签；关闭当前页时切换到相邻页签。 */
-function closeTab(path: string): void {
-  const index = tabs.value.findIndex((tab) => tab.path === path)
-  if (index <= 0) return
+/**
+ * 弹出菜单之后点击区域外部时
+ */
+const onClickOutside = () => {
+  showDropdown.value = false
+}
 
-  tabs.value.splice(index, 1)
-  if (route.path === path) {
-    void router.push(tabs.value[Math.max(0, index - 1)]?.path ?? '/')
+/**
+ * 菜单项点击事件
+ * @param key
+ */
+const handleSelect = (key: string | number) => {
+  showDropdown.value = false
+  const clicked = clickedTab.value
+  if (!clicked) return
+  switch (key) {
+    case 'fullscreen':
+      emit('fullScreen')
+      break
+    case 'refreshCurrent':
+      emit('refresh')
+      break
+    case 'closeCurrent':
+      tabStore.closeTab(clicked.name)
+      break
+    case 'closeOther':
+      tabStore.closeOtherTabs(clicked.name)
+      break
+    case 'closeLeft':
+      tabStore.closeLeftTabs(clicked.name)
+      break
+    case 'closeRight':
+      tabStore.closeRightTabs(clicked.name)
+      break
+    case 'closeAll':
+      tabStore.closeAllTabsExceptHome()
+      break
+  }
+  // 关闭后，确保聚焦的 tab 路由跳转
+  const focusedTab = tabStore.getAllTabs.find((t) => t.focused)
+  if (focusedTab && router.currentRoute.value.name !== focusedTab.name) {
+    router.push(focusedTab.path)
+  }
+  clickedTab.value = null
+}
+
+/**
+ * 点击标签页
+ * @param path
+ */
+const handleTabClick = (path: string) => {
+  router.push(path)
+}
+
+/**
+ * 关闭标签页的方法
+ * @param tabName
+ */
+const handleCloseTab = (tabName: string) => {
+  // 先关闭标签页(更新状态)
+  tabStore.closeTab(tabName)
+  // 找到聚焦的标签页
+  const focusedTab = tabStore.getAllTabs.find((tab) => tab.focused)
+  if (focusedTab) {
+    router.push(focusedTab.path)
   }
 }
 
-/** 沿指定方向滚动页签。 */
-function scrollTabs(direction: -1 | 1): void {
-  scrollbar.value?.scrollBy({ left: direction * 180, behavior: 'smooth' })
+/**
+ * 滚动标签页
+ * @param type
+ */
+const handleScroll = (type: string) => {
+  if (type === 'left') {
+    scrollbar.value?.scrollBy({
+      left: -200,
+      behavior: 'smooth',
+    })
+  }
+  if (type === 'right') {
+    scrollbar.value?.scrollBy({
+      left: 200,
+      behavior: 'smooth',
+    })
+  }
 }
+
+watch(
+  () => router.currentRoute.value.fullPath, // 也可以用 route.path 或 route.name，主要是触发 watch
+  () => {
+    if (!router.currentRoute.value.meta?.title || !router.currentRoute.value.name) return
+    const tab = {
+      title: router.currentRoute.value.meta.title as string,
+      path: router.currentRoute.value.fullPath,
+      name: router.currentRoute.value.name as string,
+      icon: router.currentRoute.value.meta.icon as string | undefined,
+      closeable: true,
+    } as TabState
+    tabStore.addTab(tab)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <n-el class="tabbar">
-    <n-flex class="tabbar-content" align="center" :wrap="false">
-      <n-button class="tabbar-control" quaternary aria-label="向左滚动页签" @click="scrollTabs(-1)">
-        <template #icon
-          ><n-icon><chevron-back-outline /></n-icon
-        ></template>
-      </n-button>
-
-      <n-scrollbar ref="scrollbar" class="tabbar-scroll" x-scrollable trigger="none">
-        <n-flex class="tabbar-tabs" align="center" :wrap="false">
+  <n-el class="tab">
+    <n-flex align="center" justify="space-between" :wrap="false" class="tab-wrapper">
+      <n-button
+        quaternary
+        :focusable="false"
+        :render-icon="createIcon('left')"
+        class="tab-scroll tab-scroll-left"
+        @click="handleScroll('left')"
+      />
+      <n-scrollbar trigger="none" ref="scrollbar" x-scrollable content-style="height:100%">
+        <n-flex
+          v-if="themeStore.getTabStyle === 'tag'"
+          align="center"
+          class="tab-box"
+          :wrap="false"
+        >
           <n-tag
-            v-for="tab in tabs"
-            :key="tab.path"
-            :type="route.path === tab.path ? 'primary' : 'default'"
+            v-for="item in tabStore.getAllTabs"
+            :key="item.name"
+            :type="item.focused ? 'primary' : 'default'"
             :bordered="false"
-            :closable="tab.path !== '/'"
-            role="tab"
-            :aria-selected="route.path === tab.path"
-            tabindex="0"
-            @click="selectTab(tab.path)"
-            @keydown.enter="selectTab(tab.path)"
-            @keydown.space.prevent="selectTab(tab.path)"
-            @close="closeTab(tab.path)"
+            :closable="item.closeable"
+            @click="handleTabClick(item.path)"
+            @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)"
+            @close="handleCloseTab(item.name)"
           >
-            {{ tab.title }}
+            {{ item.title }}
+            <template #icon v-if="themeStore.getShowTabIcon">
+              <n-icon size="18" :component="createIcon(item.icon)" />
+            </template>
           </n-tag>
         </n-flex>
+        <n-flex v-else align="center" class="tab-box" :wrap="false">
+          <n-button
+            :type="item.focused ? 'primary' : 'default'"
+            size="small"
+            :secondary="!item.focused"
+            :focusable="false"
+            icon-placement="left"
+            v-for="item in tabStore.getAllTabs"
+            :key="item.name"
+            :render-icon="themeStore.getShowTabIcon ? createIcon(item.icon) : null"
+            @click="handleTabClick(item.path)"
+            @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)"
+          >
+            {{ item.title }}
+            <i
+              class="iconfont icon-closure tab-close"
+              v-if="item.closeable"
+              @click.stop="handleCloseTab(item.name)"
+            ></i>
+          </n-button>
+        </n-flex>
+        <n-dropdown
+          placement="bottom-start"
+          trigger="manual"
+          :x="x"
+          :y="y"
+          :options="dropdownOptions"
+          :show="showDropdown"
+          :on-clickoutside="onClickOutside"
+          @select="handleSelect"
+        />
       </n-scrollbar>
-
-      <n-button class="tabbar-control" quaternary aria-label="向右滚动页签" @click="scrollTabs(1)">
-        <template #icon
-          ><n-icon><chevron-forward-outline /></n-icon
-        ></template>
-      </n-button>
       <n-button
-        class="tabbar-control"
         quaternary
-        aria-label="刷新当前页面"
-        @click="$emit('refresh')"
-      >
-        <template #icon
-          ><n-icon><refresh-outline /></n-icon
-        ></template>
-      </n-button>
+        :focusable="false"
+        :render-icon="createIcon('right')"
+        class="tab-scroll tab-scroll-right"
+        @click="handleScroll('right')"
+      />
     </n-flex>
   </n-el>
 </template>
 
-<style scoped>
-.tabbar {
+<style scoped lang="scss">
+.tab {
   height: 36px;
-  border-bottom: 1px solid var(--divider-color);
   background-color: var(--card-color);
-}
+  border-bottom: 1px solid var(--divider-color);
+  transition:
+    color 0.3s var(--n-bezier),
+    background-color 0.3s var(--n-bezier),
+    box-shadow 0.3s var(--n-bezier),
+    border-color 0.3s var(--n-bezier);
 
-.tabbar-content,
-.tabbar-control,
-.tabbar-scroll,
-.tabbar-tabs {
-  height: 100%;
-}
+  .tab-wrapper {
+    height: 100%;
+  }
 
-.tabbar-control {
-  flex: none;
-  border-radius: 0;
-}
+  .tab-scroll {
+    border-radius: 0;
+    height: 100%;
+  }
 
-.tabbar-scroll {
-  min-width: 0;
-  flex: 1;
-}
+  .tab-scroll-left {
+    border-right: 1px solid var(--divider-color);
+  }
 
-.tabbar-tabs {
-  width: max-content;
-  padding: 0 8px;
+  .tab-scroll-right {
+    border-left: 1px solid var(--divider-color);
+  }
+
+  .tab-box {
+    width: 100%;
+    height: 100%;
+  }
+
+  :deep(.n-scrollbar-rail__scrollbar) {
+    display: none;
+  }
+
+  .tab-close {
+    margin-left: var(--n-icon-margin);
+  }
 }
 </style>
