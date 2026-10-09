@@ -1,140 +1,139 @@
 <script setup lang="ts">
-import type { SafeMenuOption } from '@/utils/menu'
-import { usePermissionStore } from '@/stores/modules/permission.ts'
 import { useIcon } from '@/components/icon/useIcon.ts'
-import screenfull from 'screenfull'
 import SearchComponent from '@/components/search/index.vue'
 import ThemeComponent from '@/components/theme/index.vue'
-import { useLogout } from './hooks/useLogout'
+import { useHeader } from './hooks/useHeader'
 
 defineOptions({
   name: 'LayoutHeader',
 })
 
 const { createIcon } = useIcon()
-const route = useRoute()
-const permissionStore = usePermissionStore()
-const { loggingOut, handleLogout } = useLogout()
-
-const searchShowModal = ref(false)
-const handleSearchClick = () => {
-  searchShowModal.value = true
-}
-
-const themeShowModal = ref(false)
-
-const handleThemeClick = () => {
-  themeShowModal.value = true
-}
-
-const breadCrumbData = computed(() => {
-  return findPathInMenu(permissionStore.getMenus, route.name as string)
-})
-
-const findPathInMenu = (menus: SafeMenuOption[], routeName: string): SafeMenuOption[] | null => {
-  // 深度优先搜索（DFS）
-  const dfs = (
-    nodes: SafeMenuOption[],
-    targetName: string,
-    currentPath: SafeMenuOption[],
-  ): SafeMenuOption[] | null => {
-    for (const node of nodes) {
-      const newPath = [...currentPath, node]
-      // 关键匹配逻辑：菜单节点的key === 路由的name
-      if (node.key === targetName) {
-        return newPath
-      }
-      // 递归搜索子节点
-      if (node.children) {
-        const result = dfs(node.children, targetName, newPath)
-        if (result) return result
-      }
-    }
-    return null // 未找到
-  }
-
-  return dfs(menus, routeName, [])
-}
+const {
+  breadcrumbs,
+  searchShowModal,
+  themeShowModal,
+  fullscreenEnabled,
+  isFullscreen,
+  handleMenuSelect,
+  toggleFullscreen,
+} = useHeader()
 </script>
 
 <template>
   <n-el class="header">
-    <n-flex justify="space-between" align="center" class="header-box">
-      <n-breadcrumb>
-        <n-breadcrumb-item v-for="item in breadCrumbData" :key="item.key">
-          <!-- 有子菜单时显示下拉菜单 -->
+    <n-flex justify="space-between" align="center" :wrap="false" class="header-box">
+      <n-breadcrumb class="header-breadcrumb">
+        <n-breadcrumb-item
+          v-for="item in breadcrumbs"
+          :key="item.key"
+          :clickable="!!item.children?.length"
+        >
           <n-dropdown
-            v-if="item.children?.length"
-            :options="item.children"
+            :disabled="!item.children?.length"
+            :options="item.children ?? []"
+            :render-icon="() => null"
+            label-field="name"
             placement="bottom-start"
+            @select="handleMenuSelect"
           >
             <span>{{ item.name }}</span>
           </n-dropdown>
-          <!-- 没有子菜单时直接显示 -->
-          <template v-else>
-            <span>{{ item.name }}</span>
-          </template>
         </n-breadcrumb-item>
       </n-breadcrumb>
-      <n-space>
-        <n-tooltip placement="bottom" trigger="hover">
+      <n-flex align="center" :wrap="false" :size="4" class="header-actions">
+        <n-tooltip placement="bottom" trigger="hover" :delay="300">
           <template #trigger>
-            <n-button tertiary circle @click="handleSearchClick">
+            <n-button
+              quaternary
+              size="small"
+              class="header-action"
+              aria-label="搜索"
+              @click="searchShowModal = true"
+            >
               <template #icon>
-                <n-icon :component="createIcon('search')" />
+                <n-icon :component="createIcon('search', 18)" />
               </template>
             </n-button>
           </template>
           <span>搜索</span>
         </n-tooltip>
-        <n-tooltip placement="bottom" trigger="hover">
+        <n-tooltip placement="bottom" trigger="hover" :delay="300">
           <template #trigger>
-            <n-button tertiary circle @click="screenfull.toggle()">
+            <n-button
+              quaternary
+              size="small"
+              class="header-action"
+              :disabled="!fullscreenEnabled"
+              :aria-label="isFullscreen ? '退出全屏' : '全屏'"
+              @click="toggleFullscreen"
+            >
               <template #icon>
-                <n-icon v-if="screenfull.isFullscreen" :component="createIcon('quanpingsuoxiao')" />
-                <n-icon v-else :component="createIcon('full-screen')" />
+                <n-icon v-if="isFullscreen" :component="createIcon('quanpingsuoxiao', 18)" />
+                <n-icon v-else :component="createIcon('full-screen', 18)" />
               </template>
             </n-button>
           </template>
-          <span>全屏</span>
+          <span>{{ isFullscreen ? '退出全屏' : '全屏' }}</span>
         </n-tooltip>
-        <n-tooltip placement="bottom" trigger="hover">
+        <n-tooltip placement="bottom" trigger="hover" :delay="300">
           <template #trigger>
-            <n-button tertiary circle @click="handleThemeClick">
+            <n-button
+              quaternary
+              size="small"
+              class="header-action"
+              aria-label="主题配置"
+              @click="themeShowModal = true"
+            >
               <template #icon>
-                <n-icon :component="createIcon('zhuti')" />
+                <n-icon :component="createIcon('zhuti', 18)" />
               </template>
             </n-button>
           </template>
           <span>主题配置</span>
         </n-tooltip>
-        <n-popover trigger="hover" raw :show-arrow="false">
+        <n-popover trigger="click" placement="bottom-end" :show-arrow="false" :width="240">
           <template #trigger>
-            <n-button tertiary circle>
+            <n-button quaternary size="small" class="header-action" aria-label="通知">
               <template #icon>
-                <n-icon :component="createIcon('notify')" />
+                <n-icon :component="createIcon('notify', 18)" />
               </template>
             </n-button>
           </template>
-          <div>通知内容</div>
+          <template #header>
+            <n-text strong>通知</n-text>
+          </template>
+          <n-empty description="暂无通知" size="small" />
         </n-popover>
-        <n-button quaternary :loading="loggingOut" :disabled="loggingOut" @click="handleLogout">
-          退出登录
-        </n-button>
-      </n-space>
-      <search-component v-model="searchShowModal"></search-component>
-      <theme-component v-model="themeShowModal"></theme-component>
+      </n-flex>
     </n-flex>
+    <search-component v-model="searchShowModal"></search-component>
+    <theme-component v-model="themeShowModal"></theme-component>
   </n-el>
 </template>
 
 <style scoped lang="scss">
 .header {
-  padding: 0 20px;
+  padding: 0 16px;
   height: 100%;
 }
 
 .header-box {
   height: 100%;
+}
+
+.header-breadcrumb {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header-actions {
+  flex-shrink: 0;
+}
+
+.header-action {
+  width: 32px;
+  height: 32px;
 }
 </style>

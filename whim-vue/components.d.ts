@@ -14,6 +14,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     Icon: typeof import('./src/components/icon/Icon.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
+    NAvatar: typeof import('naive-ui')['NAvatar']
     NBreadcrumb: typeof import('naive-ui')['NBreadcrumb']
     NBreadcrumbItem: typeof import('naive-ui')['NBreadcrumbItem']
     NButton: typeof import('naive-ui')['NButton']
@@ -33,6 +34,7 @@ declare module 'vue' {
     NDrawerContent: typeof import('naive-ui')['NDrawerContent']
     NDropdown: typeof import('naive-ui')['NDropdown']
     NEl: typeof import('naive-ui')['NEl']
+    NEllipsis: typeof import('naive-ui')['NEllipsis']
     NEmpty: typeof import('naive-ui')['NEmpty']
     NFlex: typeof import('naive-ui')['NFlex']
     NForm: typeof import('naive-ui')['NForm']
@@ -91,6 +93,7 @@ declare module 'vue' {
 declare global {
   const Icon: typeof import('./src/components/icon/Icon.vue')['default']
   const NAlert: typeof import('naive-ui')['NAlert']
+  const NAvatar: typeof import('naive-ui')['NAvatar']
   const NBreadcrumb: typeof import('naive-ui')['NBreadcrumb']
   const NBreadcrumbItem: typeof import('naive-ui')['NBreadcrumbItem']
   const NButton: typeof import('naive-ui')['NButton']
@@ -110,6 +113,7 @@ declare global {
   const NDrawerContent: typeof import('naive-ui')['NDrawerContent']
   const NDropdown: typeof import('naive-ui')['NDropdown']
   const NEl: typeof import('naive-ui')['NEl']
+  const NEllipsis: typeof import('naive-ui')['NEllipsis']
   const NEmpty: typeof import('naive-ui')['NEmpty']
   const NFlex: typeof import('naive-ui')['NFlex']
   const NForm: typeof import('naive-ui')['NForm']

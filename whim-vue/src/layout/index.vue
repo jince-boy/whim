@@ -29,10 +29,6 @@ const refreshAppMain = () => {
 }
 // 折叠状态
 const collapsed = ref(false)
-// 监听折叠状态
-const handleCollapsed = (val: boolean) => {
-  collapsed.value = val
-}
 </script>
 
 <template>
@@ -52,13 +48,12 @@ const handleCollapsed = (val: boolean) => {
     />
     <n-layout has-sider position="absolute">
       <n-layout-sider
+        v-model:collapsed="collapsed"
         :width="240"
         bordered
-        :native-scrollbar="false"
         show-trigger="arrow-circle"
         :collapsed-width="64"
         collapse-mode="width"
-        @update:collapsed="handleCollapsed"
         :inverted="themeStore.getMenuInverted"
       >
         <layout-sidebar :collapsed="collapsed"></layout-sidebar>

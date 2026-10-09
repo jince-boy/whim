@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import systemSetting from '@/config/SystemSetting.ts'
-import { RouterLink } from 'vue-router'
+import logoUrl from '@/assets/images/logo.png'
+import { computed, useTemplateRef, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import { usePermissionStore } from '@/stores/modules/permission.ts'
-import { useRoute } from 'vue-router'
 import type { MenuInst } from 'naive-ui'
 import { useThemeStore } from '@/stores/modules/theme.ts'
+import { useUserStore } from '@/stores/modules/user.ts'
 
 defineOptions({
   name: 'LayoutSidebar',
@@ -20,69 +22,134 @@ const props = withDefaults(
 const route = useRoute()
 const permissionStore = usePermissionStore()
 const themeStore = useThemeStore()
+const userStore = useUserStore()
 
 const menuInstRef = useTemplateRef<MenuInst>('menuInstRef')
-// 当前选中的菜单key
-const selectedKey = ref<string>(route.name as string)
+// 菜单由路由决定选中项，点击菜单时由已有 RouterLink 完成导航。
+const selectedKey = computed(() => (typeof route.name === 'string' ? route.name : route.path))
+const username = computed(() => userStore.user?.username || '用户')
+const avatarText = computed(() => username.value.slice(0, 1).toUpperCase())
 
+// 等待菜单渲染后展开当前路由的父菜单，兼顾菜单加载和侧栏重新展开。
 watch(
-  () => route.name,
-  (newName) => {
-    selectedKey.value = newName as string
-    menuInstRef.value?.showOption(newName as string)
+  [selectedKey, () => props.collapsed, () => permissionStore.getMenus, menuInstRef],
+  ([key, collapsed]) => {
+    if (!collapsed) {
+      menuInstRef.value?.showOption(key)
+    }
   },
   {
     immediate: true,
+    flush: 'post',
   },
 )
 </script>
 
 <template>
-  <router-link to="/index" v-if="themeStore.getShowLogo">
-    <n-flex class="logo" justify="center" align="center" :wrap="false">
-      <img src="../../../assets/images/logo.png" alt="logo" />
-      <span v-if="!props.collapsed">{{ systemSetting.title }}</span>
-    </n-flex>
-  </router-link>
-  <n-menu
-    ref="menuInstRef"
-    :collapsed-width="64"
-    :collapsed-icon-size="16"
-    :icon-size="16"
-    :accordion="true"
-    :options="permissionStore.getMenus"
-    v-model:value="selectedKey"
-    :inverted="themeStore.getMenuInverted"
-  />
+  <n-layout class="sidebar" :class="{ 'sidebar--with-logo': themeStore.getShowLogo }">
+    <n-layout-header
+      v-if="themeStore.getShowLogo"
+      bordered
+      position="absolute"
+      :inverted="themeStore.getMenuInverted"
+      class="sidebar-bar"
+    >
+      <RouterLink to="/index">
+        <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
+          <n-image
+            :src="logoUrl"
+            :width="28"
+            :height="28"
+            :img-props="{ alt: systemSetting.title }"
+            object-fit="contain"
+            preview-disabled
+          />
+          <n-text v-if="!props.collapsed" strong class="sidebar-title">
+            {{ systemSetting.title }}
+          </n-text>
+        </n-flex>
+      </RouterLink>
+    </n-layout-header>
+    <n-layout-content position="absolute" :native-scrollbar="false" class="sidebar-menu">
+      <n-menu
+        ref="menuInstRef"
+        :collapsed="props.collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="16"
+        :icon-size="16"
+        accordion
+        :options="permissionStore.getMenus"
+        :value="selectedKey"
+        :inverted="themeStore.getMenuInverted"
+      />
+    </n-layout-content>
+    <n-layout-footer
+      bordered
+      position="absolute"
+      :inverted="themeStore.getMenuInverted"
+      class="sidebar-bar"
+    >
+      <n-flex
+        align="center"
+        :justify="props.collapsed ? 'center' : 'flex-start'"
+        :wrap="false"
+        :size="12"
+        :title="username"
+        class="sidebar-row sidebar-user"
+      >
+        <n-avatar
+          round
+          :size="32"
+          :src="userStore.user?.avatar ?? undefined"
+          :img-props="{ alt: username }"
+          object-fit="cover"
+        >
+          <template v-if="!userStore.user?.avatar" #default>{{ avatarText }}</template>
+          <template #fallback>{{ avatarText }}</template>
+        </n-avatar>
+        <n-ellipsis v-if="!props.collapsed" :tooltip="false" class="sidebar-username">
+          {{ username }}
+        </n-ellipsis>
+      </n-flex>
+    </n-layout-footer>
+  </n-layout>
 </template>
 
 <style scoped lang="scss">
-.n-flex {
+.sidebar,
+.sidebar-menu {
+  background: transparent;
+}
+
+.sidebar,
+.sidebar-row {
   height: 100%;
 }
 
-.logo {
+.sidebar-bar {
   height: 50px;
-  border-bottom: 1px solid var(--divider-color);
-  white-space: nowrap;
-  overflow: hidden;
-  transition:
-    background-color 0.3s var(--n-bezier),
-    box-shadow 0.3s var(--n-bezier),
-    border-color 0.3s var(--n-bezier);
-
-  img {
-    //width: 30px;
-    height: 20px;
-  }
-
-  span {
-    font-size: 18px;
-    //font-weight: 500;
-  }
 }
 
-.n-menu {
-  user-select: none;
+.sidebar-menu {
+  top: 0;
+  bottom: 50px;
+}
+
+.sidebar--with-logo .sidebar-menu {
+  top: 50px;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  color: inherit;
+}
+
+.sidebar-user {
+  padding: 0 16px;
+}
+
+.sidebar-username {
+  flex: 1;
+  min-width: 0;
 }
 </style>
