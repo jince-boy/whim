@@ -247,9 +247,16 @@ export function useDictData(props: DictDataProps) {
     Object.assign(form, values)
   }
 
-  onMounted(() => {
-    getDictDataPage()
-  })
+  // 同一标签切换字典类型时重新查询，避免复用缓存后仍显示上一个类型的数据。
+  watch(
+    () => props.type,
+    () => {
+      form.label = ''
+      pagination.page = 1
+      getDictDataPage()
+    },
+    { immediate: true },
+  )
 
   return {
     form,

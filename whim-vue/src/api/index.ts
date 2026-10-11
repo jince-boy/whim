@@ -10,10 +10,8 @@ export interface ApiResponse<T = unknown> {
   data: T
 }
 
-// 未显式配置时，开发环境使用本地数据，生产构建使用真实接口。
-export const isMockEnabled =
-  import.meta.env.VITE_USE_MOCK === 'true' ||
-  (import.meta.env.VITE_USE_MOCK !== 'false' && import.meta.env.DEV)
+// 模拟接口需显式开启，开发和生产默认使用真实接口。
+export const isMockEnabled = import.meta.env.VITE_USE_MOCK === 'true'
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -71,9 +69,10 @@ const handleUnauthorized = async (message: string) => {
 // 请求统一携带当前登录令牌。
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = useAuthStore().getToken
+    const authStore = useAuthStore()
+    const token = authStore.getToken
     if (token) {
-      config.headers.set('Authorization', `Bearer ${token}`)
+      config.headers.set('Authorization', `${authStore.tokenType} ${token}`)
     }
     return config
   },

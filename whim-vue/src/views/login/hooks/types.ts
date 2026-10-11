@@ -3,16 +3,17 @@ export interface LoginForm {
   password: string
   uuid: string
   rememberMe: boolean
-  captcha: number | null
+  captchaCode: string
 }
 
 export interface LoginResult {
-  prefix: string
-  token: string
-  expire: number
+  tokenType: string
+  accessToken: string
+  expiresIn: number
 }
 
 export interface CaptchaResult {
   uuid: string
   image: string
+  expiresIn: number
 }

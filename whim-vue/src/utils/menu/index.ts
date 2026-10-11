@@ -9,6 +9,28 @@ export type SafeMenuOption = Omit<MenuOption, 'children'> & {
 }
 
 const { createIcon } = useIcon()
+
+/** 查找菜单及其父级，支持面包屑和混合布局定位一级菜单。 */
+export function findMenuPath(menus: SafeMenuOption[], key: string): SafeMenuOption[] {
+  for (const menu of menus) {
+    if (menu.key === key) return [menu]
+    if (menu.children) {
+      const childPath = findMenuPath(menu.children, key)
+      if (childPath.length) return [menu, ...childPath]
+    }
+  }
+  return []
+}
+
+/** 排除隐藏菜单和没有可见子项的目录，保持各布局的菜单可见性一致。 */
+export function getVisibleMenus(menus: SafeMenuOption[]): SafeMenuOption[] {
+  return menus.flatMap((menu) => {
+    if (menu.show === false) return []
+    const children = menu.children ? getVisibleMenus(menu.children) : undefined
+    if (menu.children?.length && !children?.length && !menu.path) return []
+    return [{ ...menu, children: children?.length ? children : undefined }]
+  })
+}
 /**
  * 路径拼接
  * @param base
@@ -78,6 +100,7 @@ export const buildMenus = (routes: RouteRecordRaw[], basePath = ''): SafeMenuOpt
           {
             href: externalUrl,
             target: '_blank',
+            rel: 'noopener noreferrer',
           },
           title,
         )

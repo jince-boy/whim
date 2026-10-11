@@ -3,21 +3,25 @@ import { useAuthStore } from '@/stores/modules/auth.ts'
 import { useUserStore } from '@/stores/modules/user.ts'
 import { usePermissionStore } from '@/stores/modules/permission.ts'
 import systemSetting from '@/config/SystemSetting.ts'
-import { useKeepAliveStore } from '@/stores/modules/keepAlive.ts'
+import { isMockEnabled } from '@/api'
 
 // 不需要登录的白名单
 const whiteList = ['/login']
 
 router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+  // 切换真实后端时清除旧演示令牌，避免误判为已登录。
+  if (!isMockEnabled && authStore.token?.startsWith('mock-')) authStore.logout()
   window['$loadingBar'].start()
-  document.title = to.meta.title
-    ? `${systemSetting.title}-${to.meta.title}`
-    : systemSetting.title
+  document.title = to.meta.title ? `${systemSetting.title}-${to.meta.title}` : systemSetting.title
   if (useAuthStore().isLogin) {
     if (to.path === '/login') {
       return '/'
     } else {
-      if (!useUserStore().hasUserInfo) {
+      if (!isMockEnabled) {
+        // 本轮只接登录、退出，真实会话使用静态首页，不调用旧用户信息接口。
+        if (!usePermissionStore().menus.length) usePermissionStore().generateMenus()
+      } else if (!useUserStore().hasUserInfo) {
         await useUserStore().getUserInfo()
         usePermissionStore().generateRoutes(useUserStore().menus)
         usePermissionStore().getDynamicRoutes.forEach((route) => {
@@ -26,16 +30,10 @@ router.beforeEach(async (to) => {
         usePermissionStore().generateMenus()
         return to.fullPath
       }
-      if (to.meta.keepAlive) {
-        useKeepAliveStore().addKeepAlive(to.name as string)
-      }
       return true
     }
   } else {
     if (whiteList.includes(to.path)) {
-      if (to.meta.keepAlive) {
-        useKeepAliveStore().addKeepAlive(to.name as string)
-      }
       return true
     } else {
       return {

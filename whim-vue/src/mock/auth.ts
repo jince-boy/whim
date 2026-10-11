@@ -3,21 +3,31 @@ import { buildMenuTree } from './menu'
 import { currentTime, fail, success, type MockParams } from './utils'
 import { database, persistDatabase } from './database'
 
-const captchaIds = new Set<string>()
+const captchaExpiresAt = new Map<string, number>()
 
 /** 模拟验证码和登录，沿用登录表单校验及令牌存储流程。 */
 export function handleAuth(path: string, method: string, data: MockParams) {
   if (path === '/system/auth/captcha' && method === 'GET') {
     const uuid = crypto.randomUUID()
-    captchaIds.add(uuid)
+    captchaExpiresAt.set(uuid, Date.now() + 120_000)
     // 限制失效验证码数量，避免反复刷新时无限增长。
-    if (captchaIds.size > 20) captchaIds.delete(captchaIds.values().next().value!)
-    const image = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="34"><rect width="100" height="34" rx="4" fill="#eef2ff"/><text x="10" y="24" font-size="20" fill="#4338ca">1 + 2 = ?</text></svg>`
-    return success({ uuid, image: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(image)}` })
+    if (captchaExpiresAt.size > 20) captchaExpiresAt.delete(captchaExpiresAt.keys().next().value!)
+    const image = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="34"><rect width="100" height="34" rx="4" fill="#eef2ff"/><text x="20" y="24" font-size="20" fill="#4338ca">0003</text></svg>`
+    return success({
+      uuid,
+      image: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(image)}`,
+      expiresIn: 120,
+    })
   }
   if (path === '/system/auth/login' && method === 'POST') {
-    if (!captchaIds.delete(String(data.uuid)) || String(data.captcha) !== '3') {
-      return { code: 400, message: '验证码错误或已失效，请重新输入', data: null }
+    const uuid = String(data.uuid)
+    const expiresAt = captchaExpiresAt.get(uuid)
+    captchaExpiresAt.delete(uuid)
+    if (expiresAt === undefined || expiresAt <= Date.now()) {
+      return { code: 400, message: '验证码已过期，请刷新后重试', data: null }
+    }
+    if (String(data.captchaCode) !== '0003') {
+      return { code: 400, message: '验证码不正确，请重新输入', data: null }
     }
     if (
       data.username !== authData.account.username ||
@@ -39,7 +49,7 @@ export function handleAuth(path: string, method: string, data: MockParams) {
     })
     persistDatabase()
     return success(
-      { prefix: 'Bearer', token: `mock-${crypto.randomUUID()}`, expire: 86400 },
+      { tokenType: 'Bearer', accessToken: `mock-${crypto.randomUUID()}`, expiresIn: 86400 },
       '登录成功',
     )
   }

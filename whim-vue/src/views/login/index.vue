@@ -18,6 +18,7 @@ const {
   handleLogin,
   getCaptcha,
   spinShow,
+  captchaLoading,
 } = useLogin()
 </script>
 
@@ -27,7 +28,7 @@ const {
       <n-card class="login-box" hoverable>
         <h2>{{ systemSetting.title }}</h2>
         <n-alert v-if="isMockEnabled" type="info" :show-icon="false" class="mock-hint">
-          本地测试模式：账号 admin，密码 admin123，验证码 3
+          本地测试模式：账号 admin，密码 admin123，验证码 0003
         </n-alert>
         <n-form
           ref="formRef"
@@ -36,12 +37,14 @@ const {
           :rules="loginRules"
           size="medium"
           :show-label="false"
+          :disabled="spinShow"
+          @submit.prevent="handleLogin"
         >
           <n-form-item path="username">
             <n-input
               v-model:value="form.username"
               placeholder="用户名"
-              :input-props="{ autocomplete: 'new-password' }"
+              :input-props="{ autocomplete: 'username' }"
             >
               <template #prefix>
                 <n-icon :component="userIcon" />
@@ -54,19 +57,20 @@ const {
               v-model:value="form.password"
               placeholder="密码"
               show-password-on="mousedown"
-              :input-props="{ autocomplete: 'new-password' }"
+              :input-props="{ autocomplete: 'current-password' }"
             >
               <template #prefix>
                 <n-icon :component="passwordIcon" />
               </template>
             </n-input>
           </n-form-item>
-          <n-form-item label="验证码" path="captcha">
+          <n-form-item label="验证码" path="captchaCode">
             <n-space :wrap="false">
               <n-input
-                v-model:value="form.captcha"
+                v-model:value="form.captchaCode"
                 placeholder="验证码"
-                :input-props="{ autocomplete: 'new-password' }"
+                :maxlength="4"
+                :input-props="{ autocomplete: 'off' }"
               >
                 <template #prefix>
                   <n-icon :component="captchaIcon" />
@@ -85,15 +89,19 @@ const {
             </n-space>
           </n-form-item>
           <n-form-item>
-            <n-checkbox v-model:checked="form.rememberMe">记住密码</n-checkbox>
+            <n-checkbox v-model:checked="form.rememberMe">保持登录</n-checkbox>
           </n-form-item>
-          <n-spin :show="spinShow">
-            <n-form-item :show-feedback="false">
-              <n-button type="primary" class="login-button" style="width: 100%" @click="handleLogin"
-                >登录</n-button
-              >
-            </n-form-item>
-          </n-spin>
+          <n-form-item :show-feedback="false">
+            <n-button
+              type="primary"
+              attr-type="submit"
+              class="login-button"
+              style="width: 100%"
+              :loading="spinShow"
+              :disabled="captchaLoading || !form.uuid"
+              >登录</n-button
+            >
+          </n-form-item>
         </n-form>
       </n-card>
       <n-el class="copyright">{{ systemSetting.copyright }}</n-el>

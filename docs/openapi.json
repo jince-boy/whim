@@ -2498,7 +2498,7 @@
         ],
         "summary": "用户登录并返回认证信息。",
         "operationId": "login",
-        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "description": "验证码和登录无需登录。验证码按 UUID 和客户端地址一次性校验，有效期 120 秒；缓存不存在（包括已过期或已使用）时返回“验证码已过期，请刷新后重试”，有效验证码答案不匹配时返回“验证码不正确，请重新输入”。验证码校验失败均返回 HTTP 400，Result.code 为 400。",
         "parameters": [],
         "security": [],
         "responses": {
@@ -2518,6 +2518,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResult"
+                },
+                "examples": {
+                  "captchaExpired": {
+                    "summary": "验证码已过期",
+                    "value": {
+                      "code": 400,
+                      "message": "验证码已过期，请刷新后重试",
+                      "data": null,
+                      "success": false
+                    }
+                  },
+                  "captchaIncorrect": {
+                    "summary": "验证码不正确",
+                    "value": {
+                      "code": 400,
+                      "message": "验证码不正确，请重新输入",
+                      "data": null,
+                      "success": false
+                    }
+                  }
                 }
               }
             }

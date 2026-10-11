@@ -106,15 +106,18 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     /**
-     * 根据 UUID 和客户端地址一次性取出验证码并校验答案。
+     * 根据 UUID 和客户端地址一次性取出验证码，分别提示过期和答案错误。
      *
      * @param loginDTO      登录参数
      */
     private void validateCaptcha(AuthLoginDTO loginDTO) {
         String captchaKey = CAPTCHA_KEY_PREFIX + loginDTO.getUuid() + ":" + IPUtils.getClientIpAddress();
         String expected = RedisUtils.takeCacheObject(captchaKey);
-        if (expected == null || !expected.equalsIgnoreCase(loginDTO.getCaptchaCode())) {
-            throw new IllegalArgumentException("验证码错误或已过期，请刷新后重试");
+        if (expected == null) {
+            throw new IllegalArgumentException("验证码已过期，请刷新后重试");
+        }
+        if (!expected.equalsIgnoreCase(loginDTO.getCaptchaCode())) {
+            throw new IllegalArgumentException("验证码不正确，请重新输入");
         }
     }
 
