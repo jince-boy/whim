@@ -76,16 +76,37 @@ const {
                   <n-icon :component="captchaIcon" />
                 </template>
               </n-input>
-              <n-image
-                width="100"
-                height="34"
-                :src="captcha"
-                preview-disabled
-                lazy
+              <button
+                type="button"
                 class="captcha"
-                alt="验证码"
+                aria-label="刷新验证码"
+                :aria-busy="captchaLoading"
+                :disabled="captchaLoading || spinShow"
                 @click="getCaptcha"
-              />
+              >
+                <n-image
+                  v-if="captcha"
+                  :src="captcha"
+                  width="100"
+                  height="34"
+                  alt="验证码"
+                  preview-disabled
+                  class="captcha-image"
+                  :class="{ 'captcha-image-loading': captchaLoading }"
+                >
+                  <template #placeholder>
+                    <n-skeleton width="100px" height="34px" />
+                  </template>
+                  <template #error>
+                    <span class="captcha-retry">点击重试</span>
+                  </template>
+                </n-image>
+                <n-skeleton v-else-if="captchaLoading" width="100px" height="34px" />
+                <span v-else class="captcha-retry">点击重试</span>
+                <span v-if="captcha && captchaLoading" class="captcha-loading" aria-hidden="true">
+                  <n-spin :size="16" />
+                </span>
+              </button>
             </n-space>
           </n-form-item>
           <n-form-item>
@@ -152,8 +173,51 @@ const {
   }
 
   .captcha {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 34px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 4px;
+    background: #f3f5f7;
     vertical-align: middle;
     cursor: pointer;
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #18a058;
+      outline-offset: 2px;
+    }
+  }
+
+  .captcha-image {
+    display: block;
+    width: 100px;
+    height: 34px;
+
+    &.captcha-image-loading {
+      opacity: 0.4;
+    }
+  }
+
+  .captcha-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .captcha-retry {
+    color: #767c82;
+    font-size: 12px;
   }
 
   .mock-hint {

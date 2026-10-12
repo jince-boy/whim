@@ -68,25 +68,36 @@ export function useLogin() {
       spinShow.value = false
     }
   }
-  /** 加载验证码图片并清空旧答案，合并连续点击刷新。 */
+  /** 预加载验证码后替换图片，刷新期间保留旧图并禁止提交。 */
   const getCaptcha = async () => {
     if (captchaLoading.value) return
     captchaLoading.value = true
     form.uuid = ''
     form.captchaCode = ''
-    captcha.value = ''
     try {
       const res = await fetchCaptcha()
       if (res.code !== 200) {
+        captcha.value = ''
         message.error(res.message)
         return
       }
-      form.uuid = res.data.uuid
-      captcha.value = res.data.image.startsWith('data:')
+      const imageSource = res.data.image.startsWith('data:')
         ? res.data.image
         : `data:image/gif;base64,${res.data.image}`
+      const image = new Image()
+      image.src = imageSource
+      try {
+        await image.decode()
+      } catch {
+        captcha.value = ''
+        message.error('验证码图片加载失败，请点击重试')
+        return
+      }
+      captcha.value = imageSource
+      form.uuid = res.data.uuid
     } catch {
-      // 公共请求封装已提示错误，保持空验证码以阻止无效提交。
+      // 公共请求封装已提示错误，显示重试入口并阻止无效提交。
+      captcha.value = ''
     } finally {
       captchaLoading.value = false
     }
