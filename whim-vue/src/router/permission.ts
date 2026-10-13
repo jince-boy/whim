@@ -1,50 +1,53 @@
 import router from '@/router'
-import { useAuthStore } from '@/stores/modules/auth.ts'
-import { useUserStore } from '@/stores/modules/user.ts'
-import { usePermissionStore } from '@/stores/modules/permission.ts'
-import systemSetting from '@/config/SystemSetting.ts'
+import { useAuthStore } from '@/stores/modules/auth'
+import { useUserStore } from '@/stores/modules/user'
+import { usePermissionStore } from '@/stores/modules/permission'
+import { useTabStore } from '@/stores/modules/tab'
+import systemSetting from '@/config/SystemSetting'
 import { isMockEnabled } from '@/api'
 
-// 不需要登录的白名单
-const whiteList = ['/login']
-
+/** 用户与导航完成初始化后重新匹配深链接，错误不能留下半套动态路由。 */
 router.beforeEach(async (to) => {
-  const authStore = useAuthStore()
-  // 切换真实后端时清除旧演示令牌，避免误判为已登录。
-  if (!isMockEnabled && authStore.token?.startsWith('mock-')) authStore.logout()
-  window['$loadingBar'].start()
+  window.$loadingBar?.start()
+  const auth = useAuthStore()
+  const user = useUserStore()
+  const navigation = usePermissionStore()
+  if (!isMockEnabled && auth.token?.startsWith('mock-')) auth.logout()
+  if (!auth.isLogin)
+    return to.path === '/login'
+      ? true
+      : { path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } }
+  const token = auth.getToken
+  try {
+    if (!user.hasUserInfo) await user.getUserInfo()
+    if (!auth.isLogin) return '/login'
+    if (!navigation.initialized) {
+      await navigation.loadMenus()
+      if (!auth.isLogin) return '/login'
+      return to.fullPath
+    }
+  } catch {
+    // 已取消的旧会话请求不能清理新账号已经加载的导航。
+    if (auth.getToken !== token) return false
+    auth.logout()
+    return { path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } }
+  }
+  return to.path === '/login' ? '/index' : true
+})
+
+/** 标签激活、浏览器标题和进度条在导航真正完成后统一更新。 */
+router.afterEach((to, _from, failure) => {
+  window.$loadingBar?.finish()
+  if (failure) return
   document.title = to.meta.title ? `${systemSetting.title}-${to.meta.title}` : systemSetting.title
-  if (useAuthStore().isLogin) {
-    if (to.path === '/login') {
-      return '/'
-    } else {
-      if (!isMockEnabled) {
-        // 本轮只接登录、退出，真实会话使用静态首页，不调用旧用户信息接口。
-        if (!usePermissionStore().menus.length) usePermissionStore().generateMenus()
-      } else if (!useUserStore().hasUserInfo) {
-        await useUserStore().getUserInfo()
-        usePermissionStore().generateRoutes(useUserStore().menus)
-        usePermissionStore().getDynamicRoutes.forEach((route) => {
-          router.addRoute('Layout', route)
-        })
-        usePermissionStore().generateMenus()
-        return to.fullPath
-      }
-      return true
-    }
-  } else {
-    if (whiteList.includes(to.path)) {
-      return true
-    } else {
-      return {
-        path: '/login',
-        // 保存我们所在的位置，以便以后再来
-        query: { redirect: encodeURIComponent(to.fullPath || '/') },
-      }
-    }
+  if (
+    to.path !== '/login' &&
+    typeof to.name === 'string' &&
+    to.meta.title &&
+    to.name !== 'NotFound'
+  ) {
+    useTabStore().visitRoute(to)
   }
 })
-
-router.afterEach(() => {
-  window['$loadingBar'].finish()
-})
+/** 懒加载或路由错误也必须结束进度提示。 */
+router.onError(() => window.$loadingBar?.error())

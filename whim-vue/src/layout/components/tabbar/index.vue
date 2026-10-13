@@ -1,183 +1,23 @@
 <script setup lang="ts">
-import { useIcon } from '@/components/icon/useIcon.ts'
-import type { ScrollbarInst, DropdownOption } from 'naive-ui'
-import { useThemeVars } from 'naive-ui'
-import { useTabStore } from '@/stores/modules/tab.ts'
-import type { TabState } from '@/stores/type.ts'
-import { useThemeStore } from '@/stores/modules/theme.ts'
-
-defineOptions({
-  name: 'LayoutTabBar',
-})
-
-const emit = defineEmits<{
-  fullScreen: []
-  refresh: []
-}>()
-const { createIcon } = useIcon()
-const themeStore = useThemeStore()
-const themeVars = useThemeVars()
-const tabContentBackground = computed(
-  () => themeStore.getThemeOverrides.Layout?.colorEmbedded ?? themeVars.value.bodyColor,
-)
-const router = useRouter()
-const tabStore = useTabStore()
-const clickedTab = ref<TabState | null>(null)
-
-const scrollbar = useTemplateRef<ScrollbarInst>('scrollbar')
-
-const showDropdown = ref(false)
-const x = ref(0)
-const y = ref(0)
-
-const dropdownOptions = computed<DropdownOption[]>(() => {
-  const isSelf = clickedTab.value?.focused
-  return [
-    {
-      label: '内容全屏',
-      key: 'fullscreen',
-      icon: createIcon('full-screen'),
-      disabled: !isSelf,
-    },
-    {
-      type: 'divider',
-      key: 'd1',
-    },
-    {
-      label: '刷新当前',
-      key: 'refreshCurrent',
-      icon: createIcon('refresh-2'),
-      disabled: !isSelf,
-    },
-    {
-      label: '关闭当前',
-      key: 'closeCurrent',
-      icon: createIcon('add-3'),
-      disabled: !clickedTab.value?.closeable,
-    },
-    {
-      label: '关闭其他',
-      key: 'closeOther',
-      icon: createIcon('guanbiqita'),
-    },
-    {
-      label: '关闭左侧',
-      key: 'closeLeft',
-      icon: createIcon('d-left'),
-    },
-    {
-      label: '关闭右侧',
-      key: 'closeRight',
-      icon: createIcon('d-right'),
-    },
-    {
-      label: '关闭全部',
-      key: 'closeAll',
-      icon: createIcon('closure'),
-    },
-  ]
-})
-
-/**
- * 右击按钮弹出菜单
- */
-const handleContextMenu = (e: MouseEvent, tab: TabState) => {
-  e.preventDefault()
-  clickedTab.value = tab
-  showDropdown.value = false
-  nextTick().then(() => {
-    showDropdown.value = true
-    x.value = e.clientX
-    y.value = e.clientY
-  })
-}
-
-/**
- * 弹出菜单之后点击区域外部时
- */
-const onClickOutside = () => {
-  showDropdown.value = false
-}
-
-/**
- * 菜单项点击事件
- * @param key
- */
-const handleSelect = (key: string | number) => {
-  showDropdown.value = false
-  const clicked = clickedTab.value
-  if (!clicked) return
-  switch (key) {
-    case 'fullscreen':
-      emit('fullScreen')
-      break
-    case 'refreshCurrent':
-      emit('refresh')
-      break
-    case 'closeCurrent':
-      tabStore.closeTab(clicked.name)
-      break
-    case 'closeOther':
-      tabStore.closeOtherTabs(clicked.name)
-      break
-    case 'closeLeft':
-      tabStore.closeLeftTabs(clicked.name)
-      break
-    case 'closeRight':
-      tabStore.closeRightTabs(clicked.name)
-      break
-    case 'closeAll':
-      tabStore.closeAllTabsExceptHome()
-      break
-  }
-  // 关闭后，确保聚焦的 tab 路由跳转
-  const focusedTab = tabStore.getAllTabs.find((t) => t.focused)
-  if (focusedTab && router.currentRoute.value.name !== focusedTab.name) {
-    router.push(focusedTab.path)
-  }
-  clickedTab.value = null
-}
-
-/**
- * 点击标签页
- * @param path
- */
-const handleTabClick = (path: string) => {
-  router.push(path)
-}
-
-/**
- * 关闭标签页的方法
- * @param tabName
- */
-const handleCloseTab = (tabName: string) => {
-  // 先关闭标签页(更新状态)
-  tabStore.closeTab(tabName)
-  // 找到聚焦的标签页
-  const focusedTab = tabStore.getAllTabs.find((tab) => tab.focused)
-  if (focusedTab) {
-    router.push(focusedTab.path)
-  }
-}
-
-/**
- * 滚动标签页
- * @param type
- */
-const handleScroll = (type: string) => {
-  if (type === 'left') {
-    scrollbar.value?.scrollBy({
-      left: -200,
-      behavior: 'smooth',
-    })
-  }
-  if (type === 'right') {
-    scrollbar.value?.scrollBy({
-      left: 200,
-      behavior: 'smooth',
-    })
-  }
-}
+import { useTabBar } from './hooks/useTabBar'
+defineOptions({ name: 'LayoutTabBar' })
+const emit = defineEmits<{ fullScreen: []; refresh: [] }>()
+const {
+  createIcon,
+  themeStore,
+  tabContentBackground,
+  tabStore,
+  showDropdown,
+  x,
+  y,
+  dropdownOptions,
+  handleContextMenu,
+  onClickOutside,
+  handleSelect,
+  handleTabClick,
+  handleCloseTab,
+  handleScroll,
+} = useTabBar(emit)
 </script>
 
 <template>

@@ -5,6 +5,7 @@ import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysRoleMapper;
+import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.mapper.SysRolePermissionMapper;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.entity.SysRole;
@@ -36,6 +37,7 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     private final ISysPermissionService permissionService;
     private final ISysRolePermissionDeptService permissionDeptService;
     private final SysRoleMapper roleMapper;
+    private final SysPermissionMapper permissionMapper;
     private final SysAuthorizationService authorizationService;
     private final AuthenticationSession authenticationSession;
     private final AuthenticationContext authenticationContext;
@@ -54,6 +56,8 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     @Transactional(rollbackFor = Exception.class)
     public void replacePermissions(Long roleId, Set<Long> permissionIds) {
         authorizationService.requirePermission("system:rolePermission:assign");
+        // 与目录删除共享锁，不能把角色授权提交到已删除的权限节点。
+        if (permissionMapper.lockMenuCatalog() == null) throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
         SysRole role = roleService.getRequiredRole(roleId);
         authorizationService.requireMutableRole(role);
         if (role.getStatus() != 0) {

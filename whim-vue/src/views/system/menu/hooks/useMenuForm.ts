@@ -1,87 +1,132 @@
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst } from 'naive-ui'
-import { MenuType, type Menu, type MenuFormProps, type MenuItem } from './types'
+import {
+  MenuType,
+  menuTypeOptions,
+  type MenuFormProps,
+  type MenuSave,
+  type MenuItem,
+} from './types'
+import { componentOptions } from '@/utils/navigation'
+import { useUserStore } from '@/stores/modules/user'
+import { createMenuRules } from './rule'
 
-/** 管理独立的菜单编辑草稿、父节点选项和类型切换。 */
+/** 编辑草稿与列表隔离，父节点选项排除自身、后代及不匹配的节点类型。 */
 export function useMenuForm(props: MenuFormProps) {
   const formRef = useTemplateRef<FormInst>('formRef')
-  const defaultFormModel: Menu = {
-    id: '',
-    name: '',
-    title: '',
+  const user = useUserStore()
+  const defaults: MenuSave = {
     parentId: '0',
-    type: MenuType.DIRECTORY,
+    menuName: '',
+    menuType: MenuType.DIRECTORY,
+    routeName: '',
     path: '',
-    queryParam: '',
-    component: '',
-    keepAlive: 0,
+    component: null,
+    param: null,
+    perms: null,
+    dataPermission: 0,
+    isCache: 0,
     sort: 0,
-    code: '',
+    icon: null,
     visible: 0,
     status: 0,
-    icon: '',
-    redirect: '',
-    remark: '',
+    remark: null,
   }
-  const formModel = ref<Menu>({ ...defaultFormModel, ...props.initialModel })
-  const extendedData = computed(
-    () =>
-      props.extendedData ?? {
-        menuTypeDict: [],
-        sysShowStatusDict: [],
-        sysRunStatusDict: [],
-        sysMenuKeepAliveStatus: [],
-        menuData: [],
-      },
-  )
-  const fieldClearConfig: Record<MenuType, Partial<Menu>> = {
-    [MenuType.DIRECTORY]: { code: '', redirect: '', queryParam: '', component: '', keepAlive: 0 },
-    [MenuType.MENU]: { code: '', redirect: '' },
-    [MenuType.BUTTON]: {
-      name: '',
-      path: '',
-      queryParam: '',
-      component: '',
-      keepAlive: 0,
-      icon: '',
-      redirect: '',
-      visible: 0,
-    },
-    [MenuType.EXTERNAL]: { code: '', queryParam: '', component: '', keepAlive: 0 },
-  }
-
-  /** 递归保留允许作为父节点的目录和菜单。 */
-  const filterMenuByType = (menus: MenuItem[]): MenuItem[] =>
-    menus
-      .filter((menu) => menu.type === MenuType.DIRECTORY || menu.type === MenuType.MENU)
-      .map((menu) => {
-        const children = menu.children?.length ? filterMenuByType(menu.children) : undefined
-        return { ...menu, children: children?.length ? children : undefined }
+  const formModel = ref<MenuSave>({ ...defaults })
+  const builtIn = computed(() => props.initialModel?.builtIn === 1)
+  const semanticsLocked = computed(() => builtIn.value || !user.roleCode.includes('superadmin'))
+  const parentOptions = computed(() => {
+    /** 排除整个当前子树，仅目录可容纳导航，页面可容纳按钮。 */
+    const filter = (nodes: MenuItem[]): object[] =>
+      nodes.flatMap((node) => {
+        if (String(node.id) === String(props.initialModel?.id)) return []
+        const allowed = formModel.value.menuType === 3 ? node.menuType === 2 : node.menuType === 1
+        const children = filter(node.children ?? [])
+        if (!allowed && !children.length) return []
+        return [
+          {
+            label: node.menuName,
+            key: String(node.id),
+            disabled: !allowed,
+            children: children.length ? children : undefined,
+          },
+        ]
       })
-
-  const menuData = computed(() => [
-    {
-      title: '顶级菜单',
-      id: '0',
-      type: MenuType.DIRECTORY,
-      children: filterMenuByType(extendedData.value.menuData),
-    } as MenuItem,
-  ])
-
-  /** 类型切换时清理无关字段，保留当前草稿内已编辑的其他字段。 */
-  const clearUnrelatedFields = (newType: MenuType) => {
-    formModel.value = { ...formModel.value, ...fieldClearConfig[newType], type: newType }
+    const nodes = filter(props.extendedData?.menuData ?? [])
+    return formModel.value.menuType === 3
+      ? nodes
+      : [{ label: '顶级菜单', key: '0', children: nodes }]
+  })
+  /** 类型切换只清理不适用字段，不重置已经填写的标题和排序。 */
+  function changeType(type: MenuType) {
+    if (type === 1 || type === 4) {
+      formModel.value.perms = null
+      formModel.value.dataPermission = 0
+    }
+    if (type !== 2) {
+      formModel.value.component = null
+      formModel.value.param = null
+      formModel.value.isCache = 0
+    }
+    if (type === 3 || type === 4) formModel.value.routeName = null
+    formModel.value.path = ''
+    formModel.value.parentId = '0'
+    formRef.value?.restoreValidation()
   }
-
-  // 当前模型字段均为标量；初始值与父节点变化时创建新的草稿。
   watch(
-    [() => props.initialModel, () => props.extendedData?.parentId],
-    ([model, parentId]) => {
-      formModel.value = { ...defaultFormModel, ...model }
-      if (parentId !== undefined) formModel.value.parentId = parentId
-      formRef.value?.restoreValidation()
+    () => props.initialModel,
+    (model) => {
+      // 只复制请求字段，id、children、builtIn等服务端元数据不进入提交体。
+      const values = model
+        ? Object.fromEntries(
+            Object.keys(defaults).map((key) => [key, model[key as keyof MenuSave]]),
+          )
+        : {}
+      formModel.value = {
+        ...defaults,
+        ...values,
+        parentId: String(model?.parentId ?? props.extendedData?.parentId ?? '0'),
+      }
+      const parent = props.extendedData?.menuData
+      if (!model && parent) {
+        /** 查找预选父节点，页面下新增默认创建按钮权限。 */
+        const find = (nodes: MenuItem[]): MenuItem | undefined => {
+          for (const node of nodes) {
+            if (String(node.id) === String(formModel.value.parentId)) return node
+            const child = find(node.children ?? [])
+            if (child) return child
+          }
+        }
+        if (find(parent)?.menuType === 2) formModel.value.menuType = MenuType.BUTTON
+      }
     },
     { immediate: true },
   )
-
-  return { formRef, formModel, extendedData, menuData, clearUnrelatedFields }
+  const rules = createMenuRules(formModel)
+  const showStatusOptions = [
+    { label: '显示', value: 0 },
+    { label: '隐藏', value: 1 },
+  ]
+  const runStatusOptions = [
+    { label: '启用', value: 0 },
+    { label: '停用', value: 1 },
+  ]
+  const cacheStatusOptions = [
+    { label: '不缓存', value: 0 },
+    { label: '缓存', value: 1 },
+  ]
+  return {
+    formRef,
+    formModel,
+    builtIn,
+    semanticsLocked,
+    parentOptions,
+    componentOptions,
+    menuTypeOptions,
+    rules,
+    showStatusOptions,
+    runStatusOptions,
+    cacheStatusOptions,
+    changeType,
+  }
 }

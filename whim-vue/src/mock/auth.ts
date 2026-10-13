@@ -1,7 +1,7 @@
 import authData from './data/auth.json'
-import { buildMenuTree } from './menu'
 import { currentTime, fail, success, type MockParams } from './utils'
 import { database, persistDatabase } from './database'
+import type { UserInfoResult } from '@/stores/modules/user/types'
 
 const captchaExpiresAt = new Map<string, number>()
 
@@ -65,9 +65,19 @@ export function requireMockLogin(authorization: unknown): void {
 /** 返回测试用户及当前可用菜单，隐藏按钮、禁用菜单和隐藏字典详情路由。 */
 export function getMockUserInfo() {
   return success({
-    user: authData.user,
-    roleCode: authData.roleCode,
-    permissionCode: authData.permissionCode,
-    menus: buildMenuTree(database.menus.filter((menu) => menu.type !== 3 && menu.status === 0)),
-  })
+    userId: authData.user.id,
+    username: authData.user.username,
+    name: authData.user.name,
+    avatar: authData.user.avatar,
+    deptId: authData.user.deptId,
+    loginType: 'system',
+    roleCodeSet: ['superadmin'],
+    permissionCodeSet: authData.permissionCode,
+    roleInfoList: authData.user.roles.map((role) => ({
+      roleId: role.id,
+      roleName: role.name,
+      roleCode: 'superadmin',
+      dataScope: role.dataScope,
+    })),
+  } satisfies UserInfoResult)
 }

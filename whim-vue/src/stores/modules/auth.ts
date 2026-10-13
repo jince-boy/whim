@@ -54,6 +54,11 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     /** 保存后端令牌和账号；保持登录时持久化，否则仅保存于当前会话。 */
     login(result: LoginResult, rememberMe: boolean, username: string) {
+      // 新登录会话不能复用上一账号的授权、导航和页面实例。
+      usePermissionStore().resetRouter()
+      useUserStore().$reset()
+      useTabStore().$reset()
+      useKeepAliveStore().clearKeepAlive()
       this.token = result.accessToken
       this.tokenType = result.tokenType
       this.username = username

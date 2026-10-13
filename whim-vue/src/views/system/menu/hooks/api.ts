@@ -1,27 +1,16 @@
 import { request, RequestMethod } from '@/api'
-import type { MenuItem } from './types'
-
-/** 查询菜单列表。 */
-export const fetchMenuList = (params?: object) => {
-  return request<MenuItem[]>('/system/menu/list', RequestMethod.GET, { params })
-}
-
-/** 查询菜单详情。 */
-export const fetchMenuDetail = (params: object) => {
-  return request('/system/menu/detail', RequestMethod.GET, { params })
-}
-
-/** 新增菜单。 */
-export const insertMenu = (data: object) => {
-  return request('/system/menu/add', RequestMethod.POST, { data })
-}
-
-/** 修改菜单。 */
-export const updateMenu = (data: object) => {
-  return request('/system/menu/update', RequestMethod.PUT, { data })
-}
-
-/** 删除菜单。 */
-export const deleteMenu = (params: object) => {
-  return request('/system/menu/delete', RequestMethod.DELETE, { params })
-}
+import type { MenuId, MenuItem, MenuSave } from './types'
+/** 查询完整管理树或保留祖先的搜索结果。 */
+export const fetchMenuList = (params?: { menuName?: string }) =>
+  request<MenuItem[]>('/system/menu', RequestMethod.GET, { params })
+/** 获取编辑详情。 */
+export const fetchMenuDetail = (id: MenuId) =>
+  request<MenuItem>(`/system/menu/${id}`, RequestMethod.GET)
+/** 新建节点。 */
+export const insertMenu = (data: MenuSave) =>
+  request<MenuId>('/system/menu', RequestMethod.POST, { data })
+/** 更新完整配置。 */
+export const updateMenu = (id: MenuId, data: MenuSave) =>
+  request<void>(`/system/menu/${id}`, RequestMethod.PUT, { data })
+/** 删除无引用的自定义节点。 */
+export const deleteMenu = (id: MenuId) => request<void>(`/system/menu/${id}`, RequestMethod.DELETE)

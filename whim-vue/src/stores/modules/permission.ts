@@ -1,96 +1,73 @@
-import type { MenuItem } from '@/stores/type.ts'
+import { defineStore } from 'pinia'
+import { markRaw } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 import router, { constantRouter } from '@/router'
-import { buildMenus, type SafeMenuOption } from '@/utils/menu'
-import type { MenuOption } from 'naive-ui'
+import type { MenuItem } from '@/views/system/menu/hooks/types'
+import { fetchUserMenus } from './permission/api'
+import { useAuthStore } from './auth'
+import { buildNavigationRoutes } from '@/utils/navigation'
+import { buildMenus, buildUserMenus, type SafeMenuOption } from '@/utils/menu'
+let pendingMenus: { token: string | null; request: Promise<void> } | undefined
 
-const modules = import.meta.glob('@/views/**/*.vue')
 export const usePermissionStore = defineStore('permission', {
+  /** 菜单树是导航唯一来源，加载完成前不放行受保护路由。 */
   state: () => ({
+    sourceMenus: [] as MenuItem[],
     dynamicRoutes: [] as RouteRecordRaw[],
     menus: [] as SafeMenuOption[],
+    initialized: false,
   }),
   getters: {
-    getDynamicRoutes(state): RouteRecordRaw[] {
-      return state.dynamicRoutes
-    },
-    getMenus(state): MenuOption[] {
-      return state.menus
-    },
+    /** 布局的统一菜单入口。 */
+    getMenus: (state) => state.menus,
   },
   actions: {
-    /**
-     * 生成动态路由
-     * @param menus
-     */
-    generateRoutes(menus: MenuItem[]) {
-      // 内部递归方法，真正构建路由
-      const buildRoutes = (menus: MenuItem[]): RouteRecordRaw[] => {
-        const result: RouteRecordRaw[] = []
-        menus.forEach((menu) => {
-          const route: RouteRecordRaw = {
-            path: menu.path || `external-${menu.id}`, // 如果没有path，使用id生成
-            name: menu.name || `external-${menu.id}`, // 如果没有name，使用id生成
-            props: true,
-            meta: {
-              title: menu.title,
-              keepAlive: menu.keepAlive !== 0,
-              isMenu: true,
-              isShow: menu.visible !== 1,
-              isExternal: false,
-              icon: menu.icon,
-            },
-            children: [],
-          }
-          if (menu.component) {
-            route.component = modules[`/src/views/${menu.component}.vue`]
-          } else {
-            if (menu.redirect) {
-              route.meta!.link = menu.redirect
-              route.meta!.isExternal = true
-            }
-            route.redirect = 'no-found'
-          }
-          if (menu.children && menu.children.length > 0) {
-            route.children = buildRoutes(menu.children)
-          }
-          result.push(route)
-        })
-        return result
+    /** 合并并发初始化，并在注册成功后标记完成。 */
+    async loadMenus() {
+      if (this.initialized) return
+      const token = useAuthStore().getToken
+      if (pendingMenus?.token === token) return pendingMenus.request
+      const request = (async () => {
+        const res = await fetchUserMenus()
+        if (token !== useAuthStore().getToken) throw new Error('登录会话已变更')
+        if (res.code !== 200) {
+          window.$message?.error(res.message)
+          throw new Error(res.message || '菜单获取失败')
+        }
+        const routes = buildNavigationRoutes(res.data)
+        this.resetRouter()
+        for (const route of routes) {
+          if (router.hasRoute(route.name!)) throw new Error('菜单路由名称与现有路由冲突')
+          router.addRoute('Layout', route)
+          this.dynamicRoutes.push(markRaw(route))
+        }
+        this.sourceMenus = res.data
+        this.menus = [...buildMenus(constantRouter), ...buildUserMenus(res.data)]
+        this.initialized = true
+      })()
+      pendingMenus = { token, request }
+      try {
+        await request
+      } finally {
+        if (pendingMenus?.request === request) pendingMenus = undefined
       }
-
-      // 外层调用：生成并赋值
-      this.dynamicRoutes = buildRoutes(menus)
     },
-    /**
-     * 重置路由
-     */
+    /** 清理本次注册的所有路由，避免账号切换遗留权限入口。 */
     resetRouter() {
-      // 递归删除路由的方法
-      const removeRoutes = (routes: RouteRecordRaw[]) => {
-        routes.forEach((route) => {
-          if (route.name && typeof route.name === 'string') {
-            router.removeRoute(route.name)
-          }
-          if (route.children && route.children.length > 0) {
-            removeRoutes(route.children)
-          }
-        })
-      }
-      // 删除当前记录的动态路由
-      removeRoutes(this.dynamicRoutes)
-      // 清空动态路由记录
+      for (const route of this.dynamicRoutes) if (route.name) router.removeRoute(route.name)
+      this.sourceMenus = []
       this.dynamicRoutes = []
       this.menus = []
+      this.initialized = false
     },
-    /**
-     * 生成菜单
-     */
-    generateMenus() {
-      this.menus = [
-        ...buildMenus(constantRouter),
-        ...buildMenus(this.dynamicRoutes),
-      ] as SafeMenuOption[]
+    /** 保存后重载导航、移除失效标签并重新匹配当前页。 */
+    async reloadMenus() {
+      this.initialized = false
+      await this.loadMenus()
+      const { useTabStore } = await import('./tab')
+      useTabStore().retainRoutes()
+      const current = router.currentRoute.value.fullPath
+      await router.replace(router.resolve(current).name === 'NotFound' ? '/index' : current)
     },
   },
 })

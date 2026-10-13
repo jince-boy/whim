@@ -1,4 +1,5 @@
 import 'vue-router'
+import type { BreadcrumbItem } from './navigation'
 
 // 为了确保这个文件被当作一个模块，添加至少一个 `export` 声明
 export {}
@@ -13,5 +14,7 @@ declare module 'vue-router' {
     link?: string
     icon?: string
     visible?: 0 | 1
+    breadcrumbs?: BreadcrumbItem[]
+    menuKey?: string
   }
 }

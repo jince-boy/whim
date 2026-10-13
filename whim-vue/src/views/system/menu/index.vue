@@ -4,7 +4,7 @@ import { useMenu } from '@/views/system/menu/hooks/useMenu.ts'
 import WhimTable from '@/components/table/WhimTable.vue'
 
 defineOptions({
-  name: 'SysPermission',
+  name: 'SysMenu',
 })
 
 const {
@@ -16,6 +16,7 @@ const {
   tableColumns,
   expandedRowKeys,
   openAddDialog,
+  canCreate,
 } = useMenu()
 </script>
 
@@ -29,8 +30,8 @@ const {
       @reset="handleReset"
     >
       <template #form>
-        <n-form-item-gi label="菜单名称" path="form.title">
-          <n-input v-model:value="form.title" placeholder="请输入菜单名称" clearable />
+        <n-form-item-gi label="菜单名称" path="form.menuName">
+          <n-input v-model:value="form.menuName" placeholder="请输入菜单名称" clearable />
         </n-form-item-gi>
       </template>
     </SearchForm>
@@ -42,11 +43,12 @@ const {
       :striped-button-show="false"
       :delete-button-show="false"
       :edit-button-show="false"
-      :add-button-permission="['system:menu:add']"
+      :add-button-show="canCreate"
+      :add-button-permission="['system:menu:create']"
       :export-button-permission="['system:menu:export']"
       v-model:expanded-row-keys="expandedRowKeys"
       @refresh="getMenuList"
-      @add="openAddDialog"
+      @add="openAddDialog()"
     >
     </WhimTable>
   </n-space>

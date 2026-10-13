@@ -45,22 +45,25 @@ export function useLogin() {
         return
       }
       authStore.login(res.data, form.rememberMe, form.username)
-      message.success(res.message)
       let target = '/index'
-      if (isMockEnabled) {
-        const redirect = router.currentRoute.value.query.redirect
-        if (typeof redirect === 'string') {
-          try {
-            const path = decodeURIComponent(redirect)
-            if (path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/login')) {
-              target = path
-            }
-          } catch {
-            // 无效跳转参数使用首页。
+      const redirect = router.currentRoute.value.query.redirect
+      if (typeof redirect === 'string') {
+        try {
+          const path = decodeURIComponent(redirect)
+          if (path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/login')) {
+            target = path
           }
+        } catch {
+          // 无效跳转参数使用首页。
         }
       }
       await router.replace(target)
+      if (router.currentRoute.value.path === '/login') {
+        // 用户信息初始化失败时，重新获取已被登录请求消费的验证码。
+        await getCaptcha()
+        return
+      }
+      message.success(res.message)
     } catch {
       // 请求错误由公共拦截器提示；仅未完成登录时刷新验证码。
       if (!authStore.isLogin) await getCaptcha()

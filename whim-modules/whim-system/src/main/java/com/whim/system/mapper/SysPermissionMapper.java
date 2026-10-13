@@ -22,5 +22,12 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     /** 查询权限变更需要撤销会话的账号。 */
     @DataPermissionMetadata
     Set<Long> selectUserIdSetByPermissionId(@Param("permissionId") Long permissionId);
+
+    /** 按有效角色查询直接获得的菜单节点，不展开目录授权。 */
+    @DataPermissionMetadata
+    Set<Long> selectGrantedMenuIds(@Param("userId") Long userId);
+
+    /** 串行化菜单树修改，避免并发迁移生成循环或重复路由。 */
+    Long lockMenuCatalog();
 }
 

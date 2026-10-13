@@ -3,7 +3,7 @@ import dictTypeData from './data/dictTypes.json'
 import dictData from './data/dictData.json'
 import loginLogData from './data/loginLogs.json'
 import operLogData from './data/operLogs.json'
-import type { Menu } from '@/views/system/menu/hooks/types'
+import type { MenuItem, MenuType } from '@/views/system/menu/hooks/types'
 import type { DictTypeResult } from '@/views/system/dictType/hooks/types'
 import type { DictDataResult } from '@/views/system/dictData/hooks/types'
 import type { LoginLog } from '@/views/system/loginLog/hooks/types'
@@ -11,19 +11,50 @@ import type { OperLog } from '@/views/system/operLog/hooks/types'
 
 /** 本地模拟数据库，复用各功能的接口数据类型。 */
 export interface MockDatabase {
-  menus: (Menu & { createTime: string })[]
+  menus: MenuItem[]
   dictTypes: DictTypeResult[]
   dictData: DictDataResult[]
   loginLogs: LoginLog[]
   operLogs: OperLog[]
 }
 
-export const mockStorageKey = 'whim:mock:database:v1'
+export const mockStorageKey = 'whim:mock:database:v2'
+
+/** 将演示种子转换为后端字段及绝对路径，不向业务代码暴露旧模型。 */
+function initialMenus(): MenuItem[] {
+  const rows = new Map(menuData.map((node) => [node.id, node]))
+  /** 补齐旧种子的相对路径，外链继续使用有效URL。 */
+  const pathOf = (id: string): string => {
+    const node = rows.get(id)!
+    if (node.path.startsWith('/')) return node.path
+    return `${node.parentId !== '0' ? pathOf(node.parentId) : ''}/${node.path}`
+  }
+  return menuData.map((node) => ({
+    id: node.id,
+    parentId: node.parentId,
+    menuName: node.title,
+    menuType: node.type as MenuType,
+    routeName: node.type === 3 || node.type === 4 ? null : node.name,
+    path: node.type === 3 ? null : node.type === 4 ? node.redirect : pathOf(node.id),
+    component: node.type === 2 ? node.component : null,
+    param: node.queryParam || null,
+    perms: node.type === 2 || node.type === 3 ? node.code || `system:${node.path}:list` : null,
+    dataPermission: 0,
+    isCache: node.keepAlive as 0 | 1,
+    sort: node.sort,
+    icon: node.icon,
+    visible: node.visible as 0 | 1,
+    status: node.status as 0 | 1,
+    remark: node.remark,
+    builtIn: node.component === 'system/menu/index' || node.parentId === '0' ? 1 : 0,
+    createTime: node.createTime,
+  }))
+}
 
 /** 优先恢复当前标签页的数据；损坏的缓存回退到 JSON 初始数据。 */
 function loadDatabase(): MockDatabase {
   const initialData: MockDatabase = {
-    menus: menuData as MockDatabase['menus'],
+    menus: initialMenus(),
     dictTypes: dictTypeData,
     dictData: dictData as DictDataResult[],
     loginLogs: loginLogData,

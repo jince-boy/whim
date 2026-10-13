@@ -60,6 +60,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @Transactional(rollbackFor = Exception.class)
     public void setPermissionStatus(Long permissionId, Integer status) {
         authorizationService.requirePermission("system:permission:status");
+        if (baseMapper.lockMenuCatalog() == null) throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
@@ -72,6 +73,11 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         }
         if (status == 1 && "system:permission:status".equals(permission.getPerms())) {
             throw new IllegalArgumentException("不能停用权限状态管理操作");
+        }
+        if (status == 1 && permission.getBuiltIn() == 1
+                && (permission.getParentId() == 0 || permission.getPerms() != null
+                && permission.getPerms().startsWith("system:menu:"))) {
+            throw new IllegalArgumentException("不能停用内置菜单管理入口及其操作");
         }
         permission.setStatus(status);
         updateById(permission);

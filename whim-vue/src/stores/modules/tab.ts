@@ -1,104 +1,94 @@
 import { defineStore } from 'pinia'
-import { joinPaths } from '@/utils/menu'
-import { constantRouter } from '@/router'
-import type { TabState } from '@/stores/type.ts'
-import type { RouteRecordRaw } from 'vue-router'
+import router from '@/router'
+import type { RouteLocationNormalized } from 'vue-router'
+import type { TabState } from '@/stores/type'
 import { useKeepAliveStore } from './keepAlive'
 
+const homeTab: TabState = {
+  title: '首页',
+  path: '/index',
+  name: 'home',
+  icon: 'smile',
+  closeable: false,
+}
+
+/** 页面标签只保存访问记录，激活状态始终由真实路由派生。 */
 export const useTabStore = defineStore('tab', {
-  state: (): { tabs: TabState[] } => {
-    // 显式声明返回类型
-    const layoutRoute = constantRouter.find((route) => route.name === 'Layout') as RouteRecordRaw
-    const homeRoute = layoutRoute?.children?.find(
-      (child) => child.name === 'home',
-    ) as RouteRecordRaw
-    // 映射转换并添加closeable属性
-    const tabs = [
-      {
-        title: homeRoute?.meta?.title,
-        path: joinPaths(layoutRoute.path, homeRoute.path),
-        icon: homeRoute?.meta?.icon,
-        name: homeRoute?.name,
-        closeable: false,
-        focused: true,
-      },
-    ] as TabState[]
-    return {
-      tabs,
-    }
-  },
+  /** 首页固定，其他标签以路由名称标识，同一路由参数变化更新地址。 */
+  state: () => ({ tabs: [{ ...homeTab }] as TabState[] }),
   getters: {
-    // 获取所有tabs的getter
-    getAllTabs: (state) => state.tabs,
+    /** 标签是否激活由路由计算，避免关闭或浏览器后退时状态漂移。 */
+    getAllTabs: (state) =>
+      state.tabs.map((tab) => ({ ...tab, focused: router.currentRoute.value.name === tab.name })),
   },
   actions: {
-    /** 更新标签的最新地址和展示信息，并保留首页不可关闭的约定。 */
-    addTab(tab: TabState) {
-      // 接收不包含focused属性的对象
-      // 检查是否已存在相同name的tab
-      const existTab = this.tabs.find((item) => item.name === tab.name)
-      if (!existTab) {
-        // 添加新标签页，设置focused为true，其他标签页设置为false
-        this.tabs = this.tabs.map((t) => ({ ...t, focused: false }))
-        this.tabs.push({
-          ...tab,
-          focused: true, // 新添加的标签页设置为聚焦
-        })
-      } else {
-        // 同一路由共享一个标签，参数变化时同步最新地址。
-        this.tabs = this.tabs.map((t) => ({
-          ...t,
-          ...(t.name === tab.name ? { ...tab, closeable: t.closeable } : {}),
-          focused: t.name === tab.name,
-        }))
+    /** 导航成功后记录页面最新标题、查询参数和可关闭性。 */
+    visitRoute(route: RouteLocationNormalized) {
+      const tab: TabState = {
+        name: String(route.name),
+        title: route.meta.title || '页面',
+        path: route.fullPath,
+        icon: route.meta.icon || '',
+        closeable: route.name !== 'home',
       }
+      const index = this.tabs.findIndex((item) => item.name === tab.name)
+      if (index < 0) this.tabs.push(tab)
+      else this.tabs[index] = tab
     },
-    /** 关闭指定标签并清理缓存，关闭当前页时聚焦相邻标签。 */
-    closeTab(tabName: string) {
-      const index = this.tabs.findIndex((t) => t.name === tabName)
-      if (index === -1 || !this.tabs[index].closeable) return
-
-      const closingFocused = this.tabs[index].focused
-      this.tabs.splice(index, 1)
-
-      if (closingFocused && this.tabs.length) {
-        // 优先聚焦前一个tab，没有则聚焦第一个
-        const newFocusIndex = index - 1 >= 0 ? index - 1 : 0
-        this.tabs.forEach((t, i) => (t.focused = i === newFocusIndex))
+    /** 移除标签前确定实际当前页面；关闭当前页才导航到相邻保留页面。 */
+    async closeTabs(names: string[], preferredName?: string) {
+      const current = router.currentRoute.value.name
+      const index = this.tabs.findIndex((tab) => tab.name === current)
+      const retained = this.tabs.filter((tab) => !tab.closeable || !names.includes(tab.name))
+      const target =
+        retained.find((tab) => tab.name === current) ??
+        retained.find((tab) => tab.name === preferredName) ??
+        retained[Math.max(0, Math.min(index - 1, retained.length - 1))] ??
+        homeTab
+      if (!retained.some((tab) => tab.name === current)) {
+        await router.push(target.path)
+        if (router.currentRoute.value.name !== target.name) return
       }
-      useKeepAliveStore().retainKeepAlive(this.tabs.map((tab) => tab.name))
+      this.tabs = retained
+      useKeepAliveStore().retainKeepAlive(retained.map((tab) => tab.name))
     },
-    /** 关闭左侧可关闭标签，同时保留当前页并清理已关闭页面缓存。 */
-    closeLeftTabs(tabName: string) {
-      const idx = this.tabs.findIndex((t) => t.name === tabName)
-      if (idx <= 0) return
-      const focusedName = this.tabs.find((t) => t.focused)?.name
-      this.tabs = this.tabs.filter((t, i) => i >= idx || !t.closeable || t.name === focusedName)
-      useKeepAliveStore().retainKeepAlive(this.tabs.map((tab) => tab.name))
+    /** 关闭一个可关闭标签。 */
+    closeTab(name: string) {
+      return this.closeTabs([name])
     },
-    /** 关闭右侧可关闭标签，同时保留当前页并清理已关闭页面缓存。 */
-    closeRightTabs(tabName: string) {
-      const idx = this.tabs.findIndex((t) => t.name === tabName)
-      if (idx === -1 || idx === this.tabs.length - 1) return
-      const focusedName = this.tabs.find((t) => t.focused)?.name
-      this.tabs = this.tabs.filter((t, i) => i <= idx || !t.closeable || t.name === focusedName)
-      useKeepAliveStore().retainKeepAlive(this.tabs.map((tab) => tab.name))
+    /** 关闭目标左侧标签；当前页被关闭时使用同一邻页规则。 */
+    closeLeftTabs(name: string) {
+      const index = this.tabs.findIndex((tab) => tab.name === name)
+      return this.closeTabs(index < 0 ? [] : this.tabs.slice(0, index).map((tab) => tab.name), name)
     },
-    /** 保留目标、当前和固定标签，清理其他页面及其缓存。 */
-    closeOtherTabs(tabName: string) {
-      const focusedName = this.tabs.find((t) => t.focused)?.name
-      this.tabs = this.tabs.filter(
-        (t) => !t.closeable || t.name === tabName || t.name === focusedName,
+    /** 关闭目标右侧标签。 */
+    closeRightTabs(name: string) {
+      const index = this.tabs.findIndex((tab) => tab.name === name)
+      return this.closeTabs(
+        index < 0 ? [] : this.tabs.slice(index + 1).map((tab) => tab.name),
+        name,
       )
-      useKeepAliveStore().retainKeepAlive(this.tabs.map((tab) => tab.name))
     },
-
-    /** 关闭全部可关闭标签并清理对应缓存。 */
+    /** 关闭其他标签，保留目标和固定首页。 */
+    closeOtherTabs(name: string) {
+      return this.closeTabs(
+        this.tabs.filter((tab) => tab.name !== name).map((tab) => tab.name),
+        name,
+      )
+    },
+    /** 关闭全部可关闭标签并回到首页。 */
     closeAllTabsExceptHome() {
-      const homeTab = this.tabs.find((t) => !t.closeable)
-      if (!homeTab) return
-      this.tabs = [{ ...homeTab, focused: true }]
-      useKeepAliveStore().retainKeepAlive(this.tabs.map((tab) => tab.name))
+      return this.closeTabs(this.tabs.map((tab) => tab.name))
+    },
+    /** 菜单变化后清理被撤销的路由标签，并同步仍可访问页面的标题。 */
+    retainRoutes() {
+      this.tabs = this.tabs
+        .filter((tab) => router.hasRoute(tab.name))
+        .map((tab) => {
+          const route = router.resolve(tab.path)
+          return { ...tab, title: route.meta.title || tab.title, icon: route.meta.icon || '' }
+        })
+      useKeepAliveStore().clearKeepAlive()
     },
   },
 })

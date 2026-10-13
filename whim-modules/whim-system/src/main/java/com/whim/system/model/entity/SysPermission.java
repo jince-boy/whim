@@ -43,6 +43,9 @@ public class SysPermission extends BaseEntity implements Serializable {
     /** 是否启用操作级数据权限(0-仅功能授权 1-功能与数据范围授权)。 */
     private Integer dataPermission;
 
+    /** 内置权限定义不可删除或改变授权语义，展示配置仍可维护。 */
+    private Integer builtIn;
+
     /**
      * 父级ID(0为顶级菜单)
      */

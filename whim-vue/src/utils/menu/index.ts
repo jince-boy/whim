@@ -1,6 +1,8 @@
 import { type RouteRecordRaw, RouterLink } from 'vue-router'
 import { type MenuOption, NIcon } from 'naive-ui'
 import { useIcon } from '@/components/icon/useIcon.ts'
+import type { MenuItem } from '@/views/system/menu/hooks/types'
+import { firstMenuPath, pageModules } from '@/utils/navigation'
 
 export type SafeMenuOption = Omit<MenuOption, 'children'> & {
   name?: string
@@ -9,6 +11,39 @@ export type SafeMenuOption = Omit<MenuOption, 'children'> & {
 }
 
 const { createIcon } = useIcon()
+
+/** 从用户授权树直接生成组件选项，按钮不进入导航，目录保持真实层级。 */
+export function buildUserMenus(nodes: MenuItem[]): SafeMenuOption[] {
+  return nodes.flatMap((node) => {
+    if (node.menuType === 3 || node.status !== 0) return []
+    const children = buildUserMenus(node.children ?? [])
+    if (node.menuType === 1 && !children.length) return []
+    const external = node.menuType === 4
+    const path = node.menuType === 1 ? firstMenuPath(node.children ?? []) : node.path || undefined
+    const query = Object.fromEntries(new URLSearchParams(node.param || ''))
+    const label =
+      node.menuType === 1
+        ? node.menuName
+        : external
+          ? () =>
+              h('a', { href: path, target: '_blank', rel: 'noopener noreferrer' }, node.menuName)
+          : () =>
+              h(RouterLink, { to: { path: path || '/', query } }, { default: () => node.menuName })
+    return [
+      {
+        key: node.routeName || `external:${node.id}`,
+        name: node.menuName,
+        label,
+        path,
+        show: node.visible === 0,
+        isExternal: external,
+        disabled: node.menuType === 2 && !pageModules[`/src/views/${node.component}.vue`],
+        icon: node.icon ? () => h(NIcon, null, { default: createIcon(node.icon!) }) : undefined,
+        children: children.length ? children : undefined,
+      },
+    ]
+  })
+}
 
 /** 查找菜单及其父级，支持面包屑和混合布局定位一级菜单。 */
 export function findMenuPath(menus: SafeMenuOption[], key: string): SafeMenuOption[] {

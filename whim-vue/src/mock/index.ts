@@ -57,7 +57,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     let result: ApiResponse | undefined = handleAuth(path, method, data)
     if (!result) {
       requireMockLogin(config.headers.get('Authorization'))
-      if (path === '/system/user/getInfo' && method === 'GET') {
+      if (path === '/system/auth/userInfo' && method === 'GET') {
         result = getMockUserInfo()
       } else if (path === '/system/auth/logout' && method === 'POST') {
         result = success(null, '退出成功')

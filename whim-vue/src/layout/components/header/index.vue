@@ -1,78 +1,22 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { darkTheme, useMessage, type DropdownOption } from 'naive-ui'
-import screenfull from 'screenfull'
-import { useIcon } from '@/components/icon/useIcon.ts'
+import { darkTheme } from 'naive-ui'
 import SearchComponent from '@/components/search/index.vue'
 import ThemeComponent from '@/components/theme/index.vue'
-import { usePermissionStore } from '@/stores/modules/permission'
-import { findMenuPath, getVisibleMenus, type SafeMenuOption } from '@/utils/menu'
-
-defineOptions({
-  name: 'LayoutHeader',
-})
-
+import { useHeader } from './hooks/useHeader'
+defineOptions({ name: 'LayoutHeader' })
 const props = withDefaults(defineProps<{ inverted?: boolean; brandWidth?: number }>(), {
   inverted: false,
 })
-
-const { createIcon } = useIcon()
-const route = useRoute()
-const router = useRouter()
-const permissionStore = usePermissionStore()
-const message = useMessage()
-const searchShowModal = ref(false)
-const themeShowModal = ref(false)
-const fullscreenEnabled = screenfull.isEnabled
-const isFullscreen = ref(fullscreenEnabled && screenfull.isFullscreen)
-
-// 使用菜单构建时相同的 key 规则，兼容未命名路由。
-const breadcrumbs = computed<SafeMenuOption[]>(() =>
-  findMenuPath(permissionStore.menus, typeof route.name === 'string' ? route.name : route.path).map(
-    (menu) => ({
-      ...menu,
-      children: menu.children ? getVisibleMenus(menu.children) : undefined,
-    }),
-  ),
-)
-
-/** 通过下拉菜单选中项导航，支持整行点击和键盘选择。 */
-async function handleMenuSelect(_key: string | number, option: DropdownOption): Promise<void> {
-  const path = option.path
-  if (typeof path !== 'string' || !path) return
-  if (option.isExternal) {
-    window.open(path, '_blank', 'noopener,noreferrer')
-  } else {
-    await router.push(path)
-  }
-}
-
-/** 同步浏览器全屏状态，包括按 Esc 退出和主内容区全屏。 */
-function syncFullscreen(): void {
-  isFullscreen.value = screenfull.isFullscreen
-}
-
-/** 切换页面全屏，失败时给出提示。 */
-async function toggleFullscreen(): Promise<void> {
-  if (!fullscreenEnabled) return
-  try {
-    await screenfull.toggle()
-  } catch {
-    message.error('切换全屏失败')
-  }
-}
-
-// 组件挂载后监听全屏变化，卸载时移除监听。
-onMounted(() => {
-  if (fullscreenEnabled) {
-    screenfull.on('change', syncFullscreen)
-    syncFullscreen()
-  }
-})
-onBeforeUnmount(() => {
-  if (fullscreenEnabled) screenfull.off('change', syncFullscreen)
-})
+const {
+  createIcon,
+  breadcrumbs,
+  handleMenuSelect,
+  searchShowModal,
+  themeShowModal,
+  fullscreenEnabled,
+  isFullscreen,
+  toggleFullscreen,
+} = useHeader()
 </script>
 
 <template>

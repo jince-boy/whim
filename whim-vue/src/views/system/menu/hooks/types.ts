@@ -1,44 +1,41 @@
-export interface Menu {
-  id: string
-  name: string
-  title: string
-  parentId: string
-  type: number
-  path: string
-  queryParam: string
-  component: string
-  keepAlive: 0 | 1
-  sort: number
-  code: string
-  visible: 0 | 1
-  status: 0 | 1
-  icon: string
-  redirect: string
-  remark: string
-}
-
-export interface MenuItem extends Menu {
-  children?: MenuItem[]
-}
-import type { DictData } from '@/components/dict/useDict'
-
-/** 菜单类型。 */
+/** 与后端共用权限表保持一致，ID 不强转为 Number。 */
+export type MenuId = string | number
 export enum MenuType {
   DIRECTORY = 1,
   MENU = 2,
   BUTTON = 3,
   EXTERNAL = 4,
 }
-
-/** 菜单编辑表单接收的初始数据与辅助选项。 */
+export const menuTypeOptions = [
+  { label: '目录', value: MenuType.DIRECTORY },
+  { label: '菜单', value: MenuType.MENU },
+  { label: '按钮', value: MenuType.BUTTON },
+  { label: '外链', value: MenuType.EXTERNAL },
+]
+export interface MenuSave {
+  parentId: MenuId
+  menuName: string
+  menuType: MenuType
+  routeName: string | null
+  path: string | null
+  component: string | null
+  param: string | null
+  perms: string | null
+  dataPermission: 0 | 1
+  isCache: 0 | 1
+  sort: number
+  icon: string | null
+  visible: 0 | 1
+  status: 0 | 1
+  remark: string | null
+}
+export interface MenuItem extends MenuSave {
+  id: MenuId
+  builtIn: 0 | 1
+  createTime?: string
+  children?: MenuItem[]
+}
 export interface MenuFormProps {
-  initialModel?: Menu
-  extendedData?: {
-    parentId?: string
-    menuTypeDict: DictData[]
-    sysShowStatusDict: DictData[]
-    sysRunStatusDict: DictData[]
-    sysMenuKeepAliveStatus: DictData[]
-    menuData: MenuItem[]
-  }
+  initialModel?: MenuSave & { id?: MenuId; builtIn?: 0 | 1 }
+  extendedData?: { parentId?: MenuId; menuData: MenuItem[] }
 }

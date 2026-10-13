@@ -54,7 +54,19 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 `@DataPermissionMetadata` 仅供内部授权元数据只读 Mapper 使用，不得标记业务查询或写操作。禁止在受保护方法使用 `@InterceptorIgnore(dataPermission=true)`。业务 Mapper 不得通过共享二级缓存复用受限查询结果；业务缓存须包含授权范围并协调授权变化后的失效。
 
-## 管理边界
+## 菜单导航与目录维护
+
+`V2__menu_navigation.sql` 增加内置标志、路由唯一约束、目录事务锁和菜单管理操作。启动应用时必须先完成 Flyway V2；不修改或重用 V1。
+
+登录初始化按 `GET /system/auth/userInfo`、`GET /system/menu/userMenus` 的顺序读取用户授权和菜单。导航接口只要求登录，普通角色必须直接获得页面或外链节点；只授予目录或按钮不会隐式授予页面。服务端只补齐导航所需有效目录祖先，不增加操作权限。停用或祖先链断裂的节点不参与导航；隐藏节点仍可生成授权路由。
+
+菜单管理接口为 `GET/POST /system/menu` 和 `GET/PUT/DELETE /system/menu/{menuId}`，分别使用 `system:menu:list/detail/create/update/delete`。新建、删除以及修改权限语义、状态仅由超级管理员执行；普通已授权管理者只能维护可委派节点的展示配置。内置权限不可删除、改类型、改权限码或改数据权限标志。目录可以包含目录、页面和外链，页面只包含按钮；外链只接受 HTTP/HTTPS。页面路由名称和绝对路径全局唯一，保留系统静态路径。
+
+菜单管理入口、内置根目录及其管理操作不能停用、隐藏或迁移。修改展示配置不撤销会话；权限语义或操作状态变化在事务提交后撤销受影响账号及超级管理员旧授权快照。角色授权与菜单删除共用目录事务锁，避免并发产生无效引用。节点有子节点或角色引用时拒绝删除；逻辑删除后不重复使用权限码。
+
+前端从同一菜单树派生路由、侧栏和面包屑。路由平铺到布局下，目录层级只用于导航；页面缓存以稳定的路由包装组件名识别。标签激活由真实路由派生，同一路由查询参数变化更新同一标签地址；关闭当前页才切换到保留页。菜单保存后重新加载用户和导航，移除已撤销路由、标签和缓存。
+
+## 角色与数据管理边界
 
 普通管理员不能管理超级管理员账号，不能修改本人角色关联、本人持有角色的授权配置，不能调整本人主部门扩大范围。管理员成员变更串行执行，不能停用或删除当前账号，不能移除最后一个有效超级管理员。
 
@@ -66,11 +78,11 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 ## 空库初始化与接口
 
-旧迁移已按本次空库重建要求移除，现仅使用 `whim-start/src/main/resources/db/migration/V1__initialize.sql`，要求 MySQL 8.0.16 或以上。正常启动应用时 Flyway 在空库执行脚本，建立 11 张表和 34 个操作权限。
+空库初始化使用 `V1__initialize.sql`，菜单导航扩展使用更高版本 `V2__menu_navigation.sql`，要求 MySQL 8.0.16 或以上。正常启动应用时 Flyway 依次执行迁移；已有 V1 数据库只追加执行 V2。共有 11 张表和 39 个操作权限。
 
 初始化账号 `admin`，密码 `admin123`，主部门“总部”，角色为超级管理员，密码采用 BCrypt 存储。初始化后可通过密码重置接口修改默认密码。数据库必须完全为空，包括旧 `flyway_schema_history`，不能将旧版本记录与新 V1 混用。
 
-接口契约见 `openapi.json`，包含 40 个接口。登录不接收组织上下文；`GET /system/auth/userInfo` 无切换参数。用户部门、状态、密码、角色分别管理。角色默认范围和操作覆盖范围分别配置，操作级 `dataScope=null` 恢复继承，`deptIds` 须为空集合。
+接口契约见 `openapi.json`，包含 46 个接口。登录不接收组织上下文；`GET /system/auth/userInfo` 无切换参数。用户部门、状态、密码、角色分别管理。角色默认范围和操作覆盖范围分别配置，操作级 `dataScope=null` 恢复继承，`deptIds` 须为空集合。
 
 主键由 MyBatis-Plus 生成。超出 JavaScript 安全整数范围的 Long 在响应中输出字符串，前端不能强转为 Number。日期时间默认 `yyyy-MM-dd HH:mm:ss`。
 

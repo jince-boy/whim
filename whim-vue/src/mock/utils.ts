@@ -27,8 +27,8 @@ export function readIds(value: unknown): string[] {
 }
 
 /** 查询详情并在记录不存在时返回明确错误。 */
-export function findById<T extends { id: string }>(rows: T[], id: unknown): T {
-  const row = rows.find((item) => item.id === String(id))
+export function findById<T extends { id: string | number }>(rows: T[], id: unknown): T {
+  const row = rows.find((item) => String(item.id) === String(id))
   if (!row) fail('数据不存在，请刷新后重试', 404)
   return row
 }
