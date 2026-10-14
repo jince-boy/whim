@@ -27,7 +27,7 @@ function getDefaultThemeConfig(): ThemeConfig {
     showWatermark: false,
     watermarkText: systemSetting.title,
     showLogo: true,
-    tabStyle: 'button',
+    tabStyle: 'browser',
   }
 }
 
