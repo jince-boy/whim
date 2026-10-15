@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vitepress/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../whim-vue/src/*"],
+      "vue": ["./node_modules/vue"],
+      "naive-ui": ["./node_modules/naive-ui"]
+    }
+  },
+  "include": [
+    ".vitepress/**/*.ts",
+    ".vitepress/**/*.vue",
+    "env.d.ts",
+    "../whim-vue/auto-imports.d.ts",
+    "../whim-vue/src/types/*.d.ts"
+  ]
+}

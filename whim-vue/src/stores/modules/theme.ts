@@ -8,7 +8,12 @@ import type {
   ThemeMode,
 } from '@/stores/type'
 import tinycolor from 'tinycolor2'
-import { darkThemeOverrides, fontThemeOverrides, lightThemeOverrides } from '@/config/NaiveTheme'
+import {
+  darkThemeOverrides,
+  defaultPrimaryColor,
+  fontThemeOverrides,
+  lightThemeOverrides,
+} from '@/config/NaiveTheme'
 import systemSetting from '@/config/SystemSetting'
 import { isPageTransitionMode } from '@/config/PageTransition'
 import { isTabStyle } from '@/config/TabStyle'
@@ -19,7 +24,7 @@ function getDefaultThemeConfig(): ThemeConfig {
     theme: 'light',
     layoutMode: 'side',
     pageTransition: 'slide',
-    primaryColor: '#18a058',
+    primaryColor: defaultPrimaryColor,
     menuInverted: false,
     showTabIcon: false,
     showTabs: true,
@@ -58,7 +63,10 @@ function loadThemeConfig(): ThemeConfig {
     const primaryColor =
       cached.primaryColor ?? cached.themeOverrides?.lightThemeOverrides?.common?.primaryColor
     if (typeof primaryColor === 'string' && tinycolor(primaryColor).isValid()) {
-      config.primaryColor = tinycolor(primaryColor).toHexString()
+      const savedPrimaryColor = tinycolor(primaryColor).toHexString()
+      // 将此前的默认绿色迁移到新主色，保留其他自定义颜色和布局偏好。
+      config.primaryColor =
+        savedPrimaryColor === '#18a058' ? defaultPrimaryColor : savedPrimaryColor
     }
     for (const key of [
       'menuInverted',
@@ -106,10 +114,7 @@ export const useThemeStore = defineStore('theme', {
       const primary = tinycolor(this.config.primaryColor)
       const base = dark ? primary.clone().lighten(10) : primary
       const primaryColor = base.toHexString()
-      const hover = base
-        .clone()
-        .lighten(dark ? 8 : 10)
-        .toHexString()
+      const hover = (dark ? base.clone().lighten(8) : base.clone().darken(5)).toHexString()
       const pressed = base.clone().darken(10).toHexString()
       const activeTextColor = tinycolor.mostReadable(primaryColor, ['#fff', '#000'])!.toHexString()
       return {

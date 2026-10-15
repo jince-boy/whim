@@ -1,5 +1,7 @@
 package com.whim.system.model.vo.permission;
 
+import com.whim.system.model.entity.SysPermission;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
 /**
@@ -8,6 +10,7 @@ import lombok.Data;
  * @description 功能权限响应。
  */
 @Data
+@AutoMapper(target = SysPermission.class, convertGenerate = false)
 public class PermissionVO {
     private Long id;
     private String menuName;
