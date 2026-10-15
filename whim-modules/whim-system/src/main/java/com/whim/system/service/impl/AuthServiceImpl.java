@@ -99,10 +99,7 @@ public class AuthServiceImpl implements IAuthService {
             throw new UserDisableException("用户已被禁用");
         }
 
-        return authenticationSession.login(
-                sysUserService.buildUserInfo(user),
-                Boolean.TRUE.equals(loginDTO.getRememberMe())
-        );
+        return authenticationSession.login(sysUserService.buildUserInfo(user));
     }
 
     /**

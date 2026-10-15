@@ -33,7 +33,7 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
 
     /** 判断有效账号是否持有有效超级管理员角色。 */
     @DataPermissionMetadata
-    Boolean selectSuperAdministratorFlag(@Param("userId") Long userId);
+    boolean selectSuperAdministratorFlag(@Param("userId") Long userId);
 
     /** 识别目标账号的管理员角色，即使该账号当前已停用。 */
     @DataPermissionMetadata

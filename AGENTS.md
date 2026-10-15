@@ -114,6 +114,8 @@ For changes that do not affect the API contract, such as frontend layout or styl
 
 ## Configuration notes
 
+- 修改 `whim-vue/src/components/` 下的公共组件时，必须在同一任务中同步更新 `whim-docs` 对应组件文档及交互示例，核对属性、模型、事件、插槽、公开方法、默认行为与展示交互。新增、删除组件时同步维护文档入口与导航，完成前确认文档和示例与最终实现一致。
+
 - Default runtime profile comes from Maven resource filtering: `spring.profiles.active: @profiles_active@`
 - Root Maven profiles define `dev` as the default and `prod` as the alternative
 - Main application config is in `whim-start/src/main/resources/application.yml`

@@ -57,7 +57,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     /** 查询账号通过有效角色获得的精确权限码。 */
     @Override
     public Set<String> getPermissionCodeSetByUserId(Long userId) {
-        if (Boolean.TRUE.equals(roleMapper.selectSuperAdministratorFlag(userId))) {
+        if (roleMapper.selectSuperAdministratorFlag(userId)) {
             return lambdaQuery().eq(SysPermission::getStatus, 0)
                     .in(SysPermission::getMenuType, SysMenuType.PAGE.getCode(), SysMenuType.BUTTON.getCode())
                     .isNotNull(SysPermission::getPerms).ne(SysPermission::getPerms, "").list().stream()

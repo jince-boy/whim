@@ -36,7 +36,7 @@ export function useMenu() {
   function openEditor(initialModel?: MenuItem, parentId: MenuId = '0') {
     openFormDialog({
       title: initialModel ? '修改菜单' : '新建菜单',
-      width: initialModel ? 600 : 800,
+      width: 800,
       formComponent: MenuForm,
       formProps: {
         initialModel,

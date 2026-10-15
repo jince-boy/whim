@@ -6189,10 +6189,6 @@
             "description": "GIF 图片中的四位字符。",
             "pattern": "[A-Za-z0-9]{4}",
             "minLength": 1
-          },
-          "rememberMe": {
-            "type": "boolean",
-            "description": "记住我"
           }
         },
         "required": [

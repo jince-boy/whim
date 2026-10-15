@@ -22,6 +22,12 @@ export default defineConfig({
   },
   vite: {
     plugins: [Components({ dirs: [], dts: false, resolvers: [NaiveUiResolver()] })],
+    server: {
+      fs: {
+        // 组件演示直接复用前端源码，字体等静态资源也需要允许读取。
+        allow: [fileURLToPath(new URL('../../whim-vue/src', import.meta.url))],
+      },
+    },
     resolve: {
       alias: { '@': fileURLToPath(new URL('../../whim-vue/src', import.meta.url)) },
       dedupe: ['vue', 'naive-ui', '@css-render/vue3-ssr', 'axios'],

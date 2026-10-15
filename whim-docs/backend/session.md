@@ -24,7 +24,7 @@ description: 认证抽象、令牌配置、权限快照和事务提交后的会�
 
 | 方法                                                             | 说明                                       |
 | ---------------------------------------------------------------- | ------------------------------------------ |
-| `login(UserInfo, boolean rememberMe)`                            | 创建登录会话，返回 `AuthenticationToken`   |
+| `login(UserInfo)`                                                | 按配置创建登录会话，返回 `AuthenticationToken` |
 | `updateUserInfo(UserInfo)`                                       | 更新当前令牌的授权上下文，校验登录 ID 一致 |
 | `logout()`                                                       | 注销当前会话                               |
 | `kickout(String loginType, Collection<Long> userIds)`            | 撤销指定体系下这些用户的全部会话           |
@@ -53,7 +53,6 @@ sa-token:
   token-name: Authorization
   token-prefix: Bearer
   timeout: 604800
-  non-remembered-timeout: 86400
   active-timeout: 86400
   is-concurrent: true
   is-share: false
@@ -73,7 +72,7 @@ sa-token:
 
 ## 记住我与令牌期限
 
-记住我使用全局 `timeout`。未勾选时采用全局期限与 `nonRememberedTimeout` 的较小值；全局为永久时使用 `nonRememberedTimeout`。客户端是否持久保存登录状态与服务端绝对期限、活跃期限分别处理。
+“保持登录”仅由前端控制：勾选时将令牌保存到 `localStorage`，未勾选时保存到 `sessionStorage`。登录接口不接收 `rememberMe`，所有令牌统一遵循 Sa-Token 的 `timeout` 和 `active-timeout` 配置。
 
 `is-share: false` 表示并发登录不共享同一令牌。当前最多三个会话，超出使用 REPLACED 策略。不能将“记住我”描述为永久登录。
 

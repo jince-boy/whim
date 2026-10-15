@@ -38,7 +38,12 @@ export function useLogin() {
       return
     }
     try {
-      const res = await login({ ...form })
+      const res = await login({
+        username: form.username,
+        password: form.password,
+        uuid: form.uuid,
+        captchaCode: form.captchaCode,
+      })
       if (res.code !== 200) {
         message.error(res.message)
         await getCaptcha()

@@ -51,7 +51,7 @@ public static List<StpLogic> allRegistered() {
 
 ### 2. 实现业务登录
 
-在对应业务模块验证会员账号和凭证，构建有效 `UserInfo`，设置 `loginType = AuthUserType.MEMBER`，通过注入的 `AuthenticationSession.login(userInfo, rememberMe)` 创建会话。
+在对应业务模块验证会员账号和凭证，构建有效 `UserInfo`，设置 `loginType = AuthUserType.MEMBER`，通过注入的 `AuthenticationSession.login(userInfo)` 创建会话。
 
 不能直接把前端提交的角色和权限填入 `UserInfo`。授权快照应来自该账号体系可信的服务端授权模型。
 

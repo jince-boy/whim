@@ -1,9 +1,12 @@
-export interface LoginForm {
+export interface LoginRequest {
   username: string
   password: string
   uuid: string
-  rememberMe: boolean
   captchaCode: string
+}
+
+export interface LoginForm extends LoginRequest {
+  rememberMe: boolean
 }
 
 export interface LoginResult {

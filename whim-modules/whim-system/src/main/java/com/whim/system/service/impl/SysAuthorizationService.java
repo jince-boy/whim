@@ -119,7 +119,7 @@ public class SysAuthorizationService {
 
     /** 检查停用、删除或移除角色不会消灭最后一个有效超级管理员。 */
     public void requireAdministratorCanBeRemoved(Long userId) {
-        if (Boolean.TRUE.equals(roleMapper.selectSuperAdministratorFlag(userId))
+        if (roleMapper.selectSuperAdministratorFlag(userId)
                 && roleMapper.countActiveSuperAdministrators() <= 1) {
             throw new DataAccessDeniedException("不能移除最后一个有效超级管理员");
         }

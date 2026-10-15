@@ -39,9 +39,4 @@ public class AuthLoginDTO {
     @NotBlank(message = "验证码不能为空")
     @Pattern(regexp = "[A-Za-z0-9]{4}", message = "验证码格式错误")
     private String captchaCode;
-
-    /**
-     * 记住我
-     */
-    private Boolean rememberMe;
 }

@@ -25,6 +25,8 @@ src/views/system/example/
 
 ## 组件通信
 
+修改 `whim-vue/src/components/` 下的公共组件时，必须同步更新 `whim-docs` 对应组件文档与交互示例，核对属性、模型、事件、插槽、公开方法、默认行为及展示交互。新增、删除组件时同步维护文档入口与导航，保证示例和最终实现一致。
+
 只读输入使用类型式 `defineProps`；普通操作通知使用命名元组 `defineEmits`；实时双向值使用 `defineModel`。父组件模板采用 kebab-case 的属性与事件名。
 
 编辑表单使用 `initialModel` 创建独立草稿，取消后丢弃。命令式表单弹窗通过 `defineExpose({ formRef, formModel })` 读取校验实例与提交模型。静态模板引用使用 `useTemplateRef`。

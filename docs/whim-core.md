@@ -148,7 +148,7 @@ public interface AuthenticationContext {
 ```java
 public interface AuthenticationSession {
 
-    AuthenticationToken login(UserInfo userInfo, boolean rememberMe);
+    AuthenticationToken login(UserInfo userInfo);
 
     void updateUserInfo(UserInfo userInfo);
 

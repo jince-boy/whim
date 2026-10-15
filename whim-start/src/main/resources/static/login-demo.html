@@ -85,12 +85,6 @@
             background: #ffffff;
         }
 
-        input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            margin: 0;
-        }
-
         textarea {
             min-height: 150px;
             font-family: Consolas, "Microsoft YaHei", monospace;
@@ -113,13 +107,6 @@
             border-color: #98a2b3;
             background: #98a2b3;
             cursor: not-allowed;
-        }
-
-        .checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
         }
 
         .captcha {
@@ -192,12 +179,6 @@
             <img id="captchaImage" alt="四位字母数字验证码">
             <button id="refreshCaptcha" type="button">换一张</button>
         </div>
-        <label>
-            <span class="checkbox">
-                <input id="rememberMe" type="checkbox">
-                记住我
-            </span>
-        </label>
 
         <div id="state" class="state" role="status" aria-live="polite">正在获取验证码</div>
         <button id="submitLogin" type="submit">登录</button>
@@ -232,7 +213,6 @@
     const captchaUrl = document.querySelector('#captchaUrl');
     const username = document.querySelector('#username');
     const password = document.querySelector('#password');
-    const rememberMe = document.querySelector('#rememberMe');
     const captchaCode = document.querySelector('#captchaCode');
     const captchaImage = document.querySelector('#captchaImage');
     const refreshCaptcha = document.querySelector('#refreshCaptcha');
@@ -278,8 +258,7 @@
                 username: username.value.trim(),
                 password: password.value,
                 uuid,
-                captchaCode: captchaCode.value.trim(),
-                rememberMe: rememberMe.checked
+                captchaCode: captchaCode.value.trim()
             }),
             signal: AbortSignal.timeout(10000)
         });

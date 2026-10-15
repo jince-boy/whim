@@ -1,11 +1,11 @@
 import { request, RequestMethod } from '@/api'
-import type { CaptchaResult, LoginForm, LoginResult } from './types'
+import type { CaptchaResult, LoginRequest, LoginResult } from './types'
 
 /**
  * 登录
  * @param data 登录参数
  */
-export const login = (data: LoginForm) => {
+export const login = (data: LoginRequest) => {
   return request<LoginResult>('/system/auth/login', RequestMethod.POST, { data })
 }
 /**

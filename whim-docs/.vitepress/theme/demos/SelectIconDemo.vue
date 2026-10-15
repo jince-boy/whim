@@ -1,16 +1,32 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NFlex } from 'naive-ui'
-import Icon from '@/components/icon/Icon.vue'
+import { NButton, NForm, NFormItem, NModal } from 'naive-ui'
 import WhimSelectIcon from '@/components/icon/WhimSelectIcon.vue'
 
 const icon = ref<string | null>('search')
+const showModal = ref(false)
 </script>
 
 <template>
   <WhimSelectIcon v-model="icon" />
-  <NFlex align="center" style="margin-top: 20px">
-    <Icon :name="icon" :size="28" color="var(--docs-brand)" />
-    <span>当前值：{{ icon ?? '未选择' }}</span>
-  </NFlex>
+  <NButton style="margin-top: 16px" @click="showModal = true">在弹窗中选择</NButton>
+  <NModal
+    v-model:show="showModal"
+    preset="dialog"
+    title="菜单图标"
+    :show-icon="false"
+    draggable
+    style="
+      width: 380px;
+      max-width: calc(100vw - 32px);
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+    "
+  >
+    <NForm label-placement="left" label-width="80">
+      <NFormItem label="菜单图标">
+        <WhimSelectIcon v-model="icon" />
+      </NFormItem>
+    </NForm>
+  </NModal>
 </template>
