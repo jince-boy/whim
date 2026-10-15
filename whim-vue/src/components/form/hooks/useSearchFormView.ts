@@ -1,5 +1,5 @@
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from 'vue'
-import type { FormInst } from 'naive-ui'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
+import type { FormInst, GridProps } from 'naive-ui'
 import type { SearchFormBinding, SearchFormEmits, SearchFormRegistration } from '../types'
 
 /** 连接查询表单 hook，并将用户提交、重置作为事件通知调用方。 */
@@ -11,9 +11,35 @@ export function useSearchFormView(
 ) {
   const binding = shallowRef<SearchFormBinding>()
   const formRef = useTemplateRef<FormInst>('formRef')
+  const formContainer = useTemplateRef<HTMLElement>('formContainer')
+  const columnCount = ref(1)
+  const collapsed = ref(true)
+  let resizeObserver: ResizeObserver | undefined
   const submitting = ref(false)
   const formProps = computed(() => binding.value?.formProps.value)
-  const gridProps = computed(() => binding.value?.gridProps.value)
+  const gridProps = computed<GridProps>(() => {
+    const config = binding.value?.gridProps.value
+    const cols = config?.cols ?? columnCount.value
+    return {
+      ...config,
+      cols,
+      // 单列时保留一个查询项，操作区占用下一行。
+      collapsedRows: config?.collapsedRows ?? (cols === 1 || cols === '1' ? 2 : 1),
+      collapsed: collapsed.value,
+    }
+  })
+
+  watch(
+    () => binding.value?.gridProps.value.collapsed,
+    (value) => {
+      collapsed.value = value ?? true
+    },
+  )
+
+  /** 展开和收起只影响布局，保留查询条件与字段实例。 */
+  function toggleCollapsed() {
+    collapsed.value = !collapsed.value
+  }
 
   /** 使用原生表单校验，未挂载时明确失败。 */
   const validate: FormInst['validate'] = (...args) => {
@@ -35,6 +61,7 @@ export function useSearchFormView(
       emit('submit')
       return true
     } catch {
+      collapsed.value = false
       return false
     } finally {
       submitting.value = false
@@ -58,7 +85,29 @@ export function useSearchFormView(
     submit,
     reset,
   }
-  onMounted(() => emit('register', registration))
-  onBeforeUnmount(() => emit('register', undefined))
-  return { binding, formProps, gridProps, submitting, submit, reset, validate, restoreValidation }
+  onMounted(() => {
+    emit('register', registration)
+    resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      const width = entry.contentRect.width
+      columnCount.value = width >= 1280 ? 4 : width >= 960 ? 3 : width >= 640 ? 2 : 1
+    })
+    if (formContainer.value) resizeObserver.observe(formContainer.value)
+  })
+  onBeforeUnmount(() => {
+    resizeObserver?.disconnect()
+    emit('register', undefined)
+  })
+  return {
+    binding,
+    formProps,
+    gridProps,
+    collapsed,
+    toggleCollapsed,
+    submitting,
+    submit,
+    reset,
+    validate,
+    restoreValidation,
+  }
 }

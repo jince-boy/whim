@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 标记框架授权所需的内部只读元数据查询，不能用于业务数据接口或写入。
+ * @description 标记授权解析与完整性检查需要的内部只读查询，不能用于业务接口或写入。
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

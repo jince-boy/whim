@@ -44,10 +44,8 @@ export function useSearchForm<Values extends object>(
   const binding = {
     formProps,
     gridProps: computed(() => ({
-      cols: '1 s:2 m:3 l:4',
-      responsive: 'screen' as const,
       xGap: 16,
-      yGap: 0,
+      yGap: 16,
       ...options.value.grid,
     })),
     searchText: computed(() => options.value.searchText ?? '搜索'),

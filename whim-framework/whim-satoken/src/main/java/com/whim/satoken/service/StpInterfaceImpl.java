@@ -16,10 +16,9 @@ import java.util.Objects;
  * @description Sa-Token 权限验证适配器
  */
 public class StpInterfaceImpl implements StpInterface {
-    private static final String SUPER_ADMINISTRATOR_ROLE_CODE = "superadmin";
 
     /**
-     * 返回指定账号id所拥有的权限码集合
+     * 返回账号会话中的有效权限码，超级管理员也遵守权限启停状态
      *
      * @param loginId   账号id
      * @param loginType 账号类型
@@ -30,9 +29,6 @@ public class StpInterfaceImpl implements StpInterface {
         UserInfo userInfo = getUserInfo(loginId, loginType);
         if (Objects.isNull(userInfo)) {
             return List.of();
-        }
-        if (userInfo.getRoleCodeSet().contains(SUPER_ADMINISTRATOR_ROLE_CODE)) {
-            return List.of("*");
         }
         return List.copyOf(userInfo.getPermissionCodeSet());
     }

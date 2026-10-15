@@ -1,9 +1,9 @@
 import { useWhimTable } from '@/components/table'
 import dayjs from 'dayjs'
-import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
+import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
 import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
-import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
+import { useFormDialog } from '@/components/dialog'
 import { useDict } from '@/components/dict/useDict.ts'
 const { dictData: sysStatusOptions, getDictData: getDictStatusData } =
   await useDict('sys_result_status')
@@ -12,7 +12,6 @@ const { dictData: sysOperTypeOptions, getDictData: getDictOperTypeData } =
 /** 配置注册式列表并处理操作日志业务操作。 */
 export function useOperLog() {
   const { openDeleteDialog } = useFormDialog()
-  const message = useMessage()
   const showModal = ref(false)
   const currentOperLog: Ref<OperLog | null> = ref(null)
 
@@ -165,16 +164,8 @@ export function useOperLog() {
   const removeOperLog = (row: OperLog) => {
     openDeleteDialog({
       content: `确定要删除这条操作日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteOperLog({ operLogIds: [row.id] }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getOperLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteOperLog({ operLogIds: [row.id] }),
+      onSuccess: getOperLogPage,
     })
   }
   /**
@@ -183,16 +174,8 @@ export function useOperLog() {
   const removeOperLogBatch = (ids: Array<string | number>) => {
     openDeleteDialog({
       content: `确定要删除选中的 ${ids.length} 个操作日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteOperLog({ operLogIds: ids }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getOperLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteOperLog({ operLogIds: ids }),
+      onSuccess: getOperLogPage,
     })
   }
 
@@ -202,16 +185,10 @@ export function useOperLog() {
   const handleCleanOperLog = () => {
     openDeleteDialog({
       content: `确定要清空操作日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return cleanOperLog().then((res) => {
-          if (res.code == 200) {
-            message.success(`清理成功`)
-            getOperLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      title: '清空确认',
+      onSubmit: cleanOperLog,
+      successMessage: '清理成功',
+      onSuccess: getOperLogPage,
     })
   }
   /**

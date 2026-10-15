@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { MenuType, type MenuFormProps } from '@/views/system/menu/hooks/types.ts'
 import { useMenuForm } from '@/views/system/menu/hooks/useMenuForm.ts'
-import WhimSelectIcon from '@/components/icon/WhimSelectIcon.vue'
-import iconfont from '@/assets/iconfont/iconfont.json'
-import Icon from '@/components/icon/Icon.vue'
+import { WhimSelectIcon } from '@/components/icon'
 
 const props = defineProps<MenuFormProps>()
 const {
@@ -66,7 +64,7 @@ defineExpose({
       "
       path="icon"
     >
-      <WhimSelectIcon :icon-data="iconfont.glyphs" v-model="formModel.icon" />
+      <WhimSelectIcon v-model="formModel.icon" />
     </n-form-item>
     <n-grid :cols="2" :x-gap="12">
       <n-form-item-gi label="菜单名称" path="menuName">
@@ -75,11 +73,7 @@ defineExpose({
           type="text"
           placeholder="请输入菜单名称"
           clearable
-        >
-          <template #suffix>
-            <Icon name="taiyang1" style="margin-left: 12px"></Icon>
-          </template>
-        </n-input>
+        />
       </n-form-item-gi>
       <n-form-item-gi label="外链地址" v-if="formModel.menuType === MenuType.EXTERNAL" path="path">
         <n-input v-model:value="formModel.path" type="text" placeholder="请输入外链地址" />

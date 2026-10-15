@@ -2,7 +2,6 @@ package com.whim.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationSession;
-import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.system.mapper.SysRoleMapper;
 import com.whim.system.mapper.SysPermissionMapper;
@@ -12,7 +11,6 @@ import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRolePermission;
 import com.whim.system.model.entity.SysRolePermissionDept;
 import com.whim.system.model.vo.role.RoleDataScopeVO;
-import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRolePermissionDeptService;
 import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
@@ -34,18 +32,15 @@ import java.util.stream.Collectors;
 public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionMapper, SysRolePermission>
         implements ISysRolePermissionService {
     private final ISysRoleService roleService;
-    private final ISysPermissionService permissionService;
     private final ISysRolePermissionDeptService permissionDeptService;
     private final SysRoleMapper roleMapper;
     private final SysPermissionMapper permissionMapper;
     private final SysAuthorizationService authorizationService;
     private final AuthenticationSession authenticationSession;
-    private final AuthenticationContext authenticationContext;
 
     /** 读取角色已分配权限ID，不将菜单目录展开为操作权限。 */
     @Override
     public Set<Long> getPermissionIds(Long roleId) {
-        authorizationService.requirePermission("system:rolePermission:list");
         roleService.getRequiredRole(roleId);
         return lambdaQuery().eq(SysRolePermission::getRoleId, roleId).list().stream()
                 .map(SysRolePermission::getPermissionId).collect(Collectors.toSet());
@@ -55,7 +50,6 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void replacePermissions(Long roleId, Set<Long> permissionIds) {
-        authorizationService.requirePermission("system:rolePermission:assign");
         // 与目录删除共享锁，不能把角色授权提交到已删除的权限节点。
         if (permissionMapper.lockMenuCatalog() == null) throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
         SysRole role = roleService.getRequiredRole(roleId);
@@ -92,7 +86,6 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     /** dataScope为空表示继承默认范围，覆盖部门列表仅返回本操作配置。 */
     @Override
     public RoleDataScopeVO getPermissionDataScope(Long roleId, Long permissionId) {
-        authorizationService.requirePermission("system:role:dataScope:list");
         roleService.getRequiredRole(roleId);
         SysRolePermission binding = requiredBinding(roleId, permissionId);
         RoleDataScopeVO response = new RoleDataScopeVO();
@@ -110,11 +103,11 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void replacePermissionDataScope(Long roleId, Long permissionId, Integer dataScope, Set<Long> deptIds) {
-        authorizationService.requirePermission("system:role:dataScope:assign");
+        // 与菜单删除串行执行，避免为已删除的权限写入操作范围。
+        if (permissionMapper.lockMenuCatalog() == null) throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
         SysRole role = roleService.getRequiredRole(roleId);
         authorizationService.requireMutableRole(role);
-        authorizationService.requireGrantablePermission(permissionId);
-        SysPermission permission = permissionService.getById(permissionId);
+        SysPermission permission = authorizationService.requireGrantablePermission(permissionId);
         if (permission.getDataPermission() != 1) {
             throw new IllegalArgumentException("该操作未启用数据权限范围");
         }
@@ -138,9 +131,7 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
             }).toList());
         }
         lambdaUpdate().eq(SysRolePermission::getId, binding.getId())
-                .set(SysRolePermission::getDataScope, dataScope)
-                .set(SysRolePermission::getUpdateBy, authenticationContext.getUserId())
-                .set(SysRolePermission::getUpdateTime, java.time.LocalDateTime.now()).update();
+                .set(SysRolePermission::getDataScope, dataScope).update(new SysRolePermission());
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, roleMapper.selectUserIdsByRole(roleId));
     }
 

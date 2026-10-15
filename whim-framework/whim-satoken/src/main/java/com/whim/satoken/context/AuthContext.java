@@ -33,36 +33,6 @@ public class AuthContext implements AuthenticationContext {
     }
 
     /**
-     * 获取当前登录用户ID。
-     *
-     * @return 当前登录用户ID
-     */
-    @Override
-    public Long getUserId() {
-        UserInfo userInfo = getCurrentUserInfoOrNull();
-        if (Objects.nonNull(userInfo) && Objects.nonNull(userInfo.getUserId())) {
-            return userInfo.getUserId();
-        }
-        StpLogic stpLogic = getRequiredCurrentStpLogic();
-        return stpLogic.getLoginIdAsLong();
-    }
-
-    /**
-     * 获取当前登录账号体系。
-     *
-     * @return 当前登录账号体系
-     */
-    @Override
-    public String getLoginType() {
-        UserInfo userInfo = getCurrentUserInfoOrNull();
-        if (Objects.nonNull(userInfo) && Objects.nonNull(userInfo.getLoginType())) {
-            return userInfo.getLoginType();
-        }
-        StpLogic stpLogic = getRequiredCurrentStpLogic();
-        return stpLogic.getLoginType();
-    }
-
-    /**
      * 判断当前请求是否已完成登录认证。
      *
      * @return true 表示当前请求已登录
@@ -79,14 +49,7 @@ public class AuthContext implements AuthenticationContext {
      */
     @Override
     public boolean isSuperAdministrator() {
-        if (!isLogin()) {
-            return false;
-        }
-        UserInfo userInfo = getCurrentUserInfoOrNull();
-        if (Objects.nonNull(userInfo)) {
-            return userInfo.getRoleCodeSet().contains(SUPER_ADMINISTRATOR_ROLE_CODE);
-        }
-        return getRequiredCurrentStpLogic().hasRoleOr(SUPER_ADMINISTRATOR_ROLE_CODE);
+        return isLogin() && getRequiredCurrentStpLogic().hasRole(SUPER_ADMINISTRATOR_ROLE_CODE);
     }
 
     /**

@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -52,13 +51,6 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         SysDept department = lambdaQuery().eq(SysDept::getId, deptId).last("FOR UPDATE").one();
         deptPathService.buildActiveDepartmentPath(department);
         return department;
-    }
-
-    /** 返回有效部门及其有效下级节点，供数据权限计算使用。 */
-    @Override
-    public Set<Long> getActiveDescendantIds(Long deptId) {
-        getRequiredActiveDepartment(deptId);
-        return baseMapper.selectActiveDescendantIds(deptId);
     }
 
     /** 创建根部门需全部范围，创建子部门需父部门处于创建范围。 */

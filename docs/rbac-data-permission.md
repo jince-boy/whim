@@ -12,6 +12,12 @@
 
 访问必须同时满足登录身份有效、目标操作有效、实际获得该操作权限以及数据归属处于范围内。列表、分页总数、详情、更新、逻辑删除使用同一过滤机制；新增和归属变更还需要验证新归属。不同操作分别授权，例如列表权限不授予修改或重置密码权限。
 
+功能权限统一由 Controller 的 `@SystemCheckPermission`（Sa-Token 组合注解）检查，固定角色要求使用 `@SystemCheckRole`。Service 不再逐方法调用 `requirePermission`，也不通过解析数据范围重复检查接口权限。`StpInterfaceImpl` 只向 Sa-Token 提供会话中的权限与角色；超级管理员在构建用户信息时获得全部启用权限码，不返回 `*`，因此停用或删除的操作也不能被管理员绕过。当前管理员身份通过 `AuthenticationContext` 委托 Sa-Token 判断。
+
+权限、角色及账号授权变更仍在事务提交后调用 Sa-Token 撤销相关会话，回滚不撤销。新增权限不会自动扩大普通角色授权，已登录管理员通过刷新用户信息或重新登录获取新增权限。会话授权是请求入口的校验依据，数据范围由解析器按有效授权计算；非 HTTP 调用必须从可信且完成认证授权的业务入口进入，不能把 Service 当作开放的免鉴权接口。
+
+`SysAuthorizationService` 仅保留授权委派、目标管理员保护、最后一个管理员和事务锁等业务规则。它们涉及目标角色、目标用户和授权范围，不能用接口权限注解代替。
+
 | 编码 | 范围 | 规则 |
 | --- | --- | --- |
 | 1 | 全部 | 允许全部业务数据 |
@@ -30,7 +36,7 @@
 
 ## 自定义业务接入
 
-框架位于 `whim-mybatisplus`，解析契约位于 `whim-core`；系统模块提供 `DataPermissionProvider` 实现。认证和持久化框架不互相依赖。其他业务模块复用权限目录和解析器，不需要将业务表写进系统模块。
+框架位于 `whim-mybatisplus`，解析契约位于 `whim-core`；系统模块提供 `DataPermissionProvider` 实现。项目 `DataPermissionInterceptor` 继承 MyBatis-Plus 原生插件，只补充防绕过和元数据只读约束，SQL 解析与改写继续复用原生实现。`MultiDataPermissionHandler` 生成部门与本人条件，`@DataPermission` 建立操作范围上下文。拦截器位于分页插件之前，分页总数与结果使用同一范围；未进入受保护业务时不额外解析 SQL。认证和持久化框架不互相依赖。其他业务模块复用权限目录和解析器，不需要将业务表写进系统模块。
 
 在权限目录登记精确权限码，数据权限标志设为 1。在 Spring 管理的公开服务方法上声明：
 
@@ -52,23 +58,29 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 通过 Spring 代理调用注解方法。同类内部调用不会重新触发注解，内部辅助方法沿用已有上下文。异步、线程池和定时任务不继承请求身份，须建立可信执行身份并通过授权入口执行，不能接受客户端提供的忽略权限标志。
 
-`@DataPermissionMetadata` 仅供内部授权元数据只读 Mapper 使用，不得标记业务查询或写操作。禁止在受保护方法使用 `@InterceptorIgnore(dataPermission=true)`。业务 Mapper 不得通过共享二级缓存复用受限查询结果；业务缓存须包含授权范围并协调授权变化后的失效。
+内部授权元数据只读 Mapper 方法使用 `@DataPermissionMetadata`，避免授权解析和引用完整性检查被当前业务范围截断。该标记只支持方法级声明，不能用于普通业务数据接口。执行时始终核验映射语句为 `SELECT`：即使没有数据权限上下文，标记方法用于新增、修改或删除也会被拒绝；写入入口和语句准备阶段均执行检查，避免批处理、语句复用跳过只读约束。标记是开发者声明的受信任内部入口，不代表任意 SQL 都能安全豁免，新增标记仍须审查查询用途及 SQL。
+
+受 `@DataPermission` 保护的普通业务操作不允许使用 `@InterceptorIgnore(dataPermission = "true")` 或线程级忽略策略关闭过滤；误配置会抛出 `DataAccessDeniedException`，按现有异常协议返回 HTTP 403 和 `Result.code=403`。完整业务过滤不能替换成内部元数据查询。业务 Mapper 不得通过共享二级缓存复用受限查询结果；业务缓存须包含授权范围并协调授权变化后的失效。
+
+普通查询、加锁查询、更新和逻辑删除复用 `IService` 与条件构造器；存在性判断使用 `exists()`，无需先查全量列表。更新审计字段统一交给 `MetaObjectHandler`，链式更新传入实体以触发自动填充，字段置空仍通过 Wrapper 的 `set` 显式表达。权限状态变化后的会话撤销在具体业务方法中执行，不重写通用 `updateById` 偷带业务副作用。
 
 ## 菜单导航与目录维护
 
-`V2__menu_navigation.sql` 增加内置标志、路由唯一约束、目录事务锁和菜单管理操作。`V3__default_home_menu.sql` 将默认首页登记为普通页面菜单。启动应用时必须完成 Flyway V3；不修改或重用历史迁移。
+`V2__menu_navigation.sql` 增加内置标志、路由唯一约束、目录事务锁和菜单管理操作。`V3__default_home_menu.sql` 将默认首页登记为普通页面菜单。`V4__restore_menu_icons.sql` 追加恢复菜单默认图标。`V5__permission_menu_management.sql` 更新内置标记的字段说明，内置语义保护与核心节点删除保护分别处理。启动应用时必须完成 Flyway V5；不修改或重用历史迁移。
 
-登录初始化按 `GET /system/auth/userInfo`、`GET /system/menu/userMenus` 的顺序读取用户授权和菜单。导航接口只要求登录，普通角色必须直接获得页面或外链节点；只授予目录或按钮不会隐式授予页面。服务端只补齐导航所需有效目录祖先，不增加操作权限。停用或祖先链断裂的节点不参与导航；隐藏节点仍可生成授权路由。
+登录初始化按 `GET /system/auth/userInfo`、`GET /system/permission/userMenus` 的顺序读取用户授权和菜单。导航接口只要求登录，普通角色必须直接获得页面或外链节点；只授予目录或按钮不会隐式授予页面。服务端只补齐导航所需有效目录祖先，不增加操作权限。停用或祖先链断裂的节点不参与导航；隐藏节点仍可生成授权路由。
 
-菜单管理接口为 `GET/POST /system/menu` 和 `GET/PUT/DELETE /system/menu/{menuId}`，分别使用 `system:menu:list/detail/create/update/delete`。新建、删除以及修改权限语义、状态仅由超级管理员执行；普通已授权管理者只能维护可委派节点的展示配置。内置权限不可删除、改类型、改权限码或改数据权限标志。目录可以包含目录、页面和外链，页面只包含按钮；外链只接受 HTTP/HTTPS。页面路由名称和绝对路径全局唯一，保留系统静态路径。
+菜单与按钮权限统一由 `SysPermissionController`、`ISysPermissionService` 管理，不再保留独立的菜单控制器和服务。管理树、新增使用 `GET/POST /system/permission`，详情、修改、删除使用 `GET/PUT/DELETE /system/permission/{permissionId}`，继续使用既有 `system:menu:list/detail/create/update/delete` 操作权限，已有角色授权无需迁移。原扁平权限选项迁至 `GET /system/permission/options`，仍要求 `system:permission:list`；状态接口保留 `PUT /system/permission/{permissionId}/status` 和 `system:permission:status`。前端页面路由仍为 `/system/menu`。
 
-菜单管理入口、内置根目录及其管理操作不能停用、隐藏或迁移。修改展示配置不撤销会话；权限语义或操作状态变化在事务提交后撤销受影响账号及超级管理员旧授权快照。角色授权与菜单删除共用目录事务锁，避免并发产生无效引用。节点有子节点或角色引用时拒绝删除；逻辑删除后不重复使用权限码。
+新建、删除以及通过完整编辑修改权限语义或状态仅由超级管理员执行；普通已授权管理者只能维护可委派节点的展示配置，独立状态接口仍按可委派权限校验。内置权限不可改类型、权限码或数据权限标志，但非核心内置节点可以删除。目录可以包含目录、页面和外链，页面只包含按钮；外链只接受 HTTP/HTTPS。页面路由名称和绝对路径全局唯一，保留系统静态路径。
+
+核心节点包括内置根目录以及内置 `system:menu:*`、`system:permission:*` 操作，不能删除、停用、隐藏或迁移。响应的 `protectedNode` 标记供前端展示删除限制。节点有子节点时拒绝删除；普通叶子节点（包括非核心内置节点）可删除。删除在同一事务中清理角色操作自定义部门、角色权限关联，并逻辑删除节点；权限码仍不重复使用。角色授权、操作范围配置与菜单删除共用目录事务锁，避免并发产生无效引用。删除、权限语义或操作状态变化在事务提交后撤销受影响账号及超级管理员旧授权快照，回滚不撤销；修改展示配置不撤销会话。
 
 前端将授权树一次解析为路由与导航节点，再派生侧栏、顶部菜单、搜索和面包屑。默认查询参数在各导航入口一致；隐藏页面保留面包屑并定位到可见祖先。路由平铺到布局下，目录层级只用于导航；页面缓存以稳定的路由包装组件名识别。标签激活由真实路由派生，同一路由查询参数变化更新同一标签地址；关闭当前页才切换到保留页。菜单保存后重新加载用户和导航，移除已撤销路由、标签和缓存。
 
 ### 首页与页面入口
 
-首页也由 `GET /system/menu/userMenus` 返回。V3 登记的默认首页为 `home / /index`，组件路径 `layout/default/index`，对应前端 `src/views/layout/default/index.vue`，权限码为 `system:home:view`；初始只授予超级管理员，普通角色须显式授权。前端不补造首页菜单或静态首页路由。
+首页也由 `GET /system/permission/userMenus` 返回。V3 登记的默认首页为 `home / /index`，组件路径 `layout/default/index`，对应前端 `src/views/layout/default/index.vue`，权限码为 `system:home:view`；初始只授予超级管理员，普通角色须显式授权。前端不补造首页菜单或静态首页路由。
 
 当前在已授权、可见、组件已实现的内部页面中按后端排序选择首个页面作为默认入口。登录后的默认跳转、Logo、返回首页、固定标签和关闭全部标签共用这一入口；目录跳转排除隐藏页面、外链和未实现组件。没有可用内部页面时显示无可访问页面状态，仍可进入个人信息。
 
@@ -88,7 +100,7 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 ## 空库初始化与接口
 
-空库初始化使用 `V1__initialize.sql`，菜单导航扩展使用 `V2__menu_navigation.sql`，默认首页使用 `V3__default_home_menu.sql`，要求 MySQL 8.0.16 或以上。正常启动应用时 Flyway 依次执行迁移；已有数据库只追加执行未应用的更高版本迁移。共有 11 张表和 40 个操作权限。
+空库初始化使用 `V1__initialize.sql`，菜单导航扩展使用 `V2__menu_navigation.sql`，默认首页使用 `V3__default_home_menu.sql`，菜单默认图标修正使用 `V4__restore_menu_icons.sql`，统一权限维护说明使用 `V5__permission_menu_management.sql`，要求 MySQL 8.0.16 或以上。正常启动应用时 Flyway 依次执行迁移；已有数据库只追加执行未应用的更高版本迁移。共有 11 张表和 40 个操作权限。
 
 初始化账号 `admin`，密码 `admin123`，主部门“总部”，角色为超级管理员，密码采用 BCrypt 存储。初始化后可通过密码重置接口修改默认密码。数据库必须完全为空，包括旧 `flyway_schema_history`，不能将旧版本记录与新 V1 混用。
 

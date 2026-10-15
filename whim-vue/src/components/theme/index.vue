@@ -169,6 +169,15 @@ function handlePageTransitionChange(value: string): void {
           />
         </n-flex>
       </n-space>
+      <n-divider>表格配置</n-divider>
+      <n-flex justify="space-between" align="center">
+        <span>显示表格边框</span>
+        <n-switch
+          aria-label="显示表格边框"
+          :value="themeStore.config.tableBordered"
+          @update:value="themeStore.setTableBordered"
+        />
+      </n-flex>
       <template #footer>
         <n-button type="primary" block @click="themeStore.resetToDefault">重置主题和布局</n-button>
       </template>

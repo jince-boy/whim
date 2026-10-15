@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,16 +48,9 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         return baseMapper.selectRoleInfoListByUserId(userId);
     }
 
-    /** 查询有效超级管理员身份。 */
-    @Override
-    public boolean isSuperAdministrator(Long userId) {
-        return Boolean.TRUE.equals(baseMapper.selectSuperAdministratorFlag(userId));
-    }
-
     /** 查询系统角色目录。 */
     @Override
     public List<RoleVO> listRoles() {
-        authorizationService.requirePermission("system:role:list");
         return lambdaQuery().orderByAsc(SysRole::getSort, SysRole::getId).list().stream().map(role -> {
             RoleVO response = new RoleVO();
             response.setId(role.getId());
@@ -84,7 +76,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createRole(RoleSaveDTO request) {
-        authorizationService.requirePermission("system:role:create");
         SysRole role = new SysRole();
         role.setRoleName(request.getRoleName().trim());
         role.setRoleCode(validateRoleCode(request.getRoleCode(), null));
@@ -99,7 +90,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateRole(Long roleId, RoleSaveDTO request) {
-        authorizationService.requirePermission("system:role:update");
         SysRole role = getRequiredRole(roleId);
         authorizationService.requireMutableRole(role);
         role.setRoleName(request.getRoleName().trim());
@@ -112,7 +102,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void setRoleStatus(Long roleId, Integer status) {
-        authorizationService.requirePermission("system:role:status");
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
@@ -126,7 +115,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     /** 读取角色默认范围及其自定义部门。 */
     @Override
     public RoleDataScopeVO getDataScope(Long roleId) {
-        authorizationService.requirePermission("system:role:dataScope:list");
         SysRole role = getRequiredRole(roleId);
         RoleDataScopeVO response = new RoleDataScopeVO();
         response.setRoleId(roleId);
@@ -141,7 +129,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void replaceDataScope(Long roleId, Integer dataScope, Set<Long> deptIds) {
-        authorizationService.requirePermission("system:role:dataScope:assign");
         SysRole role = getRequiredRole(roleId);
         authorizationService.requireMutableRole(role);
         validateDataScope(dataScope, deptIds);
@@ -163,7 +150,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteRole(Long roleId) {
-        authorizationService.requirePermission("system:role:delete");
         SysRole role = getRequiredRole(roleId);
         authorizationService.requireMutableRole(role);
         if (!baseMapper.selectUserIdsByRole(roleId).isEmpty()) {
@@ -199,8 +185,8 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (!code.matches("[a-z][a-z0-9:]*") || "superadmin".equals(code)) {
             throw new IllegalArgumentException("角色编码须为字母、数字或冒号，且不能使用内置管理员编码");
         }
-        if (lambdaQuery().eq(SysRole::getRoleCode, code).list().stream()
-                .anyMatch(role -> !Objects.equals(role.getId(), excludedRoleId))) {
+        if (lambdaQuery().eq(SysRole::getRoleCode, code)
+                .ne(excludedRoleId != null, SysRole::getId, excludedRoleId).exists()) {
             throw new IllegalArgumentException("已存在相同角色编码");
         }
         return code;

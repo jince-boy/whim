@@ -26,3 +26,18 @@ pre,
 samp {
   font-family: var(--app-font-family-mono);
 }
+
+/* 侧栏、顶部及混合布局共用菜单对齐，避免图标和链接文字使用不同的行内基线。 */
+.n-menu .n-menu-item-content-header {
+  line-height: 1;
+}
+
+.n-menu .n-menu-item-content-header > a {
+  display: block;
+}
+
+.n-menu .n-menu-item-content__icon .n-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

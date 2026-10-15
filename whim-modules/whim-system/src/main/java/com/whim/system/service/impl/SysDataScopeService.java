@@ -53,7 +53,7 @@ public class SysDataScopeService implements DataPermissionProvider {
                 || (permission.getMenuType() != 2 && permission.getMenuType() != 3)) {
             throw new DataAccessDeniedException("操作权限不存在或已停用");
         }
-        if (Boolean.TRUE.equals(roleMapper.selectSuperAdministratorFlag(user.getId()))) {
+        if (authenticationContext.isSuperAdministrator()) {
             DataPermissionScope scope = new DataPermissionScope();
             scope.setUserId(user.getId());
             scope.setUserDepartmentId(user.getDeptId());

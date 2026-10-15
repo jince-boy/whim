@@ -1,5 +1,14 @@
-import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
-import type { DataTableInst } from 'naive-ui'
+import {
+  computed,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  shallowRef,
+  useTemplateRef,
+} from 'vue'
+import { useMessage, useThemeVars, type DataTableInst } from 'naive-ui'
+import screenfull from 'screenfull'
 import { useUserStore } from '@/stores/modules/user'
 import type { TableButton, WhimTableBinding, WhimTableEmits, WhimTableRegistration } from '../types'
 
@@ -9,6 +18,11 @@ export function useWhimTableView(
 ) {
   const binding = shallowRef<WhimTableBinding>()
   const tableRef = useTemplateRef<DataTableInst>('tableRef')
+  const tableContainer = useTemplateRef<HTMLElement>('tableContainer')
+  const themeVars = useThemeVars()
+  const message = useMessage()
+  const fullscreenEnabled = screenfull.isEnabled
+  const isFullscreen = ref(false)
   const userStore = useUserStore()
   const tableProps = computed(() => binding.value?.tableProps.value)
   const toolbar = computed(() => binding.value?.toolbar.value ?? {})
@@ -75,6 +89,29 @@ export function useWhimTableView(
     return tableRef.value
   }
 
+  /** 同步当前表格的全屏状态，包括 Esc 退出。 */
+  function syncFullscreen() {
+    isFullscreen.value = screenfull.isFullscreen && screenfull.element === tableContainer.value
+  }
+
+  /** 全屏展示当前查询表单和表格，保留原有数据与选择状态。 */
+  async function toggleFullscreen() {
+    if (!fullscreenEnabled || !tableContainer.value) return
+    try {
+      if (isFullscreen.value) await screenfull.exit()
+      else await screenfull.request(tableContainer.value)
+    } catch {
+      message.error('切换表格全屏失败')
+    }
+  }
+
+  /** 离开缓存页面或卸载时释放当前表格占用的全屏。 */
+  function exitFullscreen() {
+    if (fullscreenEnabled && screenfull.element === tableContainer.value) {
+      void screenfull.exit().catch(() => message.error('退出表格全屏失败'))
+    }
+  }
+
   const registration: WhimTableRegistration = {
     /** 接入 hook 持有的响应式视图。 */
     connect: (value) => {
@@ -83,9 +120,22 @@ export function useWhimTableView(
     /** 注册接口允许在挂载前读取为空。 */
     getInstance: () => tableRef.value ?? undefined,
   }
-  onMounted(() => emit('register', registration))
-  onBeforeUnmount(() => emit('register', undefined))
+  onMounted(() => {
+    emit('register', registration)
+    if (fullscreenEnabled) screenfull.on('change', syncFullscreen)
+  })
+  onDeactivated(exitFullscreen)
+  onBeforeUnmount(() => {
+    exitFullscreen()
+    if (fullscreenEnabled) screenfull.off('change', syncFullscreen)
+    emit('register', undefined)
+  })
   return {
+    tableContainer,
+    themeVars,
+    fullscreenEnabled,
+    isFullscreen,
+    toggleFullscreen,
     binding,
     tableProps,
     toolbar,

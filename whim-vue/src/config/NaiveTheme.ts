@@ -16,6 +16,12 @@ const commonThemeOverrides: GlobalThemeOverrides = {
     contentMargin: '32px 0',
     iconSize: '22px',
   },
+  Card: {
+    paddingSmall: '12px',
+    paddingMedium: '12px',
+    paddingLarge: '12px',
+    paddingHuge: '12px',
+  },
 }
 
 export const lightThemeOverrides: GlobalThemeOverrides = {

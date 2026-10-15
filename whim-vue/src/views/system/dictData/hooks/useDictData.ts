@@ -7,13 +7,13 @@ import {
   insertDictData,
   updateDictData,
 } from './api'
-import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
+import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import type {
   DictData,
   DictDataQuery,
   DictDataResult,
 } from '@/views/system/dictData/hooks/types.ts'
-import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
+import { useFormDialog } from '@/components/dialog'
 import editForm from '@/views/system/dictData/form.vue'
 
 export interface DictDataProps {
@@ -23,7 +23,6 @@ export interface DictDataProps {
 /** 配置注册式列表并处理字典数据业务操作。 */
 export function useDictData(props: DictDataProps) {
   const router = useRouter()
-  const message = useMessage()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
 
   const tableColumns: DataTableColumn<DictDataResult>[] = [
@@ -132,29 +131,23 @@ export function useDictData(props: DictDataProps) {
    * 打开新增字典数据对话框
    */
   const openAddDialog = () => {
-    openFormDialog<DictData>({
+    openFormDialog({
       title: '新建字典数据',
-      model: {
-        id: '',
-        dictType: props.type,
-        label: '',
-        value: '',
-        listClass: 'default',
-        sort: 0,
-        remark: '',
+      formProps: {
+        initialModel: {
+          id: '',
+          dictType: props.type,
+          label: '',
+          value: '',
+          listClass: 'default',
+          sort: 0,
+          remark: '',
+        },
       },
       formComponent: editForm,
-      onSubmit: async (formModel, dialog) => {
-        return insertDictData(formModel).then((res) => {
-          if (res.code == 200) {
-            dialog.destroy()
-            message.success(`${dialog.title}成功`)
-            getDictDataPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: insertDictData,
+      successMessage: '新增字典数据成功',
+      onSuccess: getDictDataPage,
     })
   }
 
@@ -164,21 +157,13 @@ export function useDictData(props: DictDataProps) {
    */
   const openEditDialog = async (id: string | number) => {
     const data = await getDictDataDetail(id)
-    openFormDialog<DictData>({
-      title: '修改字典',
+    openFormDialog({
+      title: '修改字典数据',
       formComponent: editForm,
-      model: data,
-      onSubmit: async (formModel, dialog) => {
-        return updateDictData(formModel).then((res) => {
-          if (res.code == 200) {
-            dialog.destroy()
-            message.success(`${dialog.title}成功`)
-            getDictDataPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      formProps: { initialModel: data },
+      onSubmit: updateDictData,
+      successMessage: '修改字典数据成功',
+      onSuccess: getDictDataPage,
     })
   }
 
@@ -189,16 +174,8 @@ export function useDictData(props: DictDataProps) {
   const removeDictData = (row: DictData) => {
     openDeleteDialog({
       content: `确定要删除${row.label}吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteDictData({ dictDataIds: [row.id] }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getDictDataPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteDictData({ dictDataIds: [row.id] }),
+      onSuccess: getDictDataPage,
     })
   }
   /**
@@ -207,16 +184,8 @@ export function useDictData(props: DictDataProps) {
   const removeDictDataBatch = (ids: Array<string | number>) => {
     openDeleteDialog({
       content: `确定要删除选中的 ${ids.length} 个字典类型吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteDictData({ dictDataIds: ids }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getDictDataPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteDictData({ dictDataIds: ids }),
+      onSuccess: getDictDataPage,
     })
   }
 

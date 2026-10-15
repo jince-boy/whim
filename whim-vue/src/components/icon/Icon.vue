@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import '@/assets/iconfont/iconfont.css'
 import { computed } from 'vue'
 
 defineOptions({
@@ -6,30 +7,41 @@ defineOptions({
 })
 
 interface Props {
-  name: string | null // 唯一必需的图标名称属性
-  size?: number
+  name?: string | null
+  size?: number | string
   color?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 16,
-  color: undefined,
+  size: '1em',
 })
 
-// 动态生成 iconfont 类名和样式
-const iconClass = computed(() => {
-  return props.name ? `iconfont icon-${props.name}` : ''
-})
+const iconName = computed(() => props.name?.trim().replace(/^icon-/, ''))
 
 const iconStyle = computed(() => ({
-  fontSize: `${props.size}px`,
+  fontSize: typeof props.size === 'number' ? `${props.size}px` : props.size,
   color: props.color,
 }))
 </script>
 
 <template>
-  <!-- 如果 name 为空或 null，就不渲染 -->
-  <i v-if="props.name" :class="iconClass" :style="iconStyle" />
+  <i
+    v-if="iconName"
+    class="whim-icon iconfont"
+    :class="`icon-${iconName}`"
+    :style="iconStyle"
+    aria-hidden="true"
+  />
 </template>
 
-<style scoped></style>
+<style scoped>
+.whim-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+}
+</style>

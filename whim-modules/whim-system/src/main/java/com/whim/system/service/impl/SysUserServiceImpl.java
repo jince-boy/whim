@@ -161,8 +161,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .set(SysUser::getName, request.getName().trim()).set(SysUser::getAvatar, request.getAvatar())
                 .set(SysUser::getEmail, request.getEmail()).set(SysUser::getPhone, request.getPhone())
                 .set(SysUser::getGender, request.getGender()).set(SysUser::getRemark, request.getRemark())
-                .set(SysUser::getUpdateBy, authenticationContext.getUserId())
-                .set(SysUser::getUpdateTime, java.time.LocalDateTime.now()).update()) {
+                .update(new SysUser())) {
             throw new DataAccessDeniedException("用户已不可修改");
         }
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(user.getId()));
@@ -177,7 +176,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = getRequiredUserInScope(userId);
         authorizationService.requireManageableUser(userId);
         if (Objects.equals(userId, authenticationContext.getUserId())
-                && !authorizationService.isSuperAdministrator()) {
+                && !authenticationContext.isSuperAdministrator()) {
             throw new DataAccessDeniedException("不能通过修改本人主部门改变授权范围");
         }
         DataPermissionContext.checkOwnership("sys_user", userId, deptId);

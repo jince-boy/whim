@@ -21,22 +21,13 @@ public class StpAuthManager {
     public static final StpLogic SYSTEM = new StpLogicJwtForSimple(AuthUserType.SYSTEM);
 
     /**
-     * 获取项目中全部已注册的账号体系。
-     *
-     * @return 全部 StpLogic 实例
-     */
-    private static List<StpLogic> getRegisteredStpLogics() {
-        return List.of(SYSTEM);
-    }
-
-    /**
      * 获取项目中全部多账号 StpLogic，供 Spring 注册到 Sa-Token。
      * 新增账号体系时，需要在此追加对应常量并加入返回集合。
      *
      * @return 全部 StpLogic 实例，顺序对框架无影响
      */
     public static List<StpLogic> allRegistered() {
-        return getRegisteredStpLogics();
+        return List.of(SYSTEM);
     }
 
     /**
@@ -46,7 +37,7 @@ public class StpAuthManager {
      * @return 账号体系对应的 StpLogic
      */
     public static StpLogic getStpLogic(String loginType) {
-        return getRegisteredStpLogics().stream()
+        return allRegistered().stream()
                 .filter(stpLogic -> Objects.equals(stpLogic.getLoginType(), loginType))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("未注册的账号体系：" + loginType));
@@ -59,8 +50,7 @@ public class StpAuthManager {
      * @return 当前请求所属的 StpLogic；如果当前请求未登录任何体系，则返回 null
      */
     public static StpLogic getCurrentStpLogic() {
-        return getRegisteredStpLogics().stream()
-                .filter(Objects::nonNull)
+        return allRegistered().stream()
                 .filter(StpLogic::isLogin)
                 .findFirst()
                 .orElse(null);

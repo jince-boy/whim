@@ -1,97 +1,105 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import Icon from '@/components/icon/Icon.vue'
+import type { MenuSearchItem } from './hooks/types'
 
-interface ResultItem {
-  text: string
-  path?: string
-}
+defineOptions({ name: 'MenuSearchResults' })
 
 const props = defineProps<{
-  results: ResultItem[]
+  results: readonly MenuSearchItem[]
+  activeIndex: number
+  listId: string
+  navigating: boolean
 }>()
 const emit = defineEmits<{
-  close: []
+  select: [item: MenuSearchItem]
+  activeChange: [index: number]
 }>()
-const router = useRouter()
-const activeIndex = ref(0)
-
-// 处理点击事件
-const handleClick = (path?: string) => {
-  if (path) {
-    router.push(path)
-    emit('close')
-  }
-}
-
-// 处理键盘事件
-const handleKeyDown = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'ArrowUp':
-      e.preventDefault()
-      activeIndex.value = Math.max(0, activeIndex.value - 1)
-      break
-    case 'ArrowDown':
-      e.preventDefault()
-      activeIndex.value = Math.min(props.results.length - 1, activeIndex.value + 1)
-      break
-    case 'Enter':
-      e.preventDefault()
-      if (props.results[activeIndex.value]?.path) {
-        handleClick(props.results[activeIndex.value].path)
-      }
-      break
-  }
-}
-
-// 添加和移除键盘事件监听
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyDown)
-})
 </script>
 
 <template>
   <n-el>
-    <n-list :show-divider="false">
-      <n-list-item
+    <ul
+      :id="props.listId"
+      class="search-results"
+      role="listbox"
+      aria-label="菜单搜索结果"
+      :aria-busy="props.navigating"
+    >
+      <li
         v-for="(item, index) in props.results"
-        :key="item.path || item.text"
-        :class="{ 'active-item': index === activeIndex }"
-        :bordered="false"
-        @click="handleClick(item.path)"
+        :id="`${props.listId}-${index}`"
+        :key="item.key"
+        class="search-option"
+        :class="{ 'is-active': index === props.activeIndex }"
+        role="option"
+        :aria-selected="index === props.activeIndex"
+        :aria-disabled="props.navigating"
+        @pointermove="emit('activeChange', index)"
+        @mousedown.prevent
+        @click="emit('select', item)"
       >
-        <n-flex justify="space-between" align="center">
-          <span>{{ item.text }}</span>
-          <i class="iconfont icon-c181huiche"></i>
-        </n-flex>
-      </n-list-item>
-    </n-list>
+        <span class="option-content">
+          <span class="option-name">{{ item.name }}</span>
+          <span v-if="item.breadcrumb" class="option-breadcrumb">{{ item.breadcrumb }}</span>
+        </span>
+        <Icon class="option-enter" name="c181huiche" :size="18" />
+      </li>
+    </ul>
   </n-el>
 </template>
 
 <style scoped lang="scss">
-.n-list-item {
-  cursor: pointer;
-  padding: 8px 12px;
-  transition:
-    color 0.3s var(--n-bezier),
-    background-color 0.3s var(--n-bezier),
-    box-shadow 0.3s var(--n-bezier),
-    border-color 0.3s var(--n-bezier);
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.search-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
   border-radius: var(--border-radius);
-  margin: 12px 0;
-  background-color: var(--n-color-hover);
-  &:hover {
-    background-color: var(--primary-color);
-    color: var(--n-color);
+  color: var(--text-color-1);
+  cursor: pointer;
+
+  &.is-active {
+    background-color: var(--hover-color);
+    box-shadow: inset 0 0 0 1px var(--primary-color);
+
+    .option-name,
+    .option-enter {
+      color: var(--primary-color);
+    }
   }
-  &.active-item {
-    background-color: var(--primary-color);
-    color: var(--n-color);
+
+  &[aria-disabled='true'] {
+    cursor: progress;
   }
+}
+
+.option-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.option-name {
+  font-weight: 500;
+}
+
+.option-breadcrumb {
+  color: var(--text-color-3);
+  font-size: 12px;
+}
+
+.option-enter {
+  color: var(--text-color-3);
 }
 </style>

@@ -197,21 +197,6 @@ const {
   padding-top: 2px;
 }
 
-.layout-header :deep(.layout-top-menu .n-menu-item-content-header) {
-  line-height: 1;
-}
-
-.layout-header :deep(.layout-top-menu .n-menu-item-content__icon .n-icon) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.layout-header :deep(.layout-top-menu .n-menu-item-content__icon .iconfont) {
-  display: block;
-  line-height: 1;
-}
-
 .layout-brand {
   display: flex;
   align-items: center;

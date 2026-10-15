@@ -1,9 +1,6 @@
 package com.whim.core.auth;
 
-import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
-
-import java.util.List;
 
 /**
  * @author Jince
@@ -39,33 +36,6 @@ public interface AuthenticationContext {
      */
     default Long getUserId() {
         return getCurrentUserInfo().getUserId();
-    }
-
-    /**
-     * 获取当前登录用户所属部门ID。
-     *
-     * @return 当前登录用户所属部门ID
-     */
-    default Long getDeptId() {
-        return getCurrentUserInfo().getDeptId();
-    }
-
-    /**
-     * 获取当前登录账号体系。
-     *
-     * @return 当前登录账号体系
-     */
-    default String getLoginType() {
-        return getCurrentUserInfo().getLoginType();
-    }
-
-    /**
-     * 获取当前登录用户角色信息列表。
-     *
-     * @return 当前登录用户角色信息列表
-     */
-    default List<RoleInfo> getRoleInfoList() {
-        return getCurrentUserInfo().getRoleInfoList();
     }
 
 }

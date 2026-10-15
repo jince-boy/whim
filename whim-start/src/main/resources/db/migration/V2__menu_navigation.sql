@@ -16,7 +16,7 @@ VALUES (2, 'system.menu.lock', '1', '菜单目录并发维护锁');
 INSERT INTO sys_permission
     (id, route_name, menu_name, perms, parent_id, menu_type, path, component, sort, icon, built_in)
 VALUES
-    (1500, 'SysMenu', '菜单管理', 'system:menu:list', 100, 2, '/system/menu', 'system/menu/index', 50, 'yonghu', 1),
+    (1500, 'SysMenu', '菜单管理', 'system:menu:list', 100, 2, '/system/menu', 'system/menu/index', 50, 'menu', 1),
     (1501, NULL, '菜单详情', 'system:menu:detail', 1500, 3, NULL, NULL, 1, NULL, 1),
     (1502, NULL, '新增菜单', 'system:menu:create', 1500, 3, NULL, NULL, 2, NULL, 1),
     (1503, NULL, '修改菜单', 'system:menu:update', 1500, 3, NULL, NULL, 3, NULL, 1),
@@ -26,7 +26,7 @@ VALUES
 UPDATE sys_permission SET menu_type = 3, parent_id = 1500, route_name = NULL,
     path = NULL, component = NULL WHERE id = 1400;
 UPDATE sys_permission SET parent_id = 1500 WHERE id = 1401;
-UPDATE sys_permission SET component = NULL WHERE id = 100;
+UPDATE sys_permission SET component = NULL, icon = 'setting' WHERE id = 100;
 
 INSERT INTO sys_role_permission (id, role_id, permission_id)
 VALUES (36, 1, 1500), (37, 1, 1501), (38, 1, 1502), (39, 1, 1503), (40, 1, 1504);

@@ -15,7 +15,7 @@ import type {
   DictTypeResult,
 } from '@/views/system/dictType/hooks/types.ts'
 import editForm from '@/views/system/dictType/form.vue'
-import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
+import { useFormDialog } from '@/components/dialog'
 /** 配置注册式列表并处理字典类型业务操作。 */
 export function useDictType() {
   const router = useRouter()
@@ -119,20 +119,12 @@ export function useDictType() {
    * 打开新增字典对话框
    */
   const openAddDialog = () => {
-    openFormDialog<DictType>({
+    openFormDialog({
       title: '新建字典',
       formComponent: editForm,
-      onSubmit: async (formModel, dialog) => {
-        return insertDictType(formModel).then((res) => {
-          if (res.code == 200) {
-            dialog.destroy()
-            message.success(`${dialog.title}成功`)
-            getDictTypePage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: insertDictType,
+      successMessage: '新增字典类型成功',
+      onSuccess: getDictTypePage,
     })
   }
 
@@ -142,21 +134,13 @@ export function useDictType() {
    */
   const openEditDialog = async (id: string | number) => {
     const data = await getDictTypeDetail(id)
-    openFormDialog<DictType>({
+    openFormDialog({
       title: '修改字典',
       formComponent: editForm,
-      model: data,
-      onSubmit: async (formModel, dialog) => {
-        return updateDictType(formModel).then((res) => {
-          if (res.code == 200) {
-            dialog.destroy()
-            message.success(`${dialog.title}成功`)
-            getDictTypePage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      formProps: { initialModel: data },
+      onSubmit: updateDictType,
+      successMessage: '修改字典类型成功',
+      onSuccess: getDictTypePage,
     })
   }
 
@@ -167,16 +151,8 @@ export function useDictType() {
   const removeDictType = (row: DictType) => {
     openDeleteDialog({
       content: `确定要删除${row.name}吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteDictType({ dictTypeIds: [row.id] }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getDictTypePage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteDictType({ dictTypeIds: [row.id] }),
+      onSuccess: getDictTypePage,
     })
   }
   /**
@@ -185,16 +161,8 @@ export function useDictType() {
   const removeDictTypeBatch = (ids: Array<string | number>) => {
     openDeleteDialog({
       content: `确定要删除选中的 ${ids.length} 个字典类型吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteDictType({ dictTypeIds: ids }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getDictTypePage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteDictType({ dictTypeIds: ids }),
+      onSuccess: getDictTypePage,
     })
   }
 

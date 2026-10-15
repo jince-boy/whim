@@ -37,6 +37,7 @@ export interface MenuSave {
 export interface MenuItem extends MenuSave {
   id: MenuId
   builtIn: 0 | 1
+  protectedNode: boolean
   createTime?: string
   children?: MenuItem[]
 }

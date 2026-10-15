@@ -47,6 +47,7 @@ function initialMenus(): MenuItem[] {
     status: node.status as 0 | 1,
     remark: node.remark,
     builtIn: node.component === 'system/menu/index' || node.parentId === '0' ? 1 : 0,
+    protectedNode: node.component === 'system/menu/index' || (node.type === 1 && node.parentId === '0'),
     createTime: node.createTime,
   }))
 }
@@ -67,6 +68,14 @@ function loadDatabase(): MockDatabase {
       if (
         Object.keys(initialData).every((key) => Array.isArray(parsed[key as keyof MockDatabase]))
       ) {
+        // 补齐旧演示缓存的管理保护标记，保留已有演示数据。
+        for (const node of parsed.menus) {
+          node.protectedNode =
+            node.builtIn === 1 &&
+            ((node.menuType === 1 && String(node.parentId) === '0') ||
+              !!node.perms?.startsWith('system:menu:') ||
+              !!node.perms?.startsWith('system:permission:'))
+        }
         return parsed
       }
     }

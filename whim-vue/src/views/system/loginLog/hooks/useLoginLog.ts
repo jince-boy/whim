@@ -1,15 +1,14 @@
 import { useWhimTable } from '@/components/table'
 import type { LoginLog, LoginLogQuery } from '@/views/system/loginLog/hooks/types.ts'
 import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
-import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
+import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import dayjs from 'dayjs'
-import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
+import { useFormDialog } from '@/components/dialog'
 import { useDict } from '@/components/dict/useDict.ts'
 const { dictData: sysStatusOptions, getDictData } = await useDict('sys_result_status')
 /** 配置注册式列表并处理登录日志业务操作。 */
 export function useLoginLog() {
   const { openDeleteDialog } = useFormDialog()
-  const message = useMessage()
   const tableColumns: DataTableColumn<LoginLog>[] = [
     {
       type: 'selection',
@@ -120,16 +119,8 @@ export function useLoginLog() {
   const removeLoginLog = (row: LoginLog) => {
     openDeleteDialog({
       content: `确定要删除${row.username}这条登录日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteLoginLog({ loginLogIds: [row.id] }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getLoginLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteLoginLog({ loginLogIds: [row.id] }),
+      onSuccess: getLoginLogPage,
     })
   }
   /**
@@ -138,16 +129,8 @@ export function useLoginLog() {
   const removeLoginLogBatch = (ids: Array<string | number>) => {
     openDeleteDialog({
       content: `确定要删除选中的 ${ids.length} 个登录日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return deleteLoginLog({ loginLogIds: ids }).then((res) => {
-          if (res.code == 200) {
-            message.success(`删除成功`)
-            getLoginLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      onSubmit: () => deleteLoginLog({ loginLogIds: ids }),
+      onSuccess: getLoginLogPage,
     })
   }
 
@@ -157,16 +140,10 @@ export function useLoginLog() {
   const handleCleanLoginLog = () => {
     openDeleteDialog({
       content: `确定要清空登录日志吗？删除后无法恢复！`,
-      onSubmit: () => {
-        return cleanLoginLog().then((res) => {
-          if (res.code == 200) {
-            message.success(`清理成功`)
-            getLoginLogPage()
-          } else {
-            message.error(res.message)
-          }
-        })
-      },
+      title: '清空确认',
+      onSubmit: cleanLoginLog,
+      successMessage: '清理成功',
+      onSuccess: getLoginLogPage,
     })
   }
   /**

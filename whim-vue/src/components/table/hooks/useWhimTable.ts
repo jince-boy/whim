@@ -2,6 +2,7 @@ import { computed, onScopeDispose, ref, shallowRef, toValue, watch } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
 import type { DataTableProps, DataTableRowKey } from 'naive-ui'
 import { useSearchForm } from '../../form/hooks/useSearchForm'
+import { useThemeStore } from '@/stores/modules/theme'
 import type {
   WhimTableBinding,
   WhimTableOptions,
@@ -25,6 +26,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   source: MaybeRefOrGetter<WhimTableOptions<Row, Query>>,
 ) {
   const options = computed(() => toValue(source))
+  const themeStore = useThemeStore()
   const instance = shallowRef<WhimTableRegistration>()
   const [registerSearch, form] = useSearchForm<Query>(
     () => options.value.search ?? { defaultValues: {} as Query },
@@ -47,7 +49,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   const expandedRowKeys = ref<DataTableRowKey[] | undefined>(
     options.value.defaultExpandedRowKeys ? [...options.value.defaultExpandedRowKeys] : undefined,
   )
-  const bordered = ref(options.value.bordered ?? false)
+  const bordered = computed(() => options.value.bordered ?? themeStore.config.tableBordered)
   const striped = ref(options.value.striped ?? false)
   const hiddenColumns = ref<DataTableRowKey[]>([])
   let requestVersion = 0
@@ -247,12 +249,6 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   })
 
   watch(
-    () => options.value.bordered,
-    (value) => {
-      bordered.value = value ?? false
-    },
-  )
-  watch(
     () => options.value.striped,
     (value) => {
       striped.value = value ?? false
@@ -280,7 +276,6 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
     columnOptions,
     visibleColumnKeys,
     checkedRowKeys,
-    bordered,
     striped,
     loading,
     error,

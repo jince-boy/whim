@@ -30,7 +30,7 @@ export function buildMenuTree(rows: MenuItem[], name = ''): MenuItem[] {
 
 /** 演示接口使用与后端相同的路径和字段，不影响真实模式的网络请求。 */
 export function handleMenu(path: string, method: string, params: MockParams, data: MockParams) {
-  if (path === '/system/menu/userMenus' && method === 'GET') {
+  if (path === '/system/permission/userMenus' && method === 'GET') {
     const active = database.menus.filter((node) => node.status === 0 && node.menuType !== 3)
     const index = new Map(active.map((node) => [String(node.id), node]))
     const visible = active.filter((node) => {
@@ -45,21 +45,28 @@ export function handleMenu(path: string, method: string, params: MockParams, dat
     })
     return success(buildMenuTree(visible))
   }
-  if (path === '/system/menu' && method === 'GET')
+  if (path === '/system/permission/options' && method === 'GET')
+    return success(database.menus)
+  if (path === '/system/permission' && method === 'GET')
     return success(buildMenuTree(database.menus, String(params.menuName || '')))
-  const match = /^\/system\/menu\/([^/]+)$/.exec(path)
+  const match = /^\/system\/permission\/([^/]+)$/.exec(path)
   const existing = match ? findById(database.menus, match[1]) : undefined
   if (match && method === 'GET') return success(existing)
   if (match && method === 'DELETE') {
-    if (existing!.builtIn) fail('内置节点不能删除')
+    if (existing!.protectedNode) fail('核心管理节点不能删除')
     if (database.menus.some((node) => String(node.parentId) === String(existing!.id)))
       fail('请先删除子节点')
     database.menus = database.menus.filter((node) => node.id !== existing!.id)
     persistDatabase()
     return success(null, '菜单删除成功')
   }
-  if (!(path === '/system/menu' && method === 'POST') && !(match && method === 'PUT')) return
+  if (!(path === '/system/permission' && method === 'POST') && !(match && method === 'PUT')) return
   const model = data as unknown as MenuSave
+  if (
+    existing?.protectedNode &&
+    (model.status !== 0 || model.visible !== 0 || String(model.parentId) !== String(existing.parentId))
+  )
+    fail('核心管理节点不能停用、隐藏或迁移')
   if (!model.menuName?.trim()) fail('菜单名称不能为空')
   const ancestors = new Set<string>(existing ? [String(existing.id)] : [])
   let parent = String(model.parentId) === '0' ? undefined : findById(database.menus, model.parentId)
@@ -93,6 +100,7 @@ export function handleMenu(path: string, method: string, params: MockParams, dat
     ...model,
     id: existing?.id || crypto.randomUUID(),
     builtIn: existing?.builtIn || 0,
+    protectedNode: existing?.protectedNode ?? false,
     createTime: existing?.createTime || currentTime(),
   }
   if (existing) Object.assign(existing, menu)

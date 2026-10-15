@@ -18,8 +18,6 @@ import java.util.Set;
 public interface ISysRoleService extends IService<SysRole> {
     /** 查询账号的有效角色。 */
     List<RoleInfo> getRoleInfoListByUserId(Long userId);
-    /** 判断有效账号是否持有有效超级管理员角色。 */
-    boolean isSuperAdministrator(Long userId);
     /** 查询系统角色目录。 */
     List<RoleVO> listRoles();
     /** 获取未删除角色，不返回跨域身份。 */

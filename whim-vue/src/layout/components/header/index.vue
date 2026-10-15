@@ -166,6 +166,22 @@ const {
   white-space: nowrap;
 }
 
+.header-breadcrumb :deep(ul) {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.header-breadcrumb :deep(.n-breadcrumb-item__link) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.header-breadcrumb :deep(.n-breadcrumb-item__separator) {
+  line-height: 1;
+}
+
 .header-actions {
   flex-shrink: 0;
 }

@@ -25,5 +25,6 @@ export interface ThemeConfig {
   showWatermark: boolean // 显示水印
   watermarkText: string
   showLogo: boolean
+  tableBordered: boolean // 表格默认显示边框
   tabStyle: TabStyle
 }

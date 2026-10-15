@@ -7,7 +7,6 @@ import com.whim.system.model.dto.dept.DeptUpdateDTO;
 import com.whim.system.model.vo.dept.DeptVO;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Jince
@@ -19,8 +18,6 @@ public interface ISysDeptService extends IService<SysDept> {
     List<DeptVO> listDepartments();
     /** 查询有效部门并验证完整祖先链。 */
     SysDept getRequiredActiveDepartment(Long deptId);
-    /** 查询有效部门及其有效下级部门。 */
-    Set<Long> getActiveDescendantIds(Long deptId);
     /** 创建部门并验证父部门范围。 */
     Long createDepartment(DeptCreateDTO request);
     /** 修改部门名称和排序，不隐式迁移部门树。 */

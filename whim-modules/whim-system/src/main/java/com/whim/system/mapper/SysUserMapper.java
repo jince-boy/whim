@@ -19,8 +19,5 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     /** 仅供授权解析读取账号状态和主部门，不返回密码等业务信息。 */
     @DataPermissionMetadata
     SysUser selectAuthorizationUser(@Param("userId") Long userId);
-
-    /** 业务写入中锁定目标用户，仍受当前注解的数据范围限制。 */
-    SysUser selectForUpdate(@Param("userId") Long userId);
 }
 

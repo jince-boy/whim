@@ -9,7 +9,4 @@
         SELECT id, dept_id, status FROM sys_user
         WHERE id = #{userId} AND deleted = 0 AND status = 0
     </select>
-    <select id="selectForUpdate" resultType="com.whim.system.model.entity.SysUser">
-        SELECT id, dept_id, status FROM sys_user WHERE id = #{userId} AND deleted = 0 FOR UPDATE
-    </select>
 </mapper>

@@ -21,51 +21,60 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 对受注解保护的查询和写入执行过滤，禁止忽略拦截器绕过声明。
+ * @description 为原生数据权限插件补充防绕过和内部元数据只读约束，SQL 改写仍由原生插件执行。
  */
 public class DataPermissionInterceptor extends com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor {
     private final Map<String, Boolean> metadataStatements = new ConcurrentHashMap<>();
+
     /** 使用通用多表权限条件处理器。 */
     public DataPermissionInterceptor() {
         super(new DataPermissionSqlHandler());
     }
 
-    /** 在分页及计数之前处理查询，未进入受保护业务方法时不解析 SQL。 */
+    /** 在分页及缓存键生成前过滤查询，无业务范围或合法元数据查询不解析 SQL。 */
     @Override
     public void beforeQuery(Executor executor, MappedStatement statement, Object parameter, RowBounds rowBounds,
                             ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
-        if (!DataPermissionContext.active()) {
+        if (skipDataPermission(statement)) {
             return;
-        }
-        if (isMetadataStatement(statement.getId())) {
-            return;
-        }
-        if (InterceptorIgnoreHelper.willIgnoreDataPermission(statement.getId())) {
-            throw new DataAccessDeniedException("受保护业务操作不能忽略数据权限");
         }
         super.beforeQuery(executor, statement, parameter, rowBounds, resultHandler, boundSql);
     }
 
-    /** 在 SQL 执行前处理更新和删除，归属字段新增与变更由业务服务同步校验。 */
+    /** 每次写入先检查豁免声明，批处理与语句复用也不能以元数据名义写入。 */
+    @Override
+    public void beforeUpdate(Executor executor, MappedStatement statement, Object parameter) {
+        skipDataPermission(statement);
+    }
+
+    /** 复用原生更新和删除过滤，INSERT 与归属变更仍由 checkOwnership 校验。 */
     @Override
     public void beforePrepare(StatementHandler handler, Connection connection, Integer transactionTimeout) {
-        if (!DataPermissionContext.active()) {
-            return;
-        }
         MappedStatement statement = PluginUtils.mpStatementHandler(handler).mappedStatement();
-        if (isMetadataStatement(statement.getId())) {
-            if (statement.getSqlCommandType() != SqlCommandType.SELECT) {
-                throw new DataAccessDeniedException("授权元数据声明只能用于内部只读查询");
-            }
+        if (skipDataPermission(statement)) {
             return;
-        }
-        if (InterceptorIgnoreHelper.willIgnoreDataPermission(statement.getId())) {
-            throw new DataAccessDeniedException("受保护业务操作不能忽略数据权限");
         }
         super.beforePrepare(handler, connection, transactionTimeout);
     }
 
-    /** 仅识别开发者明确标记的 Mapper 方法，普通业务 SQL 没有忽略入口。 */
+    /** 元数据始终只读；受保护业务禁止通过方法、Mapper 或线程级忽略策略关闭过滤。 */
+    private boolean skipDataPermission(MappedStatement statement) {
+        if (isMetadataStatement(statement.getId())) {
+            if (statement.getSqlCommandType() != SqlCommandType.SELECT) {
+                throw new DataAccessDeniedException("授权元数据声明只能用于内部只读查询");
+            }
+            return true;
+        }
+        if (!DataPermissionContext.active()) {
+            return true;
+        }
+        if (InterceptorIgnoreHelper.willIgnoreDataPermission(statement.getId())) {
+            throw new DataAccessDeniedException("受保护业务操作不能忽略数据权限");
+        }
+        return false;
+    }
+
+    /** 只识别明确标注的 Mapper 方法并缓存结果，不提供整类豁免入口。 */
     private boolean isMetadataStatement(String statementId) {
         return metadataStatements.computeIfAbsent(statementId, identifier -> {
             int separator = identifier.lastIndexOf('.');

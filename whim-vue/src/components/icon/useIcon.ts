@@ -1,16 +1,12 @@
 import { h } from 'vue'
-import Icon from '@/components/icon/Icon.vue'
+import Icon from './Icon.vue'
 
+/** 创建供按钮、菜单使用的图标渲染函数。 */
+export function createIcon(name?: string | null, size?: number | string, color?: string) {
+  return () => h(Icon, { name, size, color })
+}
+
+/** 保留现有 useIcon 调用方式。 */
 export function useIcon() {
-  /**
-   * createIcon 方法，返回一个渲染函数
-   * @param name 图标名称
-   * @param size 图标大小
-   * @param color 图标颜色
-   */
-  function createIcon(name: string, size: number = 16, color?: string) {
-    return () => h(Icon, { name, size, color })
-  }
-
   return { createIcon }
 }

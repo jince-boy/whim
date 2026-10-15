@@ -15,10 +15,10 @@ export interface TableToolbarOptions {
   buttons?: TableButton[]
   permissions?: Partial<Record<TableButton, string[]>>
   roles?: Partial<Record<TableButton, string[]>>
-  showBorder?: boolean
   showStriped?: boolean
   showColumns?: boolean
   showRefresh?: boolean
+  showFullscreen?: boolean
 }
 
 /** 后端通用分页结构。 */
@@ -73,7 +73,6 @@ export interface WhimTableBinding {
   columnOptions: ComputedRef<Array<{ key: DataTableRowKey; label: string }>>
   visibleColumnKeys: ComputedRef<DataTableRowKey[]>
   checkedRowKeys: Ref<DataTableRowKey[]>
-  bordered: Ref<boolean>
   striped: Ref<boolean>
   loading: Ref<boolean>
   error: Ref<string | undefined>

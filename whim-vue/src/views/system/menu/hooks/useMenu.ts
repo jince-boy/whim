@@ -2,10 +2,10 @@ import { useWhimTable } from '@/components/table'
 import { computed, h, watch } from 'vue'
 import { NButton, NSpace, NTag, useMessage, type DataTableColumn } from 'naive-ui'
 import { fetchMenuList, fetchMenuDetail, insertMenu, updateMenu, deleteMenu } from './api'
-import { menuTypeOptions, type MenuId, type MenuItem, type MenuSave, type MenuQuery } from './types'
+import { menuTypeOptions, type MenuId, type MenuItem, type MenuQuery } from './types'
 import { useUserStore } from '@/stores/modules/user'
 import { usePermissionStore } from '@/stores/modules/permission'
-import { useFormDialog } from '@/components/dialog/useFormDialog'
+import { useFormDialog } from '@/components/dialog'
 import MenuForm from '../form.vue'
 import { useIcon } from '@/components/icon/useIcon'
 
@@ -34,24 +34,16 @@ export function useMenu() {
   }
   /** 打开新增或修改草稿；保存失败保留表单。 */
   function openEditor(initialModel?: MenuItem, parentId: MenuId = '0') {
-    openFormDialog<MenuSave>({
+    openFormDialog({
       title: initialModel ? '修改菜单' : '新建菜单',
       width: initialModel ? 600 : 800,
       formComponent: MenuForm,
-      model: initialModel,
-      extendedData: { parentId: initialModel?.parentId ?? parentId, menuData: catalog.value },
-      onSubmit: async (model, dialog) => {
-        const res = initialModel
-          ? await updateMenu(initialModel.id, model)
-          : await insertMenu(model)
-        if (res.code !== 200) {
-          message.error(res.message)
-          return
-        }
-        dialog.destroy()
-        message.success(res.message)
-        await refreshNavigation()
+      formProps: {
+        initialModel,
+        extendedData: { parentId: initialModel?.parentId ?? parentId, menuData: catalog.value },
       },
+      onSubmit: (model) => (initialModel ? updateMenu(initialModel.id, model) : insertMenu(model)),
+      onSuccess: refreshNavigation,
     })
   }
   /** 新增子节点默认使用被点击节点作为父级。 */
@@ -67,19 +59,12 @@ export function useMenu() {
     }
     openEditor(res.data)
   }
-  /** 删除单个无子节点的自定义节点，后端再次核验授权引用。 */
+  /** 删除叶子节点，并由后端同步清理角色授权及操作数据范围。 */
   function removeMenu(node: MenuItem) {
     openDeleteDialog({
-      content: `确定删除“${node.menuName}”？`,
-      onSubmit: async () => {
-        const res = await deleteMenu(node.id)
-        if (res.code !== 200) {
-          message.error(res.message)
-          throw new Error(res.message)
-        }
-        message.success(res.message)
-        await refreshNavigation()
-      },
+      content: `确定删除“${node.menuName}”？关联的角色授权和操作数据范围也会一并清理。`,
+      onSubmit: () => deleteMenu(node.id),
+      onSuccess: refreshNavigation,
     })
   }
   /** 展开整棵树或全部收起，不依赖第一页数据。 */
@@ -171,13 +156,18 @@ export function useMenu() {
                 () => '修改',
               )
             : null,
-          can('system:menu:delete') && userStore.roleCode.includes('superadmin') && !node.builtIn
+          can('system:menu:delete') && userStore.roleCode.includes('superadmin')
             ? h(
                 NButton,
                 {
                   text: true,
                   type: 'error',
-                  disabled: !!node.children?.length,
+                  disabled: node.protectedNode || !!node.children?.length,
+                  title: node.protectedNode
+                    ? '核心管理节点不能删除'
+                    : node.children?.length
+                      ? '请先删除所有子节点'
+                      : '删除菜单及关联授权',
                   onClick: () => removeMenu(node),
                 },
                 () => '删除',
@@ -196,6 +186,9 @@ export function useMenu() {
       buttons: canCreate.value ? ['add'] : [],
       permissions: { add: ['system:menu:create'] },
       showStriped: false,
+      showRefresh: true,
+      showColumns: true,
+      showFullscreen: true,
     },
     request: fetchMenuList,
     /** 仅转换展示树，搜索结果保留祖先和匹配目录的子树。 */

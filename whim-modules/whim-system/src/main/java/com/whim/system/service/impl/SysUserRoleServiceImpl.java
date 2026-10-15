@@ -7,14 +7,15 @@ import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.DataAccessDeniedException;
 import com.whim.mybatisplus.annotation.DataPermission;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
-import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.mapper.SysUserRoleMapper;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserRoleService;
+import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements ISysUserRoleService {
-    private final SysUserMapper userMapper;
+    private final ObjectProvider<ISysUserService> userServices;
     private final ISysRoleService roleService;
     private final SysAuthorizationService authorizationService;
     private final AuthenticationContext authenticationContext;
@@ -43,7 +44,7 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
     @DataPermission(permission = "system:userRole:list",
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public Set<Long> getRoleIds(Long userId) {
-        if (userMapper.selectById(userId) == null) {
+        if (userServices.getObject().getById(userId) == null) {
             throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
         }
         return lambdaQuery().eq(SysUserRole::getUserId, userId).list().stream()
@@ -57,13 +58,10 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void replaceRoles(Long userId, Set<Long> roleIds) {
         authorizationService.lockAdministratorMembership();
-        SysUser user = userMapper.selectForUpdate(userId);
-        if (user == null) {
-            throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
-        }
+        SysUser user = userServices.getObject().getRequiredUserInScope(userId);
         authorizationService.requireManageableUser(userId);
         if (Objects.equals(userId, authenticationContext.getUserId())
-                && !authorizationService.isSuperAdministrator()) {
+                && !authenticationContext.isSuperAdministrator()) {
             throw new DataAccessDeniedException("不能修改本人的角色关联");
         }
         if (user.getStatus() != 0 && !roleIds.isEmpty()) {
@@ -79,7 +77,7 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
             if (roleIds.contains(roleId)) {
                 authorizationService.requireDelegableRole(role, user);
                 retainsAdministrator |= "superadmin".equals(role.getRoleCode());
-            } else if (!authorizationService.isSuperAdministrator() && role.getStatus() == 0) {
+            } else if (!authenticationContext.isSuperAdministrator() && role.getStatus() == 0) {
                 authorizationService.requireDelegableRole(role, user);
             }
         }

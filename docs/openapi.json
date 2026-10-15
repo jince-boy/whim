@@ -31,7 +31,7 @@
     }
   ],
   "paths": {
-    "/system/menu/userMenus": {
+    "/system/permission/userMenus": {
       "get": {
         "tags": [
           "菜单"
@@ -318,7 +318,7 @@
         }
       }
     },
-    "/system/menu": {
+    "/system/permission": {
       "get": {
         "tags": [
           "菜单"
@@ -330,7 +330,7 @@
         ],
         "operationId": "listMenus",
         "summary": "查询菜单管理树",
-        "description": "要求system:menu:list，返回含停用节点和按钮的完整目录；menuName搜索保留匹配节点祖先。",
+        "description": "要求system:menu:list，返回含停用节点和按钮的完整目录；menuName搜索保留匹配节点祖先。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "menuName",
@@ -625,7 +625,7 @@
         ],
         "operationId": "createMenu",
         "summary": "创建菜单或操作权限",
-        "description": "要求system:menu:create和超级管理员角色。串行校验父子类型、祖先、唯一名称和路径，创建默认为自定义节点。页面及按钮必须提供精确权限码；按钮只属于页面，其余节点只能属于目录或根。新增权限不自动授予普通角色。",
+        "description": "要求system:menu:create和超级管理员角色。串行校验父子类型、祖先、唯一名称和路径，创建默认为自定义节点。页面及按钮必须提供精确权限码；按钮只属于页面，其余节点只能属于目录或根。新增权限不自动授予普通角色。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。 同时通过@SystemCheckRole校验superadmin角色。",
         "requestBody": {
           "required": true,
           "content": {
@@ -916,7 +916,7 @@
         }
       }
     },
-    "/system/menu/{menuId}": {
+    "/system/permission/{permissionId}": {
       "get": {
         "tags": [
           "菜单"
@@ -928,23 +928,16 @@
         ],
         "operationId": "getMenu",
         "summary": "查询菜单节点详情",
-        "description": "要求system:menu:detail。",
+        "description": "要求system:menu:detail。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
-            "name": "menuId",
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "schema": {
-              "oneOf": [
-                {
-                  "type": "integer",
-                  "format": "int64"
-                },
-                {
-                  "type": "string"
-                }
-              ],
-              "description": "Long主键：安全整数范围内为数字，超出范围为字符串，前端须保留精度。"
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "权限节点ID，十进制Long字符串，避免大整数精度丢失。"
             }
           }
         ],
@@ -1229,23 +1222,16 @@
         ],
         "operationId": "updateMenu",
         "summary": "修改完整菜单配置",
-        "description": "要求system:menu:update。内置节点不得改变menuType、perms、dataPermission；内置菜单管理入口和根目录不能停用、隐藏或迁移。普通管理员仅能修改自己可委派节点的展示配置，权限语义、状态变更仅限超级管理员。防止父子循环及不匹配类型；导航字段修改无需退出，操作授权变化在事务提交后撤销相关用户及超级管理员旧会话。 带动态参数的路由仅允许隐藏页面，目录和可点击菜单不能含动态参数。 默认首页与其他页面一样维护展示及启停状态；用户和角色的首页分配不在此接口定义。",
+        "description": "要求system:menu:update。内置节点不得改变menuType、perms、dataPermission；protectedNode=true的核心管理节点不能停用、隐藏或迁移。普通管理员仅能修改自己可委派节点的展示配置，权限语义、状态变更仅限超级管理员。防止父子循环及不匹配类型；导航字段修改无需退出，操作授权变化在事务提交后撤销相关用户及超级管理员旧会话。 带动态参数的路由仅允许隐藏页面，目录和可点击菜单不能含动态参数。 默认首页与其他页面一样维护展示及启停状态；用户和角色的首页分配不在此接口定义。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
-            "name": "menuId",
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "schema": {
-              "oneOf": [
-                {
-                  "type": "integer",
-                  "format": "int64"
-                },
-                {
-                  "type": "string"
-                }
-              ],
-              "description": "Long主键：安全整数范围内为数字，超出范围为字符串，前端须保留精度。"
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "权限节点ID，十进制Long字符串，避免大整数精度丢失。"
             }
           }
         ],
@@ -1540,24 +1526,17 @@
           }
         ],
         "operationId": "deleteMenu",
-        "summary": "删除自定义菜单节点",
-        "description": "要求system:menu:delete和超级管理员角色。内置、有子节点或仍被角色授权引用的节点不能删除。使用逻辑删除，权限码不会复用；与角色授权写入共享目录锁。",
+        "summary": "删除菜单或按钮权限",
+        "description": "要求system:menu:delete和超级管理员角色。有子节点或protectedNode=true的核心管理节点不能删除；其他节点包含非核心内置节点可删除。在同一事务中清理角色操作自定义部门及角色权限关联，再逻辑删除节点；事务提交后撤销受影响用户和超级管理员旧会话。权限码不复用，与角色授权和操作范围写入共享目录锁。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。 同时通过@SystemCheckRole校验superadmin角色。",
         "parameters": [
           {
-            "name": "menuId",
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "schema": {
-              "oneOf": [
-                {
-                  "type": "integer",
-                  "format": "int64"
-                },
-                {
-                  "type": "string"
-                }
-              ],
-              "description": "Long主键：安全整数范围内为数字，超出范围为字符串，前端须保留精度。"
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "权限节点ID，十进制Long字符串，避免大整数精度丢失。"
             }
           }
         ],
@@ -1833,14 +1812,14 @@
         }
       }
     },
-    "/system/permission": {
+    "/system/permission/options": {
       "get": {
         "tags": [
           "权限"
         ],
-        "summary": "查询系统权限目录。",
+        "summary": "查询角色授权权限选项",
         "operationId": "listAssignablePermissions",
-        "description": "操作权限：`system:permission:list`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:permission:list`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [],
         "security": [
           {
@@ -1928,7 +1907,7 @@
         ],
         "summary": "修改全局权限状态。",
         "operationId": "setPermissionStatus",
-        "description": "操作权限：`system:permission:status`。功能授权在服务层校验当前有效账号及权限。持有有效可委派权限的普通管理员按原有管理边界维护；停用内置根目录、菜单管理入口及其操作、权限状态恢复操作时拒绝。默认首页为普通页面，允许按页面规则启停；操作状态变化在事务提交后撤销受影响账号旧授权快照。",
+        "description": "操作权限：`system:permission:status`。持有有效可委派权限的普通管理员按原有管理边界维护；停用protectedNode=true的核心管理节点时拒绝。默认首页为普通页面，允许按页面规则启停；操作状态变化在事务提交后撤销受影响账号旧授权快照。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "permissionId",
@@ -2037,7 +2016,7 @@
         ],
         "summary": "查询系统角色。",
         "operationId": "listRoles",
-        "description": "操作权限：`system:role:list`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:list`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [],
         "security": [
           {
@@ -2123,7 +2102,7 @@
         ],
         "summary": "创建系统角色。",
         "operationId": "createRole",
-        "description": "操作权限：`system:role:create`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:create`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [],
         "security": [
           {
@@ -2221,7 +2200,7 @@
         ],
         "summary": "修改系统角色。",
         "operationId": "updateRole",
-        "description": "操作权限：`system:role:update`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:update`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2328,7 +2307,7 @@
         ],
         "summary": "删除未被用户持有的普通角色。",
         "operationId": "deleteRole",
-        "description": "操作权限：`system:role:delete`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:delete`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2427,7 +2406,7 @@
         ],
         "summary": "修改系统角色状态。",
         "operationId": "setRoleStatus",
-        "description": "操作权限：`system:role:status`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:status`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2536,7 +2515,7 @@
         ],
         "summary": "查询系统角色的数据范围。",
         "operationId": "getRoleDataScope",
-        "description": "操作权限：`system:role:dataScope:list`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:dataScope:list`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2633,7 +2612,7 @@
         ],
         "summary": "覆盖系统角色的数据范围。",
         "operationId": "replaceRoleDataScope",
-        "description": "操作权限：`system:role:dataScope:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:dataScope:assign`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2742,7 +2721,7 @@
         ],
         "summary": "查询系统角色已分配的权限ID。",
         "operationId": "getRolePermissionIds",
-        "description": "操作权限：`system:rolePermission:list`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:rolePermission:list`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2839,7 +2818,7 @@
         ],
         "summary": "覆盖系统角色的权限。",
         "operationId": "replaceRolePermissions",
-        "description": "操作权限：`system:rolePermission:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:rolePermission:assign`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -2948,7 +2927,7 @@
         ],
         "summary": "查询某个操作的覆盖数据范围，空范围编码表示继承角色默认值。",
         "operationId": "getPermissionDataScope",
-        "description": "操作权限：`system:role:dataScope:list`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:dataScope:list`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -3055,7 +3034,7 @@
         ],
         "summary": "设置某个操作的数据范围覆盖，或恢复继承角色默认值。",
         "operationId": "replacePermissionDataScope",
-        "description": "操作权限：`system:role:dataScope:assign`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:role:dataScope:assign`。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。",
         "parameters": [
           {
             "name": "roleId",
@@ -3174,7 +3153,7 @@
         ],
         "summary": "分页查询本次操作可见用户。",
         "operationId": "pageUsers",
-        "description": "操作权限：`system:user:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "pageNum",
@@ -3282,7 +3261,7 @@
         ],
         "summary": "创建账号，角色和岗位通过独立操作分配。",
         "operationId": "createUser",
-        "description": "操作权限：`system:user:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [],
         "security": [
           {
@@ -3380,7 +3359,7 @@
         ],
         "summary": "查询本次操作可见用户详情。",
         "operationId": "getUser",
-        "description": "操作权限：`system:user:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -3477,7 +3456,7 @@
         ],
         "summary": "修改用户基础信息。",
         "operationId": "updateUser",
-        "description": "操作权限：`system:user:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -3584,7 +3563,7 @@
         ],
         "summary": "删除用户并清理角色和岗位关联。",
         "operationId": "deleteUser",
-        "description": "操作权限：`system:user:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -3683,7 +3662,7 @@
         ],
         "summary": "分配用户主部门，重新核验迁移后的角色数据范围。",
         "operationId": "setDepartment",
-        "description": "操作权限：`system:user:department`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:department`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -3792,7 +3771,7 @@
         ],
         "summary": "修改用户状态并撤销旧会话。",
         "operationId": "setUserStatus",
-        "description": "操作权限：`system:user:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -3901,7 +3880,7 @@
         ],
         "summary": "独立授权重置密码，成功后撤销全部旧会话。",
         "operationId": "resetPassword",
-        "description": "操作权限：`system:user:resetPassword`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:user:resetPassword`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -4010,7 +3989,7 @@
         ],
         "summary": "查询本次操作可见用户的角色ID。",
         "operationId": "getUserRoleIds",
-        "description": "操作权限：`system:userRole:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:userRole:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -4107,7 +4086,7 @@
         ],
         "summary": "覆盖用户角色并核验每个候选角色的委派范围。",
         "operationId": "replaceUserRoles",
-        "description": "操作权限：`system:userRole:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:userRole:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "userId",
@@ -4300,7 +4279,7 @@
         ],
         "summary": "用户登录并返回认证信息。",
         "operationId": "login",
-        "description": "验证码和登录无需登录。验证码按 UUID 和客户端地址一次性校验，有效期 120 秒；缓存不存在（包括已过期或已使用）时返回“验证码已过期，请刷新后重试”，有效验证码答案不匹配时返回“验证码不正确，请重新输入”。验证码校验失败均返回 HTTP 400，Result.code 为 400。",
+        "description": "验证码和登录无需登录。验证码按 UUID 和客户端地址一次性校验，有效期 120 秒；缓存不存在（包括已过期或已使用）时返回“验证码已过期，请刷新后重试”，有效验证码答案不匹配时返回“验证码不正确，请重新输入”。验证码校验失败均返回 HTTP 400，Result.code 为 400。 登录或刷新用户信息时保存有效角色与权限码到Sa-Token会话；超级管理员获得全部启用权限码，不使用*通配符。",
         "parameters": [],
         "security": [],
         "responses": {
@@ -4502,7 +4481,7 @@
         ],
         "summary": "获取当前用户信息和当前有效授权。",
         "operationId": "userInfo",
-        "description": "验证码和登录无需登录；其他认证操作要求有效登录。",
+        "description": "验证码和登录无需登录；其他认证操作要求有效登录。 登录或刷新用户信息时保存有效角色与权限码到Sa-Token会话；超级管理员获得全部启用权限码，不使用*通配符。",
         "parameters": [],
         "security": [
           {
@@ -4590,7 +4569,7 @@
         ],
         "summary": "查询系统部门节点。",
         "operationId": "listDepartments",
-        "description": "操作权限：`system:dept:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:dept:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [],
         "security": [
           {
@@ -4676,7 +4655,7 @@
         ],
         "summary": "创建系统部门。",
         "operationId": "createDepartment",
-        "description": "操作权限：`system:dept:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:dept:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [],
         "security": [
           {
@@ -4774,7 +4753,7 @@
         ],
         "summary": "修改系统部门名称与排序。",
         "operationId": "updateDepartment",
-        "description": "操作权限：`system:dept:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:dept:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "deptId",
@@ -4881,7 +4860,7 @@
         ],
         "summary": "删除没有组织及授权引用的部门。",
         "operationId": "deleteDepartment",
-        "description": "操作权限：`system:dept:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:dept:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "deptId",
@@ -4980,7 +4959,7 @@
         ],
         "summary": "启用或停用系统部门。",
         "operationId": "setDepartmentStatus",
-        "description": "操作权限：`system:dept:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:dept:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "deptId",
@@ -5089,7 +5068,7 @@
         ],
         "summary": "分页查询本次列表权限可见的岗位。",
         "operationId": "pagePosts",
-        "description": "操作权限：`system:post:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "pageNum",
@@ -5197,7 +5176,7 @@
         ],
         "summary": "创建系统岗位。",
         "operationId": "createPost",
-        "description": "操作权限：`system:post:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:create`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [],
         "security": [
           {
@@ -5295,7 +5274,7 @@
         ],
         "summary": "查询本次详情权限可见的岗位。",
         "operationId": "getPost",
-        "description": "操作权限：`system:post:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:detail`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -5392,7 +5371,7 @@
         ],
         "summary": "修改本次更新权限可操作的岗位。",
         "operationId": "updatePost",
-        "description": "操作权限：`system:post:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:update`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -5499,7 +5478,7 @@
         ],
         "summary": "软删本次删除权限可操作的岗位。",
         "operationId": "deletePost",
-        "description": "操作权限：`system:post:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:delete`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -5598,7 +5577,7 @@
         ],
         "summary": "查询本次成员查看权限可见岗位的成员。",
         "operationId": "getPostMemberIds",
-        "description": "操作权限：`system:post:member:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:member:list`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -5695,7 +5674,7 @@
         ],
         "summary": "覆盖本次成员分配权限可操作岗位的成员。",
         "operationId": "replacePostMembers",
-        "description": "操作权限：`system:post:member:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:member:assign`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -5804,7 +5783,7 @@
         ],
         "summary": "启用或停用本次状态权限可操作的岗位。",
         "operationId": "setPostStatus",
-        "description": "操作权限：`system:post:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。",
+        "description": "操作权限：`system:post:status`。按该操作实际获授权的角色合并数据范围，详情、修改和删除均检查目标范围。 功能权限由Controller的@SystemCheckPermission交给Sa-Token统一校验；Service只处理业务限制和必要的数据范围。权限与角色变更在事务提交后撤销相关旧会话。超级管理员也使用实际启用的权限码，不通过*绕过停用或删除的操作。\n\n数据权限防绕过：受保护业务禁止通过忽略策略关闭数据过滤；内部授权元数据仅允许明确标记的只读查询。违反约束时拒绝执行，返回 HTTP 403，Result.code 为 403。新增及归属变更仍需校验目标归属，嵌套业务调用遵守各层范围的交集。",
         "parameters": [
           {
             "name": "postId",
@@ -6160,13 +6139,17 @@
             "description": "备注",
             "maxLength": 255
           },
+          "protectedNode": {
+            "type": "boolean",
+            "description": "核心管理节点保护标记：内置根目录和内置system:menu:*、system:permission:*操作，禁止删除、停用、隐藏或迁移"
+          },
           "builtIn": {
             "type": "integer",
             "enum": [
               0,
               1
             ],
-            "description": "1为内置定义，不可删除或改变权限语义"
+            "description": "1为内置定义，不可改变权限语义；非核心节点允许删除"
           },
           "createTime": {
             "type": "string",

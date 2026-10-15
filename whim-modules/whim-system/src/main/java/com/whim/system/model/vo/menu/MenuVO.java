@@ -26,6 +26,8 @@ public class MenuVO {
     private String perms;
     private Integer dataPermission;
     private Integer builtIn;
+    /** 核心管理节点不能删除、停用、隐藏或迁移。 */
+    private Boolean protectedNode;
     private Integer isCache;
     private Integer sort;
     private String icon;

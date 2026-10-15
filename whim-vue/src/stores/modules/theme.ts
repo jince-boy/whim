@@ -27,6 +27,7 @@ function getDefaultThemeConfig(): ThemeConfig {
     showWatermark: false,
     watermarkText: systemSetting.title,
     showLogo: true,
+    tableBordered: false,
     tabStyle: 'browser',
   }
 }
@@ -66,6 +67,7 @@ function loadThemeConfig(): ThemeConfig {
       'cacheTabs',
       'showWatermark',
       'showLogo',
+      'tableBordered',
     ] as const) {
       if (typeof cached[key] === 'boolean') config[key] = cached[key]
     }
@@ -211,6 +213,10 @@ export const useThemeStore = defineStore('theme', {
     /** 设置标签栏风格。 */
     setTabStyle(value: TabStyle) {
       this.updateConfig({ tabStyle: value })
+    },
+    /** 统一设置表格边框并保存偏好。 */
+    setTableBordered(value: boolean) {
+      this.updateConfig({ tableBordered: value })
     },
     /** 恢复并保存完整默认配置。 */
     resetToDefault() {
