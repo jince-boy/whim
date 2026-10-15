@@ -12,6 +12,7 @@ import { useLayout } from './hooks/useLayout'
 defineOptions({ name: 'LayoutIndex' })
 const {
   themeStore,
+  homePath,
   layoutMode,
   collapsed,
   sidebarWidth,
@@ -79,7 +80,7 @@ const {
           "
         >
           <template v-if="layoutMode !== 'side' && themeStore.getShowLogo" #brand>
-            <RouterLink to="/index" class="layout-brand" :title="systemSetting.title">
+            <RouterLink :to="homePath" class="layout-brand" :title="systemSetting.title">
               <n-image
                 :src="logoUrl"
                 :width="28"

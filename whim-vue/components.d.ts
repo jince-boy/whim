@@ -87,7 +87,6 @@ declare module 'vue' {
     Theme: typeof import('./src/components/theme/index.vue')['default']
     WhimSelectIcon: typeof import('./src/components/icon/WhimSelectIcon.vue')['default']
     WhimTable: typeof import('./src/components/table/WhimTable.vue')['default']
-    WhimTable2: typeof import('./src/components/table/WhimTable2.vue')['default']
   }
 }
 
@@ -168,5 +167,4 @@ declare global {
   const Theme: typeof import('./src/components/theme/index.vue')['default']
   const WhimSelectIcon: typeof import('./src/components/icon/WhimSelectIcon.vue')['default']
   const WhimTable: typeof import('./src/components/table/WhimTable.vue')['default']
-  const WhimTable2: typeof import('./src/components/table/WhimTable2.vue')['default']
 }

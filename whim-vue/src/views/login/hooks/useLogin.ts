@@ -45,7 +45,7 @@ export function useLogin() {
         return
       }
       authStore.login(res.data, form.rememberMe, form.username)
-      let target = '/index'
+      let target = '/'
       const redirect = router.currentRoute.value.query.redirect
       if (typeof redirect === 'string') {
         try {

@@ -1,3 +1,4 @@
+import { useWhimTable } from '@/components/table'
 import {
   deleteDictData,
   exportDictData,
@@ -7,7 +8,11 @@ import {
   updateDictData,
 } from './api'
 import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
-import type { DictData } from '@/views/system/dictData/hooks/types.ts'
+import type {
+  DictData,
+  DictDataQuery,
+  DictDataResult,
+} from '@/views/system/dictData/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
 import editForm from '@/views/system/dictData/form.vue'
 
@@ -15,23 +20,13 @@ export interface DictDataProps {
   type: string
 }
 
+/** 配置注册式列表并处理字典数据业务操作。 */
 export function useDictData(props: DictDataProps) {
   const router = useRouter()
   const message = useMessage()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
 
-  const form = reactive({
-    label: '',
-  })
-
-  const pagination = reactive({
-    page: 1,
-    pageSize: 10,
-    itemCount: 0,
-    pageCount: 0,
-  })
-
-  const tableColumns: DataTableColumn[] = [
+  const tableColumns: DataTableColumn<DictDataResult>[] = [
     {
       type: 'selection',
     },
@@ -105,9 +100,24 @@ export function useDictData(props: DictDataProps) {
     },
   ]
 
-  const tableData = ref<object[]>([])
-
-  const loading = ref(false)
+  const [registerTable, { searchModel: form, reload: getDictDataPage, resetSearch }] = useWhimTable<
+    DictDataResult,
+    DictDataQuery
+  >({
+    columns: tableColumns,
+    rowKey: (row) => row.id,
+    request: (query) => fetchDictDataPage({ ...query, dictType: props.type }),
+    search: { defaultValues: { label: '' } },
+    toolbar: {
+      buttons: ['add', 'edit', 'delete', 'export'],
+      permissions: {
+        add: ['system:dictData:add'],
+        edit: ['system:dictData:edit'],
+        delete: ['system:dictData:delete'],
+        export: ['system:dictData:export'],
+      },
+    },
+  })
 
   /**
    * 获取字典类型详情
@@ -219,52 +229,22 @@ export function useDictData(props: DictDataProps) {
     })
   }
 
-  /**
-   * 获取字典数据分页
-   */
-  const getDictDataPage = () => {
-    loading.value = true
-    fetchDictDataPage({
-      ...form,
-      dictType: props.type,
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-    }).then((res) => {
-      tableData.value = res.data.data
-      pagination.page = res.data.currentPage
-      pagination.pageSize = res.data.size
-      pagination.itemCount = res.data.total
-      pagination.pageCount = res.data.pages
-      loading.value = false
-    })
-  }
-
+  /** 返回字典类型列表。 */
   const backDictTypePage = () => {
     router.back()
   }
-  /** 接收搜索表单的重置事件，由页面恢复查询条件。 */
-  const handleReset = (values: Record<string, unknown>) => {
-    Object.assign(form, values)
-  }
 
-  // 同一标签切换字典类型时重新查询，避免复用缓存后仍显示上一个类型的数据。
+  // 路由类型变化时清空查询条件；首次加载交给表格注册流程。
   watch(
     () => props.type,
     () => {
-      form.label = ''
-      pagination.page = 1
-      getDictDataPage()
+      void resetSearch()
     },
-    { immediate: true },
   )
 
   return {
+    registerTable,
     form,
-    handleReset,
-    pagination,
-    tableColumns,
-    tableData,
-    loading,
     getDictDataPage,
     openAddDialog,
     openEditDialog,

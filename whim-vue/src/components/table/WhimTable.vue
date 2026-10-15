@@ -1,178 +1,125 @@
 <script setup lang="ts">
-import { useIcon } from '@/components/icon/useIcon.ts'
-import type { DataTableRowKey } from 'naive-ui'
-import {
-  type BaseTableEmits,
-  type BaseTableProps,
-  useWhimTable,
-} from '@/components/table/useWhimTable.ts'
+import type { VNode } from 'vue'
+import { SearchForm } from '../form'
+import { useIcon } from '@/components/icon/useIcon'
+import type { WhimTableEmits } from './types'
+import { useWhimTableView } from './hooks/useWhimTableView'
 
-defineOptions({
-  name: 'WhimTable',
-})
-
-const props = withDefaults(defineProps<BaseTableProps>(), {
-  addButtonShow: true,
-  editButtonShow: true,
-  deleteButtonShow: true,
-  exportButtonShow: true,
-  stripedButtonShow: true,
-  borderButtonShow: true,
-})
-const emit = defineEmits<BaseTableEmits>()
-const page = defineModel<number>('page', { default: 1 })
-const pageSize = defineModel<number>('pageSize', { default: 10 })
-const checkedRowKeys = defineModel<DataTableRowKey[]>('checkedRowKeys', { default: () => [] })
-const expandedRowKeys = defineModel<DataTableRowKey[]>('expandedRowKeys')
+defineOptions({ name: 'WhimTable', inheritAttrs: false })
+const emit = defineEmits<WhimTableEmits>()
+defineSlots<{
+  search(): VNode[]
+  searchAction(props: { submit: () => Promise<boolean>; reset: () => void }): VNode[]
+  toolbarBefore(): VNode[]
+  toolbarExtra(): VNode[]
+  default(): VNode[]
+  empty(): VNode[]
+  loading(): VNode[]
+}>()
 const { createIcon } = useIcon()
 const {
-  tableRef,
-  showStriped,
-  showBorder,
-  selectedRowKeys,
-  isEditEnabled,
-  isDeleteEnabled,
-  paginationConfig,
-  handleExpandChange,
-  getRowKey,
-  onUpdateCheckedRowKeys,
-  handlePageChange,
-  handlePageSizeChange,
-  handleShowBorder,
-  handleShowStriped,
-  selectableColumns,
-  checkedColumnKeys,
-  visibleColumns,
-} = useWhimTable(props, { page, pageSize, checkedRowKeys, expandedRowKeys })
+  binding,
+  tableProps,
+  toolbar,
+  buttons,
+  buttonLabels,
+  buttonTypes,
+  buttonIcons,
+  isDisabled,
+  handleAction,
+  refresh,
+  reload,
+  getTableInstance,
+} = useWhimTableView(emit)
+defineExpose({ reload, getTableInstance })
 </script>
 
 <template>
-  <n-card :bordered="false">
-    <n-space vertical>
-      <!-- 头部 -->
-      <n-flex justify="space-between" align="center">
-        <!-- 左侧按钮 -->
-        <n-space>
-          <slot name="action-buttons-left"></slot>
-          <n-button
-            v-permission="props.addButtonPermission"
-            v-if="addButtonShow"
-            type="primary"
-            :render-icon="createIcon('zengjia')"
-            @click="emit('add')"
-          >
-            新增
-          </n-button>
-          <n-button
-            v-permission="props.editButtonPermission"
-            v-if="editButtonShow"
-            type="info"
-            :render-icon="createIcon('xiugai')"
-            @click="emit('edit', selectedRowKeys[0])"
-            :disabled="!isEditEnabled"
-          >
-            修改
-          </n-button>
-          <n-button
-            v-permission="props.deleteButtonPermission"
-            v-if="deleteButtonShow"
-            type="error"
-            :render-icon="createIcon('shanchu')"
-            @click="emit('delete', selectedRowKeys)"
-            :disabled="!isDeleteEnabled"
-          >
-            删除
-          </n-button>
-          <n-button
-            v-permission="props.exportButtonPermission"
-            v-if="exportButtonShow"
-            type="warning"
-            :render-icon="createIcon('daochu')"
-            @click="emit('export')"
-          >
-            导出
-          </n-button>
-          <!-- 右侧插槽（比如刷新按钮等） -->
-          <slot name="action-buttons-right"></slot>
-        </n-space>
-        <n-space align="center">
-          <n-flex align="center" v-if="borderButtonShow"
-            ><n-text>边框</n-text><n-switch size="small" @update:value="handleShowBorder"
-          /></n-flex>
-          <n-divider vertical v-if="borderButtonShow" />
-          <n-flex align="center" v-if="stripedButtonShow"
-            ><n-text>斑马线</n-text><n-switch size="small" @update:value="handleShowStriped"
-          /></n-flex>
-          <n-divider vertical v-if="stripedButtonShow" />
-          <n-tooltip trigger="hover">
-            <template #trigger>
-              <n-button quaternary circle :focusable="false" @click="emit('refresh')">
-                <template #icon>
-                  <n-icon :component="createIcon('refresh-2')" />
-                </template>
-              </n-button>
-            </template>
-            刷新
-          </n-tooltip>
-          <n-popover trigger="click" placement="bottom-end">
-            <template #trigger>
-              <n-tooltip trigger="hover">
-                <template #trigger>
-                  <n-button quaternary circle :focusable="false">
-                    <template #icon>
-                      <n-icon :component="createIcon('setting')" />
-                    </template>
-                  </n-button>
-                </template>
-                列设置
-              </n-tooltip>
-            </template>
-            <template #header>
-              <n-text strong depth="1"> 显示/隐藏列 </n-text>
-            </template>
-            <n-checkbox-group v-model:value="checkedColumnKeys" size="small">
-              <n-space vertical>
-                <n-checkbox
-                  v-for="col in selectableColumns"
-                  :key="col.key"
-                  :value="col.key"
-                  :label="col.title"
+  <n-space vertical>
+    <n-card v-if="binding?.registerSearch" :bordered="false">
+      <SearchForm
+        @register="binding.registerSearch"
+        @submit="binding.search"
+        @reset="binding.resetSearch"
+      >
+        <slot name="search" />
+        <template v-if="$slots.searchAction" #action="actions">
+          <slot name="searchAction" v-bind="actions" />
+        </template>
+      </SearchForm>
+    </n-card>
+    <n-card :bordered="false">
+      <n-space vertical>
+        <n-flex justify="space-between" align="center">
+          <n-space>
+            <slot name="toolbarBefore" />
+            <n-button
+              v-for="button in buttons"
+              :key="button"
+              :type="buttonTypes[button]"
+              :render-icon="createIcon(buttonIcons[button])"
+              :disabled="isDisabled(button)"
+              @click="handleAction(button)"
+            >
+              {{ buttonLabels[button] }}
+            </n-button>
+            <slot name="toolbarExtra" />
+          </n-space>
+          <n-space v-if="binding" align="center">
+            <n-flex v-if="toolbar.showBorder !== false" align="center">
+              <n-text>边框</n-text>
+              <n-switch v-model:value="binding.bordered.value" size="small" />
+            </n-flex>
+            <n-flex v-if="toolbar.showStriped !== false" align="center">
+              <n-text>斑马线</n-text>
+              <n-switch v-model:value="binding.striped.value" size="small" />
+            </n-flex>
+            <n-tooltip v-if="toolbar.showRefresh !== false">
+              <template #trigger>
+                <n-button
+                  quaternary
+                  circle
+                  aria-label="刷新表格"
+                  :loading="binding.loading.value"
+                  :render-icon="createIcon('refresh-2')"
+                  @click="refresh"
                 />
-              </n-space>
-            </n-checkbox-group>
-          </n-popover>
-        </n-space>
-      </n-flex>
-      <!-- 表格 -->
-      <n-data-table
-        ref="tableRef"
-        :columns="visibleColumns"
-        :data="props.data"
-        :loading="props.loading"
-        :remote="true"
-        :pagination="paginationConfig"
-        :row-key="getRowKey"
-        :bordered="showBorder"
-        :single-line="!showBorder"
-        :striped="showStriped"
-        :checked-row-keys="selectedRowKeys"
-        :default-expanded-row-keys="defaultExpandedRowKeys"
-        :default-expand-all="props.defaultExpandAll"
-        :expanded-row-keys="expandedRowKeys"
-        @update:expanded-row-keys="handleExpandChange"
-        @update:checked-row-keys="onUpdateCheckedRowKeys"
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </n-space>
-  </n-card>
+              </template>
+              刷新
+            </n-tooltip>
+            <n-popover v-if="toolbar.showColumns !== false" trigger="click" placement="bottom-end">
+              <template #trigger>
+                <n-button
+                  quaternary
+                  circle
+                  aria-label="列设置"
+                  :render-icon="createIcon('setting')"
+                />
+              </template>
+              <template #header>显示/隐藏列</template>
+              <n-checkbox-group
+                :value="binding.visibleColumnKeys.value"
+                @update:value="binding.setVisibleColumns"
+              >
+                <n-space vertical>
+                  <n-checkbox
+                    v-for="column in binding.columnOptions.value"
+                    :key="column.key"
+                    :value="column.key"
+                    :label="column.label"
+                  />
+                </n-space>
+              </n-checkbox-group>
+            </n-popover>
+          </n-space>
+        </n-flex>
+        <n-alert v-if="binding?.error.value" type="error">{{ binding.error.value }}</n-alert>
+        <n-data-table ref="tableRef" v-bind="{ ...$attrs, ...tableProps }">
+          <template v-if="$slots.default" #default><slot /></template>
+          <template v-if="$slots.empty" #empty><slot name="empty" /></template>
+          <template v-if="$slots.loading" #loading><slot name="loading" /></template>
+        </n-data-table>
+      </n-space>
+    </n-card>
+  </n-space>
 </template>
-
-<style scoped lang="scss">
-:deep(.n-data-table-wrapper) {
-  border-color: var(--n-merged-border-color);
-}
-:deep(.n-data-table-td) {
-  border-color: var(--n-merged-border-color);
-}
-</style>

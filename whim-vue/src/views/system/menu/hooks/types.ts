@@ -1,5 +1,10 @@
 /** 与后端共用权限表保持一致，ID 不强转为 Number。 */
 export type MenuId = string | number
+
+/** 菜单查询字段。 */
+export interface MenuQuery {
+  menuName: string
+}
 export enum MenuType {
   DIRECTORY = 1,
   MENU = 2,

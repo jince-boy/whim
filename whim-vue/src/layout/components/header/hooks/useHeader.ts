@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import { useMessage, type DropdownOption } from 'naive-ui'
 import screenfull from 'screenfull'
 import { useIcon } from '@/components/icon/useIcon'
@@ -17,22 +17,25 @@ export function useHeader() {
   const fullscreenEnabled = screenfull.isEnabled
   const isFullscreen = ref(fullscreenEnabled && screenfull.isFullscreen)
 
-  // 完整菜单树包含隐藏页面；沿用原来的祖先面包屑与子菜单下拉结构。
+  // 路由元数据保留隐藏页面与目录祖先，静态个人信息页也使用同一展示结构。
   const breadcrumbs = computed<SafeMenuOption[]>(() =>
-    findMenuPath(
-      permissionStore.menus,
-      typeof route.name === 'string' ? route.name : route.path,
-    ).map((menu) => ({
-      ...menu,
-      children: menu.children ? getVisibleMenus(menu.children) : undefined,
-    })),
+    (route.meta.breadcrumbs ?? []).map((item) => {
+      const menu = findMenuPath(permissionStore.menus, item.name ?? '').at(-1)
+      return {
+        ...menu,
+        key: item.name ?? item.path ?? item.title,
+        name: item.title,
+        children: menu?.children ? getVisibleMenus(menu.children) : undefined,
+      }
+    }),
   )
 
-  /** 沿用面包屑下拉菜单选择后的导航行为。 */
+  /** 菜单、搜索和面包屑共用解析后的目标，保留默认查询参数。 */
   async function handleMenuSelect(_key: string | number, option: DropdownOption): Promise<void> {
-    if (typeof option.path !== 'string' || !option.path) return
-    if (option.isExternal) window.open(option.path, '_blank', 'noopener,noreferrer')
-    else await router.push(option.path)
+    if (option.disabled) return
+    if (option.isExternal && typeof option.path === 'string')
+      window.open(option.path, '_blank', 'noopener,noreferrer')
+    else if (option.target) await router.push(option.target as RouteLocationRaw)
   }
 
   /** 同步浏览器全屏状态，包括按 Esc 退出和主内容区全屏。 */

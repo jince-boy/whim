@@ -104,7 +104,9 @@ Static Controller route segments must use lower camel case and may contain only 
 
 Follow the existing API models: return ordinary API responses through `whim-web`'s `Result<T>`; use `PageQueryDTO` and `PageDataVO<T>` for paginated APIs; validate request DTOs with `jakarta.validation` and `@Valid` where applicable. Reuse the existing exception types and `GlobalExceptionHandler` for errors, keeping HTTP status and `Result.code` consistent instead of creating endpoint-specific error formats or a separate code scheme. Follow the permission-code naming used by related endpoints and apply the appropriate project authorization annotation when a permission check is required.
 
-After any API-related change, including adding, modifying, or removing endpoints, routes, request parameters or bodies, response schemas, authentication or permissions, and error responses, call the Apifox MCP tools to update the API documentation in the `whim` project. Verify that the documentation matches the final implementation before completing the task.
+Call the Apifox MCP tools to update API documentation in the `whim` project only when the current task adds, modifies, or removes an API endpoint or changes its externally visible contract, including HTTP methods, routes, request parameters or bodies, response schemas, authentication or permission requirements, and error responses. Update only the affected APIs and verify that their documentation matches the final implementation before completing the task.
+
+For changes that do not affect the API contract, such as frontend layout or styling, internal refactoring, performance optimization, comments, or project rules, do not call Apifox or update API documentation. Determine whether synchronization is required from the changes made in the current task; unrelated pre-existing changes in the workspace do not trigger an Apifox update.
 
 ### Business modules
 

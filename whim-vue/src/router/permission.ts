@@ -24,15 +24,17 @@ router.beforeEach(async (to) => {
     if (!navigation.initialized) {
       await navigation.loadMenus()
       if (!auth.isLogin) return '/login'
+      if (!navigation.initialized) return false
       return to.fullPath
     }
-  } catch {
+  } catch (error) {
     // 已取消的旧会话请求不能清理新账号已经加载的导航。
     if (auth.getToken !== token) return false
+    if (error instanceof Error) window.$message?.error(error.message)
     auth.logout()
     return { path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } }
   }
-  return to.path === '/login' ? '/index' : true
+  return to.path === '/login' || to.path === '/' ? navigation.homePath : true
 })
 
 /** 标签激活、浏览器标题和进度条在导航真正完成后统一更新。 */
@@ -40,14 +42,7 @@ router.afterEach((to, _from, failure) => {
   window.$loadingBar?.finish()
   if (failure) return
   document.title = to.meta.title ? `${systemSetting.title}-${to.meta.title}` : systemSetting.title
-  if (
-    to.path !== '/login' &&
-    typeof to.name === 'string' &&
-    to.meta.title &&
-    to.name !== 'NotFound'
-  ) {
-    useTabStore().visitRoute(to)
-  }
+  if (to.meta.isTab) useTabStore().visitRoute(to)
 })
 /** 懒加载或路由错误也必须结束进度提示。 */
 router.onError(() => window.$loadingBar?.error())

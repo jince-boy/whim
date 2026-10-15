@@ -1,3 +1,4 @@
+import { useWhimTable } from '@/components/table'
 import { type DataTableColumn, NButton, NSpace, useMessage } from 'naive-ui'
 import {
   deleteDictType,
@@ -8,26 +9,20 @@ import {
   resetDictCache,
   updateDictType,
 } from './api'
-import type { DictType } from '@/views/system/dictType/hooks/types.ts'
+import type {
+  DictType,
+  DictTypeQuery,
+  DictTypeResult,
+} from '@/views/system/dictType/hooks/types.ts'
 import editForm from '@/views/system/dictType/form.vue'
 import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
+/** 配置注册式列表并处理字典类型业务操作。 */
 export function useDictType() {
   const router = useRouter()
   const message = useMessage()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
 
-  const form = reactive({
-    name: '',
-    type: '',
-  })
-  const pagination = reactive({
-    page: 1,
-    pageSize: 10,
-    itemCount: 0,
-    pageCount: 0,
-  })
-
-  const tableColumns: DataTableColumn[] = [
+  const tableColumns: DataTableColumn<DictTypeResult>[] = [
     {
       type: 'selection',
     },
@@ -98,9 +93,18 @@ export function useDictType() {
     },
   ]
 
-  const tableData = ref<object[]>([])
-
-  const loading = ref(false)
+  const [registerTable, { searchModel: form, reload: getDictTypePage }] = useWhimTable<
+    DictTypeResult,
+    DictTypeQuery
+  >({
+    columns: tableColumns,
+    rowKey: (row) => row.id,
+    request: fetchDictTypePage,
+    search: { defaultValues: { name: '', type: '' } },
+    toolbar: {
+      buttons: ['add', 'edit', 'delete', 'export'],
+    },
+  })
 
   /**
    * 获取字典类型详情
@@ -211,41 +215,9 @@ export function useDictType() {
       }
     })
   }
-  /**
-   * 获取字典类型分页数据
-   */
-  const getDictTypePage = () => {
-    console.log(pagination)
-    loading.value = true
-    fetchDictTypePage({
-      ...form,
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-    }).then((res) => {
-      tableData.value = res.data.data
-      pagination.page = res.data.currentPage
-      pagination.pageSize = res.data.size
-      pagination.itemCount = res.data.total
-      pagination.pageCount = res.data.pages
-      loading.value = false
-    })
-  }
-
-  /** 接收搜索表单的重置事件，由页面恢复查询条件。 */
-  const handleReset = (values: Record<string, unknown>) => {
-    Object.assign(form, values)
-  }
-
-  onMounted(() => {
-    getDictTypePage()
-  })
   return {
+    registerTable,
     form,
-    handleReset,
-    tableColumns,
-    tableData,
-    pagination,
-    loading,
     getDictTypePage,
     openAddDialog,
     openEditDialog,

@@ -1,9 +1,9 @@
-export interface LoginLogForm {
+/** 登录日志查询草稿，日期范围在发起请求时转换。 */
+export interface LoginLogQuery {
   username: string
-  status: number | null // 假设状态是数字类型
+  status: number | null
   ipAddress: string
-  startTime: string // 前端使用 Date 对象
-  endTime: string
+  dateRange: [number, number] | null
 }
 
 export interface LoginLog {

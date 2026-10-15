@@ -1,4 +1,4 @@
-import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { ScrollbarInst, DropdownOption } from 'naive-ui'
 import { useThemeVars } from 'naive-ui'
@@ -19,13 +19,18 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
   const clickedTab = ref<TabState | null>(null)
 
   const scrollbar = useTemplateRef<ScrollbarInst>('scrollbar')
+  const tabRoot = useTemplateRef<ComponentPublicInstance>('tabRoot')
 
   const showDropdown = ref(false)
   const x = ref(0)
   const y = ref(0)
 
   const dropdownOptions = computed<DropdownOption[]>(() => {
-    const isSelf = clickedTab.value?.focused
+    const clicked = tabStore.getAllTabs.find((tab) => tab.name === clickedTab.value?.name)
+    const isSelf = clicked?.focused
+    const index = tabStore.tabs.findIndex((tab) => tab.name === clicked?.name)
+    const canClose = (tabs: TabState[]) =>
+      tabs.some((tab) => tab.closeable && tab.name !== clicked?.name)
     return [
       {
         label: '内容全屏',
@@ -47,26 +52,30 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
         label: '关闭当前',
         key: 'closeCurrent',
         icon: createIcon('add-3'),
-        disabled: !clickedTab.value?.closeable,
+        disabled: !clicked?.closeable || tabStore.closing,
       },
       {
         label: '关闭其他',
         key: 'closeOther',
+        disabled: tabStore.closing || !canClose(tabStore.tabs),
         icon: createIcon('guanbiqita'),
       },
       {
         label: '关闭左侧',
         key: 'closeLeft',
+        disabled: tabStore.closing || index < 0 || !canClose(tabStore.tabs.slice(0, index)),
         icon: createIcon('d-left'),
       },
       {
         label: '关闭右侧',
         key: 'closeRight',
+        disabled: tabStore.closing || index < 0 || !canClose(tabStore.tabs.slice(index + 1)),
         icon: createIcon('d-right'),
       },
       {
         label: '关闭全部',
         key: 'closeAll',
+        disabled: tabStore.closing || !tabStore.tabs.some((tab) => tab.closeable),
         icon: createIcon('closure'),
       },
     ]
@@ -80,6 +89,7 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
     clickedTab.value = tab
     showDropdown.value = false
     nextTick().then(() => {
+      if (clickedTab.value?.name !== tab.name) return
       showDropdown.value = true
       x.value = e.clientX
       y.value = e.clientY
@@ -164,12 +174,31 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
 
   const route = useRoute()
   watch(
-    () => route.fullPath,
-    () => {
+    [
+      () => route.fullPath,
+      () => tabStore.tabs.length,
+      () => themeStore.getTabStyle,
+      () => themeStore.getShowTabIcon,
+    ],
+    async () => {
       showDropdown.value = false
       clickedTab.value = null
+      await nextTick()
+      const root = tabRoot.value?.$el as HTMLElement | undefined
+      const viewport = root?.querySelector<HTMLElement>('.tab-scrollbar')
+      const active = root?.querySelector<HTMLElement>('[aria-current="page"]')
+      if (!viewport || !active) return
+      const bounds = viewport.getBoundingClientRect()
+      const tab = active.getBoundingClientRect()
+      const offset =
+        tab.left < bounds.left
+          ? tab.left - bounds.left
+          : tab.right > bounds.right
+            ? tab.right - bounds.right
+            : 0
+      if (offset) scrollbar.value?.scrollBy({ left: offset, behavior: 'smooth' })
     },
-    { immediate: true },
+    { immediate: true, flush: 'post' },
   )
   return {
     createIcon,

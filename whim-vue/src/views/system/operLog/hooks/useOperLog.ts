@@ -1,35 +1,22 @@
+import { useWhimTable } from '@/components/table'
 import dayjs from 'dayjs'
 import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
-import type { OperLog } from '@/views/system/operLog/hooks/types.ts'
+import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
 import { useDict } from '@/components/dict/useDict.ts'
 const { dictData: sysStatusOptions, getDictData: getDictStatusData } =
   await useDict('sys_result_status')
 const { dictData: sysOperTypeOptions, getDictData: getDictOperTypeData } =
   await useDict('sys_oper_type')
+/** 配置注册式列表并处理操作日志业务操作。 */
 export function useOperLog() {
   const { openDeleteDialog } = useFormDialog()
   const message = useMessage()
-  const form = reactive({
-    title: '',
-    operName: '',
-    logType: null,
-    status: null,
-    ipAddress: '',
-    startTime: '',
-    endTime: '',
-  })
   const showModal = ref(false)
   const currentOperLog: Ref<OperLog | null> = ref(null)
-  const pagination = reactive({
-    page: 1,
-    pageSize: 10,
-    itemCount: 0,
-    pageCount: 0,
-  })
 
-  const tableColumns: DataTableColumn[] = [
+  const tableColumns: DataTableColumn<OperLogResult>[] = [
     {
       type: 'selection',
     },
@@ -135,11 +122,33 @@ export function useOperLog() {
     },
   ]
 
-  const tableData = ref<object[]>([])
-
-  const loading = ref(false)
-
-  const dateRange = ref(null)
+  const [registerTable, { searchModel: form, reload: getOperLogPage }] = useWhimTable<
+    OperLogResult,
+    OperLogQuery
+  >({
+    columns: tableColumns,
+    rowKey: (row) => row.id,
+    request: ({ dateRange, ...query }) =>
+      fetchOperLogPage({
+        ...query,
+        startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+      }),
+    search: {
+      defaultValues: {
+        title: '',
+        operName: '',
+        logType: null,
+        status: null,
+        ipAddress: '',
+        dateRange: null,
+      },
+    },
+    toolbar: {
+      buttons: ['delete', 'export'],
+      permissions: { delete: ['system:operLog:delete'], export: ['system:operLog:export'] },
+    },
+  })
 
   /**
    * 查看登录日志详情
@@ -211,59 +220,11 @@ export function useOperLog() {
   const exportExcel = async () => {
     await exportOperLog()
   }
-  /**
-   * 获取登录日志分页
-   */
-  const getOperLogPage = () => {
-    fetchOperLogPage({
-      ...form,
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-    }).then((res) => {
-      if (res.code === 200) {
-        tableData.value = res.data.data
-        pagination.page = res.data.currentPage
-        pagination.pageSize = res.data.size
-        pagination.itemCount = res.data.total
-        pagination.pageCount = res.data.pages
-        loading.value = false
-      }
-    })
-  }
-
-  /**
-   * 时间选择器回调
-   * @param timestamps
-   */
-  const handleDateChange = (timestamps: number[]) => {
-    if (timestamps && timestamps.length === 2) {
-      form.startTime = dayjs(timestamps[0]).format('YYYY-MM-DD HH:mm:ss')
-      form.endTime = dayjs(timestamps[1]).format('YYYY-MM-DD HH:mm:ss')
-    } else {
-      form.startTime = ''
-      form.endTime = ''
-    }
-  }
-  /** 恢复查询条件并清空页面维护的日期范围。 */
-  const handleReset = (values: Record<string, unknown>) => {
-    Object.assign(form, values)
-    dateRange.value = null
-  }
-
-  onMounted(() => {
-    getOperLogPage()
-  })
   return {
+    registerTable,
     form,
-    handleReset,
     sysOperTypeOptions,
-    dateRange,
-    handleDateChange,
     sysStatusOptions,
-    tableColumns,
-    tableData,
-    pagination,
-    loading,
     getOperLogPage,
     exportExcel,
     removeOperLogBatch,

@@ -1,30 +1,16 @@
-import type { LoginLog, LoginLogForm } from '@/views/system/loginLog/hooks/types.ts'
+import { useWhimTable } from '@/components/table'
+import type { LoginLog, LoginLogQuery } from '@/views/system/loginLog/hooks/types.ts'
 import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
 import { type DataTableColumn, NButton, NSpace, NTag, useMessage } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog/useFormDialog.ts'
 import { useDict } from '@/components/dict/useDict.ts'
 const { dictData: sysStatusOptions, getDictData } = await useDict('sys_result_status')
+/** 配置注册式列表并处理登录日志业务操作。 */
 export function useLoginLog() {
   const { openDeleteDialog } = useFormDialog()
   const message = useMessage()
-  const form = reactive<LoginLogForm>({
-    username: '',
-    status: null,
-    ipAddress: '',
-    startTime: '',
-    endTime: '',
-  })
-  const dateRange = ref(null)
-
-  const pagination = reactive({
-    page: 1,
-    pageSize: 10,
-    itemCount: 0,
-    pageCount: 0,
-  })
-
-  const tableColumns: DataTableColumn[] = [
+  const tableColumns: DataTableColumn<LoginLog>[] = [
     {
       type: 'selection',
     },
@@ -108,9 +94,24 @@ export function useLoginLog() {
     },
   ]
 
-  const tableData = ref<object[]>([])
-
-  const loading = ref(false)
+  const [registerTable, { searchModel: form, reload: getLoginLogPage }] = useWhimTable<
+    LoginLog,
+    LoginLogQuery
+  >({
+    columns: tableColumns,
+    rowKey: (row) => row.id,
+    request: ({ dateRange, ...query }) =>
+      fetchLoginLogPage({
+        ...query,
+        startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+      }),
+    search: { defaultValues: { username: '', status: null, ipAddress: '', dateRange: null } },
+    toolbar: {
+      buttons: ['delete', 'export'],
+      permissions: { delete: ['system:loginLog:delete'], export: ['system:loginLog:export'] },
+    },
+  })
 
   /**
    * 删除登录日志
@@ -134,7 +135,7 @@ export function useLoginLog() {
   /**
    * 批量删除登录日志
    */
-  const removeDictTypeBatch = (ids: Array<string | number>) => {
+  const removeLoginLogBatch = (ids: Array<string | number>) => {
     openDeleteDialog({
       content: `确定要删除选中的 ${ids.length} 个登录日志吗？删除后无法恢复！`,
       onSubmit: () => {
@@ -175,61 +176,13 @@ export function useLoginLog() {
     await exportLoginLog()
   }
 
-  /**
-   * 获取登录日志分页
-   */
-  const getLoginLogPage = () => {
-    fetchLoginLogPage({
-      ...form,
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-    }).then((res) => {
-      if (res.code === 200) {
-        tableData.value = res.data.data
-        pagination.page = res.data.currentPage
-        pagination.pageSize = res.data.size
-        pagination.itemCount = res.data.total
-        pagination.pageCount = res.data.pages
-        loading.value = false
-      }
-    })
-  }
-  /**
-   * 时间选择器回调
-   * @param timestamps
-   */
-  const handleDateChange = (timestamps: number[]) => {
-    if (timestamps && timestamps.length === 2) {
-      form.startTime = dayjs(timestamps[0]).format('YYYY-MM-DD HH:mm:ss')
-      form.endTime = dayjs(timestamps[1]).format('YYYY-MM-DD HH:mm:ss')
-    } else {
-      form.startTime = ''
-      form.endTime = ''
-    }
-  }
-
-  /** 恢复查询条件并清空页面维护的日期范围。 */
-  const handleReset = (values: Record<string, unknown>) => {
-    Object.assign(form, values)
-    dateRange.value = null
-  }
-
-  onMounted(() => {
-    getLoginLogPage()
-  })
   return {
+    registerTable,
     form,
-    handleReset,
-    dateRange,
     sysStatusOptions,
-    handleDateChange,
-    pagination,
-    tableColumns,
-    tableData,
-    loading,
     getLoginLogPage,
     exportExcel,
-    removeDictTypeBatch,
+    removeLoginLogBatch,
     handleCleanLoginLog,
   }
 }

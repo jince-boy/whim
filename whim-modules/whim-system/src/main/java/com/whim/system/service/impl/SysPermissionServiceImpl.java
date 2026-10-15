@@ -75,7 +75,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             throw new IllegalArgumentException("不能停用权限状态管理操作");
         }
         if (status == 1 && permission.getBuiltIn() == 1
-                && (permission.getParentId() == 0 || permission.getPerms() != null
+                && (permission.getMenuType() == 1 && permission.getParentId() == 0 || permission.getPerms() != null
                 && permission.getPerms().startsWith("system:menu:"))) {
             throw new IllegalArgumentException("不能停用内置菜单管理入口及其操作");
         }

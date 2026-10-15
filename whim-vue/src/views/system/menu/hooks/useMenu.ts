@@ -1,7 +1,8 @@
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useWhimTable } from '@/components/table'
+import { computed, h, watch } from 'vue'
 import { NButton, NSpace, NTag, useMessage, type DataTableColumn } from 'naive-ui'
 import { fetchMenuList, fetchMenuDetail, insertMenu, updateMenu, deleteMenu } from './api'
-import { menuTypeOptions, type MenuId, type MenuItem, type MenuSave } from './types'
+import { menuTypeOptions, type MenuId, type MenuItem, type MenuSave, type MenuQuery } from './types'
 import { useUserStore } from '@/stores/modules/user'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useFormDialog } from '@/components/dialog/useFormDialog'
@@ -15,44 +16,15 @@ export function useMenu() {
   const navigation = usePermissionStore()
   const message = useMessage()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
-  const form = reactive({ menuName: '' })
-  const catalog = ref<MenuItem[]>([])
-  const loading = ref(false)
-  const expandedRowKeys = ref<MenuId[]>([])
   /** 表格操作权限随当前授权变化，不依赖一次性的DOM删除。 */
   const can = (code: string) =>
     userStore.permissionCode.includes(code) || userStore.permissionCode.includes('*')
   const canCreate = computed(
     () => can('system:menu:create') && userStore.roleCode.includes('superadmin'),
   )
-  const tableData = computed(() => {
-    const keyword = form.menuName.trim()
-    /** 搜索保留匹配节点祖先，匹配目录时展示其完整子树。 */
-    const filter = (nodes: MenuItem[]): MenuItem[] =>
-      nodes.flatMap((node) => {
-        if (!keyword || node.menuName.includes(keyword)) return [node]
-        const children = filter(node.children ?? [])
-        return children.length ? [{ ...node, children }] : []
-      })
-    return filter(catalog.value)
-  })
-  /** 完整刷新目录，始终结束加载状态。 */
+  /** 使用表格统一刷新流程和已提交的查询条件。 */
   async function getMenuList() {
-    if (loading.value) return
-    loading.value = true
-    try {
-      const res = await fetchMenuList()
-      if (res.code !== 200) {
-        message.error(res.message)
-        return
-      }
-      if (!catalog.value.length) expandedRowKeys.value = res.data.map((node) => node.id)
-      catalog.value = res.data
-    } catch {
-      // 请求错误由公共拦截器提示，保留旧表格。
-    } finally {
-      loading.value = false
-    }
+    await table.reload()
   }
   /** 节点保存后同步服务端用户授权和导航；页面被移除时回到首页。 */
   async function refreshNavigation() {
@@ -112,8 +84,8 @@ export function useMenu() {
   }
   /** 展开整棵树或全部收起，不依赖第一页数据。 */
   function toggleExpand() {
-    if (expandedRowKeys.value.length) {
-      expandedRowKeys.value = []
+    if (table.getExpandedRowKeys().length) {
+      table.setExpandedRowKeys([])
       return
     }
     const keys: MenuId[] = []
@@ -126,9 +98,9 @@ export function useMenu() {
         }
     }
     collect(catalog.value)
-    expandedRowKeys.value = keys
+    table.setExpandedRowKeys(keys)
   }
-  const tableColumns: DataTableColumn[] = [
+  const tableColumns: DataTableColumn<MenuItem>[] = [
     { title: '菜单名称', key: 'menuName', align: 'center' },
     {
       title: '菜单类型',
@@ -215,24 +187,40 @@ export function useMenu() {
       },
     },
   ]
-  onMounted(getMenuList)
-  /** 保持安全整数之外的主键精度。 */
-  const menuRowKey = (row: MenuItem) => row.id
-  /** 重置由页面维护的搜索条件，不改变原搜索栏交互。 */
-  function handleReset() {
-    form.menuName = ''
-  }
+  const [registerTable, table] = useWhimTable<MenuItem, MenuQuery>(() => ({
+    columns: tableColumns,
+    rowKey: (row) => row.id,
+    pagination: false,
+    search: { defaultValues: { menuName: '' } },
+    toolbar: {
+      buttons: canCreate.value ? ['add'] : [],
+      permissions: { add: ['system:menu:create'] },
+      showStriped: false,
+    },
+    request: fetchMenuList,
+    /** 仅转换展示树，搜索结果保留祖先和匹配目录的子树。 */
+    transformData: (nodes, query) => {
+      const keyword = query.menuName.trim()
+      /** 递归筛选菜单树。 */
+      const filter = (nodes: MenuItem[]): MenuItem[] =>
+        nodes.flatMap((node) => {
+          if (!keyword || node.menuName.includes(keyword)) return [node]
+          const children = filter(node.children ?? [])
+          return children.length ? [{ ...node, children }] : []
+        })
+      return filter(nodes)
+    },
+  }))
+  // 编辑始终读取完整目录，搜索不会截断父节点候选项。
+  const catalog = table.data
+  watch(catalog, (nodes, previous) => {
+    if (!previous.length) table.setExpandedRowKeys(nodes.map((node) => node.id))
+  })
   return {
-    form,
-    handleReset,
-    tableData,
-    tableColumns,
-    loading,
-    expandedRowKeys,
-    canCreate,
+    registerTable,
+    form: table.searchModel,
     getMenuList,
     openAddDialog,
     toggleExpand,
-    menuRowKey,
   }
 }

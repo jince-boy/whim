@@ -18,7 +18,7 @@ export interface MockDatabase {
   operLogs: OperLog[]
 }
 
-export const mockStorageKey = 'whim:mock:database:v2'
+export const mockStorageKey = 'whim:mock:database:v3'
 
 /** 将演示种子转换为后端字段及绝对路径，不向业务代码暴露旧模型。 */
 function initialMenus(): MenuItem[] {

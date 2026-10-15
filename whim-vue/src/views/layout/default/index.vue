@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useDefaultHome } from './hooks/useDefaultHome'
 
-const router = useRouter()
-defineOptions({
-  name: 'home',
-})
-
-const toggleRoute = () => {
-  router.push('/system/user')
-}
-const count = ref(0)
+defineOptions({ name: 'DefaultHome' })
+const { toggleRoute, count } = useDefaultHome()
 </script>
 
 <template>
@@ -21,5 +14,4 @@ const count = ref(0)
   </n-el>
 </template>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

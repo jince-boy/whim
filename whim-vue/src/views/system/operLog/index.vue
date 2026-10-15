@@ -1,23 +1,15 @@
 <script setup lang="ts">
-import WhimTable from '@/components/table/WhimTable.vue'
-import SearchForm from '@/components/form/SearchForm.vue'
+import { WhimTable } from '@/components/table'
 import { useOperLog } from '@/views/system/operLog/hooks/useOperLog.ts'
 import { useIcon } from '@/components/icon/useIcon.ts'
 
 const { createIcon } = useIcon()
 
 const {
+  registerTable,
   form,
-  handleReset,
-  dateRange,
   sysStatusOptions,
-  handleDateChange,
   sysOperTypeOptions,
-  getOperLogPage,
-  tableColumns,
-  tableData,
-  pagination,
-  loading,
   exportExcel,
   removeOperLogBatch,
   handleCleanOperLog,
@@ -30,14 +22,8 @@ const {
 
 <template>
   <n-space vertical>
-    <SearchForm
-      :model="form"
-      :show-feedback="false"
-      label-placement="left"
-      @submit="getOperLogPage()"
-      @reset="handleReset"
-    >
-      <template #form>
+    <WhimTable @register="registerTable" @delete="removeOperLogBatch" @export="exportExcel">
+      <template #search>
         <n-form-item-gi label="模块名称">
           <n-input v-model:value="form.title" placeholder="请输入模块名称" clearable />
         </n-form-item-gi>
@@ -63,36 +49,17 @@ const {
             clearable
           />
         </n-form-item-gi>
-        <n-form-item-gi label="登录时间" path="form.type">
+        <n-form-item-gi label="操作时间" path="dateRange">
           <n-date-picker
             start-placeholder="开始时间"
             end-placeholder="结束时间"
-            v-model:value="dateRange"
+            v-model:value="form.dateRange"
             type="datetimerange"
             clearable
-            @update:value="handleDateChange"
           />
         </n-form-item-gi>
       </template>
-    </SearchForm>
-    <WhimTable
-      :columns="tableColumns"
-      :data="tableData"
-      :pagination="pagination"
-      v-model:page="pagination.page"
-      v-model:page-size="pagination.pageSize"
-      :loading="loading"
-      :delete-button-permission="['system:operLog:delete']"
-      :export-button-permission="['system:operLog:export']"
-      :add-button-show="false"
-      :edit-button-show="false"
-      @refresh="getOperLogPage"
-      @update:page="getOperLogPage"
-      @update:page-size="getOperLogPage"
-      @export="exportExcel"
-      @delete="removeOperLogBatch"
-    >
-      <template #action-buttons-left>
+      <template #toolbarBefore>
         <n-button
           type="error"
           v-permission="['system:operLog:clean']"

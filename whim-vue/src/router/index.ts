@@ -1,67 +1,47 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
-const modules = import.meta.glob('@/views/**/*.vue')
-const Layout = () => import('@/layout/index.vue')
-
-/**
- * 路由name需要和组件name一致，否则缓存不起效果
- */
+/** 固定路由只承载布局、账号入口和异常页，业务页面全部由后端授权菜单注册。 */
 export const constantRouter: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Layout',
-    component: Layout,
-    redirect: 'index',
+    component: () => import('@/layout/index.vue'),
     children: [
       {
-        path: 'index',
-        component: modules[`/src/views/welcome/index.vue`],
-        name: 'home',
-        meta: {
-          title: '首页',
-          isMenu: true,
-          icon: 'smile',
-        },
+        path: '/redirect/:path(.*)',
+        redirect: (to) => ({ path: '/' + to.params.path, query: to.query, hash: to.hash }),
+        meta: { isTab: false },
       },
       {
         path: 'profile',
-        component: modules['/src/views/profile/index.vue'],
+        component: () => import('@/views/profile/index.vue'),
         name: 'UserProfile',
         meta: {
           title: '个人信息设置',
           breadcrumbs: [{ title: '个人信息设置', path: '/profile', name: 'UserProfile' }],
           icon: 'yonghu',
-          isMenu: true,
-          isShow: false,
+          isTab: true,
         },
       },
       {
-        path: '/redirect/:path(.*)',
-        redirect: (to) => {
-          return {
-            path: '/' + to.params.path,
-            query: to.query,
-            hash: to.hash,
-          }
-        },
+        path: 'noAccess',
+        name: 'NoAccess',
+        component: () => import('@/views/error/noAccess/index.vue'),
+        meta: { title: '暂无可访问页面', isTab: false },
       },
     ],
   },
   {
     path: '/login',
     name: 'login',
-    component: modules['/src/views/login/index.vue'],
-    meta: {
-      title: '登录',
-    },
+    component: () => import('@/views/login/index.vue'),
+    meta: { title: '登录', isTab: false },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: modules['/src/views/error/404.vue'],
-    meta: {
-      title: '404',
-    },
+    component: () => import('@/views/error/404.vue'),
+    meta: { title: '404', isTab: false },
   },
 ]
 const router = createRouter({

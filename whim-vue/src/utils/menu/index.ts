@@ -1,155 +1,56 @@
-import { type RouteRecordRaw, RouterLink } from 'vue-router'
+import { h } from 'vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import { type MenuOption, NIcon } from 'naive-ui'
-import { useIcon } from '@/components/icon/useIcon.ts'
-import type { MenuItem } from '@/views/system/menu/hooks/types'
-import { firstMenuPath, pageModules } from '@/utils/navigation'
+import { useIcon } from '@/components/icon/useIcon'
+import type { NavigationNode } from '@/types/navigation'
 
 export type SafeMenuOption = Omit<MenuOption, 'children'> & {
   name?: string
   path?: string
+  target?: RouteLocationRaw
+  directory?: boolean
   children?: SafeMenuOption[]
 }
 
 const { createIcon } = useIcon()
 
-/** 从用户授权树直接生成组件选项，按钮不进入导航，目录保持真实层级。 */
-export function buildUserMenus(nodes: MenuItem[]): SafeMenuOption[] {
-  return nodes.flatMap((node) => {
-    if (node.menuType === 3 || node.status !== 0) return []
-    const children = buildUserMenus(node.children ?? [])
-    if (node.menuType === 1 && !children.length) return []
-    const external = node.menuType === 4
-    const path = node.menuType === 1 ? firstMenuPath(node.children ?? []) : node.path || undefined
-    const query = Object.fromEntries(new URLSearchParams(node.param || ''))
-    const label =
-      node.menuType === 1
-        ? node.menuName
-        : external
-          ? () =>
-              h('a', { href: path, target: '_blank', rel: 'noopener noreferrer' }, node.menuName)
-          : () =>
-              h(RouterLink, { to: { path: path || '/', query } }, { default: () => node.menuName })
-    return [
-      {
-        key: node.routeName || `external:${node.id}`,
-        name: node.menuName,
-        label,
-        path,
-        show: node.visible === 0,
-        isExternal: external,
-        disabled: node.menuType === 2 && !pageModules[`/src/views/${node.component}.vue`],
-        icon: node.icon ? () => h(NIcon, null, { default: createIcon(node.icon!) }) : undefined,
-        children: children.length ? children : undefined,
-      },
-    ]
-  })
+/** 仅负责将已解析导航转成菜单组件选项，所有入口共享同一导航目标。 */
+export function buildNavigationMenus(nodes: NavigationNode[]): SafeMenuOption[] {
+  return nodes.map((node) => ({
+    key: node.key,
+    name: node.name,
+    label: node.directory
+      ? node.name
+      : node.external
+        ? () => h('a', { href: node.path, target: '_blank', rel: 'noopener noreferrer' }, node.name)
+        : () => h(RouterLink, { to: node.target! }, { default: () => node.name }),
+    path: node.path,
+    target: node.target,
+    directory: node.directory,
+    show: node.visible,
+    isExternal: node.external,
+    disabled: node.disabled,
+    icon: node.icon ? () => h(NIcon, null, { default: createIcon(node.icon!) }) : undefined,
+    children: node.children.length ? buildNavigationMenus(node.children) : undefined,
+  }))
 }
 
-/** 查找菜单及其父级，支持面包屑和混合布局定位一级菜单。 */
+/** 查找菜单及祖先，隐藏详情页也可沿真实层级定位。 */
 export function findMenuPath(menus: SafeMenuOption[], key: string): SafeMenuOption[] {
   for (const menu of menus) {
     if (menu.key === key) return [menu]
-    if (menu.children) {
-      const childPath = findMenuPath(menu.children, key)
-      if (childPath.length) return [menu, ...childPath]
-    }
+    const children = menu.children ? findMenuPath(menu.children, key) : []
+    if (children.length) return [menu, ...children]
   }
   return []
 }
 
-/** 排除隐藏菜单和没有可见子项的目录，保持各布局的菜单可见性一致。 */
+/** 隐藏整条菜单分支，空目录不转成可点击页面。 */
 export function getVisibleMenus(menus: SafeMenuOption[]): SafeMenuOption[] {
   return menus.flatMap((menu) => {
     if (menu.show === false) return []
     const children = menu.children ? getVisibleMenus(menu.children) : undefined
-    if (menu.children?.length && !children?.length && !menu.path) return []
+    if (menu.directory && !children?.length) return []
     return [{ ...menu, children: children?.length ? children : undefined }]
   })
-}
-/**
- * 路径拼接
- * @param base
- * @param path
- */
-export const joinPaths = (base: string, path: string): string => {
-  if (path.startsWith('/')) return path
-  if (base.endsWith('/')) return base + path
-  return `${base}/${path}`
-}
-/**
- * 构建菜单
- * @param routes
- * @param basePath
- */
-export const buildMenus = (routes: RouteRecordRaw[], basePath = ''): SafeMenuOption[] => {
-  return routes.reduce<SafeMenuOption[]>((result, route) => {
-    const fullPath = joinPaths(basePath, route.path)
-    const meta = route.meta || {}
-    const {
-      title = '未命名',
-      isMenu = false,
-      isShow = true,
-      isExternal = false,
-      icon: iconName,
-    } = meta
-
-    const hasChildren = Array.isArray(route.children) && route.children.length > 0
-    const key = typeof route.name === 'string' ? route.name : fullPath
-    const icon = iconName ? () => h(NIcon, null, { default: createIcon(iconName) }) : undefined
-
-    // 非菜单项但有子路由，直接递归处理子路由
-    if (!isMenu && hasChildren) {
-      return [...result, ...buildMenus(route.children!, fullPath)]
-    }
-
-    // 非菜单项且无子路由，跳过
-    if (!isMenu) {
-      return result
-    }
-
-    // 菜单项处理
-    const menuItem: SafeMenuOption = {
-      label: title,
-      key,
-      icon,
-      show: isShow,
-      name: title,
-      path: '',
-    }
-
-    // 有子路由的处理
-    if (hasChildren) {
-      const childrenMenu = buildMenus(route.children!, fullPath)
-      if (childrenMenu.length > 0) {
-        menuItem.children = childrenMenu
-      }
-      result.push(menuItem)
-      return result
-    }
-    // 处理外部链接（从 redirect 获取链接地址）
-    if (isExternal && route.meta!.link) {
-      const externalUrl = route.meta!.link as string
-      menuItem.label = () =>
-        h(
-          'a',
-          {
-            href: externalUrl,
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          },
-          title,
-        )
-      menuItem.path = externalUrl
-      menuItem.isExternal = true
-    }
-
-    // 无子路由但有组件的处理
-    if (route.component) {
-      menuItem.label = () => h(RouterLink, { to: fullPath }, { default: () => title })
-      menuItem.path = fullPath
-    }
-
-    result.push(menuItem)
-    return result
-  }, [])
 }

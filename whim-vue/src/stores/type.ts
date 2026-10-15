@@ -1,18 +1,3 @@
-export interface MenuItem {
-  id: string
-  name: string
-  title: string
-  path: string
-  queryParam: string
-  component: string
-  icon: string
-  keepAlive: 0 | 1
-  visible: 0 | 1
-  redirect: string
-  remark: string
-  children?: MenuItem[]
-}
-
 // 定义 TabState 的类型
 export interface TabState {
   title: string

@@ -1,5 +1,10 @@
 export type TagType = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
 
+/** 字典数据查询字段。 */
+export interface DictDataQuery {
+  label: string
+}
+
 export interface DictData {
   id: string
   dictType: string

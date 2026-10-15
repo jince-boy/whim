@@ -43,7 +43,7 @@
         ],
         "operationId": "getUserMenus",
         "summary": "获取当前用户可访问菜单树",
-        "description": "只要求有效登录，无需菜单管理权限。有效角色直接授予的启用页面、外链和所需启用祖先组成导航树，按钮不返回。目录授权不隐含子页面授权；停用或断裂祖先的子树不返回；隐藏页面保留路由。超级管理员可访问全部有效导航节点。",
+        "description": "只要求有效登录，无需菜单管理权限。有效角色直接授予的启用页面、外链和所需启用祖先组成导航树，按钮不返回。目录授权不隐含子页面授权；停用或断裂祖先的子树不返回；隐藏页面保留路由。超级管理员可访问全部有效导航节点。首页也必须来自此菜单树；V3登记默认首页home、/index、组件layout/default/index、权限system:home:view，初始授予超级管理员，普通角色显式授权。当前前端以授权菜单中排序最靠前、可见且组件可用的内部页面作为默认入口；用户和角色的首页分配属于后续独立配置，不在菜单管理中定义。",
         "responses": {
           "200": {
             "description": "成功",
@@ -1229,7 +1229,7 @@
         ],
         "operationId": "updateMenu",
         "summary": "修改完整菜单配置",
-        "description": "要求system:menu:update。内置节点不得改变menuType、perms、dataPermission；内置菜单管理入口和根目录不能停用、隐藏或迁移。普通管理员仅能修改自己可委派节点的展示配置，权限语义、状态变更仅限超级管理员。防止父子循环及不匹配类型；导航字段修改无需退出，操作授权变化在事务提交后撤销相关用户及超级管理员旧会话。 带动态参数的路由仅允许隐藏页面，目录和可点击菜单不能含动态参数。",
+        "description": "要求system:menu:update。内置节点不得改变menuType、perms、dataPermission；内置菜单管理入口和根目录不能停用、隐藏或迁移。普通管理员仅能修改自己可委派节点的展示配置，权限语义、状态变更仅限超级管理员。防止父子循环及不匹配类型；导航字段修改无需退出，操作授权变化在事务提交后撤销相关用户及超级管理员旧会话。 带动态参数的路由仅允许隐藏页面，目录和可点击菜单不能含动态参数。 默认首页与其他页面一样维护展示及启停状态；用户和角色的首页分配不在此接口定义。",
         "parameters": [
           {
             "name": "menuId",
@@ -1928,7 +1928,7 @@
         ],
         "summary": "修改全局权限状态。",
         "operationId": "setPermissionStatus",
-        "description": "操作权限：`system:permission:status`。功能授权在服务层校验当前有效账号及权限。",
+        "description": "操作权限：`system:permission:status`。功能授权在服务层校验当前有效账号及权限。持有有效可委派权限的普通管理员按原有管理边界维护；停用内置根目录、菜单管理入口及其操作、权限状态恢复操作时拒绝。默认首页为普通页面，允许按页面规则启停；操作状态变化在事务提交后撤销受影响账号旧授权快照。",
         "parameters": [
           {
             "name": "permissionId",
@@ -5949,19 +5949,19 @@
           "routeName": {
             "type": "string",
             "nullable": true,
-            "description": "目录和页面的全局唯一路由名称，只能使用字母数字；不能占用系统保留名称",
+            "description": "目录和页面的全局唯一路由名称，只能使用字母数字；home可用于后端首页菜单；保留Layout、UserProfile、NoAccess、NotFound、login",
             "maxLength": 128
           },
           "path": {
             "type": "string",
             "nullable": true,
-            "description": "目录和页面使用绝对小驼峰路由路径；外链使用http/https URL；按钮为空",
+            "description": "目录和页面使用绝对小驼峰路由路径；/index可用于后端首页菜单；/login、/profile、/noAccess、/redirect及其子路径保留；外链使用http/https URL；按钮为空",
             "maxLength": 255
           },
           "component": {
             "type": "string",
             "nullable": true,
-            "description": "页面组件，相对于views目录，不含.vue；其他类型为空",
+            "description": "页面组件，相对于views目录，不含.vue；默认首页为layout/default/index；其他类型为空",
             "maxLength": 255
           },
           "param": {
@@ -6084,19 +6084,19 @@
           "routeName": {
             "type": "string",
             "nullable": true,
-            "description": "目录和页面的全局唯一路由名称，只能使用字母数字；不能占用系统保留名称",
+            "description": "目录和页面的全局唯一路由名称，只能使用字母数字；home可用于后端首页菜单；保留Layout、UserProfile、NoAccess、NotFound、login",
             "maxLength": 128
           },
           "path": {
             "type": "string",
             "nullable": true,
-            "description": "目录和页面使用绝对小驼峰路由路径；外链使用http/https URL；按钮为空",
+            "description": "目录和页面使用绝对小驼峰路由路径；/index可用于后端首页菜单；/login、/profile、/noAccess、/redirect及其子路径保留；外链使用http/https URL；按钮为空",
             "maxLength": 255
           },
           "component": {
             "type": "string",
             "nullable": true,
-            "description": "页面组件，相对于views目录，不含.vue；其他类型为空",
+            "description": "页面组件，相对于views目录，不含.vue；默认首页为layout/default/index；其他类型为空",
             "maxLength": 255
           },
           "param": {

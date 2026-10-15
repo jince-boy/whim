@@ -22,6 +22,7 @@ const {
 
 <template>
   <n-el
+    ref="tabRoot"
     class="tab"
     :class="`tab--${themeStore.getTabStyle}`"
     :style="{

@@ -1,45 +1,31 @@
 <script setup lang="ts">
-import WhimTable from '@/components/table/WhimTable.vue'
-import SearchForm from '@/components/form/SearchForm.vue'
+import { WhimTable } from '@/components/table'
 import { useLoginLog } from '@/views/system/loginLog/hooks/useLoginLog.ts'
 import { useIcon } from '@/components/icon/useIcon.ts'
 
 const { createIcon } = useIcon()
 
 const {
+  registerTable,
   form,
-  handleReset,
-  dateRange,
   sysStatusOptions,
-  handleDateChange,
-  pagination,
-  tableColumns,
-  tableData,
-  loading,
-  getLoginLogPage,
   exportExcel,
-  removeDictTypeBatch,
+  removeLoginLogBatch,
   handleCleanLoginLog,
 } = useLoginLog()
 </script>
 
 <template>
   <n-space vertical>
-    <SearchForm
-      :model="form"
-      :show-feedback="false"
-      label-placement="left"
-      @submit="getLoginLogPage()"
-      @reset="handleReset"
-    >
-      <template #form>
-        <n-form-item-gi label="用户名" path="form.username">
+    <WhimTable @register="registerTable" @delete="removeLoginLogBatch" @export="exportExcel">
+      <template #search>
+        <n-form-item-gi label="用户名" path="username">
           <n-input v-model:value="form.username" placeholder="请输入用户名" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="IP地址" path="form.ipAddress">
+        <n-form-item-gi label="IP地址" path="ipAddress">
           <n-input v-model:value="form.ipAddress" placeholder="请输入登录IP地址" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="登录状态" path="form.type">
+        <n-form-item-gi label="登录状态" path="status">
           <n-select
             placeholder="请选择登录状态"
             v-model:value="form.status"
@@ -47,36 +33,17 @@ const {
             clearable
           />
         </n-form-item-gi>
-        <n-form-item-gi label="登录时间" path="form.type">
+        <n-form-item-gi label="登录时间" path="dateRange">
           <n-date-picker
             start-placeholder="开始时间"
             end-placeholder="结束时间"
-            v-model:value="dateRange"
+            v-model:value="form.dateRange"
             type="datetimerange"
             clearable
-            @update:value="handleDateChange"
           />
         </n-form-item-gi>
       </template>
-    </SearchForm>
-    <WhimTable
-      :columns="tableColumns"
-      :data="tableData"
-      :pagination="pagination"
-      v-model:page="pagination.page"
-      v-model:page-size="pagination.pageSize"
-      :loading="loading"
-      :delete-button-permission="['system:loginLog:delete']"
-      :export-button-permission="['system:loginLog:export']"
-      :add-button-show="false"
-      :edit-button-show="false"
-      @refresh="getLoginLogPage"
-      @update:page="getLoginLogPage"
-      @update:page-size="getLoginLogPage"
-      @export="exportExcel"
-      @delete="removeDictTypeBatch"
-    >
-      <template #action-buttons-left>
+      <template #toolbarBefore>
         <n-button
           v-permission="['system:loginLog:clean']"
           type="error"

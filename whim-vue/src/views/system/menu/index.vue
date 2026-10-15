@@ -1,57 +1,20 @@
 <script setup lang="ts">
-import SearchForm from '@/components/form/SearchForm.vue'
-import { useMenu } from '@/views/system/menu/hooks/useMenu.ts'
-import WhimTable from '@/components/table/WhimTable.vue'
+import { WhimTable } from '@/components/table'
+import { useMenu } from '@/views/system/menu/hooks/useMenu'
 
-defineOptions({
-  name: 'SysMenu',
-})
-
-const {
-  form,
-  handleReset,
-  tableData,
-  loading,
-  getMenuList,
-  tableColumns,
-  expandedRowKeys,
-  openAddDialog,
-  canCreate,
-} = useMenu()
+defineOptions({ name: 'SysMenu' })
+const { registerTable, form, openAddDialog, toggleExpand } = useMenu()
 </script>
 
 <template>
-  <n-space vertical>
-    <SearchForm
-      :model="form"
-      :show-feedback="false"
-      label-placement="left"
-      @submit="getMenuList()"
-      @reset="handleReset"
-    >
-      <template #form>
-        <n-form-item-gi label="菜单名称" path="form.menuName">
-          <n-input v-model:value="form.menuName" placeholder="请输入菜单名称" clearable />
-        </n-form-item-gi>
-      </template>
-    </SearchForm>
-    <WhimTable
-      :columns="tableColumns"
-      :data="tableData"
-      :pagination="false"
-      :loading="loading"
-      :striped-button-show="false"
-      :delete-button-show="false"
-      :edit-button-show="false"
-      :add-button-show="canCreate"
-      :add-button-permission="['system:menu:create']"
-      :export-button-permission="['system:menu:export']"
-      v-model:expanded-row-keys="expandedRowKeys"
-      @refresh="getMenuList"
-      @add="openAddDialog()"
-    >
-    </WhimTable>
-  </n-space>
+  <WhimTable @register="registerTable" @add="openAddDialog()">
+    <template #search>
+      <n-form-item-gi label="菜单名称" path="menuName">
+        <n-input v-model:value="form.menuName" placeholder="请输入菜单名称" clearable />
+      </n-form-item-gi>
+    </template>
+    <template #toolbarExtra>
+      <n-button @click="toggleExpand">展开/收起</n-button>
+    </template>
+  </WhimTable>
 </template>
-
-<style scoped lang="scss"></style>

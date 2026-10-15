@@ -18,7 +18,9 @@ export function useLayout() {
   const collapsed = ref(false)
   const activeRootKey = ref<string | null>(null)
   const layoutMode = computed(() => themeStore.config.layoutMode)
-  const selectedKey = computed(() => (typeof route.name === 'string' ? route.name : route.path))
+  const selectedKey = computed(
+    () => route.meta.menuKey ?? (typeof route.name === 'string' ? route.name : route.path),
+  )
   const visibleMenus = computed(() => getVisibleMenus(permissionStore.menus))
   const activeRoot = computed(() =>
     visibleMenus.value.find((menu) => menu.key === activeRootKey.value),
@@ -95,6 +97,7 @@ export function useLayout() {
   }
   return {
     themeStore,
+    homePath: computed(() => permissionStore.homePath),
     layoutMode,
     collapsed,
     sidebarWidth,

@@ -8,12 +8,8 @@ declare module 'vue-router' {
   interface RouteMeta {
     title?: string
     keepAlive?: boolean
-    isMenu?: boolean
-    isShow?: boolean
-    isExternal?: boolean
-    link?: string
+    isTab?: boolean
     icon?: string
-    visible?: 0 | 1
     breadcrumbs?: BreadcrumbItem[]
     menuKey?: string
   }

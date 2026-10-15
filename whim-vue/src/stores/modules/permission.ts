@@ -1,73 +1,115 @@
 import { defineStore } from 'pinia'
-import { markRaw } from 'vue'
-import type { RouteRecordRaw } from 'vue-router'
-import router, { constantRouter } from '@/router'
+import { computed, ref, shallowRef } from 'vue'
+import type { RouteLocationRaw, RouteRecordRaw } from 'vue-router'
+import router from '@/router'
 import type { MenuItem } from '@/views/system/menu/hooks/types'
 import { fetchUserMenus } from './permission/api'
 import { useAuthStore } from './auth'
-import { buildNavigationRoutes } from '@/utils/navigation'
-import { buildMenus, buildUserMenus, type SafeMenuOption } from '@/utils/menu'
-let pendingMenus: { token: string | null; request: Promise<void> } | undefined
+import { useTabStore } from './tab'
+import { buildNavigation } from '@/utils/navigation'
+import { buildNavigationMenus, type SafeMenuOption } from '@/utils/menu'
 
-export const usePermissionStore = defineStore('permission', {
-  /** 菜单树是导航唯一来源，加载完成前不放行受保护路由。 */
-  state: () => ({
-    sourceMenus: [] as MenuItem[],
-    dynamicRoutes: [] as RouteRecordRaw[],
-    menus: [] as SafeMenuOption[],
-    initialized: false,
-  }),
-  getters: {
-    /** 布局的统一菜单入口。 */
-    getMenus: (state) => state.menus,
-  },
-  actions: {
-    /** 合并并发初始化，并在注册成功后标记完成。 */
-    async loadMenus() {
-      if (this.initialized) return
-      const token = useAuthStore().getToken
-      if (pendingMenus?.token === token) return pendingMenus.request
-      const request = (async () => {
-        const res = await fetchUserMenus()
-        if (token !== useAuthStore().getToken) throw new Error('登录会话已变更')
-        if (res.code !== 200) {
-          window.$message?.error(res.message)
-          throw new Error(res.message || '菜单获取失败')
-        }
-        const routes = buildNavigationRoutes(res.data)
-        this.resetRouter()
-        for (const route of routes) {
-          if (router.hasRoute(route.name!)) throw new Error('菜单路由名称与现有路由冲突')
-          router.addRoute('Layout', route)
-          this.dynamicRoutes.push(markRaw(route))
-        }
-        this.sourceMenus = res.data
-        this.menus = [...buildMenus(constantRouter), ...buildUserMenus(res.data)]
-        this.initialized = true
-      })()
-      pendingMenus = { token, request }
-      try {
-        await request
-      } finally {
-        if (pendingMenus?.request === request) pendingMenus = undefined
+/** 菜单请求、路由注册和首页入口由同一实例管理；退出后旧请求不能恢复旧权限。 */
+export const usePermissionStore = defineStore('permission', () => {
+  const sourceMenus = shallowRef<MenuItem[]>([])
+  const dynamicRoutes = shallowRef<RouteRecordRaw[]>([])
+  const menus = shallowRef<SafeMenuOption[]>([])
+  const initialized = ref(false)
+  const entryTarget = shallowRef<RouteLocationRaw>()
+  const homePath = computed(() => router.resolve(entryTarget.value ?? '/noAccess').fullPath)
+  const homeName = computed(() =>
+    entryTarget.value ? router.resolve(entryTarget.value).name : undefined,
+  )
+  const getMenus = computed(() => menus.value)
+  let revision = 0
+  let removers: (() => void)[] = []
+  let pending: Promise<void> | undefined
+
+  /** 先完整解析并检查冲突，再替换当前路由；请求失败时保留原有导航。 */
+  async function loadMenus(): Promise<void> {
+    if (initialized.value) return
+    if (pending) return pending
+    const version = revision
+    const token = useAuthStore().getToken
+    const request = (async () => {
+      const response = await fetchUserMenus()
+      if (version !== revision || token !== useAuthStore().getToken) return
+      if (response.code !== 200) throw new Error(response.message || '菜单获取失败')
+      const navigation = buildNavigation(response.data)
+      const previousNames = new Set(dynamicRoutes.value.map((route) => route.name))
+      const staticRoutes = router.getRoutes().filter((route) => !previousNames.has(route.name))
+      for (const route of navigation.routes) {
+        if (staticRoutes.some((item) => item.name === route.name || item.path === route.path))
+          throw new Error('菜单与系统路由冲突，请检查菜单配置')
       }
-    },
-    /** 清理本次注册的所有路由，避免账号切换遗留权限入口。 */
-    resetRouter() {
-      for (const route of this.dynamicRoutes) if (route.name) router.removeRoute(route.name)
-      this.sourceMenus = []
-      this.dynamicRoutes = []
-      this.menus = []
-      this.initialized = false
-    },
-    /** 保存后重载导航、移除失效标签并重新匹配当前页。 */
-    async reloadMenus() {
-      this.initialized = false
-      await this.loadMenus()
-      const { useTabStore } = await import('./tab')
-      useTabStore().retainRoutes()
-      const current = router.currentRoute.value.fullPath
-      await router.replace(router.resolve(current).name === 'NotFound' ? '/index' : current)
-    },
-  },
+      const nextMenus = buildNavigationMenus(navigation.tree)
+      const previousRoutes = dynamicRoutes.value
+      removers.forEach((remove) => remove())
+      removers = []
+      try {
+        for (const route of navigation.routes) removers.push(router.addRoute('Layout', route))
+      } catch (error) {
+        removers.forEach((remove) => remove())
+        removers = previousRoutes.map((route) => router.addRoute('Layout', route))
+        throw error
+      }
+      dynamicRoutes.value = navigation.routes
+      sourceMenus.value = response.data
+      menus.value = nextMenus
+      entryTarget.value = navigation.entryTarget
+      initialized.value = true
+      useTabStore().syncRoutes()
+    })()
+    pending = request
+    try {
+      await request
+    } finally {
+      if (pending === request) pending = undefined
+    }
+  }
+
+  /** 账号切换时同时使未完成请求失效，移除本实例注册的路由和首页。 */
+  function resetRouter(): void {
+    revision++
+    pending = undefined
+    removers.forEach((remove) => remove())
+    removers = []
+    sourceMenus.value = []
+    dynamicRoutes.value = []
+    menus.value = []
+    entryTarget.value = undefined
+    initialized.value = false
+  }
+
+  /** 保存后重新匹配当前路由；已移除页面回到当前用户的入口。 */
+  async function reloadMenus(): Promise<void> {
+    const wasInitialized = initialized.value
+    revision++
+    const version = revision
+    pending = undefined
+    initialized.value = false
+    try {
+      await loadMenus()
+    } catch (error) {
+      if (version === revision) initialized.value = wasInitialized
+      throw error
+    }
+    if (!initialized.value) return
+    const current = router.currentRoute.value.fullPath
+    const name = router.resolve(current).name
+    await router.replace(name === 'NotFound' || name === 'NoAccess' ? homePath.value : current)
+  }
+
+  return {
+    sourceMenus,
+    dynamicRoutes,
+    menus,
+    initialized,
+    getMenus,
+    homePath,
+    homeName,
+    loadMenus,
+    resetRouter,
+    reloadMenus,
+  }
 })

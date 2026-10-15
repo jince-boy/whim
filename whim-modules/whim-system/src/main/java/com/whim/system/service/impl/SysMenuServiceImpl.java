@@ -120,7 +120,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysPermissionMapper, SysPerm
             authorizationService.requireGrantablePermission(menuId);
         }
         if (existing.getBuiltIn() == 1 && ("system:menu:list".equals(existing.getPerms())
-                || existing.getParentId() == 0 || existing.getPerms() != null && existing.getPerms().startsWith("system:menu:"))) {
+                || existing.getMenuType() == 1 && existing.getParentId() == 0
+                || existing.getPerms() != null && existing.getPerms().startsWith("system:menu:"))) {
             if (menu.getStatus() != 0 || menu.getVisible() != 0 || !Objects.equals(existing.getParentId(), menu.getParentId()))
                 throw new IllegalArgumentException("内置菜单管理入口及其操作不能停用、隐藏或迁移");
         }
@@ -185,10 +186,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysPermissionMapper, SysPerm
         }
         if (type == 1 || type == 2) {
             if (menu.getRouteName() == null || !menu.getRouteName().matches("[A-Za-z][A-Za-z0-9]*")
-                    || Set.of("Layout", "home", "UserProfile", "NotFound", "login").contains(menu.getRouteName()))
+                    || Set.of("Layout", "UserProfile", "NoAccess", "NotFound", "login").contains(menu.getRouteName()))
                 throw new IllegalArgumentException("路由名称须由字母和数字组成且不能使用系统保留名称");
             if (menu.getPath() == null || !menu.getPath().matches("/(?:[a-z][A-Za-z0-9]*|:[a-z][A-Za-z0-9]*)(?:/(?:[a-z][A-Za-z0-9]*|:[a-z][A-Za-z0-9]*))*")
-                    || menu.getPath().matches("/(?:login|index|profile|redirect)(?:/.*)?"))
+                    || menu.getPath().matches("/(?:login|profile|noAccess|redirect)(?:/.*)?"))
                 throw new IllegalArgumentException("路由须使用绝对路径及小驼峰片段，不能占用系统保留路径");
             if (menu.getPath().contains("/:") && (type == 1 || menu.getVisible() == 0))
                 throw new IllegalArgumentException("带动态参数的路由只能用于隐藏页面，不能作为目录或可点击菜单");

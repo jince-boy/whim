@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useIcon } from '@/components/icon/useIcon'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { getVisibleMenus, type SafeMenuOption } from '@/utils/menu'
@@ -7,6 +8,7 @@ export function useMenuSearch() {
   const { createIcon } = useIcon()
 
   const permissionStore = usePermissionStore()
+  const router = useRouter()
   const value = ref('')
   const searchResults = ref<{ text: string; path?: string }[]>([])
 
@@ -20,7 +22,8 @@ export function useMenuSearch() {
     const dfs = (node: SafeMenuOption, pathStack: string[]) => {
       if (node.disabled || node.isExternal) return
       const currentName = node.name || ''
-      const currentPath = node.path
+      const currentPath =
+        node.target && !node.directory ? router.resolve(node.target).fullPath : undefined
       const newPathStack = [...pathStack, currentName]
       // 只记录有 path 的匹配项
       if (currentName.includes(keyword) && currentPath) {

@@ -7,6 +7,7 @@ import type { MenuInst } from 'naive-ui'
 import { useThemeStore } from '@/stores/modules/theme.ts'
 import LayoutUserMenu from '@/layout/components/userMenu/index.vue'
 import type { SafeMenuOption } from '@/utils/menu'
+import { usePermissionStore } from '@/stores/modules/permission'
 
 defineOptions({
   name: 'LayoutSidebar',
@@ -24,10 +25,13 @@ const props = withDefaults(
 )
 const route = useRoute()
 const themeStore = useThemeStore()
+const navigation = usePermissionStore()
 
 const menuInstRef = useTemplateRef<MenuInst>('menuInstRef')
 // 菜单由路由决定选中项，点击菜单时由已有 RouterLink 完成导航。
-const selectedKey = computed(() => (typeof route.name === 'string' ? route.name : route.path))
+const selectedKey = computed(
+  () => route.meta.menuKey ?? (typeof route.name === 'string' ? route.name : route.path),
+)
 
 // 等待菜单渲染后展开当前路由的父菜单，兼顾菜单加载和侧栏重新展开。
 watch(
@@ -59,7 +63,7 @@ watch(
       :inverted="themeStore.getMenuInverted"
       class="sidebar-bar"
     >
-      <RouterLink to="/index">
+      <RouterLink :to="navigation.homePath">
         <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
           <n-image
             class="sidebar-logo"

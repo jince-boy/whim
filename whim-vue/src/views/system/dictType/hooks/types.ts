@@ -5,6 +5,12 @@ export interface DictType {
   remark: string
 }
 
+/** 字典类型查询字段。 */
+export interface DictTypeQuery {
+  name: string
+  type: string
+}
+
 export interface DictTypeResult {
   id: string
   name: string

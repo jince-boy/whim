@@ -1,56 +1,8 @@
 <script setup lang="ts">
-import { useKeepAliveStore } from '@/stores/modules/keepAlive.ts'
-import { useThemeStore } from '@/stores/modules/theme'
-import { nextTick, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useAppMain } from './hooks/useAppMain'
 
-const appMainRef = useTemplateRef<HTMLElement>('appMainRef')
-
-const pageVisible = ref(true)
-const refreshing = ref(false)
-const route = useRoute()
-
-const keepAliveStore = useKeepAliveStore()
-const themeStore = useThemeStore()
-
-// 关闭全局缓存时清理旧实例；开启及路由变化时按菜单配置缓存当前页面。
-watch(
-  [() => themeStore.getCacheTabs, () => route.name, () => route.meta.keepAlive],
-  ([enabled, name, keepAlive]) => {
-    if (!enabled) {
-      keepAliveStore.clearKeepAlive()
-    } else if (typeof name === 'string') {
-      if (keepAlive) keepAliveStore.addKeepAlive(name)
-      else keepAliveStore.removeKeepAlive(name)
-    }
-  },
-  { immediate: true },
-)
-
-/** 先清理当前实例，再重新挂载；其他标签的缓存保持不变。 */
-const refresh = async (): Promise<void> => {
-  if (refreshing.value) return
-  refreshing.value = true
-  const name = typeof route.name === 'string' ? route.name : undefined
-  try {
-    if (name) keepAliveStore.removeKeepAlive(name)
-    // 先让 KeepAlive 将当前实例标记为不缓存，再卸载，避免留下旧实例。
-    await nextTick()
-    pageVisible.value = false
-    await nextTick()
-    if (themeStore.getCacheTabs && name && route.name === name && route.meta.keepAlive) {
-      keepAliveStore.addKeepAlive(name)
-    }
-    pageVisible.value = true
-    await nextTick()
-  } finally {
-    refreshing.value = false
-  }
-}
-defineExpose({
-  appMainRef,
-  refresh,
-})
+const { appMainRef, pageVisible, refreshing, themeStore, keepAliveStore, refresh } = useAppMain()
+defineExpose({ appMainRef, refresh })
 </script>
 
 <template>
