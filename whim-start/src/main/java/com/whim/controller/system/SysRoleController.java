@@ -9,7 +9,6 @@ import com.whim.system.model.dto.role.RolePermissionDataScopeDTO;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import com.whim.system.model.vo.role.RoleDataScopeVO;
 import com.whim.system.model.vo.role.RoleVO;
-import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
@@ -39,7 +38,6 @@ public class SysRoleController {
      * 系统角色表服务对象
      */
     private final ISysRoleService sysRoleService;
-    private final ISysRolePermissionService sysRolePermissionService;
 
     /** 查询系统角色。 */
     @GetMapping
@@ -91,7 +89,7 @@ public class SysRoleController {
     @GetMapping("/{roleId}/permissions")
     @SystemCheckPermission("system:rolePermission:list")
     public Result<Set<Long>> getRolePermissionIds(@PathVariable Long roleId) {
-        return Result.success("角色权限查询成功", sysRolePermissionService.getPermissionIds(roleId));
+        return Result.success("角色权限查询成功", sysRoleService.getPermissionIds(roleId));
     }
 
     /** 覆盖系统角色的权限。 */
@@ -99,14 +97,14 @@ public class SysRoleController {
     @SystemCheckPermission("system:rolePermission:assign")
     public Result<Void> replaceRolePermissions(@PathVariable Long roleId,
                                                @RequestBody @Valid RolePermissionAssignDTO request) {
-        sysRolePermissionService.replacePermissions(roleId, request.getPermissionIds());
+        sysRoleService.replacePermissions(roleId, request.getPermissionIds());
         return Result.success("角色权限分配成功");
     }
     /** 查询某个操作的覆盖数据范围，空范围编码表示继承角色默认值。 */
     @GetMapping("/{roleId}/permissions/{permissionId}/dataScope")
     @SystemCheckPermission("system:role:dataScope:list")
     public Result<RoleDataScopeVO> getPermissionDataScope(@PathVariable Long roleId, @PathVariable Long permissionId) {
-        return Result.success("操作数据范围查询成功", sysRolePermissionService.getPermissionDataScope(roleId, permissionId));
+        return Result.success("操作数据范围查询成功", sysRoleService.getPermissionDataScope(roleId, permissionId));
     }
 
     /** 设置某个操作的数据范围覆盖，或恢复继承角色默认值。 */
@@ -114,7 +112,7 @@ public class SysRoleController {
     @SystemCheckPermission("system:role:dataScope:assign")
     public Result<Void> replacePermissionDataScope(@PathVariable Long roleId, @PathVariable Long permissionId,
                                                   @RequestBody @Valid RolePermissionDataScopeDTO request) {
-        sysRolePermissionService.replacePermissionDataScope(roleId, permissionId, request.getDataScope(),
+        sysRoleService.replacePermissionDataScope(roleId, permissionId, request.getDataScope(),
                 request.getDeptIds());
         return Result.success("操作数据范围修改成功");
     }

@@ -1,8 +1,8 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.dto.menu.MenuSaveDTO;
+import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.menu.MenuVO;
 import com.whim.system.model.vo.permission.PermissionVO;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description SysPermission业务服务。
+ * @description 系统权限目录与授权校验。
  */
 public interface ISysPermissionService extends IService<SysPermission> {
     /** 查询单个菜单或按钮权限详情。 */
@@ -33,5 +33,9 @@ public interface ISysPermissionService extends IService<SysPermission> {
     void setPermissionStatus(Long permissionId, Integer status);
     /** 删除叶子节点，并清理角色授权和操作数据范围。 */
     void deleteMenu(Long menuId);
+    /** 校验权限有效且在操作者可委派范围内，返回权限供授权配置复用。 */
+    SysPermission requireGrantablePermission(Long permissionId);
+    /** 在调用方事务中锁定菜单目录，串行协调菜单维护与角色授权。 */
+    void lockCatalog();
 }
 

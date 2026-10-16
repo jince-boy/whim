@@ -6,6 +6,30 @@
         WHERE id = #{deptId} AND deleted = 0 AND status = 0
     </select>
 
+    <!-- 从候选部门沿主键向上验证，必须抵达有效根节点；路径同时限制循环及最大层级长度。 -->
+    <select id="selectValidDepartmentIds" resultType="java.lang.Long">
+        WITH RECURSIVE department_paths AS (
+            SELECT id AS department_id, parent_id,
+                   CAST(CONCAT('0,', id) AS CHAR(500)) AS visited_path
+            FROM sys_dept
+            WHERE id IN
+            <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+                #{departmentId}
+            </foreach>
+                AND deleted = 0 AND status = 0
+            UNION ALL
+            SELECT path.department_id, parent.parent_id,
+                   CONCAT(path.visited_path, ',', parent.id)
+            FROM department_paths path
+            INNER JOIN sys_dept parent ON parent.id = path.parent_id
+                AND parent.deleted = 0 AND parent.status = 0
+            WHERE path.parent_id != 0
+                AND FIND_IN_SET(parent.id, path.visited_path) = 0
+                AND CHAR_LENGTH(path.visited_path) + CHAR_LENGTH(CAST(parent.id AS CHAR)) + 1 &lt;= 500
+        )
+        SELECT department_id FROM department_paths WHERE parent_id = 0
+    </select>
+
     <select id="selectActiveDescendantIds" resultType="java.lang.Long">
         WITH RECURSIVE department_tree AS (
             SELECT id FROM sys_dept WHERE id = #{deptId} AND deleted = 0 AND status = 0

@@ -22,6 +22,8 @@ public interface ISysUserService extends IService<SysUser> {
     PageDataVO<UserVO> pageUsers(PageQueryDTO query);
     /** 查询可见用户详情，不返回密码。 */
     UserVO getUser(Long userId);
+    /** 查询本次操作可见用户的角色ID。 */
+    Set<Long> getRoleIds(Long userId);
     /** 登录阶段按规范化用户名查询有效账号。 */
     SysUser getByUsername(String username);
     /** 构建角色和精确权限快照。 */
@@ -40,7 +42,11 @@ public interface ISysUserService extends IService<SysUser> {
     void setUserStatus(Long userId, Integer status);
     /** 重置可见账号密码并撤销全部旧会话。 */
     void resetPassword(Long userId, String password);
+    /** 校验用户与可委派角色后覆盖关联，并撤销旧会话。 */
+    void replaceRoles(Long userId, Set<Long> roleIds);
     /** 软删除账号并移除角色、岗位关系。 */
     void deleteUser(Long userId);
+    /** 校验目标账号可管理，普通管理员不能管理超级管理员账号。 */
+    void requireManageableUser(Long userId);
 }
 

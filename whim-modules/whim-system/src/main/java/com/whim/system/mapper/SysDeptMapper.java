@@ -19,6 +19,10 @@ public interface SysDeptMapper extends BaseMapper<SysDept> {
     @DataPermissionMetadata
     SysDept selectAuthorizationDepartment(@Param("deptId") Long deptId);
 
+    /** 从非空候选集合中筛选完整祖先链有效的部门，不返回断链或循环节点。 */
+    @DataPermissionMetadata
+    Set<Long> selectValidDepartmentIds(@Param("departmentIds") Set<Long> departmentIds);
+
     /** 仅供权限解析读取沿有效父子链可达的部门ID。 */
     @DataPermissionMetadata
     Set<Long> selectActiveDescendantIds(@Param("deptId") Long deptId);

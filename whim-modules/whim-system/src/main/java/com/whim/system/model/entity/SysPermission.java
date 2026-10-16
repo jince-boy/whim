@@ -1,6 +1,8 @@
 package com.whim.system.model.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
@@ -12,7 +14,7 @@ import java.io.Serializable;
 /**
  * @author jince
  * @date 2026/07/02
- * @description 系统权限菜单表实体类
+ * @description 系统权限菜单；可空编辑字段按完整编辑结果写入，状态变更使用已加载实体。
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -28,6 +30,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 路由名称
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String routeName;
 
     /**
@@ -38,6 +41,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 权限标识
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String perms;
 
     /** 是否启用操作级数据权限(0-仅功能授权 1-功能与数据范围授权)。 */
@@ -59,16 +63,19 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 前端路由路径
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String path;
 
     /**
      * 路由参数
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String param;
 
     /**
      * 前端组件路径
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String component;
 
     /**
@@ -84,6 +91,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 图标
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String icon;
 
     /**
@@ -99,6 +107,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     /**
      * 备注
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String remark;
 
     /**

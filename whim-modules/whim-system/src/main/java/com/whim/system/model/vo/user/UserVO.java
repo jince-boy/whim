@@ -1,5 +1,7 @@
 package com.whim.system.model.vo.user;
 
+import com.whim.system.model.entity.SysUser;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -10,6 +12,7 @@ import java.time.LocalDateTime;
  * @description 用户管理响应，永远不返回密码及认证凭证。
  */
 @Data
+@AutoMapper(target = SysUser.class, convertGenerate = false)
 public class UserVO {
     private Long id;
     private String username;

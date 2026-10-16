@@ -5,16 +5,20 @@ import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.exception.DataAccessDeniedException;
+import com.whim.core.permission.DataPermissionScope;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.mapper.SysRoleMapper;
 import com.whim.system.model.dto.menu.MenuSaveDTO;
+import com.whim.system.model.entity.SysConfig;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.entity.SysRolePermission;
 import com.whim.system.model.entity.SysRolePermissionDept;
 import com.whim.system.model.enums.SysMenuType;
 import com.whim.system.model.vo.menu.MenuVO;
 import com.whim.system.model.vo.permission.PermissionVO;
+import com.whim.system.service.ISysConfigService;
+import com.whim.system.service.ISysDataScopeService;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRolePermissionDeptService;
 import com.whim.system.service.ISysRolePermissionService;
@@ -36,15 +40,16 @@ import java.util.stream.Collectors;
 /**
  * @author Jince
  * @date 2026/10/13
- * @description 统一维护菜单、按钮权限、用户导航及角色授权失效。
+ * @description 统一维护菜单、操作权限及角色授权失效。
  */
 @Service
 @RequiredArgsConstructor
 public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements ISysPermissionService {
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
-    private final SysAuthorizationService authorizationService;
+    private final ISysDataScopeService dataScopeService;
     private final ISysRolePermissionService rolePermissionService;
+    private final ISysConfigService configService;
     private final ISysRolePermissionDeptService permissionDeptService;
     private final SysRoleMapper roleMapper;
 
@@ -141,7 +146,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             if (authorizationChanged || statusChanged) {
                 throw new DataAccessDeniedException("只有超级管理员可以修改权限语义或操作状态");
             }
-            authorizationService.requireGrantablePermission(menuId);
+            checkGrantablePermission(existing);
         }
         boolean protectedFieldsChanged = menu.getStatus() != 0 || menu.getVisible() != 0
                 || !Objects.equals(existing.getParentId(), menu.getParentId());
@@ -151,15 +156,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         boolean revokeSessions = authorizationChanged || (!SysMenuType.DIRECTORY.matches(existing.getMenuType()) && statusChanged);
         Set<Long> affectedUserIds = revokeSessions
                 ? baseMapper.selectUserIdSetByPermissionId(menuId) : Set.of();
-        // 显式写入可空字段，类型切换或清空输入不能被 MyBatis-Plus 的非空更新策略忽略。
-        update(menu, lambdaUpdate().eq(SysPermission::getId, menuId)
-                .set(menu.getRouteName() == null, SysPermission::getRouteName, null)
-                .set(menu.getPath() == null, SysPermission::getPath, null)
-                .set(menu.getComponent() == null, SysPermission::getComponent, null)
-                .set(menu.getParam() == null, SysPermission::getParam, null)
-                .set(menu.getPerms() == null, SysPermission::getPerms, null)
-                .set(menu.getIcon() == null, SysPermission::getIcon, null)
-                .set(menu.getRemark() == null, SysPermission::getRemark, null).getWrapper());
+        updateById(menu);
         if (!affectedUserIds.isEmpty()) {
             authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, affectedUserIds);
         }
@@ -175,7 +172,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         }
         SysPermission permission = requiredMenu(permissionId);
         if (!authenticationContext.isSuperAdministrator()) {
-            authorizationService.requireGrantablePermission(permissionId);
+            checkGrantablePermission(permission);
         }
         if (status == 1 && isProtectedMenu(permission)) {
             throw new IllegalArgumentException("不能停用核心菜单管理入口及其操作");
@@ -206,6 +203,39 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, affectedUserIds);
     }
 
+    /** 校验可委派范围并返回有效权限，供后续授权配置复用。 */
+    @Override
+    public SysPermission requireGrantablePermission(Long permissionId) {
+        SysPermission permission = getById(permissionId);
+        checkGrantablePermission(permission);
+        return permission;
+    }
+
+    /** 在调用方事务中锁定菜单目录，菜单写入和角色授权共用同一把锁。 */
+    @Override
+    public void lockCatalog() {
+        if (configService.lambdaQuery().select(SysConfig::getId)
+                .eq(SysConfig::getConfigKey, "system.menu.lock").last("FOR UPDATE").one() == null) {
+            throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
+        }
+    }
+
+    /** 复用已加载的权限定义校验委派范围，避免菜单修改重复查询。 */
+    private void checkGrantablePermission(SysPermission permission) {
+        if (permission == null || permission.getStatus() != 0) {
+            throw new IllegalArgumentException("目标权限不存在或已停用");
+        }
+        if (SysMenuType.DIRECTORY.matches(permission.getMenuType())
+                || SysMenuType.EXTERNAL_LINK.matches(permission.getMenuType())
+                || authenticationContext.isSuperAdministrator()) {
+            return;
+        }
+        DataPermissionScope available = dataScopeService.resolve(permission.getPerms());
+        if (!available.isAll()) {
+            throw new DataAccessDeniedException("不能授予超出本人完整授权范围的操作");
+        }
+    }
+
     /** 核心管理节点必须保留，其他内置节点仍可执行删除。 */
     private boolean isProtectedMenu(SysPermission menu) {
         if (menu.getBuiltIn() != 1) {
@@ -233,13 +263,6 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             throw new IllegalArgumentException("菜单不存在或已删除");
         }
         return menu;
-    }
-
-    /** 树结构写操作持有同一个事务锁，防止并发校验分别通过后形成循环。 */
-    private void lockCatalog() {
-        if (baseMapper.lockMenuCatalog() == null) {
-            throw new IllegalStateException("菜单维护锁不存在，请检查数据库迁移");
-        }
     }
 
     /** 校验标识唯一性，以及新增或修改后的层级关系。 */

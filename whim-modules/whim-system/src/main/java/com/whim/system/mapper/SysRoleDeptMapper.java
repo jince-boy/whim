@@ -1,6 +1,7 @@
 package com.whim.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.whim.mybatisplus.annotation.DataPermissionMetadata;
 import com.whim.system.model.entity.SysRoleDept;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -14,7 +15,8 @@ import java.util.Set;
  */
 @Mapper
 public interface SysRoleDeptMapper extends BaseMapper<SysRoleDept> {
-    /** 返回角色默认自定义部门ID，祖先链有效性由权限解析器核验。 */
-    Set<Long> selectDepartmentIds(@Param("roleId") Long roleId);
+    /** 批量读取非空角色集合的默认自定义部门，部门有效性由范围服务统一核验。 */
+    @DataPermissionMetadata
+    Set<Long> selectDepartmentIdsByRoleIds(@Param("roleIds") Set<Long> roleIds);
 }
 

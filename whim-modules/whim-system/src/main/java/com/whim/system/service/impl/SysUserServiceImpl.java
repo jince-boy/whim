@@ -18,6 +18,7 @@ import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.user.UserCreateDTO;
 import com.whim.system.model.dto.user.UserUpdateDTO;
+import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserPost;
 import com.whim.system.model.entity.SysUserRole;
@@ -33,11 +34,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jince
@@ -52,7 +55,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysDeptService deptService;
     private final ISysUserRoleService userRoleService;
     private final ISysUserPostService userPostService;
-    private final SysAuthorizationService authorizationService;
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
 
@@ -62,7 +64,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public PageDataVO<UserVO> pageUsers(PageQueryDTO query) {
         return new PageDataVO<>(page(new Page<>(query.getPageNum(), query.getPageSize()),
-                lambdaQuery().orderByAsc(SysUser::getId).getWrapper()).convert(this::toUserVO));
+                lambdaQuery().orderByAsc(SysUser::getId).getWrapper())
+                .convert(user -> BeanConvertUtils.convert(user, UserVO.class)));
     }
 
     /** 按详情授权查询目标，不泄露其他范围内账号是否存在。 */
@@ -74,7 +77,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
         }
-        return toUserVO(user);
+        return BeanConvertUtils.convert(user, UserVO.class);
+    }
+
+    /** 只有本次操作可见用户的角色关联可以读取。 */
+    @Override
+    @DataPermission(permission = "system:userRole:list",
+            tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public Set<Long> getRoleIds(Long userId) {
+        if (getById(userId) == null) {
+            throw new DataAccessDeniedException("用户不存在或不在本次操作范围内");
+        }
+        return userRoleService.lambdaQuery().eq(SysUserRole::getUserId, userId).list().stream()
+                .map(SysUserRole::getRoleId).collect(Collectors.toSet());
     }
 
     /** 用户名全局规范化，登录阶段不依赖业务数据权限。 */
@@ -91,7 +106,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         List<RoleInfo> roles = roleService.getRoleInfoListByUserId(user.getId());
         info.setRoleInfoList(roles);
         info.setRoleCodeSet(roles.stream().map(RoleInfo::getRoleCode)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
         info.setPermissionCodeSet(permissionService.getPermissionCodeSetByUserId(user.getId()));
         return info;
     }
@@ -156,7 +171,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void updateUser(Long userId, UserUpdateDTO request) {
         SysUser user = getRequiredUserInScope(userId);
-        authorizationService.requireManageableUser(userId);
+        requireManageableUser(userId);
         if (!lambdaUpdate().eq(SysUser::getId, userId)
                 .set(SysUser::getName, request.getName().trim()).set(SysUser::getAvatar, request.getAvatar())
                 .set(SysUser::getEmail, request.getEmail()).set(SysUser::getPhone, request.getPhone())
@@ -174,7 +189,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void setUserDepartment(Long userId, Long deptId) {
         SysUser user = getRequiredUserInScope(userId);
-        authorizationService.requireManageableUser(userId);
+        requireManageableUser(userId);
         if (Objects.equals(userId, authenticationContext.getUserId())
                 && !authenticationContext.isSuperAdministrator()) {
             throw new DataAccessDeniedException("不能通过修改本人主部门改变授权范围");
@@ -182,7 +197,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         DataPermissionContext.checkOwnership("sys_user", userId, deptId);
         deptService.getRequiredActiveDepartment(deptId);
         user.setDeptId(deptId);
-        authorizationService.requireDelegableUserRoles(user);
+        roleService.requireDelegableUserRoles(user);
         updateById(user);
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
@@ -196,19 +211,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (status == null || (status != 0 && status != 1)) {
             throw new IllegalArgumentException("状态只能为0或1");
         }
-        authorizationService.lockAdministratorMembership();
+        roleService.lockAdministratorMembership();
         SysUser user = getRequiredUserInScope(userId);
-        authorizationService.requireManageableUser(userId);
+        requireManageableUser(userId);
         if (status == 1) {
             if (Objects.equals(userId, authenticationContext.getUserId())) {
                 throw new DataAccessDeniedException("不能停用当前登录账号");
             }
-            authorizationService.requireAdministratorCanBeRemoved(userId);
+            roleService.requireAdministratorCanBeRemoved(userId);
         } else {
             if (user.getDeptId() != null) {
                 deptService.getRequiredActiveDepartment(user.getDeptId());
             }
-            authorizationService.requireDelegableUserRoles(user);
+            roleService.requireDelegableUserRoles(user);
         }
         user.setStatus(status);
         updateById(user);
@@ -222,9 +237,59 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void resetPassword(Long userId, String password) {
         SysUser user = getRequiredUserInScope(userId);
-        authorizationService.requireManageableUser(userId);
+        requireManageableUser(userId);
         user.setPassword(encodePassword(password));
         updateById(user);
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
+    }
+
+    /** 全部候选和移除角色验证通过后替换关联，并保护最后一个管理员。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @DataPermission(permission = "system:userRole:assign",
+            tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public void replaceRoles(Long userId, Set<Long> roleIds) {
+        roleService.lockAdministratorMembership();
+        SysUser user = getRequiredUserInScope(userId);
+        requireManageableUser(userId);
+        if (Objects.equals(userId, authenticationContext.getUserId())
+                && !authenticationContext.isSuperAdministrator()) {
+            throw new DataAccessDeniedException("不能修改本人的角色关联");
+        }
+        if (user.getStatus() != 0 && !roleIds.isEmpty()) {
+            throw new IllegalArgumentException("不能为停用账号分配角色");
+        }
+        List<SysUserRole> existing = userRoleService.lambdaQuery().eq(SysUserRole::getUserId, userId).list();
+        Set<Long> existingIds = existing.stream().map(SysUserRole::getRoleId).collect(Collectors.toSet());
+        Set<Long> involved = new HashSet<>(existingIds);
+        involved.addAll(roleIds);
+        boolean retainsAdministrator = false;
+        for (Long roleId : involved.stream().sorted().toList()) {
+            SysRole role = roleService.getRequiredRole(roleId);
+            if (roleIds.contains(roleId)) {
+                roleService.requireDelegableRole(role, user);
+                retainsAdministrator |= "superadmin".equals(role.getRoleCode());
+            } else if (!authenticationContext.isSuperAdministrator() && role.getStatus() == 0) {
+                roleService.requireDelegableRole(role, user);
+            }
+        }
+        if (!retainsAdministrator) {
+            roleService.requireAdministratorCanBeRemoved(userId);
+        }
+        var removals = userRoleService.lambdaUpdate().eq(SysUserRole::getUserId, userId);
+        if (!roleIds.isEmpty()) {
+            removals.notIn(SysUserRole::getRoleId, roleIds);
+        }
+        removals.remove();
+        List<SysUserRole> additions = roleIds.stream().filter(id -> !existingIds.contains(id)).map(roleId -> {
+            SysUserRole binding = new SysUserRole();
+            binding.setUserId(userId);
+            binding.setRoleId(roleId);
+            return binding;
+        }).toList();
+        if (!additions.isEmpty()) {
+            userRoleService.saveBatch(additions);
+        }
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
@@ -234,13 +299,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @DataPermission(permission = "system:user:delete",
             tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void deleteUser(Long userId) {
-        authorizationService.lockAdministratorMembership();
+        roleService.lockAdministratorMembership();
         SysUser user = getRequiredUserInScope(userId);
-        authorizationService.requireManageableUser(userId);
+        requireManageableUser(userId);
         if (Objects.equals(userId, authenticationContext.getUserId())) {
             throw new DataAccessDeniedException("不能删除当前登录账号");
         }
-        authorizationService.requireAdministratorCanBeRemoved(userId);
+        roleService.requireAdministratorCanBeRemoved(userId);
         if (baseMapper.hasOrganizationOwnershipReferences(userId)) {
             throw new IllegalArgumentException("用户仍为岗位或部门负责人，不能删除");
         }
@@ -253,29 +318,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
+    /** 普通管理员不能管理超级管理员账号，包含已停用的管理员账号。 */
+    @Override
+    public void requireManageableUser(Long userId) {
+        if (!authenticationContext.isSuperAdministrator() && roleService.hasSuperAdministratorRole(userId)) {
+            throw new DataAccessDeniedException("只有超级管理员可以管理超级管理员账号");
+        }
+    }
+
     /** 校验 BCrypt 实际字节上限后复用共享密码工具。 */
     private String encodePassword(String password) {
         if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new IllegalArgumentException("密码UTF-8编码不能超过72字节");
         }
         return BCryptUtils.encode(password);
-    }
-
-    /** 转换用户响应，严格排除密码字段。 */
-    private UserVO toUserVO(SysUser user) {
-        UserVO response = new UserVO();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setName(user.getName());
-        response.setAvatar(user.getAvatar());
-        response.setEmail(user.getEmail());
-        response.setPhone(user.getPhone());
-        response.setGender(user.getGender());
-        response.setDeptId(user.getDeptId());
-        response.setStatus(user.getStatus());
-        response.setRemark(user.getRemark());
-        response.setCreateTime(user.getCreateTime());
-        return response;
     }
 }
 

@@ -15,6 +15,10 @@ import java.util.Set;
  */
 @Mapper
 public interface SysPermissionMapper extends BaseMapper<SysPermission> {
+    /** 读取有效页面或按钮的权限定义，供数据范围解析使用。 */
+    @DataPermissionMetadata
+    SysPermission selectAuthorizationPermission(@Param("permissionCode") String permissionCode);
+
     /** 查询账号通过有效角色获得的操作权限码。 */
     @DataPermissionMetadata
     Set<String> selectPermissionCodeSetByUserId(@Param("userId") Long userId);
@@ -27,7 +31,5 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     @DataPermissionMetadata
     Set<Long> selectGrantedMenuIds(@Param("userId") Long userId);
 
-    /** 串行化菜单树修改，避免并发迁移生成循环或重复路由。 */
-    Long lockMenuCatalog();
 }
 

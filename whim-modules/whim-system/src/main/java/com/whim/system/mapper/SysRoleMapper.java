@@ -47,10 +47,6 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     @DataPermissionMetadata
     Set<Long> selectUserIdsByRole(@Param("roleId") Long roleId);
 
-    /** 串行保护管理员成员变更，调用方须处于业务事务中。 */
-    @DataPermissionMetadata
-    Long lockSuperAdministratorRole();
-
     /** 统计有效超级管理员账号，防止移除最后一个管理员。 */
     @DataPermissionMetadata
     long countActiveSuperAdministrators();

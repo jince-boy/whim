@@ -10,7 +10,7 @@
     </select>
 
     <select id="selectAuthorizedDataScopeRoles" resultType="com.whim.system.model.dto.permission.DataScopeGrantDTO">
-        SELECT r.id AS role_id, p.id AS permission_id,
+        SELECT r.id AS role_id, p.id AS permission_id, p.perms AS permission_code, p.menu_type,
                COALESCE(rp.data_scope, r.data_scope) AS data_scope,
                (rp.data_scope IS NOT NULL) AS overridden, p.data_permission
         FROM sys_user_role ur
@@ -22,7 +22,7 @@
     </select>
 
     <select id="selectRoleGrants" resultType="com.whim.system.model.dto.permission.DataScopeGrantDTO">
-        SELECT r.id AS role_id, p.id AS permission_id,
+        SELECT r.id AS role_id, p.id AS permission_id, p.perms AS permission_code, p.menu_type,
                COALESCE(rp.data_scope, r.data_scope) AS data_scope,
                (rp.data_scope IS NOT NULL) AS overridden, p.data_permission
         FROM sys_role_permission rp
@@ -44,9 +44,6 @@
         SELECT ur.user_id FROM sys_user_role ur
         INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0
         WHERE ur.role_id = #{roleId}
-    </select>
-    <select id="lockSuperAdministratorRole" resultType="java.lang.Long">
-        SELECT id FROM sys_role WHERE role_code = 'superadmin' AND deleted = 0 FOR UPDATE
     </select>
     <select id="selectHasSuperAdministratorRole" resultType="boolean">
         SELECT EXISTS (

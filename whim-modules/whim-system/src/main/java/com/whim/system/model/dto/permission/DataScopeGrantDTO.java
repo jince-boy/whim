@@ -11,6 +11,8 @@ import lombok.Data;
 public class DataScopeGrantDTO {
     private Long roleId;
     private Long permissionId;
+    private String permissionCode;
+    private Integer menuType;
     private Integer dataScope;
     private Boolean overridden;
     private boolean dataPermission;

@@ -16,7 +16,7 @@
 
 权限、角色及账号授权变更仍在事务提交后调用 Sa-Token 撤销相关会话，回滚不撤销。新增权限不会自动扩大普通角色授权，已登录管理员通过刷新用户信息或重新登录获取新增权限。会话授权是请求入口的校验依据，数据范围由解析器按有效授权计算；非 HTTP 调用必须从可信且完成认证授权的业务入口进入，不能把 Service 当作开放的免鉴权接口。
 
-`SysAuthorizationService` 仅保留授权委派、目标管理员保护、最后一个管理员和事务锁等业务规则。它们涉及目标角色、目标用户和授权范围，不能用接口权限注解代替。
+角色修改、权限分配、操作范围覆盖、角色委派及管理员角色保护统一由 `ISysRoleService` 负责；用户角色分配和目标账号保护统一由 `ISysUserService` 负责；权限定义及可授予范围由 `ISysPermissionService` 维护。`ISysRolePermissionService`、`ISysUserRoleService` 仅提供关联表的通用持久化操作，不反向依赖业务服务。控制器调用对应业务服务，授权事务和数据权限注解也放在该入口上，避免跨关联服务往返和循环依赖。目标角色、目标用户及授权范围校验不能用接口权限注解代替。
 
 | 编码 | 范围 | 规则 |
 | --- | --- | --- |
@@ -36,7 +36,11 @@
 
 ## 自定义业务接入
 
-框架位于 `whim-mybatisplus`，解析契约位于 `whim-core`；系统模块提供 `DataPermissionProvider` 实现。项目 `DataPermissionInterceptor` 继承 MyBatis-Plus 原生插件，只补充防绕过和元数据只读约束，SQL 解析与改写继续复用原生实现。`MultiDataPermissionHandler` 生成部门与本人条件，`@DataPermission` 建立操作范围上下文。拦截器位于分页插件之前，分页总数与结果使用同一范围；未进入受保护业务时不额外解析 SQL。认证和持久化框架不互相依赖。其他业务模块复用权限目录和解析器，不需要将业务表写进系统模块。
+框架位于 `whim-mybatisplus`，解析契约 `DataPermissionProvider` 位于 `whim-core`。系统模块通过 `ISysDataScopeService` / `SysDataScopeServiceImpl` 实现当前操作的数据范围解析及候选授权范围计算；权限服务维护权限定义，角色服务负责委派边界，二者复用数据范围服务。数据范围服务只依赖认证抽象和内部只读 Mapper，不反向依赖角色、用户或部门业务服务。
+
+`SysDataScopeType` 定义五种范围。解析时先按精确操作加载有效角色及覆盖配置，再分别批量加载默认自定义部门和操作自定义部门；操作覆盖严格匹配角色与权限组合，不与角色默认部门合并。候选部门和账号主部门一起沿真实父子关系向上校验，只保留整条祖先链启用、未删除且到达根节点的部门，循环、断链及超过 500 字符路径限制的节点均不产生授权。本部门及下级仅在主部门有效时向下递归一次。范围合并阶段最多四次查询，不再按角色数或祖先层级逐次往返数据库；查询返回的数据量仍取决于候选部门和组织规模。空范围保持为空，不回退为全部。范围结果不使用跨请求共享缓存，避免角色或部门变化后继续使用旧范围。
+
+框架仍仅依赖 `DataPermissionProvider`。项目 `DataPermissionInterceptor` 继承 MyBatis-Plus 原生插件，只补充防绕过和元数据只读约束，SQL 解析与改写继续复用原生实现。`DataPermissionSqlHandler` 实现 `MultiDataPermissionHandler`，生成部门与本人条件；`@DataPermission` 建立操作范围上下文。拦截器位于分页插件之前，分页总数与结果使用同一范围；未进入受保护业务时不额外解析 SQL。认证和持久化框架不互相依赖。其他业务模块通过注解声明自己的表和归属字段，不需要修改系统数据范围服务。
 
 在权限目录登记精确权限码，数据权限标志设为 1。在 Spring 管理的公开服务方法上声明：
 
@@ -62,7 +66,7 @@ DataPermissionContext.checkOwnership("business_order", ownerUserId, deptId);
 
 受 `@DataPermission` 保护的普通业务操作不允许使用 `@InterceptorIgnore(dataPermission = "true")` 或线程级忽略策略关闭过滤；误配置会抛出 `DataAccessDeniedException`，按现有异常协议返回 HTTP 403 和 `Result.code=403`。完整业务过滤不能替换成内部元数据查询。业务 Mapper 不得通过共享二级缓存复用受限查询结果；业务缓存须包含授权范围并协调授权变化后的失效。
 
-普通查询、加锁查询、更新和逻辑删除复用 `IService` 与条件构造器；存在性判断使用 `exists()`，无需先查全量列表。更新审计字段统一交给 `MetaObjectHandler`，链式更新传入实体以触发自动填充，字段置空仍通过 Wrapper 的 `set` 显式表达。权限状态变化后的会话撤销在具体业务方法中执行，不重写通用 `updateById` 偷带业务副作用。
+普通查询、加锁查询、更新和逻辑删除复用 `IService` 与条件构造器；存在性判断使用 `exists()`，无需先查全量列表。菜单目录锁和管理员角色锁也通过条件构造器查询，不另写 XML。XML 保留跨表授权查询、引用检查和部门递归等用途。更新审计字段统一交给 `MetaObjectHandler`，链式更新传入实体以触发自动填充。菜单完整编辑的可空字段通过 `@TableField(updateStrategy = FieldStrategy.ALWAYS)` 写入；状态变更使用已加载的完整实体，不能用仅带 ID 和状态的实体调用 `updateById`，以免清空其他字段。其他局部字段置空通过 Wrapper 的 `set` 显式表达。权限状态变化后的会话撤销在具体业务方法中执行，不重写通用 `updateById` 偷带业务副作用。
 
 ## 菜单导航与目录维护
 

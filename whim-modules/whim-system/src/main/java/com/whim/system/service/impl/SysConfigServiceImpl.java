@@ -7,8 +7,10 @@ import com.whim.redis.utils.CacheUtils;
 import com.whim.system.mapper.SysConfigMapper;
 import com.whim.system.model.entity.SysConfig;
 import com.whim.system.service.ISysConfigService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -57,12 +59,14 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     }
 
     /**
-     * 新增系统配置，并清理同名配置值缓存。
+     * 新增系统配置，并在事务提交后清理同名配置值缓存。
      *
      * @param sysConfig 系统配置
      * @return 最新系统配置
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = CacheKeys.SYS_CONFIG, key = "#result.configKey")
     public SysConfig createConfig(SysConfig sysConfig) {
         boolean exists = lambdaQuery()
                 .eq(SysConfig::getConfigKey, sysConfig.getConfigKey())
@@ -73,18 +77,18 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         if (!save(sysConfig)) {
             throw new ServiceException("新增系统配置失败");
         }
-        SysConfig latestConfig = getById(sysConfig.getId());
-        CacheUtils.evict(CacheKeys.SYS_CONFIG, latestConfig.getConfigKey());
-        return latestConfig;
+        return getById(sysConfig.getId());
     }
 
     /**
-     * 修改系统配置，并清理同名配置值缓存。
+     * 修改系统配置，并在事务提交后清理同名配置值缓存。
      *
      * @param sysConfig 系统配置
      * @return 最新系统配置
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = CacheKeys.SYS_CONFIG, key = "#result.configKey")
     public SysConfig updateConfig(SysConfig sysConfig) {
         SysConfig oldConfig = getById(sysConfig.getId());
         if (oldConfig == null) {
@@ -99,22 +103,22 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         if (!updateById(sysConfig)) {
             throw new ServiceException("修改系统配置失败");
         }
-        SysConfig latestConfig = getById(sysConfig.getId());
-        CacheUtils.evict(CacheKeys.SYS_CONFIG, latestConfig.getConfigKey());
-        return latestConfig;
+        return getById(sysConfig.getId());
     }
 
     /**
-     * 删除系统配置，并清理同名配置值缓存。
+     * 删除系统配置，并在事务提交后按旧配置键清理缓存。
      *
      * @param id 配置ID
      * @return 是否删除成功
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteConfig(Long id) {
         SysConfig oldConfig = getById(id);
         boolean removed = removeById(id);
         if (removed && oldConfig != null) {
+            // 入参和返回值均不包含配置键，使用删除前读取的旧键精准失效。
             CacheUtils.evict(CacheKeys.SYS_CONFIG, oldConfig.getConfigKey());
         }
         return removed;

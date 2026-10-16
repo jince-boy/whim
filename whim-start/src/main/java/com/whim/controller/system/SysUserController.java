@@ -10,7 +10,6 @@ import com.whim.system.model.dto.user.UserRoleAssignDTO;
 import com.whim.system.model.dto.user.UserStatusDTO;
 import com.whim.system.model.dto.user.UserUpdateDTO;
 import com.whim.system.model.vo.user.UserVO;
-import com.whim.system.service.ISysUserRoleService;
 import com.whim.system.service.ISysUserService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
@@ -37,7 +36,6 @@ import java.util.Set;
 @RequestMapping("/system/user")
 public class SysUserController {
     private final ISysUserService sysUserService;
-    private final ISysUserRoleService sysUserRoleService;
 
     /** 分页查询本次操作可见用户。 */
     @GetMapping
@@ -96,14 +94,14 @@ public class SysUserController {
     @GetMapping("/{userId}/roles")
     @SystemCheckPermission("system:userRole:list")
     public Result<Set<Long>> getUserRoleIds(@PathVariable Long userId) {
-        return Result.success("用户角色查询成功", sysUserRoleService.getRoleIds(userId));
+        return Result.success("用户角色查询成功", sysUserService.getRoleIds(userId));
     }
 
     /** 覆盖用户角色并核验每个候选角色的委派范围。 */
     @PutMapping("/{userId}/roles")
     @SystemCheckPermission("system:userRole:assign")
     public Result<Void> replaceUserRoles(@PathVariable Long userId, @RequestBody @Valid UserRoleAssignDTO request) {
-        sysUserRoleService.replaceRoles(userId, request.getRoleIds());
+        sysUserService.replaceRoles(userId, request.getRoleIds());
         return Result.success("用户角色分配成功");
     }
 
