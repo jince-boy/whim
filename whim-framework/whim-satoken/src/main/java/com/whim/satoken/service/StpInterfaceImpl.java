@@ -18,7 +18,7 @@ import java.util.Objects;
 public class StpInterfaceImpl implements StpInterface {
 
     /**
-     * 返回账号会话中的有效权限码，超级管理员也遵守权限启停状态
+     * 返回登录上下文中的权限快照，授权变更由会话失效流程生效。
      *
      * @param loginId   账号id
      * @param loginType 账号类型

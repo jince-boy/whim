@@ -123,8 +123,9 @@ For changes that do not affect the API contract, such as frontend layout or styl
 - Every database change must use a new, higher Flyway version; never edit, delete, or reuse an already-applied versioned migration
 - `V1__initialize.sql` initializes single-organization RBAC on an empty database; automatic baselining is disabled
 - Users have globally unique usernames, one primary department, multiple roles and multiple posts. Posts never implicitly grant roles.
-- Data-protected public service methods declare `@DataPermission` with the exact operation and table mappings. New records and ownership changes also call `DataPermissionContext.checkOwnership`.
-- Only roles granting the exact operation contribute data scopes. Role defaults support per-operation overrides; codes are 1 (all), 2 (custom departments), 3 (own department), 4 (department and descendants), and 5 (self).
+- Data-protected public service methods declare `@DataPermission` with the exact operation and table mappings. The annotation activates filtering; do not add a duplicate switch to permission definitions. New records and ownership changes also call `DataPermissionContext.checkOwnership`.
+- Each role has one data scope shared by all its granted operations, with custom departments stored in `sys_role_dept`. Only roles granting the exact operation contribute scopes, and those scopes are combined as a union. Codes are 1 (all), 2 (custom departments), 3 (own department), 4 (department and descendants), and 5 (self). Do not add per-operation scope overrides; combine roles when operations need different scopes.
+- Functional and data permissions share the login context. Build permission-to-role mappings at login or user-info refresh, and resolve data scopes from that context instead of re-querying users, permissions, or role grants for each operation. Authorization changes invalidate all affected user sessions after transaction commit through the existing session invalidation flow.
 - See `docs/rbac-data-permission.md` for authorization boundaries and extension rules, and `docs/openapi.json` for the API contract.
 - The app runs on port `8089`
 - Sa-Token exclusion paths are configured in `application.yml`, not hardcoded in the app module

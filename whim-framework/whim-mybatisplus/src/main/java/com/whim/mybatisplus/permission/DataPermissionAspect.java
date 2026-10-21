@@ -58,9 +58,6 @@ public class DataPermissionAspect {
         if (scope == null || scope.getUserId() == null) {
             throw new DataAccessDeniedException("数据权限解析结果缺少有效身份");
         }
-        if (!scope.isDataProtected()) {
-            throw new DataAccessDeniedException("注解对应的操作未登记为数据权限操作");
-        }
         Deque<DataPermissionContext.Frame> frames = DataPermissionContext.frames();
         frames.push(new DataPermissionContext.Frame(scope, permission.tables()));
         try {

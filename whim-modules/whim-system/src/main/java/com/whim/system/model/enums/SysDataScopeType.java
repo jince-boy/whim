@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * @author Jince
  * @date 2026/10/16
- * @description 角色默认范围和操作覆盖共用的数据范围类型。
+ * @description 角色数据范围类型，同一角色的所有操作共用一套范围。
  */
 @Getter
 @RequiredArgsConstructor

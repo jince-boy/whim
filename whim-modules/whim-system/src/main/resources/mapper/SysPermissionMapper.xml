@@ -1,40 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysPermissionMapper">
-    <select id="selectAuthorizationPermission" resultType="com.whim.system.model.entity.SysPermission">
-        SELECT id, perms, data_permission FROM sys_permission
-        WHERE perms = #{permissionCode} AND perms != '' AND menu_type IN (2, 3)
-            AND deleted = 0 AND status = 0
-    </select>
-
-    <select id="selectPermissionCodeSetByUserId" resultType="java.lang.String">
-        SELECT p.perms
-        FROM sys_user_role ur
-        INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0 AND r.status = 0
-        INNER JOIN sys_role_permission rp ON rp.role_id = r.id
+    <select id="selectRolePermissions" resultType="com.whim.system.model.dto.permission.RolePermissionDTO">
+        SELECT rp.role_id, p.perms AS permission_code
+        FROM sys_role_permission rp
         INNER JOIN sys_permission p ON p.id = rp.permission_id AND p.deleted = 0 AND p.status = 0
-        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
-        WHERE ur.user_id = #{userId} AND p.perms != '' AND p.menu_type IN (2, 3)
+        WHERE rp.role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+            AND p.perms != '' AND p.menu_type IN (2, 3)
     </select>
-
-    <select id="selectUserIdSetByPermissionId" resultType="java.lang.Long">
-        SELECT ur.user_id FROM sys_role_permission rp
-        INNER JOIN sys_user_role ur ON ur.role_id = rp.role_id
-        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0
-        WHERE rp.permission_id = #{permissionId}
-        UNION
-        SELECT ur.user_id FROM sys_role r
-        INNER JOIN sys_user_role ur ON ur.role_id = r.id
-        INNER JOIN sys_user u ON u.id = ur.user_id AND u.deleted = 0 AND u.status = 0
-        WHERE r.role_code = 'superadmin' AND r.deleted = 0 AND r.status = 0
-    </select>
-    <select id="selectGrantedMenuIds" resultType="java.lang.Long">
-        SELECT rp.permission_id
-        FROM sys_user_role ur
-        INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0 AND r.status = 0
-        INNER JOIN sys_role_permission rp ON rp.role_id = ur.role_id
-        WHERE ur.user_id = #{userId}
-    </select>
-
 </mapper>
 

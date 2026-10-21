@@ -26,7 +26,6 @@ export interface MenuSave {
   component: string | null
   param: string | null
   perms: string | null
-  dataPermission: 0 | 1
   isCache: 0 | 1
   sort: number
   icon: string | null

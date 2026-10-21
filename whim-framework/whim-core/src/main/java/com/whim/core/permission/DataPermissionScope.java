@@ -15,9 +15,6 @@ import java.util.Set;
 @Data
 public class DataPermissionScope {
     private Long userId;
-    private Long userDepartmentId;
-    /** 对应权限定义明确启用了数据范围，防止错误配置静默放行。 */
-    private boolean dataProtected;
     private boolean all;
     private boolean self;
     private Set<Long> departmentIds = new LinkedHashSet<>();

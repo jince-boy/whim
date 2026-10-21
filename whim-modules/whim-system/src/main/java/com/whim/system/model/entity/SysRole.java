@@ -36,7 +36,7 @@ public class SysRole extends BaseEntity implements Serializable {
     private String roleCode;
 
     /**
-     * 默认数据范围(1-全部 2-自定义部门 3-本部门 4-本部门及下级 5-本人)
+     * 角色统一数据范围(1-全部 2-自定义部门 3-本部门 4-本部门及下级 5-本人)
      */
     private Integer dataScope;
 

@@ -5,8 +5,10 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,6 +55,9 @@ public class UserInfo implements Serializable {
      * 权限编码集合
      */
     private Set<String> permissionCodeSet = new LinkedHashSet<>();
+
+    /** 精确权限码与授予该权限的角色ID集合，登录时构建。 */
+    private Map<String, Set<Long>> permissionRoleIds = new LinkedHashMap<>();
 
     /**
      * 角色编码集合

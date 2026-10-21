@@ -88,7 +88,9 @@ import com.whim.satoken.annotation.SystemCheckSafe;
 
 Controller 检查 `system:post:list`，相应 Service 方法也以相同精确权限码声明 `@DataPermission`。前者确认可以进入操作，后者过滤岗位记录。新增写入时还需显式检查新记录归属。
 
-超级管理员依据 `superadmin` 角色识别，但仍验证目标权限有效性；不是通过返回通配符 `*` 放开所有接口。
+两者共用登录上下文：功能权限读取 `permissionCodeSet`，数据权限按 `permissionRoleIds` 找到授予当前操作的角色，再使用 `roleInfoList` 中的范围。授权变更在事务提交后使受影响用户全部会话失效，重新登录时重建上下文。
+
+超级管理员依据上下文中的 `superadmin` 角色识别，其有效权限在登录时加载，执行时仍检查权限集合；不通过返回通配符 `*` 放开所有接口。
 
 ## 错误返回
 

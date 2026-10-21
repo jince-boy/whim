@@ -39,7 +39,6 @@ function initialMenus(): MenuItem[] {
     component: node.type === 2 ? node.component : null,
     param: node.queryParam || null,
     perms: node.type === 2 || node.type === 3 ? node.code || `system:${node.path}:list` : null,
-    dataPermission: 0,
     isCache: node.keepAlive as 0 | 1,
     sort: node.sort,
     icon: node.icon,

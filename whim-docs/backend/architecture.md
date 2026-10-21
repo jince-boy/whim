@@ -47,7 +47,7 @@ description: 后端模块职责、自动配置与业务接入的完整路径。
 1. 确定领域。系统管理放在 `whim-system`；其他领域可以创建独立业务模块。
 2. 在业务模块创建 Entity、DTO、VO、Mapper、Service 与实现。
 3. 在 `whim-start/controller/<业务>` 创建 Controller，保持路由与模块组织各自清晰。
-4. 在权限目录登记精确的操作码；需要数据保护的操作启用 `data_permission`。
+4. 在权限目录登记精确的操作码并授予角色，数据范围统一配置在角色上。
 5. Controller 检查功能权限，公开 Service 方法声明数据权限映射。
 6. 新建或归属迁移显式校验业务归属；多表写入在 Service 定义事务。
 7. 数据库变更使用新的更高 Flyway 版本，缓存与会话变更协调到事务提交后。

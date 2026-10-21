@@ -59,10 +59,10 @@ export function useMenu() {
     }
     openEditor(res.data)
   }
-  /** 删除叶子节点，并由后端同步清理角色授权及操作数据范围。 */
+  /** 删除叶子节点，并由后端同步清理角色授权。 */
   function removeMenu(node: MenuItem) {
     openDeleteDialog({
-      content: `确定删除“${node.menuName}”？关联的角色授权和操作数据范围也会一并清理。`,
+      content: `确定删除“${node.menuName}”？关联的角色授权也会一并清理。`,
       onSubmit: () => deleteMenu(node.id),
       onSuccess: refreshNavigation,
     })

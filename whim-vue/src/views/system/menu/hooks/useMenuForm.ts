@@ -24,7 +24,6 @@ export function useMenuForm(props: MenuFormProps) {
     component: null,
     param: null,
     perms: null,
-    dataPermission: 0,
     isCache: 0,
     sort: 0,
     icon: null,
@@ -61,7 +60,6 @@ export function useMenuForm(props: MenuFormProps) {
   function changeType(type: MenuType) {
     if (type === 1 || type === 4) {
       formModel.value.perms = null
-      formModel.value.dataPermission = 0
     }
     if (type !== 2) {
       formModel.value.component = null

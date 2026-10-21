@@ -11,11 +11,11 @@ import java.util.Set;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 角色默认自定义部门范围查询。
+ * @description 角色自定义部门范围查询。
  */
 @Mapper
 public interface SysRoleDeptMapper extends BaseMapper<SysRoleDept> {
-    /** 批量读取非空角色集合的默认自定义部门，部门有效性由范围服务统一核验。 */
+    /** 批量读取非空角色集合的自定义部门，部门有效性由范围服务统一核验。 */
     @DataPermissionMetadata
     Set<Long> selectDepartmentIdsByRoleIds(@Param("roleIds") Set<Long> roleIds);
 }

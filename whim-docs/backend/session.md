@@ -18,7 +18,7 @@ description: 认证抽象、令牌配置、权限快照和事务提交后的会�
 
 其他身份字段通过 `getCurrentUserInfo()` 获取。当前接口没有 `getTenantId()`、`getDeptId()` 等便捷方法，不应从历史文档复制这些调用。
 
-`UserInfo` 包含 `userId`、`username`、`name`、`avatar`、`deptId`、`loginType`、`permissionCodeSet`、`roleCodeSet`、`roleInfoList`。业务应使用这些抽象，不直接读取 Sa-Token Session 键。
+`UserInfo` 包含 `userId`、`username`、`name`、`avatar`、`deptId`、`loginType`、`permissionCodeSet`、`permissionRoleIds`、`roleCodeSet`、`roleInfoList`。`permissionRoleIds` 保存精确权限码与授权角色ID集合的对应关系，`permissionCodeSet` 由其键集合生成。业务应使用这些抽象，不直接读取 Sa-Token Session 键。
 
 ## AuthenticationSession
 
@@ -44,7 +44,7 @@ Authorization: Bearer <accessToken>
 
 `StpInterfaceImpl` 从当前 Token 对应会话读取权限与角色，同时匹配用户 ID。它不是每次直接查询业务数据库的权限加载器。当前用户信息端点会重建有效用户信息，并刷新当前令牌的授权快照。
 
-数据权限解析会查询当前有效账号、权限与角色授权，不仅依赖登录时的快照。
+数据权限使用同一份登录快照，根据 `permissionRoleIds` 筛选 `roleInfoList` 中授予当前操作的角色，再合并其数据范围；仅按需查询部门数据。授权变更通过事务提交后的会话失效流程生效，不在每次解析范围时重新查询账号、权限和角色授权。新增映射仅保存在服务端上下文，不改变用户信息接口的响应结构；旧会话可重新登录或调用用户信息接口补齐映射。
 
 ## 当前关键配置
 

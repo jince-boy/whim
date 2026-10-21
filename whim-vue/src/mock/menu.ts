@@ -79,9 +79,7 @@ export function handleMenu(path: string, method: string, params: MockParams, dat
   }
   if (
     existing?.builtIn &&
-    (model.menuType !== existing.menuType ||
-      model.perms !== existing.perms ||
-      model.dataPermission !== existing.dataPermission)
+    (model.menuType !== existing.menuType || model.perms !== existing.perms)
   )
     fail('内置权限语义不能修改')
   if (
