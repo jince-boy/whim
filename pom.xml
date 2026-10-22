@@ -42,10 +42,28 @@
         <mybatis-plus-version>3.5.15</mybatis-plus-version>
         <p6spy.version>2.0.0</p6spy.version>
         <easy-captcha.version>1.6.2</easy-captcha.version>
+        <minio.version>9.0.3</minio.version>
+        <aliyun-oss.version>0.6.1</aliyun-oss.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- 文件存储 SDK -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>alibabacloud-oss-v2</artifactId>
+                <version>${aliyun-oss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-file</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!--mybatis-plus-->
             <dependency>
                 <groupId>com.baomidou</groupId>

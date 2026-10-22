@@ -12,6 +12,11 @@
     <artifactId>whim-start</artifactId>
 
     <dependencies>
+        <!-- 文件存储 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-file</artifactId>
+        </dependency>
         <!-- whim-web -->
         <dependency>
             <groupId>com.whim</groupId>

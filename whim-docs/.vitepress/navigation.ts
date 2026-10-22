@@ -41,6 +41,7 @@ export const navigation: DocGroup[] = [
       { text: '多账号认证', link: '/backend/multi-account' },
       { text: '会话与授权变更', link: '/backend/session' },
       { text: '核心工具与 Web 约定', link: '/backend/core' },
+      { text: '文件存储', link: '/backend/file-storage' },
     ],
   },
 ]

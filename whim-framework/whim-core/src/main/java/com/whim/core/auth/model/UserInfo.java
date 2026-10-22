@@ -46,6 +46,12 @@ public class UserInfo implements Serializable {
      */
     private Long deptId;
 
+    /** 有效主部门信息，部门或祖先链无效时为空。 */
+    private DepartmentInfo departmentInfo;
+
+    /** 有效岗位列表。 */
+    private List<PostInfo> postInfoList = new ArrayList<>();
+
     /**
      * 账号体系
      */
@@ -58,6 +64,9 @@ public class UserInfo implements Serializable {
 
     /** 精确权限码与授予该权限的角色ID集合，登录时构建。 */
     private Map<String, Set<Long>> permissionRoleIds = new LinkedHashMap<>();
+
+    /** 各角色允许的有效部门ID，登录时完成自定义部门校验及下级部门展开。 */
+    private Map<Long, Set<Long>> roleDepartmentIds = new LinkedHashMap<>();
 
     /**
      * 角色编码集合

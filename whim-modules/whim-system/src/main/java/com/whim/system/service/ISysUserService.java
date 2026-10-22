@@ -24,7 +24,7 @@ public interface ISysUserService extends IService<SysUser> {
     SysUser getByUsername(String username);
 
     /**
-     * 构建登录账号的角色和精确权限快照。
+     * 构建登录账号的部门、岗位、角色、精确权限及角色部门范围快照。
      */
     UserInfo buildUserInfo(SysUser user);
 }

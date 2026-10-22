@@ -1,19 +1,19 @@
--- Whim 单组织 RBAC 初始化；面向空库，MySQL 8.0.16+。
+-- Whim 数据库初始化；面向空库，MySQL 8.0.12+。
 -- 主键由 MyBatis-Plus ASSIGN_ID 生成；关联关系物理删除，业务实体逻辑删除。
+-- 条件唯一约束使用虚拟生成列；MySQL 8.0.12 不执行 CHECK，字段取值由触发器校验。
 SET NAMES utf8mb4;
 
 CREATE TABLE sys_dept (
     id BIGINT NOT NULL COMMENT '主键ID',
     parent_id BIGINT NOT NULL DEFAULT 0 COMMENT '父部门ID，0表示根节点',
-    ancestors VARCHAR(500) NOT NULL DEFAULT '0' COMMENT '祖先路径',
-    dept_name VARCHAR(64) NOT NULL,
-    leader_user_id BIGINT NULL,
-    phone VARCHAR(20) NULL,
-    email VARCHAR(64) NULL,
-    sort INT NOT NULL DEFAULT 0,
+    ancestors VARCHAR(500) NOT NULL DEFAULT '0' COMMENT '祖级部门ID路径，逗号分隔',
+    dept_name VARCHAR(64) NOT NULL COMMENT '部门名称',
+    leader_user_id BIGINT NULL COMMENT '负责人用户ID',
+    phone VARCHAR(20) NULL COMMENT '联系电话',
+    email VARCHAR(64) NULL COMMENT '邮箱',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序值',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0正常，1停用',
-    remark VARCHAR(255) NULL,
-    active_name VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, dept_name, NULL)) STORED,
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -21,25 +21,26 @@ CREATE TABLE sys_dept (
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    active_name VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, dept_name, NULL)) VIRTUAL
+        COMMENT '未删除部门名称，用于同级部门名称唯一约束',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_dept_parent_name (parent_id, active_name),
-    KEY idx_dept_parent (parent_id, deleted, status),
-    CONSTRAINT ck_dept_status CHECK (status IN (0, 1)),
-    CONSTRAINT ck_sys_dept_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门';
+    UNIQUE KEY uk_dept_parent_name (parent_id, active_name)
+        COMMENT '未删除的同级部门名称唯一',
+    KEY idx_dept_parent (parent_id, deleted, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门表';
 
 CREATE TABLE sys_user (
     id BIGINT NOT NULL COMMENT '主键ID',
-    username VARCHAR(32) NOT NULL COMMENT '规范化为小写，删除后仍保留账号唯一性',
-    password VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    avatar VARCHAR(255) NULL,
-    name VARCHAR(24) NOT NULL,
-    email VARCHAR(64) NULL,
-    phone VARCHAR(20) NULL,
-    gender TINYINT NOT NULL DEFAULT 0,
+    username VARCHAR(32) NOT NULL COMMENT '用户名，统一小写且删除后不可重复使用',
+    password VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '密码哈希值',
+    avatar VARCHAR(255) NULL COMMENT '头像URL',
+    name VARCHAR(24) NOT NULL COMMENT '真实姓名',
+    email VARCHAR(64) NULL COMMENT '邮箱',
+    phone VARCHAR(20) NULL COMMENT '手机号码',
+    gender TINYINT NOT NULL DEFAULT 0 COMMENT '性别字典编码',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0正常，1停用',
-    dept_id BIGINT NOT NULL COMMENT '唯一主部门',
-    remark VARCHAR(255) NULL,
+    dept_id BIGINT NOT NULL COMMENT '主部门ID',
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -50,21 +51,17 @@ CREATE TABLE sys_user (
     PRIMARY KEY (id),
     UNIQUE KEY uk_user_username (username),
     KEY idx_user_dept (dept_id, deleted, status),
-    CONSTRAINT fk_user_dept FOREIGN KEY (dept_id) REFERENCES sys_dept (id),
-    CONSTRAINT ck_user_status CHECK (status IN (0, 1)),
-    CONSTRAINT ck_user_gender CHECK (gender BETWEEN 0 AND 2),
-    CONSTRAINT ck_sys_user_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='全局唯一用户';
+    CONSTRAINT fk_user_dept FOREIGN KEY (dept_id) REFERENCES sys_dept (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
 
 CREATE TABLE sys_role (
     id BIGINT NOT NULL COMMENT '主键ID',
-    role_name VARCHAR(32) NOT NULL,
-    role_code VARCHAR(128) NOT NULL,
-    data_scope TINYINT NOT NULL DEFAULT 5 COMMENT '1全部，2自定义部门，3本部门，4本部门及下级，5本人',
-    sort INT NOT NULL DEFAULT 0,
+    role_name VARCHAR(32) NOT NULL COMMENT '角色名称',
+    role_code VARCHAR(128) NOT NULL COMMENT '角色编码',
+    data_scope TINYINT NOT NULL DEFAULT 5 COMMENT '数据范围：1全部，2自定义部门，3本部门，4本部门及下级，5本人',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序值',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0正常，1停用',
-    remark VARCHAR(255) NULL,
-    active_code VARCHAR(128) GENERATED ALWAYS AS (IF(deleted = 0, role_code, NULL)) STORED,
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -72,29 +69,30 @@ CREATE TABLE sys_role (
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    active_code VARCHAR(128) GENERATED ALWAYS AS (IF(deleted = 0, role_code, NULL)) VIRTUAL
+        COMMENT '未删除角色编码，用于唯一约束',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_role_code (active_code),
-    CONSTRAINT ck_role_status CHECK (status IN (0, 1)),
-    CONSTRAINT ck_role_scope CHECK (data_scope BETWEEN 1 AND 5),
-    CONSTRAINT ck_sys_role_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色';
+    UNIQUE KEY uk_role_code (active_code)
+        COMMENT '未删除的角色编码唯一'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色表';
 
 CREATE TABLE sys_permission (
     id BIGINT NOT NULL COMMENT '主键ID',
-    route_name VARCHAR(128) NULL,
-    menu_name VARCHAR(64) NOT NULL,
-    perms VARCHAR(128) NULL COMMENT '精确操作权限码，目录不设置权限码',
-    parent_id BIGINT NOT NULL DEFAULT 0,
-    menu_type TINYINT NOT NULL COMMENT '1目录，2菜单，3按钮，4外链',
-    path VARCHAR(255) NULL,
-    param VARCHAR(255) NULL,
-    component VARCHAR(255) NULL,
-    is_cache TINYINT NOT NULL DEFAULT 0,
-    sort INT NOT NULL DEFAULT 0,
-    icon VARCHAR(128) NULL,
-    visible TINYINT NOT NULL DEFAULT 0,
+    route_name VARCHAR(128) NULL COMMENT '路由名称',
+    menu_name VARCHAR(64) NOT NULL COMMENT '菜单名称',
+    perms VARCHAR(128) NULL COMMENT '操作权限码，目录和外链不设置',
+    built_in TINYINT NOT NULL DEFAULT 0 COMMENT '内置标志：0否，1是；内置定义不能改变授权语义，非核心节点允许删除',
+    parent_id BIGINT NOT NULL DEFAULT 0 COMMENT '父菜单ID，0表示顶级菜单',
+    menu_type TINYINT NOT NULL COMMENT '菜单类型：1目录，2菜单，3按钮，4外链',
+    path VARCHAR(255) NULL COMMENT '路由路径或外链地址',
+    param VARCHAR(255) NULL COMMENT '路由参数',
+    component VARCHAR(255) NULL COMMENT '前端组件路径',
+    is_cache TINYINT NOT NULL DEFAULT 0 COMMENT '是否缓存：0不缓存，1缓存',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序值',
+    icon VARCHAR(128) NULL COMMENT '菜单图标',
+    visible TINYINT NOT NULL DEFAULT 0 COMMENT '显示状态：0显示，1隐藏',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0正常，1停用',
-    remark VARCHAR(255) NULL,
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -102,28 +100,30 @@ CREATE TABLE sys_permission (
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    active_route VARCHAR(128) GENERATED ALWAYS AS
+        (IF(deleted = 0 AND menu_type IN (1, 2), route_name, NULL)) VIRTUAL
+        COMMENT '未删除目录或菜单的路由名称，用于唯一约束',
+    active_path VARCHAR(255) GENERATED ALWAYS AS
+        (IF(deleted = 0 AND menu_type IN (1, 2), path, NULL)) VIRTUAL
+        COMMENT '未删除目录或菜单的路由路径，用于唯一约束',
     PRIMARY KEY (id),
     UNIQUE KEY uk_permission_perms (perms),
-    KEY idx_permission_parent (parent_id, deleted, status),
-    CONSTRAINT ck_permission_status CHECK (status IN (0, 1)),
-    CONSTRAINT ck_permission_type CHECK (menu_type BETWEEN 1 AND 4),
-    CONSTRAINT ck_permission_definition CHECK (
-        (menu_type IN (1, 4) AND perms IS NULL)
-        OR (menu_type IN (2, 3) AND perms IS NOT NULL AND CHAR_LENGTH(TRIM(perms)) > 0)
-    ),
-    CONSTRAINT ck_sys_permission_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='功能权限和菜单定义';
+    UNIQUE KEY uk_menu_route (active_route)
+        COMMENT '未删除的目录或菜单路由名称唯一',
+    UNIQUE KEY uk_menu_path (active_path)
+        COMMENT '未删除的目录或菜单路由路径唯一',
+    KEY idx_permission_parent (parent_id, deleted, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单权限表';
 
 CREATE TABLE sys_post (
     id BIGINT NOT NULL COMMENT '主键ID',
-    dept_id BIGINT NULL COMMENT '所属部门，空表示全组织岗位',
-    owner_user_id BIGINT NOT NULL COMMENT '业务负责人，独立于创建审计',
-    post_name VARCHAR(64) NOT NULL,
-    post_code VARCHAR(64) NOT NULL,
-    sort INT NOT NULL DEFAULT 0,
+    dept_id BIGINT NULL COMMENT '所属部门ID，空表示全组织岗位',
+    owner_user_id BIGINT NOT NULL COMMENT '业务负责人用户ID',
+    post_name VARCHAR(64) NOT NULL COMMENT '岗位名称',
+    post_code VARCHAR(64) NOT NULL COMMENT '岗位编码',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序值',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0正常，1停用',
-    remark VARCHAR(255) NULL,
-    active_code VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, post_code, NULL)) STORED,
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -131,21 +131,22 @@ CREATE TABLE sys_post (
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    active_code VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, post_code, NULL)) VIRTUAL
+        COMMENT '未删除岗位编码，用于唯一约束',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_post_code (active_code),
+    UNIQUE KEY uk_post_code (active_code)
+        COMMENT '未删除的岗位编码唯一',
     KEY idx_post_dept (dept_id, deleted, status),
     KEY idx_post_owner (owner_user_id, deleted),
     CONSTRAINT fk_post_dept FOREIGN KEY (dept_id) REFERENCES sys_dept (id),
-    CONSTRAINT fk_post_owner FOREIGN KEY (owner_user_id) REFERENCES sys_user (id),
-    CONSTRAINT ck_post_status CHECK (status IN (0, 1)),
-    CONSTRAINT ck_sys_post_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='岗位，独立于角色授权';
+    CONSTRAINT fk_post_owner FOREIGN KEY (owner_user_id) REFERENCES sys_user (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='岗位表';
 
 CREATE TABLE sys_config (
     id BIGINT NOT NULL COMMENT '主键ID',
-    config_key VARCHAR(128) NOT NULL,
-    config_value LONGTEXT NULL,
-    remark VARCHAR(255) NULL,
+    config_key VARCHAR(128) NOT NULL COMMENT '配置键',
+    config_value LONGTEXT NULL COMMENT '配置值',
+    remark VARCHAR(255) NULL COMMENT '备注',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -154,14 +155,13 @@ CREATE TABLE sys_config (
     delete_time DATETIME(3) NULL COMMENT '删除时间',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_config_key (config_key),
-    CONSTRAINT ck_sys_config_deleted CHECK (deleted IN (0, 1))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置';
+    UNIQUE KEY uk_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
 
 CREATE TABLE sys_user_role (
     id BIGINT NOT NULL COMMENT '主键ID',
-    user_id BIGINT NOT NULL,
-    role_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    role_id BIGINT NOT NULL COMMENT '角色ID',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -173,12 +173,12 @@ CREATE TABLE sys_user_role (
     KEY idx_user_role_role (role_id),
     CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES sys_user (id),
     CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES sys_role (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户角色关联，物理删除';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户角色关联表';
 
 CREATE TABLE sys_user_post (
     id BIGINT NOT NULL COMMENT '主键ID',
-    user_id BIGINT NOT NULL,
-    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    post_id BIGINT NOT NULL COMMENT '岗位ID',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -190,12 +190,12 @@ CREATE TABLE sys_user_post (
     KEY idx_user_post_post (post_id),
     CONSTRAINT fk_user_post_user FOREIGN KEY (user_id) REFERENCES sys_user (id),
     CONSTRAINT fk_user_post_post FOREIGN KEY (post_id) REFERENCES sys_post (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户岗位关联，物理删除';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户岗位关联表';
 
 CREATE TABLE sys_role_permission (
     id BIGINT NOT NULL COMMENT '主键ID',
-    role_id BIGINT NOT NULL,
-    permission_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL COMMENT '角色ID',
+    permission_id BIGINT NOT NULL COMMENT '权限ID',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -207,12 +207,12 @@ CREATE TABLE sys_role_permission (
     KEY idx_role_permission_permission (permission_id),
     CONSTRAINT fk_role_permission_role FOREIGN KEY (role_id) REFERENCES sys_role (id),
     CONSTRAINT fk_role_permission_permission FOREIGN KEY (permission_id) REFERENCES sys_permission (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色功能权限关联';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色权限关联表';
 
 CREATE TABLE sys_role_dept (
     id BIGINT NOT NULL COMMENT '主键ID',
-    role_id BIGINT NOT NULL,
-    dept_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL COMMENT '角色ID',
+    dept_id BIGINT NOT NULL COMMENT '部门ID',
     create_by BIGINT NULL COMMENT '创建人ID',
     create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
     update_by BIGINT NULL COMMENT '更新人ID',
@@ -224,7 +224,130 @@ CREATE TABLE sys_role_dept (
     KEY idx_role_dept_dept (dept_id),
     CONSTRAINT fk_role_dept_role FOREIGN KEY (role_id) REFERENCES sys_role (id),
     CONSTRAINT fk_role_dept_dept FOREIGN KEY (dept_id) REFERENCES sys_dept (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色自定义部门范围';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色部门关联表';
+
+-- 插入与更新均校验原 CHECK 规则，避免 MySQL 8.0.12 忽略约束后写入非法数据。
+DELIMITER $$
+
+-- 校验新增部门的状态和删除标志。
+CREATE TRIGGER trg_sys_dept_validate_insert BEFORE INSERT ON sys_dept
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态和删除标志只能为0或1';
+    END IF;
+END$$
+
+-- 校验修改部门的状态和删除标志。
+CREATE TRIGGER trg_sys_dept_validate_update BEFORE UPDATE ON sys_dept
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态和删除标志只能为0或1';
+    END IF;
+END$$
+
+-- 校验新增用户的状态、性别和删除标志。
+CREATE TRIGGER trg_sys_user_validate_insert BEFORE INSERT ON sys_user
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别或删除标志无效';
+    END IF;
+END$$
+
+-- 校验修改用户的状态、性别和删除标志。
+CREATE TRIGGER trg_sys_user_validate_update BEFORE UPDATE ON sys_user
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别或删除标志无效';
+    END IF;
+END$$
+
+-- 校验新增角色的状态、数据范围和删除标志。
+CREATE TRIGGER trg_sys_role_validate_insert BEFORE INSERT ON sys_role
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围或删除标志无效';
+    END IF;
+END$$
+
+-- 校验修改角色的状态、数据范围和删除标志。
+CREATE TRIGGER trg_sys_role_validate_update BEFORE UPDATE ON sys_role
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围或删除标志无效';
+    END IF;
+END$$
+
+-- 校验新增菜单权限的标志取值、类型和权限码定义。
+CREATE TRIGGER trg_sys_permission_validate_insert BEFORE INSERT ON sys_permission
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.menu_type BETWEEN 1 AND 4
+            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标志无效';
+    END IF;
+    IF NOT ((NEW.menu_type IN (1, 4) AND NEW.perms IS NULL)
+            OR (NEW.menu_type IN (2, 3) AND NEW.perms IS NOT NULL AND CHAR_LENGTH(TRIM(NEW.perms)) > 0)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '目录和外链不能设置权限码，菜单和按钮必须设置非空权限码';
+    END IF;
+END$$
+
+-- 校验修改菜单权限的标志取值、类型和权限码定义。
+CREATE TRIGGER trg_sys_permission_validate_update BEFORE UPDATE ON sys_permission
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.menu_type BETWEEN 1 AND 4
+            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标志无效';
+    END IF;
+    IF NOT ((NEW.menu_type IN (1, 4) AND NEW.perms IS NULL)
+            OR (NEW.menu_type IN (2, 3) AND NEW.perms IS NOT NULL AND CHAR_LENGTH(TRIM(NEW.perms)) > 0)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '目录和外链不能设置权限码，菜单和按钮必须设置非空权限码';
+    END IF;
+END$$
+
+-- 校验新增岗位的状态和删除标志。
+CREATE TRIGGER trg_sys_post_validate_insert BEFORE INSERT ON sys_post
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态和删除标志只能为0或1';
+    END IF;
+END$$
+
+-- 校验修改岗位的状态和删除标志。
+CREATE TRIGGER trg_sys_post_validate_update BEFORE UPDATE ON sys_post
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态和删除标志只能为0或1';
+    END IF;
+END$$
+
+-- 校验新增配置的删除标志。
+CREATE TRIGGER trg_sys_config_validate_insert BEFORE INSERT ON sys_config
+FOR EACH ROW
+BEGIN
+    IF NEW.deleted NOT IN (0, 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标志只能为0或1';
+    END IF;
+END$$
+
+-- 校验修改配置的删除标志。
+CREATE TRIGGER trg_sys_config_validate_update BEFORE UPDATE ON sys_config
+FOR EACH ROW
+BEGIN
+    IF NEW.deleted NOT IN (0, 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标志只能为0或1';
+    END IF;
+END$$
+
+DELIMITER ;
 
 INSERT INTO sys_dept (id, parent_id, ancestors, dept_name, sort, status, create_by)
 VALUES (1, 0, '0', '总部', 0, 0, 1);
@@ -239,47 +362,67 @@ INSERT INTO sys_user_role (id, user_id, role_id, create_by)
 VALUES (1, 1, 1, 1);
 
 INSERT INTO sys_config (id, config_key, config_value, remark, create_by)
-VALUES (1, 'system.captcha.enabled', 'true', '登录验证码开关', 1);
+VALUES
+    (1, 'system.captcha.enabled', 'true', '登录验证码开关', 1),
+    (2, 'system.menu.lock', '1', '菜单目录并发维护锁', NULL);
+
+-- 首页与其他页面共用菜单授权，首页分配由独立配置维护。
+INSERT INTO sys_permission
+    (id, route_name, menu_name, perms, parent_id, menu_type, path, component,
+     is_cache, sort, icon, built_in, remark, create_by)
+VALUES
+    (90, 'home', '首页', 'system:home:view', 0, 2, '/index', 'layout/default/index',
+     1, 0, 'smile', 1, '默认首页组件，首页分配由独立配置维护', 1);
 
 -- 目录只参与导航；菜单和按钮权限必须分别授予。
 INSERT INTO sys_permission
-    (id, route_name, menu_name, perms, parent_id, menu_type, path, component, sort, create_by)
+    (id, route_name, menu_name, perms, parent_id, menu_type, path, component, sort, built_in, create_by)
 VALUES
-    (100, 'System', '系统管理', NULL, 0, 1, '/system', 'Layout', 0, 1),
-    (1000, 'User', '用户列表', 'system:user:list', 100, 2, '/system/user', 'system/user/index', 0, 1),
-    (1001, NULL, '用户详情', 'system:user:detail', 1000, 3, NULL, NULL, 1, 1),
-    (1002, NULL, '创建用户', 'system:user:create', 1000, 3, NULL, NULL, 2, 1),
-    (1003, NULL, '修改用户', 'system:user:update', 1000, 3, NULL, NULL, 3, 1),
-    (1004, NULL, '调整用户部门', 'system:user:department', 1000, 3, NULL, NULL, 4, 1),
-    (1005, NULL, '用户状态', 'system:user:status', 1000, 3, NULL, NULL, 5, 1),
-    (1006, NULL, '重置密码', 'system:user:resetPassword', 1000, 3, NULL, NULL, 6, 1),
-    (1007, NULL, '删除用户', 'system:user:delete', 1000, 3, NULL, NULL, 7, 1),
-    (1008, NULL, '用户角色查询', 'system:userRole:list', 1000, 3, NULL, NULL, 8, 1),
-    (1009, NULL, '用户角色分配', 'system:userRole:assign', 1000, 3, NULL, NULL, 9, 1),
-    (1100, 'Role', '角色列表', 'system:role:list', 100, 2, '/system/role', 'system/role/index', 0, 1),
-    (1101, NULL, '创建角色', 'system:role:create', 1100, 3, NULL, NULL, 1, 1),
-    (1102, NULL, '修改角色', 'system:role:update', 1100, 3, NULL, NULL, 2, 1),
-    (1103, NULL, '角色状态', 'system:role:status', 1100, 3, NULL, NULL, 3, 1),
-    (1104, NULL, '删除角色', 'system:role:delete', 1100, 3, NULL, NULL, 4, 1),
-    (1105, NULL, '角色数据范围查询', 'system:role:dataScope:list', 1100, 3, NULL, NULL, 5, 1),
-    (1106, NULL, '角色数据范围配置', 'system:role:dataScope:assign', 1100, 3, NULL, NULL, 6, 1),
-    (1107, NULL, '角色权限查询', 'system:rolePermission:list', 1100, 3, NULL, NULL, 7, 1),
-    (1108, NULL, '角色权限分配', 'system:rolePermission:assign', 1100, 3, NULL, NULL, 8, 1),
-    (1200, 'Dept', '部门列表', 'system:dept:list', 100, 2, '/system/dept', 'system/dept/index', 0, 1),
-    (1201, NULL, '创建部门', 'system:dept:create', 1200, 3, NULL, NULL, 1, 1),
-    (1202, NULL, '修改部门', 'system:dept:update', 1200, 3, NULL, NULL, 2, 1),
-    (1203, NULL, '部门状态', 'system:dept:status', 1200, 3, NULL, NULL, 3, 1),
-    (1204, NULL, '删除部门', 'system:dept:delete', 1200, 3, NULL, NULL, 4, 1),
-    (1300, 'Post', '岗位列表', 'system:post:list', 100, 2, '/system/post', 'system/post/index', 0, 1),
-    (1301, NULL, '岗位详情', 'system:post:detail', 1300, 3, NULL, NULL, 1, 1),
-    (1302, NULL, '创建岗位', 'system:post:create', 1300, 3, NULL, NULL, 2, 1),
-    (1303, NULL, '修改岗位', 'system:post:update', 1300, 3, NULL, NULL, 3, 1),
-    (1304, NULL, '岗位状态', 'system:post:status', 1300, 3, NULL, NULL, 4, 1),
-    (1305, NULL, '删除岗位', 'system:post:delete', 1300, 3, NULL, NULL, 5, 1),
-    (1306, NULL, '岗位成员查询', 'system:post:member:list', 1300, 3, NULL, NULL, 6, 1),
-    (1307, NULL, '岗位成员配置', 'system:post:member:assign', 1300, 3, NULL, NULL, 7, 1),
-    (1400, 'Permission', '权限目录', 'system:permission:list', 100, 2, '/system/permission', 'system/permission/index', 0, 1),
-    (1401, NULL, '权限状态', 'system:permission:status', 1400, 3, NULL, NULL, 1, 1);
+    (100, 'System', '系统管理', NULL, 0, 1, '/system', NULL, 0, 1, 1),
+    (1000, 'User', '用户列表', 'system:user:list', 100, 2, '/system/user', 'system/user/index', 0, 1, 1),
+    (1001, NULL, '用户详情', 'system:user:detail', 1000, 3, NULL, NULL, 1, 1, 1),
+    (1002, NULL, '创建用户', 'system:user:create', 1000, 3, NULL, NULL, 2, 1, 1),
+    (1003, NULL, '修改用户', 'system:user:update', 1000, 3, NULL, NULL, 3, 1, 1),
+    (1004, NULL, '调整用户部门', 'system:user:department', 1000, 3, NULL, NULL, 4, 1, 1),
+    (1005, NULL, '用户状态', 'system:user:status', 1000, 3, NULL, NULL, 5, 1, 1),
+    (1006, NULL, '重置密码', 'system:user:resetPassword', 1000, 3, NULL, NULL, 6, 1, 1),
+    (1007, NULL, '删除用户', 'system:user:delete', 1000, 3, NULL, NULL, 7, 1, 1),
+    (1008, NULL, '用户角色查询', 'system:userRole:list', 1000, 3, NULL, NULL, 8, 1, 1),
+    (1009, NULL, '用户角色分配', 'system:userRole:assign', 1000, 3, NULL, NULL, 9, 1, 1),
+    (1100, 'Role', '角色列表', 'system:role:list', 100, 2, '/system/role', 'system/role/index', 0, 1, 1),
+    (1101, NULL, '创建角色', 'system:role:create', 1100, 3, NULL, NULL, 1, 1, 1),
+    (1102, NULL, '修改角色', 'system:role:update', 1100, 3, NULL, NULL, 2, 1, 1),
+    (1103, NULL, '角色状态', 'system:role:status', 1100, 3, NULL, NULL, 3, 1, 1),
+    (1104, NULL, '删除角色', 'system:role:delete', 1100, 3, NULL, NULL, 4, 1, 1),
+    (1105, NULL, '角色数据范围查询', 'system:role:dataScope:list', 1100, 3, NULL, NULL, 5, 1, 1),
+    (1106, NULL, '角色数据范围配置', 'system:role:dataScope:assign', 1100, 3, NULL, NULL, 6, 1, 1),
+    (1107, NULL, '角色权限查询', 'system:rolePermission:list', 1100, 3, NULL, NULL, 7, 1, 1),
+    (1108, NULL, '角色权限分配', 'system:rolePermission:assign', 1100, 3, NULL, NULL, 8, 1, 1),
+    (1200, 'Dept', '部门列表', 'system:dept:list', 100, 2, '/system/dept', 'system/dept/index', 0, 1, 1),
+    (1201, NULL, '创建部门', 'system:dept:create', 1200, 3, NULL, NULL, 1, 1, 1),
+    (1202, NULL, '修改部门', 'system:dept:update', 1200, 3, NULL, NULL, 2, 1, 1),
+    (1203, NULL, '部门状态', 'system:dept:status', 1200, 3, NULL, NULL, 3, 1, 1),
+    (1204, NULL, '删除部门', 'system:dept:delete', 1200, 3, NULL, NULL, 4, 1, 1),
+    (1300, 'Post', '岗位列表', 'system:post:list', 100, 2, '/system/post', 'system/post/index', 0, 1, 1),
+    (1301, NULL, '岗位详情', 'system:post:detail', 1300, 3, NULL, NULL, 1, 1, 1),
+    (1302, NULL, '创建岗位', 'system:post:create', 1300, 3, NULL, NULL, 2, 1, 1),
+    (1303, NULL, '修改岗位', 'system:post:update', 1300, 3, NULL, NULL, 3, 1, 1),
+    (1304, NULL, '岗位状态', 'system:post:status', 1300, 3, NULL, NULL, 4, 1, 1),
+    (1305, NULL, '删除岗位', 'system:post:delete', 1300, 3, NULL, NULL, 5, 1, 1),
+    (1306, NULL, '岗位成员查询', 'system:post:member:list', 1300, 3, NULL, NULL, 6, 1, 1),
+    (1307, NULL, '岗位成员配置', 'system:post:member:assign', 1300, 3, NULL, NULL, 7, 1, 1),
+    (1400, NULL, '权限目录', 'system:permission:list', 1500, 3, NULL, NULL, 0, 1, 1),
+    (1401, NULL, '权限状态', 'system:permission:status', 1500, 3, NULL, NULL, 1, 1, 1);
+
+-- 菜单管理统一维护菜单与权限，权限目录和权限状态作为按钮权限保留。
+INSERT INTO sys_permission
+    (id, route_name, menu_name, perms, parent_id, menu_type, path, component, sort, icon, built_in)
+VALUES
+    (1500, 'SysMenu', '菜单管理', 'system:menu:list', 100, 2, '/system/menu', 'system/menu/index', 50, 'yonghu', 1),
+    (1501, NULL, '菜单详情', 'system:menu:detail', 1500, 3, NULL, NULL, 1, NULL, 1),
+    (1502, NULL, '新增菜单', 'system:menu:create', 1500, 3, NULL, NULL, 2, NULL, 1),
+    (1503, NULL, '修改菜单', 'system:menu:update', 1500, 3, NULL, NULL, 3, NULL, 1),
+    (1504, NULL, '删除菜单', 'system:menu:delete', 1500, 3, NULL, NULL, 4, NULL, 1);
 
 -- 内置角色不可编辑；同时保留完整授权关系，方便管理端展示。
 INSERT INTO sys_role_permission (id, role_id, permission_id, create_by)
@@ -318,4 +461,10 @@ VALUES
     (32, 1, 1306, 1),
     (33, 1, 1307, 1),
     (34, 1, 1400, 1),
-    (35, 1, 1401, 1);
+    (35, 1, 1401, 1),
+    (36, 1, 1500, NULL),
+    (37, 1, 1501, NULL),
+    (38, 1, 1502, NULL),
+    (39, 1, 1503, NULL),
+    (40, 1, 1504, NULL),
+    (41, 1, 90, 1);

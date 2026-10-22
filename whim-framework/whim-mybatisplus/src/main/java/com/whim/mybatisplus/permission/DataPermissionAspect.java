@@ -1,32 +1,36 @@
 package com.whim.mybatisplus.permission;
 
+import com.whim.core.auth.AuthenticationContext;
+import com.whim.core.auth.model.RoleInfo;
+import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.DataAccessDeniedException;
-import com.whim.core.permission.DataPermissionProvider;
-import com.whim.core.permission.DataPermissionScope;
 import com.whim.mybatisplus.annotation.DataPermission;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
+import com.whim.mybatisplus.model.enums.DataScopeType;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 在业务调用前解析精确操作授权，保证异常退出与嵌套调用清理上下文。
+ * @description 从登录上下文合并当前操作的角色范围，保证异常退出与嵌套调用清理上下文。
  */
 @Aspect
 @Order(Ordered.HIGHEST_PRECEDENCE + 100)
 @RequiredArgsConstructor
 public class DataPermissionAspect {
-    private final ObjectProvider<DataPermissionProvider> permissionProviders;
+    private final AuthenticationContext authenticationContext;
 
-    /** 校验声明并建立范围栈；权限元数据解析独立于外层业务查询过滤。 */
+    /** 校验表映射并合并登录快照中的角色范围，全程不查询数据库。 */
     @Around("@annotation(permission)")
     public Object authorize(ProceedingJoinPoint invocation, DataPermission permission) throws Throwable {
         if (permission.permission().isBlank() || permission.tables().length == 0) {
@@ -41,25 +45,37 @@ public class DataPermissionAspect {
                 throw new DataAccessDeniedException("数据权限表映射缺少业务归属列");
             }
         }
-        DataPermissionProvider provider = permissionProviders.getIfAvailable();
-        if (provider == null) {
-            throw new DataAccessDeniedException("当前应用未提供数据权限解析器");
-        }
-        Deque<DataPermissionContext.Frame> existing = DataPermissionContext.FRAMES.get();
-        DataPermissionScope scope;
-        DataPermissionContext.FRAMES.remove();
-        try {
-            scope = provider.resolve(permission.permission());
-        } finally {
-            if (existing != null) {
-                DataPermissionContext.FRAMES.set(existing);
+        UserInfo user = authenticationContext.getCurrentUserInfo();
+        boolean all = authenticationContext.isSuperAdministrator();
+        boolean self = false;
+        Set<Long> departmentIds = new LinkedHashSet<>();
+        if (!all) {
+            Set<Long> roleIds = user.getPermissionRoleIds().getOrDefault(permission.permission(), Set.of());
+            List<RoleInfo> roles = user.getRoleInfoList().stream()
+                    .filter(role -> roleIds.contains(role.getRoleId())).toList();
+            if (roles.isEmpty()) {
+                throw new DataAccessDeniedException("登录上下文缺少本次操作的角色范围，请重新登录");
+            }
+            for (RoleInfo role : roles) {
+                switch (DataScopeType.fromCode(role.getDataScope())) {
+                    case ALL -> all = true;
+                    case SELF -> self = true;
+                    case CUSTOM_DEPARTMENTS, OWN_DEPARTMENT, DEPARTMENT_AND_DESCENDANTS -> {
+                        Set<Long> roleDepartments = user.getRoleDepartmentIds().get(role.getRoleId());
+                        if (roleDepartments == null) {
+                            throw new DataAccessDeniedException("登录上下文缺少角色部门范围，请重新登录");
+                        }
+                        departmentIds.addAll(roleDepartments);
+                    }
+                }
+                if (all) {
+                    break;
+                }
             }
         }
-        if (scope == null || scope.getUserId() == null) {
-            throw new DataAccessDeniedException("数据权限解析结果缺少有效身份");
-        }
         Deque<DataPermissionContext.Frame> frames = DataPermissionContext.frames();
-        frames.push(new DataPermissionContext.Frame(scope, permission.tables()));
+        frames.push(new DataPermissionContext.Frame(user.getUserId(), all, self,
+                departmentIds, permission.tables()));
         try {
             return invocation.proceed();
         } finally {

@@ -18,10 +18,7 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-web</artifactId>
-        </dependency>
+        <!-- Spring 事务同步支持，在事务提交成功后使受影响用户的登录会话失效 -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>

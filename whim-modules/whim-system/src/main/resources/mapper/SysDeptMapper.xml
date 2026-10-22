@@ -3,7 +3,7 @@
 <mapper namespace="com.whim.system.mapper.SysDeptMapper">
 
     <!-- 从候选部门沿主键向上验证，必须抵达有效根节点；路径同时限制循环及最大层级长度。 -->
-    <select id="selectValidDepartmentIds" resultType="java.lang.Long">
+    <select id="selectValidDepartments" resultType="com.whim.core.auth.model.DepartmentInfo">
         WITH RECURSIVE department_paths AS (
             SELECT id AS department_id, parent_id,
                    CAST(CONCAT('0,', id) AS CHAR(500)) AS visited_path
@@ -23,16 +23,23 @@
                 AND FIND_IN_SET(parent.id, path.visited_path) = 0
                 AND CHAR_LENGTH(path.visited_path) + CHAR_LENGTH(CAST(parent.id AS CHAR)) + 1 &lt;= 500
         )
-        SELECT department_id FROM department_paths WHERE parent_id = 0
+        SELECT department.id AS dept_id, department.parent_id, department.dept_name, department.leader_user_id
+        FROM department_paths path
+        INNER JOIN sys_dept department ON department.id = path.department_id
+        WHERE path.parent_id = 0
     </select>
 
     <select id="selectActiveDescendantIds" resultType="java.lang.Long">
         WITH RECURSIVE department_tree AS (
-            SELECT id FROM sys_dept WHERE id = #{deptId} AND deleted = 0 AND status = 0
+            SELECT id, CAST(CONCAT('0,', id) AS CHAR(500)) AS visited_path
+            FROM sys_dept WHERE id = #{deptId} AND deleted = 0 AND status = 0
             UNION ALL
-            SELECT child.id FROM sys_dept child
+            SELECT child.id, CONCAT(parent.visited_path, ',', child.id)
+            FROM sys_dept child
             INNER JOIN department_tree parent ON child.parent_id = parent.id
             WHERE child.deleted = 0 AND child.status = 0
+                AND FIND_IN_SET(child.id, parent.visited_path) = 0
+                AND CHAR_LENGTH(parent.visited_path) + CHAR_LENGTH(CAST(child.id AS CHAR)) + 1 &lt;= 500
         )
         SELECT id FROM department_tree
     </select>

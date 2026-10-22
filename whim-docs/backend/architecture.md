@@ -15,6 +15,7 @@ description: 后端模块职责、自动配置与业务接入的完整路径。
 | `whim-json`        | Jackson 配置                                  |
 | `whim-web`         | `Result`、异常映射、MVC 转换、XSS 过滤        |
 | `whim-redis`       | Redisson 与缓存配置                           |
+| `whim-file`        | 本地、MinIO、OSS 存储，流式上传下载与预签名地址 |
 | `whim-satoken`     | 认证实现、系统组合注解、Token-Session、拦截器 |
 | `whim-mybatisplus` | 持久化插件、分页、数据权限、审计填充          |
 | `whim-system`      | 系统用户、部门、角色、权限、岗位等业务        |
@@ -67,5 +68,6 @@ description: 后端模块职责、自动配置与业务接入的完整路径。
 - [记录级数据权限](/backend/data-permission)
 - [会话与授权变更](/backend/session)
 - [核心工具与 Web 约定](/backend/core)
+- [文件存储](/backend/file-storage)
 
 源码根目录：`whim-framework`、`whim-modules`、`whim-start`。

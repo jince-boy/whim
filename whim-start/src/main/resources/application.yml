@@ -1,6 +1,17 @@
 server:
   port: 8089
 
+# 文件存储：本地目录不自动映射为公开静态资源
+file:
+  storage:
+    enabled: true
+    default-storage: local
+    default-config-name: local
+    max-file-size: 20MB
+    local:
+      - name: local
+        base-path: ${FILE_STORAGE_PATH:./data/files}
+
 # Actuator 监控端点配置
 management:
   endpoints:

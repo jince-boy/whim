@@ -2,7 +2,6 @@ package com.whim.mybatisplus.permission;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.MultiDataPermissionHandler;
 import com.whim.core.exception.DataAccessDeniedException;
-import com.whim.core.permission.DataPermissionScope;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -32,18 +31,17 @@ public class DataPermissionSqlHandler implements MultiDataPermissionHandler {
                         || (!mapping.alias().isEmpty() && !mapping.alias().equalsIgnoreCase(unquote(alias)))) {
                     continue;
                 }
-                DataPermissionScope scope = frame.getScope();
-                if (scope.isAll()) {
+                if (frame.isAll()) {
                     continue;
                 }
                 List<String> branches = new ArrayList<>();
-                if (!mapping.departmentColumn().isEmpty() && !scope.getDepartmentIds().isEmpty()) {
-                    String ids = scope.getDepartmentIds().stream().map(String::valueOf)
+                if (!mapping.departmentColumn().isEmpty() && !frame.getDepartmentIds().isEmpty()) {
+                    String ids = frame.getDepartmentIds().stream().map(String::valueOf)
                             .collect(Collectors.joining(","));
                     branches.add(alias + "." + mapping.departmentColumn() + " IN (" + ids + ")");
                 }
-                if (scope.isSelf() && !mapping.userColumn().isEmpty()) {
-                    branches.add(alias + "." + mapping.userColumn() + " = " + scope.getUserId());
+                if (frame.isSelf() && !mapping.userColumn().isEmpty()) {
+                    branches.add(alias + "." + mapping.userColumn() + " = " + frame.getUserId());
                 }
                 constraints.add(branches.isEmpty() ? "(1 = 0)" : "(" + String.join(" OR ", branches) + ")");
             }

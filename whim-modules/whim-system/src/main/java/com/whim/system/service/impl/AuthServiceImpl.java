@@ -126,7 +126,7 @@ public class AuthServiceImpl implements IAuthService {
         authenticationSession.logout();
     }
 
-    /** 查询当前账号并刷新角色、权限和主部门信息。 */
+    /** 查询当前账号并刷新部门、岗位、角色及完整授权快照。 */
     @Override
     public AuthUserVO getUserInfo() {
         SysUser user = sysUserService.getById(authenticationContext.getUserId());

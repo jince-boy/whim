@@ -1,7 +1,6 @@
 package com.whim.mybatisplus.permission;
 
 import com.whim.core.exception.DataAccessDeniedException;
-import com.whim.core.permission.DataPermissionScope;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -22,18 +22,11 @@ public final class DataPermissionContext {
     private DataPermissionContext() {
     }
 
-    /** 读取当前注解解析的范围，供新增及归属变更校验使用。 */
-    public static DataPermissionScope requiredScope() {
-        Deque<Frame> frames = FRAMES.get();
-        if (frames == null || frames.isEmpty()) {
-            throw new DataAccessDeniedException("当前操作缺少数据权限上下文");
-        }
-        return frames.peek().getScope();
-    }
-
     /** 按表映射校验新增或新归属，同时遵守所有嵌套调用的范围。 */
     public static void checkOwnership(String tableName, Long ownerUserId, Long departmentId) {
-        requiredScope();
+        if (!active()) {
+            throw new DataAccessDeniedException("当前操作缺少数据权限上下文");
+        }
         boolean mapped = false;
         for (Frame frame : FRAMES.get()) {
             for (DataPermissionTable table : frame.getTables()) {
@@ -41,11 +34,10 @@ public final class DataPermissionContext {
                     continue;
                 }
                 mapped = true;
-                DataPermissionScope scope = frame.getScope();
-                boolean allowed = scope.isAll()
-                        || (!table.departmentColumn().isEmpty() && scope.getDepartmentIds().contains(departmentId))
-                        || (!table.userColumn().isEmpty() && scope.isSelf()
-                        && Objects.equals(scope.getUserId(), ownerUserId));
+                boolean allowed = frame.isAll()
+                        || (!table.departmentColumn().isEmpty() && frame.getDepartmentIds().contains(departmentId))
+                        || (!table.userColumn().isEmpty() && frame.isSelf()
+                        && Objects.equals(frame.getUserId(), ownerUserId));
                 if (!allowed) {
                     throw new DataAccessDeniedException("新增或变更归属超出本次操作的授权范围");
                 }
@@ -80,7 +72,10 @@ public final class DataPermissionContext {
     @Getter
     @RequiredArgsConstructor
     static class Frame {
-        private final DataPermissionScope scope;
+        private final Long userId;
+        private final boolean all;
+        private final boolean self;
+        private final Set<Long> departmentIds;
         private final DataPermissionTable[] tables;
     }
 }

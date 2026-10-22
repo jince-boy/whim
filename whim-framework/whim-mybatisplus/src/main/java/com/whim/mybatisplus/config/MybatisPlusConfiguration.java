@@ -6,11 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerIntercep
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.whim.core.auth.AuthenticationContext;
-import com.whim.core.permission.DataPermissionProvider;
 import com.whim.mybatisplus.handler.AutoFillFieldHandler;
 import com.whim.mybatisplus.permission.DataPermissionAspect;
 import com.whim.mybatisplus.permission.DataPermissionInterceptor;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -32,10 +30,10 @@ public class MybatisPlusConfiguration {
         return interceptor;
     }
 
-    /** 延迟获取业务权限解析器，保持认证模块与持久化模块独立。 */
+    /** 数据过滤直接读取统一登录上下文，保持认证模块与持久化模块独立。 */
     @Bean
-    public DataPermissionAspect dataPermissionAspect(ObjectProvider<DataPermissionProvider> providers) {
-        return new DataPermissionAspect(providers);
+    public DataPermissionAspect dataPermissionAspect(AuthenticationContext authenticationContext) {
+        return new DataPermissionAspect(authenticationContext);
     }
 
     /** 从统一认证抽象填充操作者与时间，不将审计字段作为业务归属。 */

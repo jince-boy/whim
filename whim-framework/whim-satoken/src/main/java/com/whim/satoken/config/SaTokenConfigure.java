@@ -1,5 +1,9 @@
 package com.whim.satoken.config;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
+import cn.dev33.satoken.exception.NotSafeException;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.router.SaRouter;
@@ -8,6 +12,8 @@ import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.exception.AccessDeniedException;
+import com.whim.core.exception.UnauthenticatedException;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
@@ -22,6 +28,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -55,6 +62,13 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 }))
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePaths);
+    }
+
+    /** 将拦截器、权限注解及业务调用的认证异常转换后交给原有 MVC 处理链，保留解析顺序。 */
+    @Override
+    public void extendHandlerExceptionResolvers(@NonNull List<HandlerExceptionResolver> resolvers) {
+        resolvers.replaceAll(resolver -> (request, response, handler, exception) ->
+                resolver.resolveException(request, response, handler, translateAuthenticationException(exception)));
     }
 
     /**
@@ -112,5 +126,36 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @ConditionalOnMissingBean(AuthenticationSession.class)
     public AuthenticationSession authenticationSession() {
         return new SaTokenAuthenticationSession();
+    }
+
+    /** 仅转换明确的认证和授权失败，兼容包装异常，其余异常保持原样。 */
+    private Exception translateAuthenticationException(Exception exception) {
+        Throwable cause = exception;
+        for (int depth = 0; cause != null && depth < 20; depth++) {
+            if (cause instanceof UnauthenticatedException || cause instanceof AccessDeniedException) {
+                return exception;
+            }
+            if (cause instanceof NotLoginException notLogin) {
+                String message = switch (notLogin.getType()) {
+                    case NotLoginException.NOT_TOKEN -> "未能读取到有效 token";
+                    case NotLoginException.INVALID_TOKEN -> "token 无效";
+                    case NotLoginException.TOKEN_TIMEOUT -> "token 已过期";
+                    case NotLoginException.BE_REPLACED -> "token 已被顶下线";
+                    case NotLoginException.KICK_OUT -> "token 已被踢下线";
+                    case NotLoginException.TOKEN_FREEZE -> "token 已被冻结";
+                    case NotLoginException.NO_PREFIX -> "未按照指定前缀提交 token";
+                    default -> "当前会话未登录";
+                };
+                return new UnauthenticatedException(message, exception);
+            }
+            if (cause instanceof NotPermissionException || cause instanceof NotRoleException) {
+                return new AccessDeniedException("用户没有权限", exception);
+            }
+            if (cause instanceof NotSafeException) {
+                return new AccessDeniedException("请先完成二级认证", exception);
+            }
+            cause = cause.getCause();
+        }
+        return exception;
     }
 }

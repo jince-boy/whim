@@ -32,10 +32,30 @@ import java.util.Optional;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     /**
+     * 将未认证或会话失效统一映射为 HTTP 401。
+     */
+    @ExceptionHandler(UnauthenticatedException.class)
+    public Result<Void> handleUnauthenticatedException(
+            UnauthenticatedException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 认证失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
+        return Result.error(HttpStatus.UNAUTHORIZED, exception.getMessage());
+    }
+
+    /**
+     * 将操作授权失败统一映射为 HTTP 403。
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public Result<Void> handleAccessDeniedException(
+            AccessDeniedException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 授权失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage());
+        return Result.error(HttpStatus.FORBIDDEN, exception.getMessage());
+    }
+
+    /**
      * 处理请求频率超过限制的异常。
      *
      * @param exception 限流异常
-     * @param request 当前请求
+     * @param request   当前请求
      * @return HTTP 429 错误响应
      */
     @ExceptionHandler(TooManyRequestsException.class)
@@ -54,9 +74,15 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Throwable.class)
     public Result<Void> handleGeneralException(Throwable exception, HttpServletRequest request) {
-        // 持久化框架可能包装拦截器异常，保留数据访问拒绝和唯一键冲突的业务状态。
+        // 调用链可能包装原始异常，保留认证、授权、数据访问拒绝及唯一键冲突的状态。
         Throwable cause = exception;
         for (int depth = 0; cause != null && depth < 20; depth++) {
+            if (cause instanceof UnauthenticatedException unauthenticated) {
+                return handleUnauthenticatedException(unauthenticated, request);
+            }
+            if (cause instanceof AccessDeniedException denied) {
+                return handleAccessDeniedException(denied, request);
+            }
             if (cause instanceof DataAccessDeniedException denied) {
                 return handleDataAccessDeniedException(denied, request);
             }
@@ -69,7 +95,9 @@ public class GlobalExceptionHandler {
         return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部异常，请稍后重试");
     }
 
-    /** 唯一约束冲突统一返回409，不泄露数据库语句或隐藏账号明细。 */
+    /**
+     * 唯一约束冲突统一返回409，不泄露数据库语句或隐藏账号明细。
+     */
     @ExceptionHandler(DuplicateKeyException.class)
     public Result<Void> handleDuplicateKeyException(
             DuplicateKeyException exception, HttpServletRequest request) {
