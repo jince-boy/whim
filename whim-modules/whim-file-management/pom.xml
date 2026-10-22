@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.whim</groupId>
+        <artifactId>whim-modules</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <artifactId>whim-file-management</artifactId>
+    <description>文件上传任务与个人文件管理</description>
+    <dependencies>
+        <dependency><groupId>com.whim</groupId><artifactId>whim-file</artifactId></dependency>
+        <dependency><groupId>com.whim</groupId><artifactId>whim-mybatisplus</artifactId></dependency>
+    </dependencies>
+</project>
+

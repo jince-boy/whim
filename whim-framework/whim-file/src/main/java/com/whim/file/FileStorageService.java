@@ -26,6 +26,12 @@ import java.util.function.Consumer;
 public class FileStorageService implements AutoCloseable {
     private final FileStorageProperties properties;
     private final List<IFileStorage> storages;
+    private final List<IFileStorage> ownedStorages;
+
+    /** 供业务层绑定任务的实际存储实例，调用者不得关闭返回的共享实例。 */
+    public IFileStorage getStorage(String platform, String configName) {
+        return getStorage(new FileHandler.Builder().platform(platform).platformConfigName(configName).build());
+    }
 
     /** 使用默认存储和随机文件名上传。 */
     public MetaData upload(Object file) {
@@ -188,7 +194,7 @@ public class FileStorageService implements AutoCloseable {
     @Override
     public void close() {
         FileStorageException failure = null;
-        for (IFileStorage storage : storages) {
+        for (IFileStorage storage : ownedStorages) {
             try {
                 storage.close();
             } catch (Exception exception) {

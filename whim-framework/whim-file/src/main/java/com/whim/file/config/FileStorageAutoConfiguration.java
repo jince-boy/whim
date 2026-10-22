@@ -33,7 +33,7 @@ import java.util.Set;
 public class FileStorageAutoConfiguration {
     private final FileStorageProperties properties;
 
-    /** 注册统一服务，失败时清理已创建的客户端；自定义实例需支持幂等关闭。 */
+    /** 注册统一服务；仅负责内置客户端的生命周期，自定义实例交由 Spring 管理。 */
     @Bean
     @ConditionalOnMissingBean
     public FileStorageService fileStorageService(ObjectProvider<IFileStorage> customStorages) {
@@ -47,10 +47,12 @@ public class FileStorageAutoConfiguration {
             }
         }
         List<IFileStorage> storages = new ArrayList<>();
+        List<IFileStorage> ownedStorages = new ArrayList<>();
         try {
-            properties.getLocal().forEach(config -> storages.add(new LocalFileStorageImpl(config)));
-            properties.getMinio().forEach(config -> storages.add(new MinioFileStorageImpl(config, properties)));
-            properties.getAliyunOss().forEach(config -> storages.add(new AliyunOssFileStorageImpl(config, properties)));
+            properties.getLocal().forEach(config -> ownedStorages.add(new LocalFileStorageImpl(config)));
+            properties.getMinio().forEach(config -> ownedStorages.add(new MinioFileStorageImpl(config, properties)));
+            properties.getAliyunOss().forEach(config -> ownedStorages.add(new AliyunOssFileStorageImpl(config, properties)));
+            storages.addAll(ownedStorages);
             storages.addAll(customStorages.orderedStream().toList());
             Set<String> identifiers = new HashSet<>();
             boolean defaultFound = false;
@@ -71,9 +73,10 @@ public class FileStorageAutoConfiguration {
             if (!defaultFound) {
                 throw new FileStorageException("默认文件存储平台或配置不存在");
             }
-            return new FileStorageService(properties, List.copyOf(storages));
+            return new FileStorageService(properties, List.copyOf(storages), List.copyOf(ownedStorages));
         } catch (RuntimeException exception) {
-            for (IFileStorage storage : storages) {
+            // 创建或校验失败时只回收已经创建的内置实例。
+            for (IFileStorage storage : ownedStorages) {
                 try {
                     storage.close();
                 } catch (Exception closeException) {

@@ -14,5 +14,6 @@
 
     <modules>
         <module>whim-system</module>
+        <module>whim-file-management</module>
     </modules>
 </project>

@@ -171,7 +171,7 @@ MetaData imported = fileStorageService.upload(
 
 实现 `IFileStorage` 并注册为 Spring Bean 即可加入统一服务，无需修改平台配置类或使用反射。也可继承 `BaseFileStorage` 复用实例身份和元数据构造。
 
-自定义实例需提供唯一的平台与配置名称，遵循相对 key、异常及幂等删除语义，并实现幂等 `close()`。服务及 Spring 可能分别执行关闭。自定义 `FileStorageService` Bean 可以覆盖默认服务。
+自定义实例需提供唯一的平台与配置名称，遵循相对 key、异常及幂等删除语义，并实现幂等 `close()`。内置实例由统一服务关闭，自定义 Bean 由 Spring 关闭，避免重复管理资源。自定义 `FileStorageService` Bean 可以覆盖默认服务。需要分片能力时实现 `MultipartFileStorage`。
 
 ## 与旧模块的差异
 
@@ -181,4 +181,4 @@ MetaData imported = fileStorageService.upload(
 - 移除反射配置读取、请求级客户端工厂及未使用的 Tika Bean；使用 MinIO 9.0.3、阿里云 OSS V2 SDK 0.6.1。OSS 使用默认的 Apache HttpClient 5 传输实现，排除旧 HttpClient 4，不引入 JAXB 依赖组合。
 - 配置错误提前在启动时暴露；删除改为幂等；远程 URI 默认关闭；内存下载有明确上限。
 
-本次仅移植框架能力，没有新增或修改 HTTP API、数据库结构及授权规则。
+框架层自身不声明业务接口。应用现已通过独立的 `whim-file-management` 接入任务持久化、个人文件接口、前端页面及分片续传，详见 [分片上传与断点续传](/backend/multipart-upload)。

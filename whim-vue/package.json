@@ -21,6 +21,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@noble/hashes": "2.4.0",
     "@vue/devtools-api": "^8.2.1",
     "axios": "^1.20.0",
     "dayjs": "^1.11.23",

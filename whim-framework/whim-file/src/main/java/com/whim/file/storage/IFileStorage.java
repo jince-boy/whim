@@ -44,7 +44,7 @@ public interface IFileStorage extends AutoCloseable {
         throw new FileStorageException("当前存储不支持上传预签名地址");
     }
 
-    /** 幂等释放该实例拥有的客户端资源，允许服务与 Spring 重复调用。 */
+    /** 幂等释放该实例拥有的客户端资源；自定义 Bean 由 Spring 负责关闭。 */
     @Override
     default void close() {
         // 本地存储等无共享资源的实现无需清理。

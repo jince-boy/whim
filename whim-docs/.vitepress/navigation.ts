@@ -42,6 +42,7 @@ export const navigation: DocGroup[] = [
       { text: '会话与授权变更', link: '/backend/session' },
       { text: '核心工具与 Web 约定', link: '/backend/core' },
       { text: '文件存储', link: '/backend/file-storage' },
+      { text: '分片上传与断点续传', link: '/backend/multipart-upload' },
     ],
   },
 ]

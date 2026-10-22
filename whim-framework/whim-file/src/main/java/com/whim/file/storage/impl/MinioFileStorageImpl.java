@@ -6,11 +6,22 @@ import com.whim.file.config.properties.FileStorageProperties.CloudStoragePropert
 import com.whim.file.handler.DownloadHandler;
 import com.whim.file.model.FileSource;
 import com.whim.file.model.MetaData;
+import com.whim.file.exception.MissingUploadSessionException;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
 import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MinioClient;
+import io.minio.MinioAsyncClient;
+import io.minio.AbortMultipartUploadArgs;
+import io.minio.CompleteMultipartUploadArgs;
+import io.minio.CreateMultipartUploadArgs;
+import io.minio.Http;
+import io.minio.messages.ListPartsResult;
+import io.minio.messages.Part;
+import com.whim.file.model.PartUploadSignature;
+import com.whim.file.model.StoragePart;
+import com.whim.file.storage.MultipartFileStorage;
+import com.whim.file.support.MinioListPartsArguments;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
@@ -20,6 +31,9 @@ import io.minio.Http.Method;
 import okhttp3.OkHttpClient;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,8 +42,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date 2026/10/22
  * @description MinIO 存储实例，按配置复用客户端及连接池。
  */
-public final class MinioFileStorageImpl extends BaseFileStorage {
-    private final MinioClient client;
+public final class MinioFileStorageImpl extends BaseFileStorage implements MultipartFileStorage {
+    private final MinioAsyncClient client;
     private final String bucket;
     private final String prefix;
     private final AtomicBoolean closed = new AtomicBoolean();
@@ -45,7 +59,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
                 .writeTimeout(properties.getReadTimeout())
                 .callTimeout(properties.getRequestTimeout())
                 .build();
-        MinioClient.Builder builder = MinioClient.builder().endpoint(config.getUrl())
+        MinioAsyncClient.Builder builder = MinioAsyncClient.builder().endpoint(config.getUrl())
                 .credentials(config.getAccessKey(), config.getSecretKey()).httpClient(httpClient, true);
         if (config.getRegion() != null && !config.getRegion().isBlank()) {
             builder.region(config.getRegion());
@@ -61,7 +75,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
                     .contentType(contentType)
                     .stream(source.getInputStream(), source.getSize() < 0 ? null : source.getSize(), 5L * 1024 * 1024)
                     .maxRetries(0)
-                    .build());
+                    .build()).join();
             return createMetaData(key, source.getInputStream().getBytesRead(), contentType);
         } catch (Exception exception) {
             throw new FileStorageException("MinIO 文件上传失败", exception);
@@ -73,7 +87,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
     public DownloadHandler download(String key) {
         try {
             return DownloadHandler.of(client.getObject(GetObjectArgs.builder()
-                    .bucket(bucket).object(objectName(key)).build()));
+                    .bucket(bucket).object(objectName(key)).build()).join());
         } catch (Exception exception) {
             throw new FileStorageException("MinIO 文件下载失败", exception);
         }
@@ -84,7 +98,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
     public MetaData getFileMetaData(String key) {
         try {
             StatObjectResponse metadata = client.statObject(StatObjectArgs.builder()
-                    .bucket(bucket).object(objectName(key)).build());
+                    .bucket(bucket).object(objectName(key)).build()).join();
             return createMetaData(key, metadata.size(), metadata.contentType());
         } catch (Exception exception) {
             throw new FileStorageException("获取 MinIO 文件信息失败", exception);
@@ -95,10 +109,10 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
     @Override
     public boolean exists(String key) {
         try {
-            client.statObject(StatObjectArgs.builder().bucket(bucket).object(objectName(key)).build());
+            client.statObject(StatObjectArgs.builder().bucket(bucket).object(objectName(key)).build()).join();
             return true;
-        } catch (ErrorResponseException exception) {
-            String code = exception.errorResponse().code();
+        } catch (CompletionException exception) {
+            String code = getErrorCode(exception);
             if ("NoSuchKey".equals(code) || "NoSuchObject".equals(code)) {
                 return false;
             }
@@ -112,7 +126,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
     @Override
     public void deleteFile(String key) {
         try {
-            client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(objectName(key)).build());
+            client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(objectName(key)).build()).join();
         } catch (Exception exception) {
             throw new FileStorageException("删除 MinIO 文件失败", exception);
         }
@@ -142,6 +156,106 @@ public final class MinioFileStorageImpl extends BaseFileStorage {
             throw new FileStorageException("生成 MinIO 上传签名失败", exception);
         }
     }
+
+    /** 创建原生 S3 分片会话，内容类型只在初始化时设置。 */
+    @Override
+    public String initiateUpload(String key, String contentType, String taskId) {
+        try {
+            return client.createMultipartUpload(CreateMultipartUploadArgs.builder().bucket(bucket)
+                    .object(objectName(key)).headers(new Http.Headers(Map.of("Content-Type", contentType,
+                            "x-amz-checksum-algorithm", "SHA256")))
+                    .build()).join().result().uploadId();
+        } catch (Exception exception) {
+            throw new FileStorageException("创建 MinIO 分片任务失败", exception);
+        }
+    }
+
+    /** 分页读取真实分片，校验游标推进，避免异常响应导致无限循环。 */
+    @Override
+    public List<StoragePart> getUploadedParts(String key, String uploadId) {
+        try {
+            List<StoragePart> parts = new ArrayList<>();
+            Integer marker = null;
+            for (int page = 0; page < 10; page++) {
+                ListPartsResult result = client.listParts(new MinioListPartsArguments(
+                        bucket, objectName(key), uploadId, marker)).join().result();
+                for (Part part : result.parts()) {
+                    parts.add(new StoragePart(part.partNumber(), part.partSize(), part.etag(), part.checksumSHA256()));
+                }
+                if (!result.isTruncated()) {
+                    return parts;
+                }
+                Integer next = result.nextPartNumberMarker();
+                if (next == null || next <= (marker == null ? 0 : marker)) {
+                    throw new FileStorageException("MinIO 分片分页游标无效");
+                }
+                marker = next;
+            }
+            throw new FileStorageException("MinIO 分片数量超过一万");
+        } catch (Exception exception) {
+            if ("NoSuchUpload".equals(getErrorCode(exception))) {
+                throw new MissingUploadSessionException(exception);
+            }
+            throw new FileStorageException("查询 MinIO 分片失败", exception);
+        }
+    }
+
+    /** 使用 SDK 不会忽略的 SHA-256 校验头，长度由浏览器按 Blob 自动发送。 */
+    @Override
+    public PartUploadSignature getPartUploadSignature(String key, String uploadId, int partNumber,
+                                                       long size, String contentMd5, String contentSha256,
+                                                       Duration expiration) {
+        try {
+            Map<String, String> headers = Map.of("x-amz-checksum-sha256", contentSha256);
+            String url = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .bucket(bucket).object(objectName(key)).method(Method.PUT)
+                    .extraHeaders(Map.of("x-amz-checksum-sha256", contentSha256,
+                            "Content-Length", Long.toString(size)))
+                    .extraQueryParams(Map.of("uploadId", uploadId, "partNumber", Integer.toString(partNumber)))
+                    .expiry(Math.toIntExact(expiration.toSeconds())).build());
+            return new PartUploadSignature(url, headers);
+        } catch (Exception exception) {
+            throw new FileStorageException("生成 MinIO 分片上传签名失败", exception);
+        }
+    }
+
+    /** 使用存储端 ETag 合并，不信任客户端提供的完成清单。 */
+    @Override
+    public void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+        try {
+            Part[] manifest = parts.stream().map(part -> new Part(part.getPartNumber(), part.getEtag(),
+                            null, null, null, null, part.getContentSha256()))
+                    .toArray(Part[]::new);
+            client.completeMultipartUpload(CompleteMultipartUploadArgs.builder().bucket(bucket)
+                    .object(objectName(key)).uploadId(uploadId).parts(manifest).maxRetries(0).build()).join();
+        } catch (Exception exception) {
+            throw new FileStorageException("合并 MinIO 分片失败", exception);
+        }
+    }
+
+    /** 已终止或已合并的会话视为清理成功，其他错误保留。 */
+    @Override
+    public void abortUpload(String key, String uploadId) {
+        try {
+            client.abortMultipartUpload(AbortMultipartUploadArgs.builder().bucket(bucket)
+                    .object(objectName(key)).uploadId(uploadId).build()).join();
+        } catch (Exception exception) {
+            if (!"NoSuchUpload".equals(getErrorCode(exception))) {
+                throw new FileStorageException("终止 MinIO 分片任务失败", exception);
+            }
+        }
+    }
+
+    /** 从异步调用的包装中提取明确的 S3 错误码。 */
+    private String getErrorCode(Throwable failure) {
+        for (int depth = 0; failure != null && depth < 10; depth++, failure = failure.getCause()) {
+            if (failure instanceof ErrorResponseException response) {
+                return response.errorResponse().code();
+            }
+        }
+        return null;
+    }
+
 
     /** 校验相对 key 并添加配置的对象前缀。 */
     private String objectName(String key) {

@@ -5,6 +5,9 @@ import com.whim.file.config.properties.FileStorageProperties.LocalStoragePropert
 import com.whim.file.handler.DownloadHandler;
 import com.whim.file.model.FileSource;
 import com.whim.file.model.MetaData;
+import com.whim.file.exception.MissingUploadSessionException;
+import com.whim.file.model.StoragePart;
+import com.whim.file.storage.MultipartFileStorage;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
 
@@ -17,13 +20,19 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.HexFormat;
+import java.util.List;
 
 /**
  * @author Jince
  * @date 2026/10/22
  * @description 本地文件存储，限制根目录及符号链接，使用同目录临时文件原子替换。
  */
-public final class LocalFileStorageImpl extends BaseFileStorage {
+public final class LocalFileStorageImpl extends BaseFileStorage implements MultipartFileStorage {
     private final Path root;
 
     /** 创建受信任的配置根目录并固定其真实位置。 */
@@ -124,6 +133,211 @@ public final class LocalFileStorageImpl extends BaseFileStorage {
             throw new FileStorageException("删除本地文件失败", exception);
         }
     }
+
+    /** 本地上传通过应用接口传输分片。 */
+    @Override
+    public boolean supportsDirectUpload() {
+        return false;
+    }
+
+    /** 使用任务 ID 创建独立目录，重复初始化同一任务不会生成孤儿目录。 */
+    @Override
+    public String initiateUpload(String key, String contentType, String taskId) {
+        try {
+            Path marker = resolveUploadFile(taskId, "session", true);
+            try {
+                Files.createFile(marker);
+            } catch (FileAlreadyExistsException ignored) {
+                // 重试使用同一会话目录。
+            }
+            return taskId;
+        } catch (IOException exception) {
+            throw new FileStorageException("创建本地分片任务失败", exception);
+        }
+    }
+
+    /** 扫描真实分片并计算内容摘要，不把临时文件计入进度。 */
+    @Override
+    public List<StoragePart> getUploadedParts(String key, String uploadId) {
+        try {
+            Path marker = resolveUploadFile(uploadId, "session", false);
+            if (!Files.isRegularFile(marker, LinkOption.NOFOLLOW_LINKS)) {
+                throw new MissingUploadSessionException(null);
+            }
+            List<StoragePart> result = new ArrayList<>();
+            try (var entries = Files.list(marker.getParent())) {
+                List<Path> paths = entries.limit(20003).toList();
+                if (paths.size() > 20002) {
+                    throw new FileStorageException("本地分片目录文件数量异常");
+                }
+                for (Path entry : paths) {
+                    String name = entry.getFileName().toString();
+                    if (name.matches("[1-9][0-9]{0,3}\\.part") || name.equals("10000.part")) {
+                        Path part = resolveUploadFile(uploadId, name, false);
+                        MessageDigest digest = MessageDigest.getInstance("MD5");
+                        MessageDigest strongDigest = MessageDigest.getInstance("SHA-256");
+                        long size = 0;
+                        try (InputStream input = Files.newInputStream(part, LinkOption.NOFOLLOW_LINKS)) {
+                            byte[] buffer = new byte[65536];
+                            int count;
+                            while ((count = input.read(buffer)) != -1) {
+                                size += count;
+                                digest.update(buffer, 0, count);
+                                strongDigest.update(buffer, 0, count);
+                            }
+                        }
+                        int number = Integer.parseInt(name.substring(0, name.indexOf('.')));
+                        result.add(new StoragePart(number, size, HexFormat.of().formatHex(digest.digest()),
+                                Base64.getEncoder().encodeToString(strongDigest.digest())));
+                    }
+                }
+            }
+            result.sort(Comparator.comparingInt(StoragePart::getPartNumber));
+            return result;
+        } catch (Exception exception) {
+            if (exception instanceof MissingUploadSessionException missing) {
+                throw missing;
+            }
+            throw new FileStorageException("查询本地分片失败", exception);
+        }
+    }
+
+    /** 限长写入、校验摘要并原子替换单片；失败时不破坏已完成的分片。 */
+    @Override
+    public void uploadPart(String key, String uploadId, int partNumber, InputStream input,
+                           long size, String contentMd5, String contentSha256) {
+        Path temporary = null;
+        try {
+            Path target = resolveUploadFile(uploadId, partNumber + ".part", false);
+            if (!Files.isRegularFile(target.getParent().resolve("session"), LinkOption.NOFOLLOW_LINKS)) {
+                throw new FileStorageException("本地分片会话不存在");
+            }
+            temporary = resolveUploadFile(uploadId, partNumber + ".writing", false);
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            MessageDigest strongDigest = MessageDigest.getInstance("SHA-256");
+            long copied = 0;
+            try (OutputStream output = Files.newOutputStream(temporary, StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, LinkOption.NOFOLLOW_LINKS)) {
+                byte[] buffer = new byte[65536];
+                while (copied < size) {
+                    int count = input.read(buffer, 0, (int) Math.min(buffer.length, size - copied));
+                    if (count == -1) {
+                        throw new FileStorageException("分片实际大小小于声明大小");
+                    }
+                    output.write(buffer, 0, count);
+                    digest.update(buffer, 0, count);
+                    strongDigest.update(buffer, 0, count);
+                    copied += count;
+                }
+                if (input.read() != -1) {
+                    throw new FileStorageException("分片实际大小超过声明大小");
+                }
+            }
+            if (!MessageDigest.isEqual(digest.digest(), Base64.getDecoder().decode(contentMd5))
+                    || !MessageDigest.isEqual(strongDigest.digest(), Base64.getDecoder().decode(contentSha256))) {
+                throw new FileStorageException("分片内容校验失败");
+            }
+            resolveUploadFile(uploadId, partNumber + ".part", false);
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception exception) {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException cleanup) {
+                    exception.addSuppressed(cleanup);
+                }
+            }
+            throw new FileStorageException("写入本地分片失败", exception);
+        }
+    }
+
+    /** 逐片流式合并并再次校验摘要，正式文件只在完整写入后发布。 */
+    @Override
+    public void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+        Path temporary = null;
+        try {
+            Path target = resolveFile(key, true);
+            temporary = resolveUploadFile(uploadId, "merging.tmp", false);
+            long total = 0;
+            try (OutputStream output = Files.newOutputStream(temporary, StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, LinkOption.NOFOLLOW_LINKS)) {
+                byte[] buffer = new byte[65536];
+                for (StoragePart part : parts) {
+                    MessageDigest digest = MessageDigest.getInstance("MD5");
+                    MessageDigest strongDigest = MessageDigest.getInstance("SHA-256");
+                    long copied = 0;
+                    try (InputStream input = Files.newInputStream(
+                            resolveUploadFile(uploadId, part.getPartNumber() + ".part", false), LinkOption.NOFOLLOW_LINKS)) {
+                        int count;
+                        while ((count = input.read(buffer)) != -1) {
+                            copied += count;
+                            if (copied > part.getSize()) {
+                                throw new FileStorageException("合并时分片大小发生变化");
+                            }
+                            digest.update(buffer, 0, count);
+                            strongDigest.update(buffer, 0, count);
+                            output.write(buffer, 0, count);
+                        }
+                    }
+                    if (copied != part.getSize() || !HexFormat.of().formatHex(digest.digest()).equals(part.getEtag())
+                            || !Base64.getEncoder().encodeToString(strongDigest.digest()).equals(part.getContentSha256())) {
+                        throw new FileStorageException("合并时分片内容发生变化");
+                    }
+                    total += copied;
+                }
+            }
+            if (total != size) {
+                throw new FileStorageException("合并文件总大小不一致");
+            }
+            resolveFile(key, false);
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception exception) {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException cleanup) {
+                    exception.addSuppressed(cleanup);
+                }
+            }
+            throw new FileStorageException("合并本地分片失败", exception);
+        }
+    }
+
+    /** 仅清理当前会话目录的普通文件，不递归跟随链接或删除正式对象。 */
+    @Override
+    public void abortUpload(String key, String uploadId) {
+        try {
+            Path directory = resolveUploadFile(uploadId, "session", false).getParent();
+            if (!Files.exists(directory, LinkOption.NOFOLLOW_LINKS)) {
+                return;
+            }
+            try (var entries = Files.list(directory)) {
+                List<Path> paths = entries.limit(20003).toList();
+                if (paths.size() > 20002) {
+                    throw new FileStorageException("本地分片目录文件数量异常");
+                }
+                for (Path path : paths) {
+                    Path checked = resolveUploadFile(uploadId, path.getFileName().toString(), false);
+                    if (!Files.isRegularFile(checked, LinkOption.NOFOLLOW_LINKS)) {
+                        throw new FileStorageException("分片目录包含非普通文件");
+                    }
+                    Files.deleteIfExists(checked);
+                }
+            }
+            Files.deleteIfExists(directory);
+        } catch (IOException exception) {
+            throw new FileStorageException("清理本地分片失败", exception);
+        }
+    }
+
+    /** 上传会话只能使用系统生成的 32 位标识，内部目录同样执行路径安全校验。 */
+    private Path resolveUploadFile(String uploadId, String name, boolean createDirectories) throws IOException {
+        if (uploadId == null || !uploadId.matches("[a-f0-9]{32}")) {
+            throw new FileStorageException("本地上传会话标识无效");
+        }
+        return resolveFile(".multipart/" + uploadId + "/" + name, createDirectories);
+    }
+
 
     /** 逐级校验路径，上传时仅创建真实目录；根目录必须由应用独占写入。 */
     private Path resolveFile(String key, boolean createDirectories) throws IOException {
