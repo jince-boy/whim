@@ -3,15 +3,6 @@ server:
 
 # 文件存储：本地目录不自动映射为公开静态资源
 file:
-  upload:
-    maximum-file-size: 1GB
-    part-size: 8MB
-    concurrency: 3
-    maximum-active-tasks: 10
-    maximum-pending-bytes: 5GB
-    task-lifetime: 24h
-    signature-lifetime: 5m
-    cleanup-delay: 60000
   storage:
     enabled: true
     default-storage: local

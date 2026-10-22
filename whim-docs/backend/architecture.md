@@ -19,7 +19,6 @@ description: 后端模块职责、自动配置与业务接入的完整路径。
 | `whim-satoken`     | 认证实现、系统组合注解、Token-Session、拦截器 |
 | `whim-mybatisplus` | 持久化插件、分页、数据权限、审计填充          |
 | `whim-system`      | 系统用户、部门、角色、权限、岗位等业务        |
-| `whim-file-management` | 个人文件、分片上传任务、恢复与清理 |
 | `whim-start`       | 启动、Controller、应用配置与 Flyway           |
 
 基线为 JDK 25+、Spring Boot 4.1+。本次文档建设不执行 Java 或 Maven 命令。
@@ -70,6 +69,5 @@ description: 后端模块职责、自动配置与业务接入的完整路径。
 - [会话与授权变更](/backend/session)
 - [核心工具与 Web 约定](/backend/core)
 - [文件存储](/backend/file-storage)
-- [分片上传与断点续传](/backend/multipart-upload)
 
 源码根目录：`whim-framework`、`whim-modules`、`whim-start`。

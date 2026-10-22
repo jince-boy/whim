@@ -31,20 +31,6 @@ import java.util.Optional;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    /** 上传体超过 Servlet 容量限制时返回413，保持 HTTP 状态与统一响应一致。 */
-    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-    public Result<Void> handleUploadSizeExceeded(
-            org.springframework.web.multipart.MaxUploadSizeExceededException exception) {
-        return Result.error(HttpStatus.CONTENT_TOO_LARGE, "上传内容超过接口允许的大小");
-    }
-
-    /** 缺少 multipart 必需部分时按请求参数错误处理。 */
-    @ExceptionHandler(org.springframework.web.multipart.support.MissingServletRequestPartException.class)
-    public Result<Void> handleMissingUploadPart(
-            org.springframework.web.multipart.support.MissingServletRequestPartException exception) {
-        return Result.error(HttpStatus.BAD_REQUEST, "缺少上传文件参数");
-    }
-
     /**
      * 将未认证或会话失效统一映射为 HTTP 401。
      */

@@ -12,10 +12,6 @@
     <artifactId>whim-start</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-file-management</artifactId>
-        </dependency>
         <!-- 文件存储 -->
         <dependency>
             <groupId>com.whim</groupId>
