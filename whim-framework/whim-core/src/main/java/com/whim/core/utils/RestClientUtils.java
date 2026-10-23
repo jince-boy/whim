@@ -222,12 +222,25 @@ public final class RestClientUtils {
                 .version(HttpClient.Version.HTTP_2)
                 .build();
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-        requestFactory.setReadTimeout(DEFAULT_READ_TIMEOUT);
+        return createRestClient(httpClient, DEFAULT_READ_TIMEOUT);
+    }
 
-        return RestClient.builder()
-                .requestFactory(requestFactory)
-                .build();
+    /**
+     * 使用指定 JDK 客户端创建独立的 RestClient，不修改全局实例。
+     *
+     * @param httpClient 由调用方管理生命周期及连接、重定向等配置的客户端
+     * @param requestTimeout 从发送请求到响应流关闭的总时限；不是逐次读取的空闲超时
+     * @return 使用 JDK 传输的 RestClient
+     */
+    public static RestClient createRestClient(HttpClient httpClient, Duration requestTimeout) {
+        Objects.requireNonNull(httpClient, "参数[httpClient]不能为空");
+        Objects.requireNonNull(requestTimeout, "参数[requestTimeout]不能为空");
+        if (requestTimeout.isNegative() || requestTimeout.toMillis() == 0) {
+            throw new IllegalArgumentException("请求超时时间必须至少为 1 毫秒");
+        }
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(requestTimeout);
+        return RestClient.builder().requestFactory(requestFactory).build();
     }
 
     /**

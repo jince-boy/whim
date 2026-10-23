@@ -28,6 +28,16 @@ description: 公共工具、统一响应、分页、异常和审计字段。
 
 Spring Bean 优先构造器注入，只有无法直接注入时才使用 `SpringUtils`。真正缺少的共享逻辑放回合适的已有工具，不在业务模块重复建同名工具体系。
 
+### HTTP 请求
+
+同步业务请求使用已有的 `RestClientUtils`，支持 `get/post/put/patch/delete`、泛型响应、请求头和查询参数，统一抛出 `HttpException`。底层为 Spring `RestClient` 与 JDK `HttpClient`，无需引入 WebFlux 或 OkHttp。
+
+```java
+String response = RestClientUtils.get("https://example.com/api/status", String.class);
+```
+
+需要独立连接设置或 SDK 原始响应处理时，使用 `RestClientUtils.createRestClient(httpClient, requestTimeout)`。该方法不修改工具类的全局实例；调用方负责 JDK 客户端的生命周期。`requestTimeout` 限制整个 HTTP 交换及响应流消费时间，不是逐次读取的空闲超时。SDK 已签名的地址使用 `uri(URI)` 保留编码，流式响应使用 `exchange` 并明确由谁关闭响应。
+
 ## 统一响应
 
 `com.whim.web.model.Result<T>` 包含 `code`、`message`、`data`，由 Web 层统一保持 HTTP 状态与响应码一致。

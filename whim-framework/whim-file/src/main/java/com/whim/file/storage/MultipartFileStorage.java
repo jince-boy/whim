@@ -17,7 +17,7 @@ public interface MultipartFileStorage extends IFileStorage {
     /** 创建上传会话；taskId 用于本地目录的确定性定位。 */
     String initiateUpload(String key, String contentType, String taskId);
 
-    /** 查询存储端全部分片，必须处理分页；会话丢失时抛出异常。 */
+    /** 查询存储端全部已提交分片，必须处理分页；本地读取持久化摘要，会话丢失时抛出异常。 */
     List<StoragePart> getUploadedParts(String key, String uploadId);
 
     /** 是否通过浏览器直接上传到对象存储。 */
@@ -38,7 +38,7 @@ public interface MultipartFileStorage extends IFileStorage {
         throw new FileStorageException("当前存储请使用分片直传");
     }
 
-    /** 使用服务端查询得到的完整清单合并；返回前最终对象应已可读取。 */
+    /** 使用服务端查询得到的完整清单合并并清理会话；本地清理失败时对象已发布，可重试 abortUpload。 */
     void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType);
 
     /** 幂等终止会话并清理临时分片，不删除已完成的正式对象。 */

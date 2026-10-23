@@ -22,6 +22,7 @@ import com.whim.file.model.PartUploadSignature;
 import com.whim.file.model.StoragePart;
 import com.whim.file.storage.MultipartFileStorage;
 import com.whim.file.support.MinioListPartsArguments;
+import com.whim.file.support.MinioStorageClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @description MinIO 存储实例，按配置复用客户端及连接池。
  */
 public final class MinioFileStorageImpl extends BaseFileStorage implements MultipartFileStorage {
-    private final MinioAsyncClient client;
+    private final MinioStorageClient client;
     private final String bucket;
     private final String prefix;
     private final AtomicBoolean closed = new AtomicBoolean();
@@ -64,7 +65,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         if (config.getRegion() != null && !config.getRegion().isBlank()) {
             builder.region(config.getRegion());
         }
-        client = builder.build();
+        client = new MinioStorageClient(builder.build());
     }
 
     /** 上传文件并使用已传输字节数生成元数据，避免额外 HEAD 请求。 */
@@ -148,10 +149,8 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
     @Override
     public String uploadFilePreSignedUrl(String key, String contentType, Duration expiration) {
         try {
-            return client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .bucket(bucket).object(objectName(key)).method(Method.PUT)
-                    .extraHeaders(Map.of("Content-Type", contentType))
-                    .expiry(Math.toIntExact(expiration.toSeconds())).build());
+            return client.getUploadPreSignedUrl(bucket, objectName(key),
+                    Map.of("Content-Type", contentType), Map.of(), expiration);
         } catch (Exception exception) {
             throw new FileStorageException("生成 MinIO 上传签名失败", exception);
         }
@@ -200,19 +199,19 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 使用 SDK 不会忽略的 SHA-256 校验头，长度由浏览器按 Blob 自动发送。 */
+    /** 将长度与 SHA-256 一并签名，Content-Length 由浏览器按原始 Blob 自动发送。 */
     @Override
     public PartUploadSignature getPartUploadSignature(String key, String uploadId, int partNumber,
                                                        long size, String contentMd5, String contentSha256,
                                                        Duration expiration) {
         try {
+            if (partNumber < 1 || partNumber > 10000 || size < 0) {
+                throw new FileStorageException("分片序号或大小无效");
+            }
             Map<String, String> headers = Map.of("x-amz-checksum-sha256", contentSha256);
-            String url = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .bucket(bucket).object(objectName(key)).method(Method.PUT)
-                    .extraHeaders(Map.of("x-amz-checksum-sha256", contentSha256,
-                            "Content-Length", Long.toString(size)))
-                    .extraQueryParams(Map.of("uploadId", uploadId, "partNumber", Integer.toString(partNumber)))
-                    .expiry(Math.toIntExact(expiration.toSeconds())).build());
+            String url = client.getUploadPreSignedUrl(bucket, objectName(key),
+                    Map.of("x-amz-checksum-sha256", contentSha256, "Content-Length", Long.toString(size)),
+                    Map.of("uploadId", uploadId, "partNumber", Integer.toString(partNumber)), expiration);
             return new PartUploadSignature(url, headers);
         } catch (Exception exception) {
             throw new FileStorageException("生成 MinIO 分片上传签名失败", exception);

@@ -32,8 +32,10 @@ public class FileStorageProperties {
     private DataSize maxFileSize = DataSize.ofMegabytes(20);
     @NotNull
     private Duration connectTimeout = Duration.ofSeconds(10);
+    /** MinIO 读写及远程 URI 读取等待时限；OSS 使用 requestTimeout 限制完整请求。 */
     @NotNull
     private Duration readTimeout = Duration.ofSeconds(30);
+    /** 云存储单次 HTTP 请求总时限；普通上传另在输入读取前后检查同样的时间预算。 */
     @NotNull
     private Duration requestTimeout = Duration.ofMinutes(5);
     @Valid

@@ -30,6 +30,7 @@ import com.whim.file.model.MetaData;
 import com.whim.file.exception.MissingUploadSessionException;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
+import com.whim.file.support.OssHttpClient;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
     private final String prefix;
     private final AtomicBoolean closed = new AtomicBoolean();
 
-    /** 创建具有连接和读写超时的 OSS V2 客户端，地域必须与桶一致。 */
+    /** 使用具有连接及请求总超时的 Spring RestClient 传输层创建 OSS V2 客户端。 */
     public AliyunOssFileStorageImpl(CloudStorageProperties config, FileStorageProperties properties) {
         super("aliyunOss", config.getName());
         bucket = config.getBucket();
@@ -56,12 +57,18 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         if (config.getRegion() == null || config.getRegion().isBlank()) {
             throw new FileStorageException("阿里云 OSS 配置必须指定地域");
         }
-        client = OSSClient.newBuilder().endpoint(config.getUrl()).region(config.getRegion())
-                .credentialsProvider(new StaticCredentialsProvider(config.getAccessKey(), config.getSecretKey()))
-                .signatureVersion("v4").retryMaxAttempts(1)
-                .additionalHeaders(List.of("content-length"))
-                .connectTimeout(properties.getConnectTimeout()).readWriteTimeout(properties.getReadTimeout())
-                .build();
+        OssHttpClient transport = new OssHttpClient(properties);
+        try {
+            client = OSSClient.newBuilder().endpoint(config.getUrl()).region(config.getRegion())
+                    .credentialsProvider(new StaticCredentialsProvider(config.getAccessKey(), config.getSecretKey()))
+                    .signatureVersion("v4").retryMaxAttempts(1)
+                    .additionalHeaders(List.of("content-length"))
+                    .httpClient(transport)
+                    .build();
+        } catch (RuntimeException exception) {
+            transport.close();
+            throw exception;
+        }
     }
 
     /** 流式上传文件，未知大小仍受实际读取上限约束。 */
@@ -154,7 +161,7 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
     public String initiateUpload(String key, String contentType, String taskId) {
         try {
             return client.initiateMultipartUpload(InitiateMultipartUploadRequest.newBuilder().bucket(bucket)
-                    .key(objectName(key)).contentType(contentType).build()).uploadId();
+                    .key(objectName(key)).contentType(contentType).build()).initiateMultipartUpload().uploadId();
         } catch (Exception exception) {
             throw new FileStorageException("创建 OSS 分片任务失败", exception);
         }

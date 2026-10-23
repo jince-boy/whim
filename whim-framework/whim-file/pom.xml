@@ -18,6 +18,11 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
         </dependency>
+        <!-- 仅供 MinIO SDK 及其签名扩展使用，OSS 通过 Spring RestClient 传输 -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-jvm</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>alibabacloud-oss-v2</artifactId>
