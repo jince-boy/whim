@@ -19,6 +19,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     /** 查询当前有效角色。 */
     @Override
     public List<RoleInfo> getRoleInfoListByUserId(Long userId) {
-        return baseMapper.selectRoleInfoListByUserId(userId);
+        return baseMapper.getRoleInfoListByUserId(userId);
     }
 }

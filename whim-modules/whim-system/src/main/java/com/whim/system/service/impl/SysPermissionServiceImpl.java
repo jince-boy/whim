@@ -57,7 +57,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             }
             return permissionRoleIds;
         }
-        for (RolePermissionDTO permission : baseMapper.selectRolePermissions(roleIds)) {
+        for (RolePermissionDTO permission : baseMapper.getRolePermissionsByRoleIds(roleIds)) {
             permissionRoleIds.computeIfAbsent(permission.getPermissionCode(), key -> new LinkedHashSet<>())
                     .add(permission.getRoleId());
         }

@@ -18,6 +18,6 @@ import java.util.Set;
 public interface SysRoleDeptMapper extends BaseMapper<SysRoleDept> {
     /** 登录时批量读取自定义部门关系，保留角色ID，避免不同操作的范围混合。 */
     @DataPermissionMetadata
-    List<SysRoleDept> selectRoleDepartmentsByRoleIds(@Param("roleIds") Set<Long> roleIds);
+    List<SysRoleDept> getRoleDepartmentsByRoleIds(@Param("roleIds") Set<Long> roleIds);
 }
 

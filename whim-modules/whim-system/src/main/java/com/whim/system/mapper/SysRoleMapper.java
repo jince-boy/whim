@@ -18,6 +18,6 @@ import java.util.List;
 public interface SysRoleMapper extends BaseMapper<SysRole> {
     /** 查询账号当前有效角色。 */
     @DataPermissionMetadata
-    List<RoleInfo> selectRoleInfoListByUserId(@Param("userId") Long userId);
+    List<RoleInfo> getRoleInfoListByUserId(@Param("userId") Long userId);
 }
 

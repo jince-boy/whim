@@ -18,6 +18,6 @@ import java.util.List;
 public interface SysUserMapper extends BaseMapper<SysUser> {
     /** 登录时读取用户关联的有效岗位，部门有效性在构建上下文时统一核验。 */
     @DataPermissionMetadata
-    List<PostInfo> selectPostInfoListByUserId(@Param("userId") Long userId);
+    List<PostInfo> getPostInfoListByUserId(@Param("userId") Long userId);
 }
 

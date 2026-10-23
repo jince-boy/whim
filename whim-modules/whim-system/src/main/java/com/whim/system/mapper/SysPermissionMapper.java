@@ -19,6 +19,6 @@ import java.util.Set;
 public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     /** 批量读取非空有效角色集合的权限关系，角色有效性由登录流程核验。 */
     @DataPermissionMetadata
-    List<RolePermissionDTO> selectRolePermissions(@Param("roleIds") Set<Long> roleIds);
+    List<RolePermissionDTO> getRolePermissionsByRoleIds(@Param("roleIds") Set<Long> roleIds);
 }
 

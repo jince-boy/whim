@@ -76,7 +76,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         info.setPermissionRoleIds(permissionService.getPermissionRoleIds(roles));
         info.setPermissionCodeSet(new LinkedHashSet<>(info.getPermissionRoleIds().keySet()));
 
-        List<PostInfo> posts = baseMapper.selectPostInfoListByUserId(user.getId());
+        List<PostInfo> posts = baseMapper.getPostInfoListByUserId(user.getId());
         Set<Long> departmentIds = new LinkedHashSet<>();
         departmentIds.add(user.getDeptId());
         for (PostInfo post : posts) {
@@ -97,20 +97,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
         if (!customRoleIds.isEmpty()) {
-            for (SysRoleDept relation : roleDeptMapper.selectRoleDepartmentsByRoleIds(customRoleIds)) {
+            for (SysRoleDept relation : roleDeptMapper.getRoleDepartmentsByRoleIds(customRoleIds)) {
                 info.getRoleDepartmentIds().get(relation.getRoleId()).add(relation.getDeptId());
                 departmentIds.add(relation.getDeptId());
             }
         }
 
         // 主部门、岗位部门和自定义范围共用一次祖先链校验。
-        Map<Long, DepartmentInfo> departments = deptMapper.selectValidDepartments(departmentIds).stream()
+        Map<Long, DepartmentInfo> departments = deptMapper.getValidDepartmentsByIds(departmentIds).stream()
                 .collect(Collectors.toMap(DepartmentInfo::getDeptId, department -> department));
         info.setDepartmentInfo(departments.get(user.getDeptId()));
         info.setPostInfoList(posts.stream()
                 .filter(post -> post.getDeptId() == null || departments.containsKey(post.getDeptId())).toList());
         Set<Long> descendantIds = includeDescendants && info.getDepartmentInfo() != null
-                ? deptMapper.selectActiveDescendantIds(user.getDeptId()) : Set.of();
+                ? deptMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
         for (RoleInfo role : roles) {
             Set<Long> roleDepartments = info.getRoleDepartmentIds().get(role.getRoleId());
             switch (DataScopeType.fromCode(role.getDataScope())) {

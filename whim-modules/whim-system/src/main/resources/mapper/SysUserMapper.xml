@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserMapper">
-    <select id="selectPostInfoListByUserId" resultType="com.whim.core.auth.model.PostInfo">
+    <select id="getPostInfoListByUserId" resultType="com.whim.core.auth.model.PostInfo">
         SELECT p.id AS post_id, p.post_code, p.post_name, p.dept_id
         FROM sys_user_post up
         INNER JOIN sys_post p ON p.id = up.post_id AND p.deleted = 0 AND p.status = 0
