@@ -34,7 +34,6 @@ Copy-Item -LiteralPath .env.example -Destination .env
 | --- | --- |
 | `VITE_PORT` | 开发服务器端口 |
 | `VITE_API_BASE_URL` | 接口公共路径前缀，Axios 和开发代理统一使用 |
-| `VITE_USE_MOCK` | 可选：`true` 使用本地测试数据，`false` 请求后端；未配置时开发环境启用、生产构建关闭 |
 | `VITE_APP_TITLE` | 浏览器标签、登录页、侧栏标题和默认水印 |
 | `VITE_APP_DESCRIPTION` | 登录页介绍和 HTML 页面描述 |
 | `VITE_APP_COPYRIGHT` | 登录页和页面底部的版权文案 |
@@ -45,26 +44,19 @@ Copy-Item -LiteralPath .env.example -Destination .env
 
 环境变量在开发服务器启动或构建时读取；修改后需要重启开发服务器或重新构建。`VITE_` 变量会进入浏览器端构建产物，应只填写公开配置。详见 [Vite 环境变量文档](https://vite.dev/guide/env-and-mode)。用户已保存的自定义水印继续生效，恢复默认主题时使用新的项目标题。
 
-### 使用本地 JSON 开发前端
+### 真实后端登录
 
-运行 `pnpm dev` 时默认启用本地 Mock，无需启动后端。若本地环境文件已配置 `VITE_USE_MOCK=false`，改为 `true` 后重启开发服务器即可。登录页会显示测试账号：`admin` / `admin123`，验证码图片为 `1 + 2 = ?`，输入 `3`。
+开发和生产环境的业务请求均连接真实后端，本地开发前需要启动后端及其依赖服务。
 
-测试数据位于 `src/mock/data/`：
+开发服务器将 `/api/system/auth/...` 转发到已启动的 `http://localhost:8089/system/auth/...`，登录流程与 `AuthController` 保持一致：
 
-| 文件 | 内容 |
-| --- | --- |
-| `auth.json` | 测试账号、用户信息、角色和权限 |
-| `menus.json` | 平铺菜单、页面路由和按钮权限 |
-| `dictTypes.json` / `dictData.json` | 字典类型、状态和下拉选项 |
-| `loginLogs.json` / `operLogs.json` | 日志列表、成功失败状态和详情 |
+- 进入登录页请求 `GET /system/auth/captcha`，展示 GIF 验证码，并按响应的 `expiresIn` 判断到期时间。到期后自动刷新并清空旧输入；切回标签页时再次检查有效期，也可点击验证码区域主动刷新。
+- 提交 `POST /system/auth/login` 时仅发送 `username`、`password`、`uuid` 和 `captchaCode`。用户名为 3～32 位，密码为 8～72 位，验证码为 4 位字母或数字；登录失败后重新获取验证码。
+- 使用返回的 `tokenType` 和 `accessToken` 组成 `Authorization` 请求头。勾选“保持登录”时保存到 `localStorage`，否则保存在当前标签页的 `sessionStorage`；密码不落盘，服务端控制会话有效期。
+- 登录后仅获取 `GET /system/auth/userInfo`，将个人信息保存到 Pinia 用户状态中，再返回登录前的页面，默认进入 `/profile` 个人信息页。刷新页面时根据已保存的令牌重新获取用户信息；初始化失败时清理本地会话并允许重新登录。目前不请求菜单接口，也不在登录时加载动态菜单。
+- 退出时请求 `POST /system/auth/logout`，成功后清理令牌、用户资料、菜单、标签页和页面缓存。会话失效返回 401 时回到登录页。
 
-Mock 覆盖现有登录、退出、用户信息、菜单、字典和日志接口，保留 `{ code, message, data }` 响应结构。菜单树、条件搜索、分页、详情、新增、修改、单条或批量删除、日志清空均在浏览器内完成。导出会下载真实的 UTF-8 CSV 文件，便于检查导出交互。用户管理页面目前仅为占位页面，不额外增加接口或业务功能。
-
-新增、修改和删除保存到当前标签页的 `sessionStorage`，刷新页面后继续保留。修改 JSON 初始数据后，若需要重新加载初始值，在浏览器控制台执行 `sessionStorage.removeItem('whim:mock:database:v1')` 并刷新；这也可以恢复被删除的菜单和字典。页面表单不会直接修改 JSON 或模拟数据库中的对象。
-
-所有请求（包括下载）通过公共 Axios 适配器处理，Mock 开启时不会发往后端，也不会在未匹配接口时回退到真实请求。后续新增接口时，在 `src/mock/` 对应处理模块中补充模拟逻辑及 JSON 数据；缺失的模拟接口会明确报错。
-
-后端联调时在本地 `.env.development.local` 设置 `VITE_USE_MOCK=false`，重启开发服务器并重新登录。需要离线演示构建时，可在 `.env.production.local` 设置 `VITE_USE_MOCK=true`；普通生产构建默认使用真实接口。模式切换后需重新登录，避免混用测试令牌和真实令牌。
+登录需要使用数据库中的有效账号及当次验证码。
 
 ### Compile and Hot-Reload for Development
 

@@ -1,6 +1,10 @@
 HELP.md
 **/data/files/
 target/
+node_modules/
+**/.vitepress/cache/
+**/.vitepress/dist/
+**/.vitepress/.temp/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

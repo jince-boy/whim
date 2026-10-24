@@ -56,10 +56,10 @@ public class SysRole extends BaseEntity implements Serializable {
     private String remark;
 
     /**
-     * 删除标志(0-未删除 1-已删除)
+     * 删除标识：0表示未删除，已删除时为本行主键ID
      */
     @TableLogic
-    private Integer deleted;
+    private Long deleted;
 
 }
 

@@ -1,3 +1,5 @@
-# Sa-Token 会话中持久化的认证上下文类型
+# Sa-Token 会话中持久化的认证上下文类型，新增嵌套对象时需同步登记
 com.whim.core.auth.model.UserInfo
 com.whim.core.auth.model.RoleInfo
+com.whim.core.auth.model.DepartmentInfo
+com.whim.core.auth.model.PostInfo

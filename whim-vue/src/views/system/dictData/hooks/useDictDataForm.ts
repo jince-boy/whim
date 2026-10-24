@@ -6,7 +6,7 @@ export function useDictDataForm(props: DictDataFormProps) {
   const formRef = useTemplateRef<FormInst>('formRef')
   const defaultFormModel: DictData = {
     id: '',
-    dictType: '',
+    type: '',
     label: '',
     value: '',
     listClass: 'default',

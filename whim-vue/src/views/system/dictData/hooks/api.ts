@@ -1,4 +1,4 @@
-import { request, downloadFile, RequestMethod } from '@/api'
+import { request, RequestMethod } from '@/api'
 import type { DictDataPageResult, DictDataResult } from './types'
 
 /** 分页查询字典数据。 */
@@ -29,9 +29,4 @@ export const deleteDictData = (params: object) => {
 /** 按字典类型查询数据，供字典选择组件复用。 */
 export const fetchDictDataListByDictType = (params: string) => {
   return request<DictDataResult[]>('/system/dictData/type/' + params, RequestMethod.GET)
-}
-
-/** 导出指定条件的字典数据。 */
-export const exportDictData = (params: object) => {
-  return downloadFile('/system/dictData/export', null, { params })
 }

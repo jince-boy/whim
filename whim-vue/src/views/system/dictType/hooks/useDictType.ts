@@ -2,7 +2,6 @@ import { useWhimTable } from '@/components/table'
 import { type DataTableColumn, NButton, NSpace, useMessage } from 'naive-ui'
 import {
   deleteDictType,
-  exportDictType,
   fetchDictTypeDetail,
   fetchDictTypePage,
   insertDictType,
@@ -102,7 +101,12 @@ export function useDictType() {
     request: fetchDictTypePage,
     search: { defaultValues: { name: '', type: '' } },
     toolbar: {
-      buttons: ['add', 'edit', 'delete', 'export'],
+      buttons: ['add', 'edit', 'delete'],
+      permissions: {
+        add: ['system:dictType:add'],
+        edit: ['system:dictType:update'],
+        delete: ['system:dictType:delete'],
+      },
     },
   })
 
@@ -167,13 +171,6 @@ export function useDictType() {
   }
 
   /**
-   * 导出字典类型
-   */
-  const exportExcel = async () => {
-    await exportDictType()
-  }
-
-  /**
    * 重置字典缓存
    */
   const handleResetDictCache = () => {
@@ -191,6 +188,5 @@ export function useDictType() {
     openEditDialog,
     removeDictTypeBatch,
     handleResetDictCache,
-    exportExcel,
   }
 }

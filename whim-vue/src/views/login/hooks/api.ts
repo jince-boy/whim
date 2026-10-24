@@ -17,6 +17,6 @@ export const logout = () => {
 /**
  * 获取验证码
  */
-export const fetchCaptcha = () => {
-  return request<CaptchaResult>('/system/auth/captcha', RequestMethod.GET)
+export const fetchCaptcha = (signal?: AbortSignal) => {
+  return request<CaptchaResult>('/system/auth/captcha', RequestMethod.GET, { signal })
 }

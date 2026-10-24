@@ -1,4 +1,4 @@
-import { request, downloadFile, RequestMethod } from '@/api'
+import { request, RequestMethod } from '@/api'
 import type { DictTypePageResult, DictTypeResult } from './types'
 
 /** 分页查询字典类型。 */
@@ -29,9 +29,4 @@ export const deleteDictType = (params: object) => {
 /** 重置字典缓存。 */
 export const resetDictCache = () => {
   return request('/system/dictType/reset', RequestMethod.DELETE)
-}
-
-/** 导出字典类型。 */
-export const exportDictType = () => {
-  return downloadFile('/system/dictType/export')
 }

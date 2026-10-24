@@ -7,7 +7,7 @@ export interface DictDataQuery {
 
 export interface DictData {
   id: string
-  dictType: string
+  type: string
   label: string
   value: string
   listClass: TagType
@@ -17,7 +17,7 @@ export interface DictData {
 
 export interface DictDataResult {
   id: string
-  dictType: string
+  type: string
   label: string
   value: string
   listClass: TagType

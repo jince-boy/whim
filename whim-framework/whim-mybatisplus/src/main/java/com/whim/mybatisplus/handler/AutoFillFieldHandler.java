@@ -46,9 +46,7 @@ public class AutoFillFieldHandler implements MetaObjectHandler {
             LocalDateTime now = LocalDateTime.now();
             boolean login = authenticationContext.isLogin();
             Long userId = login ? authenticationContext.getUserId() : null;
-            Object deleted = getFieldValByName("deleted", metaObject);
-
-            if (Objects.equals(deleted, 1)) {
+            if (LogicDeleteAuditInterceptor.isLogicDelete()) {
                 baseEntity.setDeleteTime(now);
                 if (login) {
                     baseEntity.setDeleteBy(userId);

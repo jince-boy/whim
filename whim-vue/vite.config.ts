@@ -12,9 +12,6 @@ import Components from 'unplugin-vue-components/vite'
 export default defineConfig(({ mode }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd())
-  if (env.VITE_USE_MOCK && !['true', 'false'].includes(env.VITE_USE_MOCK)) {
-    throw new Error('VITE_USE_MOCK 只能配置为 true 或 false')
-  }
   // 校验项目文案，避免遗漏本地配置时生成未替换的 HTML 占位符。
   for (const key of ['VITE_APP_TITLE', 'VITE_APP_DESCRIPTION', 'VITE_APP_COPYRIGHT']) {
     if (!env[key]?.trim()) {

@@ -1,7 +1,6 @@
 import { useWhimTable } from '@/components/table'
 import {
   deleteDictData,
-  exportDictData,
   fetchDictDataDetail,
   fetchDictDataPage,
   insertDictData,
@@ -105,15 +104,14 @@ export function useDictData(props: DictDataProps) {
   >({
     columns: tableColumns,
     rowKey: (row) => row.id,
-    request: (query) => fetchDictDataPage({ ...query, dictType: props.type }),
+    request: (query) => fetchDictDataPage({ ...query, type: props.type }),
     search: { defaultValues: { label: '' } },
     toolbar: {
-      buttons: ['add', 'edit', 'delete', 'export'],
+      buttons: ['add', 'edit', 'delete'],
       permissions: {
         add: ['system:dictData:add'],
-        edit: ['system:dictData:edit'],
+        edit: ['system:dictData:update'],
         delete: ['system:dictData:delete'],
-        export: ['system:dictData:export'],
       },
     },
   })
@@ -136,7 +134,7 @@ export function useDictData(props: DictDataProps) {
       formProps: {
         initialModel: {
           id: '',
-          dictType: props.type,
+          type: props.type,
           label: '',
           value: '',
           listClass: 'default',
@@ -189,15 +187,6 @@ export function useDictData(props: DictDataProps) {
     })
   }
 
-  /**
-   * 导出字典数据
-   */
-  const exportExcel = async () => {
-    await exportDictData({
-      dictType: props.type,
-    })
-  }
-
   /** 返回字典类型列表。 */
   const backDictTypePage = () => {
     router.back()
@@ -219,6 +208,5 @@ export function useDictData(props: DictDataProps) {
     openEditDialog,
     removeDictDataBatch,
     backDictTypePage,
-    exportExcel,
   }
 }

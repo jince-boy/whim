@@ -16,10 +16,9 @@ export const usePermissionStore = defineStore('permission', () => {
   const menus = shallowRef<SafeMenuOption[]>([])
   const initialized = ref(false)
   const entryTarget = shallowRef<RouteLocationRaw>()
-  const homePath = computed(() => router.resolve(entryTarget.value ?? '/noAccess').fullPath)
-  const homeName = computed(() =>
-    entryTarget.value ? router.resolve(entryTarget.value).name : undefined,
-  )
+  // 尚未接入菜单时，品牌入口和固定标签统一指向个人信息页。
+  const homePath = computed(() => router.resolve(entryTarget.value ?? '/profile').fullPath)
+  const homeName = computed(() => router.resolve(entryTarget.value ?? '/profile').name)
   const getMenus = computed(() => menus.value)
   let revision = 0
   let removers: (() => void)[] = []

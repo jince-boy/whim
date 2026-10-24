@@ -14,7 +14,6 @@ const {
   openEditDialog,
   removeDictTypeBatch,
   handleResetDictCache,
-  exportExcel,
 } = useDictType()
 </script>
 
@@ -25,7 +24,6 @@ const {
       @add="openAddDialog"
       @edit="openEditDialog"
       @delete="removeDictTypeBatch"
-      @export="exportExcel"
     >
       <template #search>
         <n-form-item-gi label="字典名称" path="name">

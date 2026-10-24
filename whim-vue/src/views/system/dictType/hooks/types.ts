@@ -15,7 +15,6 @@ export interface DictTypeResult {
   id: string
   name: string
   type: string
-  status: number
   remark: string
   createTime: string
 }

@@ -14,7 +14,7 @@
             AND NOT EXISTS (
                 SELECT 1 FROM sys_dept ancestor
                 WHERE FIND_IN_SET(ancestor.id, department.ancestors)
-                    AND (ancestor.deleted = 1 OR ancestor.status = 1)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
             )
     </select>
 
@@ -27,7 +27,7 @@
             AND NOT EXISTS (
                 SELECT 1 FROM sys_dept ancestor
                 WHERE FIND_IN_SET(ancestor.id, department.ancestors)
-                    AND (ancestor.deleted = 1 OR ancestor.status = 1)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
             )
     </select>
 </mapper>

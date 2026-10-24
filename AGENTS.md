@@ -82,6 +82,8 @@
 - `BaseEntity` 定义公共审计字段（`createBy/createTime/updateBy/updateTime/deleteBy/deleteTime`）。
 - `AutoFillFieldHandler` 根据 `AuthenticationContext` 自动填充这些审计字段。
 
+业务实体统一使用 `BIGINT NOT NULL DEFAULT 0` 的 `deleted` 字段，对应 Java `Long`。MyBatis-Plus 的 `logicDeleteValue` 配置为 `id`，删除时将本行主键写入删除标识。需要在删除后复用业务键时，使用“业务键 + deleted”的联合唯一索引，不得新增 `active_*` 生成列。未删除值必须为非空的 `0`；已删除判断使用非零，不得写死为 `1`。用户名等明确要求全局唯一且删除后不可复用的业务键仍保留全局唯一约束。
+
 修改持久化行为时，必须同时检查实体基类和元对象处理器，因为审计字段的处理逻辑分布在这两处。
 
 普通持久化操作应使用 MyBatis-Plus `IService` 提供的方法及条件构造器，不要直接调用 Mapper 方法。仅在必要时编写 Mapper XML SQL，例如无法通过上述方法和条件构造器清晰或高效表达的复杂查询。
@@ -114,7 +116,7 @@ Sa-Token 拦截器默认保护 `/system/**`，仅允许未经认证的请求访�
 
 ## 配置与业务约束
 
-- 修改 `whim-vue/src/components/` 下的公共组件时，必须在同一任务中同步更新 `whim-docs` 对应组件文档及交互示例，核对属性、模型、事件、插槽、公开方法、默认行为与展示交互。新增、删除组件时同步维护文档入口与导航，完成前确认文档和示例与最终实现一致。
+- 前端业务请求统一连接真实后端，不得引入 Mock 模式、模拟业务数据、固定验证码或演示账号提示。
 
 - 默认运行环境通过 Maven 资源过滤设置：`spring.profiles.active: @profiles_active@`。
 - 根 Maven 配置以 `dev` 为默认环境，`prod` 为可选环境。

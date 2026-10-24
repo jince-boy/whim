@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -295,6 +296,22 @@ public class GlobalExceptionHandler {
 
         log.warn("请求 [{} {}] 的方法级参数校验失败：{}", request.getMethod(), request.getRequestURI(), summary);
         return Result.validationError("参数校验失败", errors);
+    }
+
+    /** 处理MVC原生方法参数校验，区分请求参数错误与响应值校验失败。 */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public Result<Void> handleHandlerMethodValidationException(
+            HandlerMethodValidationException exception, HttpServletRequest request) {
+        if (exception.isForReturnValue()) {
+            log.error("请求 [{} {}] 的响应值校验失败", request.getMethod(), request.getRequestURI(), exception);
+            return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "服务器响应数据异常");
+        }
+        String message = String.join("；", exception.getAllErrors().stream()
+                .map(error -> StringUtils.hasText(error.getDefaultMessage())
+                        ? error.getDefaultMessage() : "请求参数不合法")
+                .distinct().toList());
+        log.warn("请求 [{} {}] 的方法参数校验失败：{}", request.getMethod(), request.getRequestURI(), message);
+        return Result.validationError(message);
     }
 
     /**

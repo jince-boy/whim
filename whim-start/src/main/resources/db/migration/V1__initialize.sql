@@ -1,6 +1,7 @@
 -- Whim 数据库初始化；面向空库，MySQL 8.0.12+。
 -- 主键由 MyBatis-Plus ASSIGN_ID 生成；关联关系物理删除，业务实体逻辑删除。
--- 条件唯一约束使用虚拟生成列；MySQL 8.0.12 不执行 CHECK，字段取值由触发器校验。
+-- 业务键与 deleted 组成联合唯一索引；MySQL 8.0.12 不执行 CHECK，字段取值由触发器校验。
+-- 字典类型和数据项不设状态字段，数据项通过 type 编码关联类型。
 SET NAMES utf8mb4;
 
 CREATE TABLE sys_dept (
@@ -20,11 +21,9 @@ CREATE TABLE sys_dept (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
-    active_name VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, dept_name, NULL)) VIRTUAL
-        COMMENT '未删除部门名称，用于同级部门名称唯一约束',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_dept_parent_name (parent_id, active_name)
+    UNIQUE KEY uk_dept_parent_name (parent_id, dept_name, deleted)
         COMMENT '未删除的同级部门名称唯一',
     KEY idx_dept_parent (parent_id, deleted, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门表';
@@ -47,7 +46,7 @@ CREATE TABLE sys_user (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
     UNIQUE KEY uk_user_username (username),
     KEY idx_user_dept (dept_id, deleted, status),
@@ -68,11 +67,9 @@ CREATE TABLE sys_role (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
-    active_code VARCHAR(128) GENERATED ALWAYS AS (IF(deleted = 0, role_code, NULL)) VIRTUAL
-        COMMENT '未删除角色编码，用于唯一约束',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_role_code (active_code)
+    UNIQUE KEY uk_role_code (role_code, deleted)
         COMMENT '未删除的角色编码唯一'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色表';
 
@@ -99,19 +96,13 @@ CREATE TABLE sys_permission (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
-    active_route VARCHAR(128) GENERATED ALWAYS AS
-        (IF(deleted = 0 AND menu_type IN (1, 2), route_name, NULL)) VIRTUAL
-        COMMENT '未删除目录或菜单的路由名称，用于唯一约束',
-    active_path VARCHAR(255) GENERATED ALWAYS AS
-        (IF(deleted = 0 AND menu_type IN (1, 2), path, NULL)) VIRTUAL
-        COMMENT '未删除目录或菜单的路由路径，用于唯一约束',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
     UNIQUE KEY uk_permission_perms (perms),
-    UNIQUE KEY uk_menu_route (active_route)
-        COMMENT '未删除的目录或菜单路由名称唯一',
-    UNIQUE KEY uk_menu_path (active_path)
-        COMMENT '未删除的目录或菜单路由路径唯一',
+    UNIQUE KEY uk_menu_route (route_name, deleted)
+        COMMENT '未删除的非空路由名称唯一',
+    UNIQUE KEY uk_menu_path (path, deleted)
+        COMMENT '未删除的非空路径唯一',
     KEY idx_permission_parent (parent_id, deleted, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单权限表';
 
@@ -130,11 +121,9 @@ CREATE TABLE sys_post (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
-    active_code VARCHAR(64) GENERATED ALWAYS AS (IF(deleted = 0, post_code, NULL)) VIRTUAL
-        COMMENT '未删除岗位编码，用于唯一约束',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_post_code (active_code)
+    UNIQUE KEY uk_post_code (post_code, deleted)
         COMMENT '未删除的岗位编码唯一',
     KEY idx_post_dept (dept_id, deleted, status),
     KEY idx_post_owner (owner_user_id, deleted),
@@ -153,10 +142,48 @@ CREATE TABLE sys_config (
     update_time DATETIME(3) NULL COMMENT '更新时间',
     delete_by BIGINT NULL COMMENT '删除人ID',
     delete_time DATETIME(3) NULL COMMENT '删除时间',
-    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标志：0正常，1删除',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
     PRIMARY KEY (id),
     UNIQUE KEY uk_config_key (config_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+
+CREATE TABLE sys_dict_type (
+    id BIGINT NOT NULL COMMENT '主键ID',
+    name VARCHAR(64) NOT NULL COMMENT '字典名称',
+    type VARCHAR(128) NOT NULL COMMENT '字典类型编码',
+    remark VARCHAR(255) NULL COMMENT '备注',
+    create_by BIGINT NULL COMMENT '创建人ID',
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+    update_by BIGINT NULL COMMENT '更新人ID',
+    update_time DATETIME(3) NULL COMMENT '更新时间',
+    delete_by BIGINT NULL COMMENT '删除人ID',
+    delete_time DATETIME(3) NULL COMMENT '删除时间',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_dict_type_type (type, deleted)
+        COMMENT '未删除的字典类型编码唯一'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统字典类型表';
+
+CREATE TABLE sys_dict_data (
+    id BIGINT NOT NULL COMMENT '主键ID',
+    type VARCHAR(128) NOT NULL COMMENT '所属字典类型编码',
+    label VARCHAR(128) NOT NULL COMMENT '字典标签',
+    value VARCHAR(128) NOT NULL COMMENT '字典值',
+    list_class VARCHAR(16) NOT NULL DEFAULT 'default' COMMENT '回显样式：default、primary、info、success、warning、error',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序值',
+    remark VARCHAR(255) NULL COMMENT '备注',
+    create_by BIGINT NULL COMMENT '创建人ID',
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+    update_by BIGINT NULL COMMENT '更新人ID',
+    update_time DATETIME(3) NULL COMMENT '更新时间',
+    delete_by BIGINT NULL COMMENT '删除人ID',
+    delete_time DATETIME(3) NULL COMMENT '删除时间',
+    deleted BIGINT NOT NULL DEFAULT 0 COMMENT '删除标识：0未删除，已删除时为本行主键ID',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_dict_data_type_value (type, value, deleted)
+        COMMENT '同一类型下未删除的字典值唯一',
+    KEY idx_dict_data_type (type, deleted, sort, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统字典数据表';
 
 CREATE TABLE sys_user_role (
     id BIGINT NOT NULL COMMENT '主键ID',
@@ -229,67 +256,67 @@ CREATE TABLE sys_role_dept (
 -- 插入与更新均校验原 CHECK 规则，避免 MySQL 8.0.12 忽略约束后写入非法数据。
 DELIMITER $$
 
--- 校验新增部门的状态和删除标志。
+-- 校验新增部门的业务字段和删除标识。
 CREATE TRIGGER trg_sys_dept_validate_insert BEFORE INSERT ON sys_dept
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态和删除标志只能为0或1';
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验修改部门的状态和删除标志。
+-- 校验修改部门的业务字段和删除标识。
 CREATE TRIGGER trg_sys_dept_validate_update BEFORE UPDATE ON sys_dept
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态和删除标志只能为0或1';
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '部门状态无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验新增用户的状态、性别和删除标志。
+-- 校验新增用户的业务字段和删除标识。
 CREATE TRIGGER trg_sys_user_validate_insert BEFORE INSERT ON sys_user
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别或删除标志无效';
+    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验修改用户的状态、性别和删除标志。
+-- 校验修改用户的业务字段和删除标识。
 CREATE TRIGGER trg_sys_user_validate_update BEFORE UPDATE ON sys_user
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别或删除标志无效';
+    IF NOT (NEW.status IN (0, 1) AND NEW.gender BETWEEN 0 AND 2 AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '用户状态、性别无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验新增角色的状态、数据范围和删除标志。
+-- 校验新增角色的业务字段和删除标识。
 CREATE TRIGGER trg_sys_role_validate_insert BEFORE INSERT ON sys_role
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围或删除标志无效';
+    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验修改角色的状态、数据范围和删除标志。
+-- 校验修改角色的业务字段和删除标识。
 CREATE TRIGGER trg_sys_role_validate_update BEFORE UPDATE ON sys_role
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围或删除标志无效';
+    IF NOT (NEW.status IN (0, 1) AND NEW.data_scope BETWEEN 1 AND 5 AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '角色状态、数据范围无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验新增菜单权限的标志取值、类型和权限码定义。
+-- 校验新增菜单权限的业务字段和删除标识。
 CREATE TRIGGER trg_sys_permission_validate_insert BEFORE INSERT ON sys_permission
 FOR EACH ROW
 BEGIN
     IF NOT (NEW.status IN (0, 1) AND NEW.menu_type BETWEEN 1 AND 4
-            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标志无效';
+            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标识无效';
     END IF;
     IF NOT ((NEW.menu_type IN (1, 4) AND NEW.perms IS NULL)
             OR (NEW.menu_type IN (2, 3) AND NEW.perms IS NOT NULL AND CHAR_LENGTH(TRIM(NEW.perms)) > 0)) THEN
@@ -297,13 +324,13 @@ BEGIN
     END IF;
 END$$
 
--- 校验修改菜单权限的标志取值、类型和权限码定义。
+-- 校验修改菜单权限的业务字段和删除标识。
 CREATE TRIGGER trg_sys_permission_validate_update BEFORE UPDATE ON sys_permission
 FOR EACH ROW
 BEGIN
     IF NOT (NEW.status IN (0, 1) AND NEW.menu_type BETWEEN 1 AND 4
-            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标志无效';
+            AND NEW.built_in IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '菜单状态、类型、内置标志或删除标识无效';
     END IF;
     IF NOT ((NEW.menu_type IN (1, 4) AND NEW.perms IS NULL)
             OR (NEW.menu_type IN (2, 3) AND NEW.perms IS NOT NULL AND CHAR_LENGTH(TRIM(NEW.perms)) > 0)) THEN
@@ -311,39 +338,81 @@ BEGIN
     END IF;
 END$$
 
--- 校验新增岗位的状态和删除标志。
+-- 校验新增岗位的业务字段和删除标识。
 CREATE TRIGGER trg_sys_post_validate_insert BEFORE INSERT ON sys_post
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态和删除标志只能为0或1';
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验修改岗位的状态和删除标志。
+-- 校验修改岗位的业务字段和删除标识。
 CREATE TRIGGER trg_sys_post_validate_update BEFORE UPDATE ON sys_post
 FOR EACH ROW
 BEGIN
-    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, 1)) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态和删除标志只能为0或1';
+    IF NOT (NEW.status IN (0, 1) AND NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '岗位状态无效或删除标识不是0或本行主键ID';
     END IF;
 END$$
 
--- 校验新增配置的删除标志。
+-- 校验新增配置的业务字段和删除标识。
 CREATE TRIGGER trg_sys_config_validate_insert BEFORE INSERT ON sys_config
 FOR EACH ROW
 BEGIN
-    IF NEW.deleted NOT IN (0, 1) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标志只能为0或1';
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标识只能为0或本行主键ID';
     END IF;
 END$$
 
--- 校验修改配置的删除标志。
+-- 校验修改配置的业务字段和删除标识。
 CREATE TRIGGER trg_sys_config_validate_update BEFORE UPDATE ON sys_config
 FOR EACH ROW
 BEGIN
-    IF NEW.deleted NOT IN (0, 1) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标志只能为0或1';
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '配置删除标识只能为0或本行主键ID';
+    END IF;
+END$$
+
+-- 校验新增字典类型的删除标识。
+CREATE TRIGGER trg_sys_dict_type_validate_insert BEFORE INSERT ON sys_dict_type
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典类型删除标识只能为0或本行主键ID';
+    END IF;
+END$$
+
+-- 校验修改字典类型的删除标识。
+CREATE TRIGGER trg_sys_dict_type_validate_update BEFORE UPDATE ON sys_dict_type
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典类型删除标识只能为0或本行主键ID';
+    END IF;
+END$$
+
+-- 校验新增字典数据的删除标识和回显样式。
+CREATE TRIGGER trg_sys_dict_data_validate_insert BEFORE INSERT ON sys_dict_data
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典数据删除标识只能为0或本行主键ID';
+    END IF;
+    IF NEW.list_class NOT IN ('default', 'primary', 'info', 'success', 'warning', 'error') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典数据回显样式无效';
+    END IF;
+END$$
+
+-- 校验修改字典数据的删除标识和回显样式。
+CREATE TRIGGER trg_sys_dict_data_validate_update BEFORE UPDATE ON sys_dict_data
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.deleted IN (0, NEW.id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典数据删除标识只能为0或本行主键ID';
+    END IF;
+    IF NEW.list_class NOT IN ('default', 'primary', 'info', 'success', 'warning', 'error') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '字典数据回显样式无效';
     END IF;
 END$$
 
@@ -468,3 +537,28 @@ VALUES
     (39, 1, 1503, NULL),
     (40, 1, 1504, NULL),
     (41, 1, 90, 1);
+
+-- 注册字典管理菜单与接口权限；字典选项查询仅要求系统账号登录。
+-- 字典为全局共享配置，不绑定部门归属或按用户的数据范围。
+INSERT INTO sys_permission
+    (id, route_name, menu_name, perms, parent_id, menu_type, path, component, visible, sort, built_in, create_by)
+VALUES
+    (1600, 'SysDictType', '字典类型', 'system:dictType:page', 100, 2, '/system/dictType', 'system/dictType/index', 0, 60, 1, 1),
+    (1601, NULL, '字典类型详情', 'system:dictType:detail', 1600, 3, NULL, NULL, 0, 1, 1, 1),
+    (1602, NULL, '新增字典类型', 'system:dictType:add', 1600, 3, NULL, NULL, 0, 2, 1, 1),
+    (1603, NULL, '修改字典类型', 'system:dictType:update', 1600, 3, NULL, NULL, 0, 3, 1, 1),
+    (1604, NULL, '删除字典类型', 'system:dictType:delete', 1600, 3, NULL, NULL, 0, 4, 1, 1),
+    (1605, NULL, '导出字典类型', 'system:dictType:export', 1600, 3, NULL, NULL, 0, 5, 1, 1),
+    (1606, NULL, '重置字典缓存', 'system:dictType:reset', 1600, 3, NULL, NULL, 0, 6, 1, 1),
+    (1700, 'SysDictData', '字典数据', 'system:dictData:page', 100, 2, '/system/dictData/:type', 'system/dictData/index', 1, 61, 1, 1),
+    (1701, NULL, '字典数据详情', 'system:dictData:detail', 1700, 3, NULL, NULL, 0, 1, 1, 1),
+    (1702, NULL, '新增字典数据', 'system:dictData:add', 1700, 3, NULL, NULL, 0, 2, 1, 1),
+    (1703, NULL, '修改字典数据', 'system:dictData:update', 1700, 3, NULL, NULL, 0, 3, 1, 1),
+    (1704, NULL, '删除字典数据', 'system:dictData:delete', 1700, 3, NULL, NULL, 0, 4, 1, 1),
+    (1705, NULL, '导出字典数据', 'system:dictData:export', 1700, 3, NULL, NULL, 0, 5, 1, 1);
+
+-- 为内置超级管理员补齐授权关系，其他角色按需分配。
+INSERT INTO sys_role_permission (id, role_id, permission_id, create_by)
+SELECT 160000 + id, 1, id, 1
+FROM sys_permission
+WHERE id IN (1600, 1601, 1602, 1603, 1604, 1605, 1606, 1700, 1701, 1702, 1703, 1704, 1705);

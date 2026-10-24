@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useLogin } from '@/views/login/hooks/useLogin.ts'
-import { loginRules } from '@/views/login/hooks/rule.ts'
+import {useLogin} from '@/views/login/hooks/useLogin.ts'
+import {loginRules} from '@/views/login/hooks/rule.ts'
 import systemSetting from '@/config/SystemSetting.ts'
 
 defineOptions({
@@ -8,7 +8,6 @@ defineOptions({
 })
 
 const {
-  isMockEnabled,
   formRef,
   form,
   captcha,
@@ -27,7 +26,7 @@ const {
     <div class="login-container">
       <header class="login-header">
         <div class="login-brand">
-          <img src="@/assets/images/logo.png" alt="" width="36" height="36" />
+          <img src="@/assets/images/logo.png" alt="logo"/>
           <span>{{ systemSetting.title }}</span>
         </div>
         <span class="login-header-caption">工作，从这里开始</span>
@@ -35,16 +34,13 @@ const {
       <main class="login-main">
         <section class="login-intro" aria-labelledby="login-intro-title">
           <p class="login-eyebrow"><span aria-hidden="true"></span> 简单一点，专注更多</p>
-          <h1 id="login-intro-title">让工作有序，<br /><span>让灵感发生。</span></h1>
+          <h1 id="login-intro-title">让工作有序，<br/><span>让灵感发生。</span></h1>
           <p class="login-description">{{ systemSetting.description }}</p>
           <p class="login-note">留一点从容，给每一个新的开始。</p>
         </section>
         <div class="login-panel">
           <n-card class="login-box" hoverable>
             <h2>{{ systemSetting.title }}</h2>
-            <n-alert v-if="isMockEnabled" type="info" :show-icon="false" class="mock-hint">
-              本地测试模式：账号 admin，密码 admin123，验证码 0003
-            </n-alert>
             <n-form
               ref="formRef"
               :label-width="80"
@@ -59,10 +55,11 @@ const {
                 <n-input
                   v-model:value="form.username"
                   placeholder="用户名"
-                  :input-props="{ autocomplete: 'username' }"
+                  :maxlength="32"
+                  :input-props="{ autocomplete: 'username', 'aria-label': '用户名' }"
                 >
                   <template #prefix>
-                    <n-icon :component="userIcon" />
+                    <n-icon :component="userIcon"/>
                   </template>
                 </n-input>
               </n-form-item>
@@ -72,10 +69,11 @@ const {
                   v-model:value="form.password"
                   placeholder="密码"
                   show-password-on="mousedown"
-                  :input-props="{ autocomplete: 'current-password' }"
+                  :maxlength="72"
+                  :input-props="{ autocomplete: 'current-password', 'aria-label': '密码' }"
                 >
                   <template #prefix>
-                    <n-icon :component="passwordIcon" />
+                    <n-icon :component="passwordIcon"/>
                   </template>
                 </n-input>
               </n-form-item>
@@ -85,10 +83,10 @@ const {
                     v-model:value="form.captchaCode"
                     placeholder="验证码"
                     :maxlength="4"
-                    :input-props="{ autocomplete: 'off' }"
+                    :input-props="{ autocomplete: 'off', 'aria-label': '验证码', spellcheck: false }"
                   >
                     <template #prefix>
-                      <n-icon :component="captchaIcon" />
+                      <n-icon :component="captchaIcon"/>
                     </template>
                   </n-input>
                   <button
@@ -110,20 +108,22 @@ const {
                       :class="{ 'captcha-image-loading': captchaLoading }"
                     >
                       <template #placeholder>
-                        <n-skeleton width="100px" height="34px" />
+                        <n-skeleton width="100px" height="34px"/>
                       </template>
                       <template #error>
                         <span class="captcha-retry">点击重试</span>
                       </template>
                     </n-image>
-                    <n-skeleton v-else-if="captchaLoading" width="100px" height="34px" />
-                    <span v-else class="captcha-retry">点击重试</span>
+                    <n-skeleton v-else-if="captchaLoading" width="100px" height="34px"/>
+                    <span v-else class="captcha-retry" aria-live="polite">
+                      点击重试
+                    </span>
                     <span
                       v-if="captcha && captchaLoading"
                       class="captcha-loading"
                       aria-hidden="true"
                     >
-                      <n-spin :size="16" />
+                      <n-spin :size="16"/>
                     </span>
                   </button>
                 </n-space>
@@ -139,7 +139,8 @@ const {
                   style="width: 100%"
                   :loading="spinShow"
                   :disabled="captchaLoading || !form.uuid"
-                  >登录</n-button
+                >登录
+                </n-button
                 >
               </n-form-item>
             </n-form>
@@ -148,7 +149,6 @@ const {
         </div>
       </main>
       <footer class="login-footer">
-        <span class="login-footer-caption">以简驭繁 · 自在有序</span>
         <span class="copyright">{{ systemSetting.copyright }}</span>
       </footer>
     </div>
@@ -163,22 +163,19 @@ const {
   grid-template-rows: auto 1fr auto;
   box-sizing: border-box;
   min-height: 100vh;
-  min-height: 100svh;
   overflow: clip;
   padding: 32px clamp(24px, 5vw, 88px) 24px;
   color: #253d34;
-  background:
-    radial-gradient(ellipse at 6% 85%, #dfede2 0, transparent 48%),
-    radial-gradient(ellipse at 94% 12%, #e4efe5 0, transparent 42%), #f6f8f4;
+  background: radial-gradient(ellipse at 6% 85%, #dfede2 0, transparent 48%),
+  radial-gradient(ellipse at 94% 12%, #e4efe5 0, transparent 42%), #f6f8f4;
   line-height: 1.5;
 
   &::before {
     position: absolute;
     z-index: -1;
     inset: 0;
-    background-image:
-      linear-gradient(#668b7410 1px, transparent 1px),
-      linear-gradient(90deg, #668b7410 1px, transparent 1px);
+    background-image: linear-gradient(#668b7410 1px, transparent 1px),
+    linear-gradient(90deg, #668b7410 1px, transparent 1px);
     background-size: 64px 64px;
     mask-image: linear-gradient(135deg, #0009, transparent 65%);
     content: '';
@@ -193,9 +190,8 @@ const {
     height: 760px;
     border: 1px solid #8aaa8424;
     border-radius: 50%;
-    box-shadow:
-      0 0 0 72px #8aaa8408,
-      0 0 0 144px #8aaa8405;
+    box-shadow: 0 0 0 72px #8aaa8408,
+    0 0 0 144px #8aaa8405;
     content: '';
   }
 }
@@ -217,9 +213,8 @@ const {
   letter-spacing: -0.5px;
 
   img {
-    border: 1px solid #e5ebe4;
-    border-radius: 10px;
-    background: #fff;
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -331,14 +326,12 @@ const {
   border: 1px solid #fff;
   border-radius: 20px;
   background: #ffffffed;
-  box-shadow:
-    0 24px 64px -24px #34583a30,
-    0 4px 16px #34583a05;
+  box-shadow: 0 24px 64px -24px #34583a30,
+  0 4px 16px #34583a05;
 
   &:hover {
-    box-shadow:
-      0 24px 64px -24px #34583a30,
-      0 4px 16px #34583a05;
+    box-shadow: 0 24px 64px -24px #34583a30,
+    0 4px 16px #34583a05;
   }
 
   :deep(.n-input__placeholder) {
@@ -403,13 +396,14 @@ const {
     font-size: 12px;
   }
 
-  .mock-hint {
-    margin-bottom: 20px;
-  }
 }
 
 .login-button {
   width: 100%;
+}
+
+.login-footer {
+  justify-content: flex-end;
 }
 
 .copyright {
@@ -455,8 +449,7 @@ const {
     letter-spacing: 2px;
   }
 
-  .login-note,
-  .login-footer-caption {
+  .login-note {
     display: none;
   }
 

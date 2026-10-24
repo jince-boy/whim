@@ -10,19 +10,9 @@ export interface ApiResponse<T = unknown> {
   data: T
 }
 
-// 模拟接口需显式开启，开发和生产默认使用真实接口。
-export const isMockEnabled = import.meta.env.VITE_USE_MOCK === 'true'
-
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
-  // 在传输层替换请求，普通请求、下载和直接使用实例的调用均不会访问后端。
-  adapter: isMockEnabled
-    ? async (config) => {
-        const { mockAdapter } = await import('@/mock')
-        return mockAdapter(config)
-      }
-    : undefined,
 })
 
 let redirectingToLogin = false

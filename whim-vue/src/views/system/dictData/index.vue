@@ -16,7 +16,6 @@ const {
   openEditDialog,
   removeDictDataBatch,
   backDictTypePage,
-  exportExcel,
 } = useDictData(props)
 </script>
 
@@ -27,7 +26,6 @@ const {
       @add="openAddDialog"
       @edit="openEditDialog"
       @delete="removeDictDataBatch"
-      @export="exportExcel"
     >
       <template #search>
         <n-form-item-gi label="字典标签" path="label">

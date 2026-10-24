@@ -21,8 +21,8 @@ defineExpose({
     :rules="dictDataRules"
     require-mark-placement="left"
   >
-    <n-form-item label="字典类型" path="dictType">
-      <n-input v-model:value="formModel.dictType" disabled placeholder="请输入字典类型" />
+    <n-form-item label="字典类型" path="type">
+      <n-input v-model:value="formModel.type" disabled placeholder="请输入字典类型" />
     </n-form-item>
     <n-form-item label="数据标签" path="label">
       <n-input v-model:value="formModel.label" placeholder="请输入数据标签" />

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInt
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.mybatisplus.handler.AutoFillFieldHandler;
+import com.whim.mybatisplus.handler.LogicDeleteAuditInterceptor;
 import com.whim.mybatisplus.permission.DataPermissionAspect;
 import com.whim.mybatisplus.permission.DataPermissionInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -34,6 +35,12 @@ public class MybatisPlusConfiguration {
     @Bean
     public DataPermissionAspect dataPermissionAspect(AuthenticationContext authenticationContext) {
         return new DataPermissionAspect(authenticationContext);
+    }
+
+    /** 按 Mapper 操作识别逻辑删除，使按 ID 和批量删除能够填充删除审计字段。 */
+    @Bean
+    public LogicDeleteAuditInterceptor logicDeleteAuditInterceptor() {
+        return new LogicDeleteAuditInterceptor();
     }
 
     /** 从统一认证抽象填充操作者与时间，不将审计字段作为业务归属。 */
