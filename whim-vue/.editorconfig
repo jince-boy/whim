@@ -7,3 +7,11 @@ trim_trailing_whitespace = true
 
 end_of_line = lf
 max_line_length = 100
+
+# Vue 模板的开始标签及其属性保持在同一行，由 JetBrains 内置格式化器处理。
+[*.vue]
+ij_wrap_on_typing = false
+ij_html_attribute_wrap = off
+ij_html_new_line_before_first_attribute = never
+ij_html_new_line_after_last_attribute = never
+ij_html_keep_line_breaks = false

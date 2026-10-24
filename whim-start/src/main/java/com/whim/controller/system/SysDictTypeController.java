@@ -1,15 +1,19 @@
 package com.whim.controller.system;
 
 import com.whim.core.exception.ServiceException;
+import com.whim.excel.utils.ExcelBuilder;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.dict.SysDictTypeAddDTO;
+import com.whim.system.model.dto.dict.SysDictTypeExportDTO;
 import com.whim.system.model.dto.dict.SysDictTypeQueryDTO;
 import com.whim.system.model.dto.dict.SysDictTypeUpdateDTO;
+import com.whim.system.model.vo.dict.SysDictTypeExportVO;
 import com.whim.system.model.vo.dict.SysDictTypeVO;
 import com.whim.system.service.ISysDictTypeService;
 import com.whim.web.model.Result;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
@@ -100,6 +104,16 @@ public class SysDictTypeController {
     }
 
     /**
+     * 按筛选条件导出字典类型。
+     */
+    @PostMapping("/export")
+    @SystemCheckPermission("system:dictType:export")
+    public void exportDictType(@Valid @RequestBody SysDictTypeExportDTO query, HttpServletResponse response) {
+        List<SysDictTypeExportVO> list = dictService.getDictTypeExportList(query);
+        ExcelBuilder.of(list, SysDictTypeExportVO.class).sheetName("字典类型").toResponse(response);
+    }
+
+    /**
      * 清除字典类型和字典数据缓存。
      */
     @DeleteMapping("/reset")
@@ -108,5 +122,4 @@ public class SysDictTypeController {
         dictService.resetDictCache();
         return Result.success("字典缓存重置成功");
     }
-
 }

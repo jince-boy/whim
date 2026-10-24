@@ -12,6 +12,11 @@
     <artifactId>whim-start</artifactId>
 
     <dependencies>
+        <!-- Excel 导入导出 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-excel</artifactId>
+        </dependency>
         <!-- 文件存储 -->
         <dependency>
             <groupId>com.whim</groupId>

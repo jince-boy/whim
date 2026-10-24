@@ -13,6 +13,11 @@
     <description>系统业务模块</description>
 
     <dependencies>
+        <!-- Excel 业务模型注解和导入导出能力 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-excel</artifactId>
+        </dependency>
         <!-- 核心模块 -->
         <dependency>
             <groupId>com.whim</groupId>

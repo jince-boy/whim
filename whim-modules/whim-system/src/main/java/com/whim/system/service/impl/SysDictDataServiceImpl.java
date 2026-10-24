@@ -10,10 +10,12 @@ import com.whim.redis.utils.CacheUtils;
 import com.whim.system.mapper.SysDictDataMapper;
 import com.whim.system.mapper.SysDictTypeMapper;
 import com.whim.system.model.dto.dict.SysDictDataAddDTO;
+import com.whim.system.model.dto.dict.SysDictDataExportDTO;
 import com.whim.system.model.dto.dict.SysDictDataQueryDTO;
 import com.whim.system.model.dto.dict.SysDictDataUpdateDTO;
 import com.whim.system.model.entity.SysDictData;
 import com.whim.system.model.entity.SysDictType;
+import com.whim.system.model.vo.dict.SysDictDataExportVO;
 import com.whim.system.model.vo.dict.SysDictDataVO;
 import com.whim.system.service.ISysDictDataService;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +80,24 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
         lambdaQueryWrapper.eq(SysDictData::getType, type);
         lambdaQueryWrapper.orderByAsc(SysDictData::getSort, SysDictData::getId);
         return BeanConvertUtils.convertList(this.list(lambdaQueryWrapper), SysDictDataVO.class);
+    }
+
+    /**
+     * 查询指定字典类型的数据导出列表。
+     *
+     * @param query 查询参数
+     * @return 字典数据导出列表
+     */
+    @Override
+    public List<SysDictDataExportVO> getDictDataExportList(SysDictDataExportDTO query) {
+        LambdaQueryWrapper<SysDictData> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDictData::getType, query.getType());
+        wrapper.eq(StringUtils.isNotBlank(query.getLabel()), SysDictData::getLabel, query.getLabel());
+        wrapper.select(SysDictData::getId, SysDictData::getType, SysDictData::getLabel,
+                SysDictData::getValue, SysDictData::getListClass, SysDictData::getSort,
+                SysDictData::getRemark, SysDictData::getCreateTime, SysDictData::getUpdateTime);
+        wrapper.orderByAsc(SysDictData::getSort, SysDictData::getId);
+        return BeanConvertUtils.convertList(this.list(wrapper), SysDictDataExportVO.class);
     }
 
     /**

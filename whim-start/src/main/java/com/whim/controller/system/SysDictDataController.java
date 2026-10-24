@@ -1,14 +1,18 @@
 package com.whim.controller.system;
 
+import com.whim.excel.utils.ExcelBuilder;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.dict.SysDictDataAddDTO;
+import com.whim.system.model.dto.dict.SysDictDataExportDTO;
 import com.whim.system.model.dto.dict.SysDictDataQueryDTO;
 import com.whim.system.model.dto.dict.SysDictDataUpdateDTO;
+import com.whim.system.model.vo.dict.SysDictDataExportVO;
 import com.whim.system.model.vo.dict.SysDictDataVO;
 import com.whim.system.service.ISysDictDataService;
 import com.whim.web.model.Result;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -83,4 +87,13 @@ public class SysDictDataController {
         return Result.success("字典数据删除成功");
     }
 
+    /**
+     * 导出指定字典类型的数据。
+     */
+    @PostMapping("/export")
+    @SystemCheckPermission("system:dictData:export")
+    public void exportDictData(@Valid @RequestBody SysDictDataExportDTO query, HttpServletResponse response) {
+        List<SysDictDataExportVO> list = dictService.getDictDataExportList(query);
+        ExcelBuilder.of(list, SysDictDataExportVO.class).sheetName("字典数据").toResponse(response);
+    }
 }

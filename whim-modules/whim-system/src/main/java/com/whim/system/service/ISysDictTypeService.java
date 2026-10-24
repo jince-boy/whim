@@ -3,10 +3,12 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.model.dto.dict.SysDictTypeAddDTO;
+import com.whim.system.model.dto.dict.SysDictTypeExportDTO;
 import com.whim.system.model.dto.dict.SysDictTypeQueryDTO;
 import com.whim.system.model.dto.dict.SysDictTypeUpdateDTO;
 import com.whim.system.model.entity.SysDictType;
 import com.whim.system.model.vo.dict.SysDictDataVO;
+import com.whim.system.model.vo.dict.SysDictTypeExportVO;
 import com.whim.system.model.vo.dict.SysDictTypeVO;
 
 import java.util.List;
@@ -47,6 +49,14 @@ public interface ISysDictTypeService extends IService<SysDictType> {
      * @return 字典类型列表
      */
     List<SysDictTypeVO> getDictTypeList();
+
+    /**
+     * 查询字典类型导出列表。
+     *
+     * @param query 查询参数
+     * @return 字典类型导出列表
+     */
+    List<SysDictTypeExportVO> getDictTypeExportList(SysDictTypeExportDTO query);
 
     /**
      * 添加字典类型。
