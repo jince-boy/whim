@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 import type { FormRules } from 'naive-ui'
 import type { MenuSave } from './types'
-/** 校验只约束当前类型的字段，后端再次核验路径、唯一性和父子关系。 */
+/** 前端校验输入格式，权限标识可选；后端维护唯一性和父子关系。 */
 export function createMenuRules(model: Ref<MenuSave>): FormRules {
   return {
     menuName: [{ required: true, message: '请输入菜单名称', trigger: 'blur', max: 64 }],
@@ -19,21 +19,29 @@ export function createMenuRules(model: Ref<MenuSave>): FormRules {
       {
         validator: () =>
           ![2, 3].includes(model.value.menuType) ||
-          /^[a-z][A-Za-z0-9]*(?::[a-z][A-Za-z0-9]*){2,}$/.test(model.value.perms || ''),
-        message: '请输入精确权限标识，例如system:menu:list',
+          !model.value.perms?.trim() ||
+          /^[a-z][A-Za-z0-9]*(?::[a-z][A-Za-z0-9]*){2,}$/.test(model.value.perms.trim()),
+        message: '权限标识可留空，填写时例如system:menu:list',
         trigger: 'blur',
       },
     ],
     path: [
       {
-        validator: () =>
-          model.value.menuType === 3 ||
-          (model.value.menuType === 4
-            ? /^https?:\/\/[^\s]+$/.test(model.value.path || '')
-            : /^\/(?:[a-z][A-Za-z0-9]*|:[a-z][A-Za-z0-9]*)(?:\/(?:[a-z][A-Za-z0-9]*|:[a-z][A-Za-z0-9]*))*$/.test(
-                model.value.path || '',
-              )),
-        message: '请输入小驼峰绝对路由路径，外链须使用HTTP或HTTPS',
+        validator: () => {
+          if (model.value.menuType === 3) return true
+          const path = model.value.path?.trim()
+          if (!path) return false
+          if (model.value.menuType !== 4) return true
+          try {
+            const address = new URL(path)
+            return (
+              ['http:', 'https:'].includes(address.protocol) && !address.username && !address.password
+            )
+          } catch {
+            return false
+          }
+        },
+        message: '请输入路由地址，外链须使用有效的HTTP或HTTPS地址',
         trigger: 'blur',
       },
     ],

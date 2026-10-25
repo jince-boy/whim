@@ -4,13 +4,13 @@ import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
 import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog'
-import { useDict } from '@/components/dict/useDict.ts'
-const { dictData: sysStatusOptions, getDictData: getDictStatusData } =
-  await useDict('sys_result_status')
-const { dictData: sysOperTypeOptions, getDictData: getDictOperTypeData } =
-  await useDict('sys_oper_type')
+import { useDict } from '@/hooks/useDict'
 /** 配置注册式列表并处理操作日志业务操作。 */
 export function useOperLog() {
+  const { dictData: sysStatusOptions, getDictData: getDictStatusData } =
+    useDict('sys_result_status')
+  const { dictData: sysOperTypeOptions, getDictData: getDictOperTypeData } =
+    useDict('sys_oper_type')
   const { openDeleteDialog } = useFormDialog()
   const showModal = ref(false)
   const currentOperLog: Ref<OperLog | null> = ref(null)

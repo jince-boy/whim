@@ -361,7 +361,9 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException exception,
             HttpServletRequest request
     ) {
-        log.warn("请求 [{} {}] 的请求体不可读：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        // 反序列化异常可能携带解密后的字段值，日志仅记录异常类型。
+        log.warn("请求 [{} {}] 的请求体不可读，异常类型={}",
+                request.getMethod(), request.getRequestURI(), exception.getClass().getSimpleName());
         return Result.error(HttpStatus.BAD_REQUEST, "请求体格式错误或缺少必要字段");
     }
 

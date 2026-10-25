@@ -13,6 +13,11 @@
     <description>web模块</description>
 
     <dependencies>
+        <!-- RSA 请求解密的分布式限流 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-redis</artifactId>
+        </dependency>
         <!-- Spring 数据访问异常抽象，统一映射唯一约束冲突 -->
         <dependency>
             <groupId>org.springframework</groupId>

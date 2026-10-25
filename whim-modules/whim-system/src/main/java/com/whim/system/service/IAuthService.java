@@ -32,6 +32,8 @@ public interface IAuthService {
      */
     void logout();
 
-    /** 获取当前用户信息并刷新当前令牌的授权快照。 */
+    /**
+     * 获取当前用户信息并刷新当前令牌的授权快照。
+     */
     AuthUserVO getUserInfo();
 }

@@ -13,6 +13,11 @@
     <description>通用核心模块</description>
 
    <dependencies>
+       <!-- 标准 JWE 加解密基础能力 -->
+       <dependency>
+           <groupId>com.nimbusds</groupId>
+           <artifactId>nimbus-jose-jwt</artifactId>
+       </dependency>
        <!-- SpringWeb模块 -->
        <dependency>
            <groupId>org.springframework</groupId>

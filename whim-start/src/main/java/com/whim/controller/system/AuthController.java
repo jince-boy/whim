@@ -1,11 +1,13 @@
 package com.whim.controller.system;
 
+import com.whim.core.annotation.RequestDecrypt;
 import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.utils.IPUtils;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
+import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,12 +44,14 @@ public class AuthController {
     }
 
     /**
-     * 用户登录并返回认证信息。
+     * 解密并校验登录参数后返回认证信息，密码保持原始字符。
      *
      * @param loginDTO 登录参数
      * @return 登录结果
      */
     @PostMapping("/login")
+    @RequestDecrypt
+    @XssIgnore
     public Result<AuthenticationToken> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
         return Result.success("登录成功", authService.login(loginDTO));
     }

@@ -50,7 +50,9 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:whim}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    # 使用 TLS 完成 caching_sha2_password 认证，避免首次连接或认证缓存失效后公钥获取失败。
+    # 部署环境可通过 MYSQL_SSL_MODE=VERIFY_IDENTITY 启用服务器证书及主机名校验。
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:whim}?useUnicode=true&characterEncoding=utf8&sslMode=${MYSQL_SSL_MODE:REQUIRED}&serverTimezone=UTC
     username: ${MYSQL_USER:root}
     password: ${MYSQL_PASSWORD:root}
     hikari:
@@ -82,6 +84,9 @@ spring:
   # Redis
   data:
     redis:
+      # 使用 Redisson 访问 Redis，无需扫描 Spring Data Redis Repository 接口。
+      repositories:
+        enabled: false
       host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6379}
       #      password: ${REDIS_PASSWD:}
@@ -144,6 +149,17 @@ sa-token:
     - /system/auth/captcha
     - /system/auth/login
     - /error
+
+# 请求加密：配置后正常启动即可，无需执行密钥生成脚本。
+whim:
+  request-encryption:
+    # RSA 私钥（至少 3072 位）：PKCS#8 DER 的单行 Base64 字符串，不带头尾标记或换行，不可留空。
+    # 前端 VITE_REQUEST_ENCRYPTION_PUBLIC_KEY 配置对应 SPKI DER 公钥的单行 Base64 字符串。
+    # 直接在此填写私钥；生成新密钥：node scripts/generateRequestKey.mjs，并同步更新前端公钥。
+    private-key: "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"
+    # JSON 请求体上限，密文按整个 encryptedData 包装体的字节数计算。
+    max-body-bytes: 65536
+    requests-per-minute: 120
 
 # Mybatis plus
 mybatis-plus:

@@ -141,6 +141,7 @@ export function useMenu() {
       align: 'center',
       render(row: object) {
         const node = row as MenuItem
+        const homeMenu = node.builtIn === 1 && node.perms === 'system:home:view'
         return h(NSpace, { justify: 'center' }, () => [
           canCreate.value && [1, 2].includes(node.menuType)
             ? h(
@@ -156,18 +157,20 @@ export function useMenu() {
                 () => '修改',
               )
             : null,
-          can('system:menu:delete') && userStore.roleCode.includes('superadmin')
+          can('system:menu:delete')
             ? h(
                 NButton,
                 {
                   text: true,
                   type: 'error',
-                  disabled: node.protectedNode || !!node.children?.length,
-                  title: node.protectedNode
-                    ? '核心管理节点不能删除'
-                    : node.children?.length
-                      ? '请先删除所有子节点'
-                      : '删除菜单及关联授权',
+                  disabled: homeMenu || node.protectedNode || !!node.children?.length,
+                  title: homeMenu
+                    ? '系统内置首页不能删除'
+                    : node.protectedNode
+                      ? '核心管理节点不能删除'
+                      : node.children?.length
+                        ? '请先删除所有子节点'
+                        : '删除菜单及关联授权',
                   onClick: () => removeMenu(node),
                 },
                 () => '删除',
@@ -190,7 +193,8 @@ export function useMenu() {
       showColumns: true,
       showFullscreen: true,
     },
-    request: fetchMenuList,
+    // 编辑需要完整父菜单目录，搜索条件只用于下面的展示过滤。
+    request: () => fetchMenuList(),
     /** 仅转换展示树，搜索结果保留祖先和匹配目录的子树。 */
     transformData: (nodes, query) => {
       const keyword = query.menuName.trim()

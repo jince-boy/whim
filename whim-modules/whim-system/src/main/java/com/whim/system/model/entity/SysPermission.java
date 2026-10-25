@@ -44,7 +44,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String perms;
 
-    /** 内置定义不能改变授权语义；核心管理节点以外允许删除。 */
+    /** 内置定义不能改变授权语义；内置首页和核心管理节点不能删除。 */
     private Integer builtIn;
 
     /**
@@ -112,6 +112,15 @@ public class SysPermission extends BaseEntity implements Serializable {
      */
     @TableLogic
     private Long deleted;
+
+    /**
+     * 判断菜单是否为不能删除或停用的核心管理节点。
+     *
+     * @return true表示核心菜单管理节点
+     */
+    public boolean isProtectedNode() {
+        return Integer.valueOf(1).equals(builtIn) && perms != null && perms.startsWith("system:menu:");
+    }
 
 }
 

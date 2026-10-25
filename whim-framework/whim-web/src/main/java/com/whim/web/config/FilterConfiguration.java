@@ -29,7 +29,7 @@ public class FilterConfiguration {
         registrationBean.setFilter(new XssFilter(handlerMapping));
         registrationBean.setName("xssFilter");
         registrationBean.addUrlPatterns("/*");
-        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return registrationBean;
     }
 }

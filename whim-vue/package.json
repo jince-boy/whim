@@ -26,6 +26,7 @@
     "dayjs": "^1.11.23",
     "file-saver": "^2.0.5",
     "highlight.js": "^11.12.0",
+    "jose": "6.2.13",
     "pinia": "^4.0.3",
     "screenfull": "^6.0.2",
     "tinycolor2": "^1.6.0",

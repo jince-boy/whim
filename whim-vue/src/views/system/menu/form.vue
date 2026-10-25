@@ -87,7 +87,7 @@ defineExpose({
           v-model:value="formModel.perms"
           :disabled="semanticsLocked"
           type="text"
-          placeholder="请输入权限标识"
+          placeholder="可留空，例如system:menu:list"
         />
       </n-form-item-gi>
       <n-form-item-gi

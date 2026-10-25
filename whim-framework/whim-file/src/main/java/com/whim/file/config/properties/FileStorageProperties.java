@@ -38,15 +38,12 @@ public class FileStorageProperties {
     /** 云存储单次 HTTP 请求总时限；普通上传另在输入读取前后检查同样的时间预算。 */
     @NotNull
     private Duration requestTimeout = Duration.ofMinutes(5);
-    @Valid
     @NotNull
-    private List<LocalStorageProperties> local = new ArrayList<>();
-    @Valid
+    private List<@Valid LocalStorageProperties> local = new ArrayList<>();
     @NotNull
-    private List<CloudStorageProperties> minio = new ArrayList<>();
-    @Valid
+    private List<@Valid CloudStorageProperties> minio = new ArrayList<>();
     @NotNull
-    private List<CloudStorageProperties> aliyunOss = new ArrayList<>();
+    private List<@Valid CloudStorageProperties> aliyunOss = new ArrayList<>();
     /** 允许抓取的精确主机名；空集合禁用 URI 上传，不支持通配符及重定向。 */
     @NotNull
     private Set<String> remoteAllowedHosts = Set.of();

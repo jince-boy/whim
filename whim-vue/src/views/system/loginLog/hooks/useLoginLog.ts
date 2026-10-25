@@ -4,10 +4,10 @@ import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from
 import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog'
-import { useDict } from '@/components/dict/useDict.ts'
-const { dictData: sysStatusOptions, getDictData } = await useDict('sys_result_status')
+import { useDict } from '@/hooks/useDict'
 /** 配置注册式列表并处理登录日志业务操作。 */
 export function useLoginLog() {
+  const { dictData: sysStatusOptions, getDictData } = useDict('sys_result_status')
   const { openDeleteDialog } = useFormDialog()
   const tableColumns: DataTableColumn<LoginLog>[] = [
     {

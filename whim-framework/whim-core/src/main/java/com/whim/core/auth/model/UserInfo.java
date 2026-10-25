@@ -62,6 +62,9 @@ public class UserInfo implements Serializable {
      */
     private Set<String> permissionCodeSet = new LinkedHashSet<>();
 
+    /** 角色直接授予的菜单ID，供导航使用；不通过父子关系扩大操作权限。 */
+    private Set<Long> menuIdSet = new LinkedHashSet<>();
+
     /** 精确权限码与授予该权限的角色ID集合，登录时构建。 */
     private Map<String, Set<Long>> permissionRoleIds = new LinkedHashMap<>();
 

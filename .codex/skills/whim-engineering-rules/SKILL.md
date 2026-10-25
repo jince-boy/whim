@@ -18,7 +18,7 @@ Do not make code look like generated AI code:
 
 ## Methods
 
-Write method comments for important code. Keep comments short and clear. Say what the method does; do not write long template comments.
+Follow the mandatory method-comment rules and example in the repository root [AGENTS.md](../../../AGENTS.md#方法注释规则强制). Every handwritten Java method needs multi-line Javadoc with a concise Chinese description, a blank `*` line before tags, `@param` for each declared parameter, and `@return` for non-void methods. Apply this to both interfaces and implementations, including private helpers. Do not substitute one-line comments or `{@inheritDoc}` for the required format.
 
 When adding or changing methods:
 

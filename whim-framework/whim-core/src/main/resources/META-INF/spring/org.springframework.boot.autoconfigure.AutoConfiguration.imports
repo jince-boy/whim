@@ -1,1 +1,2 @@
 com.whim.core.config.ThreadPoolAutoConfiguration
+com.whim.core.config.RequestEncryptionCoreAutoConfiguration

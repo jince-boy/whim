@@ -1,0 +1,105 @@
+{
+  "data": {
+    "id": 4294555,
+    "name": "whim",
+    "description": "",
+    "teamId": 2106563,
+    "statistics": {
+      "moduleCount": 1,
+      "endpointFolderCount": 4,
+      "schemaFolderCount": 0,
+      "testCaseCategoryCount": 5,
+      "testScenarioFolderCount": 0,
+      "testSuiteFolderCount": 0
+    },
+    "modules": [
+      {
+        "id": 3753331,
+        "name": "默认模块",
+        "type": "DEFAULT",
+        "updatedAt": "2025-06-07T20:35:53.000Z"
+      }
+    ],
+    "branches": [
+      {
+        "id": 3936950,
+        "name": "main",
+        "type": "SPRINT",
+        "isMain": true,
+        "isProtected": false,
+        "updatedAt": "2024-04-08T15:05:28.000Z"
+      }
+    ],
+    "endpointFolders": [
+      {
+        "id": 96766418,
+        "name": "认证",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-09-28 15:59:12"
+      },
+      {
+        "id": 98236679,
+        "name": "字典类型",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-10-25 17:37:00"
+      },
+      {
+        "id": 98236680,
+        "name": "字典数据",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-10-25 17:37:00"
+      },
+      {
+        "id": 98236681,
+        "name": "菜单权限",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-10-25 17:37:00"
+      }
+    ],
+    "schemaFolders": [],
+    "testCaseCategories": [
+      {
+        "id": 11742779,
+        "name": "正向",
+        "description": "有效的输入和正确的预期结果,代表典型的用法。",
+        "builtIn": true,
+        "updatedAt": "2026-07-03T05:49:59.000Z"
+      },
+      {
+        "id": 11742780,
+        "name": "负向",
+        "description": "消极的、无效的输入,如缺少字段、错误的类型、不支持的方法等。",
+        "builtIn": true,
+        "updatedAt": "2026-07-03T05:49:59.000Z"
+      },
+      {
+        "id": 11742781,
+        "name": "边界值",
+        "description": "极端或边缘条件,如最大字符串长度、空值、零、null等",
+        "builtIn": true,
+        "updatedAt": "2026-07-03T05:49:59.000Z"
+      },
+      {
+        "id": 11742782,
+        "name": "安全性",
+        "description": "可能暴露API安全性风险的测试用例。",
+        "builtIn": true,
+        "updatedAt": "2026-07-03T05:49:59.000Z"
+      },
+      {
+        "id": 11742783,
+        "name": "其他",
+        "description": "其他未归属的测试用例。",
+        "builtIn": true,
+        "updatedAt": "2026-07-03T05:49:59.000Z"
+      }
+    ],
+    "testScenarioFolders": [],
+    "testSuiteFolders": []
+  },
+  "fetchedAt": "2026-10-25T11:06:04.636Z"
+}

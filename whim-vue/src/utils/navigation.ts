@@ -45,17 +45,18 @@ export function buildNavigation(menus: MenuItem[]) {
         const external = menu.menuType === 4
         const key = external ? `external:${id}` : menu.routeName
         if (!key || !menu.path) throw new Error('菜单缺少路由名称或地址')
+        const path = external || menu.path.startsWith('/') ? menu.path : `/${menu.path}`
         if (names.has(key)) throw new Error('菜单路由名称重复')
         names.add(key)
         if (!external) {
-          if (paths.has(menu.path)) throw new Error('菜单路由地址重复')
-          paths.add(menu.path)
-        } else if (!/^https?:\/\//i.test(menu.path)) {
+          if (paths.has(path)) throw new Error('菜单路由地址重复')
+          paths.add(path)
+        } else if (!/^https?:\/\//i.test(path)) {
           throw new Error('菜单外链地址无效')
         }
         const visible = menu.visible === 0
         const directory = menu.menuType === 1
-        const breadcrumbs = [...ancestry, { title: menu.menuName, path: menu.path, name: key }]
+        const breadcrumbs = [...ancestry, { title: menu.menuName, path, name: key }]
         const children = directory
           ? resolveNodes(menu.children ?? [], breadcrumbs, visible ? key : visibleParentKey)
           : []
@@ -74,11 +75,11 @@ export function buildNavigation(menus: MenuItem[]) {
           ? firstNavigationTarget(children)
           : external
             ? undefined
-            : { path: menu.path, query }
+            : { path, query }
         const node: NavigationNode = {
           key,
           name: menu.menuName,
-          path: external ? menu.path : undefined,
+          path: external ? path : undefined,
           target,
           icon: menu.icon || undefined,
           visible,
@@ -100,7 +101,7 @@ export function buildNavigation(menus: MenuItem[]) {
         if (directory) {
           if (target)
             routes.push({
-              path: menu.path,
+              path,
               name: key,
               redirect: (to) => {
                 const location = target as { path: string; query?: LocationQueryRaw }
@@ -123,7 +124,7 @@ export function buildNavigation(menus: MenuItem[]) {
                   h(view, attrs),
             }),
           )
-          routes.push({ path: menu.path, name: key, component, props: true, meta })
+          routes.push({ path, name: key, component, props: true, meta })
         }
         return [node]
       })

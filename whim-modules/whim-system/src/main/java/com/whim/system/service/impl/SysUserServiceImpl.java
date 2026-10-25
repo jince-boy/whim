@@ -75,6 +75,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .collect(Collectors.toCollection(LinkedHashSet::new)));
         info.setPermissionRoleIds(permissionService.getPermissionRoleIds(roles));
         info.setPermissionCodeSet(new LinkedHashSet<>(info.getPermissionRoleIds().keySet()));
+        info.setMenuIdSet(permissionService.getMenuIdsByRoleIds(roles.stream().map(RoleInfo::getRoleId)
+                .collect(Collectors.toSet())));
 
         List<PostInfo> posts = baseMapper.getPostInfoListByUserId(user.getId());
         Set<Long> departmentIds = new LinkedHashSet<>();

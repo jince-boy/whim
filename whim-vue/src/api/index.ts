@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from '
 import { saveAs } from 'file-saver'
 import router from '@/router'
 import { useAuthStore } from '@/stores/modules/auth.ts'
+import { encryptRequest } from './requestEncryption'
 
 /** 接口统一响应结构。 */
 export interface ApiResponse<T = unknown> {
@@ -56,14 +57,15 @@ const handleUnauthorized = async (message: string) => {
   }
 }
 
-// 请求统一携带当前登录令牌。
+// 请求统一携带当前登录令牌，并自动加密 JSON 请求体。
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const authStore = useAuthStore()
     const token = authStore.getToken
     if (token) {
       config.headers.set('Authorization', `${authStore.tokenType} ${token}`)
     }
+    await encryptRequest(config)
     return config
   },
   (error) => {
@@ -89,6 +91,10 @@ axiosInstance.interceptors.response.use(
   },
   async (error: unknown) => {
     if (!axios.isAxiosError(error) || axios.isCancel(error)) throw error
+    if (error.code === 'ERR_REQUEST_ENCRYPTION') {
+      window.$message?.error(error.message)
+      throw error
+    }
     const body = error.response ? await readResponseBody(error.response) : undefined
     const unauthorized = error.response?.status === 401 || body?.code === 401
     let message = '网络连接失败，请检查网络'

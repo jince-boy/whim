@@ -1,4 +1,9 @@
 HELP.md
+# 本地环境配置：仅保留可提交的示例模板
+.env
+.env.*
+!.env.example
+
 **/data/files/
 target/
 node_modules/
