@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { message } from '@/plugins'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useUserStore } from '@/stores/modules/user'
 import { logout } from '@/views/login/hooks/api'
@@ -10,7 +10,6 @@ export function useUserMenu() {
   const authStore = useAuthStore()
   const userStore = useUserStore()
   const router = useRouter()
-  const message = useMessage()
   const signingOut = ref(false)
   const username = computed(() => userStore.user?.username || authStore.username || '用户')
   const displayName = computed(() => userStore.user?.name || username.value)

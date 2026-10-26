@@ -12,6 +12,7 @@ import type { InputInst } from 'naive-ui'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { getVisibleMenus, type SafeMenuOption } from '@/utils/menu'
 import type { MenuSearchItem } from './types'
+import { message } from '@/plugins'
 
 /** 管理可访问菜单的搜索、选中和导航，键盘操作仅由搜索输入框触发。 */
 export function useMenuSearch(show: Ref<boolean>) {
@@ -142,7 +143,7 @@ export function useMenuSearch(show: Ref<boolean>) {
         show.value = false
       }
     } catch {
-      window.$message?.error('页面打开失败，请稍后重试')
+      message.error('页面打开失败，请稍后重试')
     } finally {
       navigating.value = false
     }

@@ -210,6 +210,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   const tableProps = computed<DataTableProps>(() => {
     const nativeProps: Record<string, unknown> = { ...options.value }
     for (const key of [
+      'title',
       'request',
       'immediate',
       'search',
@@ -271,6 +272,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   })
 
   const binding: WhimTableBinding = {
+    title: computed(() => options.value.title ?? '数据列表'),
     tableProps,
     toolbar: computed(() => options.value.toolbar ?? {}),
     columnOptions,

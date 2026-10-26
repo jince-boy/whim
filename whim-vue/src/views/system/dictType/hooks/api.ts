@@ -1,5 +1,5 @@
-import { request, RequestMethod } from '@/api'
-import type { DictTypePageResult, DictTypeResult } from './types'
+import { downloadFile, request, RequestMethod } from '@/api'
+import type { DictTypePageResult, DictTypeQuery, DictTypeResult } from './types'
 
 /** 分页查询字典类型。 */
 export const fetchDictTypePage = (params: object) => {
@@ -29,4 +29,9 @@ export const deleteDictType = (params: object) => {
 /** 重置字典缓存。 */
 export const resetDictCache = () => {
   return request('/system/dictType/reset', RequestMethod.DELETE)
+}
+
+/** 导出符合查询条件的字典类型。 */
+export const exportDictType = (data: DictTypeQuery) => {
+  return downloadFile('/system/dictType/export', null, { method: RequestMethod.POST, data })
 }

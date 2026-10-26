@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Icon from '@/components/icon/Icon.vue'
 import SearchResults from './result.vue'
-import { useMenuSearch } from './hooks/useMenuSearch'
+import {useMenuSearch} from './hooks/useMenuSearch'
 
-defineOptions({ name: 'SearchComponent' })
+defineOptions({name: 'SearchComponent'})
 
-const show = defineModel<boolean>({ required: true })
+const show = defineModel<boolean>({required: true})
 const {
   inputRef,
   resultsContainer,
@@ -27,28 +27,11 @@ const {
 
 <template>
   <n-modal v-model:show="show" transform-origin="center" @after-enter="focusInput">
-    <n-card
-      class="menu-search"
-      :bordered="false"
-      content-style="padding: 0; display: flex; flex-direction: column; min-height: 0; overflow: hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-label="菜单搜索"
-    >
+    <n-card class="menu-search" :bordered="false" content-style="padding: 0; display: flex; flex-direction: column; min-height: 0; overflow: hidden" role="dialog" aria-modal="true" aria-label="菜单搜索">
       <div class="search-header">
-        <n-input
-          ref="inputRef"
-          v-model:value="value"
-          class="search-input"
-          size="large"
-          clearable
-          placeholder="搜索菜单名称或所属目录"
-          :input-props="inputProps"
-          :loading="navigating"
-          @keydown="handleKeyDown"
-        >
+        <n-input ref="inputRef" v-model:value="value" class="search-input" size="large" clearable placeholder="搜索菜单名称或所属目录" :input-props="inputProps" :loading="navigating" @keydown="handleKeyDown">
           <template #prefix>
-            <Icon name="search" :size="20" />
+            <Icon name="search" :size="20"/>
           </template>
         </n-input>
         <n-button quaternary size="small" aria-label="关闭菜单搜索" @click="show = false">
@@ -57,31 +40,19 @@ const {
       </div>
 
       <div ref="resultsContainer" class="results-container">
-        <SearchResults
-          :results="searchResults"
-          :active-index="activeIndex"
-          :list-id="listId"
-          :navigating="navigating"
-          @active-change="setActiveIndex"
-          @select="selectResult"
-        />
-        <n-empty
-          v-if="!searchResults.length"
-          class="search-empty"
-          :description="keyword ? '未找到匹配的菜单' : '输入关键词，快速前往菜单'"
-        />
+        <SearchResults :results="searchResults" :active-index="activeIndex" :list-id="listId" :navigating="navigating" @active-change="setActiveIndex" @select="selectResult"/>
+        <n-empty v-if="!searchResults.length" class="search-empty" :description="keyword ? '未找到匹配的菜单' : '输入关键词，快速前往菜单'"/>
       </div>
 
       <p :id="statusId" class="search-status" role="status" aria-live="polite" aria-atomic="true">
-        {{ statusText }}
-      </p>
+        {{ statusText }} </p>
       <div class="search-footer" aria-hidden="true">
         <span class="key-hint"><kbd>↑</kbd><kbd>↓</kbd> 切换</span>
         <span class="key-hint"><kbd>Enter</kbd> 打开</span>
         <span class="key-hint"><kbd>Esc</kbd> 关闭</span>
-        <span v-if="searchResults.length" class="result-count"
-          >{{ searchResults.length }} 个结果</span
-        >
+        <span v-if="searchResults.length" class="result-count">{{
+            searchResults.length
+          }} 个结果</span>
       </div>
     </n-card>
   </n-modal>

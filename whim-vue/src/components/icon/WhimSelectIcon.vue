@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NPopover, NScrollbar, useThemeVars } from 'naive-ui'
+import { NButton, NEmpty, NInput, NPopover, NSpin, NVirtualList, useThemeVars } from 'naive-ui'
 import Icon from './Icon.vue'
+import { getIconName } from './catalog'
 import { useSelectIcon, type SelectIconProps } from './hooks/useSelectIcon'
 
 defineOptions({ name: 'WhimSelectIcon', inheritAttrs: false })
 
 const props = withDefaults(defineProps<SelectIconProps>(), {
   placeholder: '请选择图标',
-  searchInputPlaceholder: '搜索图标名称或类名',
+  searchInputPlaceholder: '搜索中文或英文图标名称',
   disabled: undefined,
   clearable: true,
 })
@@ -20,11 +21,19 @@ const {
   size,
   disabled,
   status,
+  selectedName,
+  activeIndex,
+  loading,
+  loadFailed,
+  loadCatalog,
+  rowHeight,
   filteredIcons,
+  iconRows,
   updateShow,
   closePanel,
   selectIcon,
   focusGrid,
+  syncVisibleFocus,
   navigateGrid,
   nTriggerFormFocus,
   nTriggerFormBlur,
@@ -65,7 +74,7 @@ const {
             <span class="whim-select-icon__value">{{ iconValue }}</span>
           </template>
           <span v-else class="whim-select-icon__placeholder">{{ props.placeholder }}</span>
-          <span class="whim-select-icon__arrow" aria-hidden="true">⌄</span>
+          <Icon class="whim-select-icon__arrow" name="chevron-down" :size="16" />
         </button>
         <button
           v-if="props.clearable && iconValue"
@@ -75,12 +84,13 @@ const {
           aria-label="清空图标"
           @click.stop="selectIcon(null)"
         >
-          <span aria-hidden="true">×</span>
+          <Icon name="x" :size="16" />
         </button>
       </div>
     </template>
 
     <div
+      v-if="show"
       :id="panelId"
       class="whim-select-icon__panel"
       role="dialog"
@@ -97,30 +107,51 @@ const {
           @keydown.down.prevent="focusGrid"
         />
       </div>
-      <NScrollbar
-        style="max-height: min(300px, calc(100dvh - 160px))"
-        content-style="padding: 0 12px 12px; box-sizing: border-box"
+      <div class="whim-select-icon__count" role="status" aria-live="polite">
+        <template v-if="loading">正在加载图标目录…</template>
+        <template v-else>{{ keyword.trim() ? '找到' : '共' }} {{ filteredIcons.length }} 个图标</template>
+      </div>
+      <div v-if="loading" class="whim-select-icon__loading"><NSpin size="small" /></div>
+      <NEmpty v-else-if="loadFailed" size="small" description="图标目录加载失败" class="whim-select-icon__empty">
+        <template #extra><NButton size="small" @click="loadCatalog">重新加载</NButton></template>
+      </NEmpty>
+      <div
+        v-else-if="filteredIcons.length"
+        ref="gridRef"
+        class="whim-select-icon__grid"
+        @keydown="navigateGrid"
       >
-        <div
-          v-if="filteredIcons.length"
-          ref="gridRef"
-          class="whim-select-icon__grid"
-          @keydown="navigateGrid"
+        <NVirtualList
+          ref="virtualListRef"
+          :items="iconRows"
+          :item-size="rowHeight"
+          :padding-top="2"
+          :padding-bottom="4"
+          :style="{ height: `min(${Math.min(300, iconRows.length * rowHeight + 6)}px, calc(100dvh - 200px))` }"
+          @scroll="syncVisibleFocus"
         >
-          <NButton
-            v-for="icon in filteredIcons"
-            :key="icon.font_class"
-            class="whim-select-icon__option"
-            :type="iconValue === icon.font_class ? 'primary' : 'default'"
-            :aria-label="icon.name || icon.font_class"
-            :aria-pressed="iconValue === icon.font_class"
-            @click="selectIcon(icon.font_class)"
-          >
-            <Icon :name="icon.font_class" :size="22" />
-          </NButton>
-        </div>
-        <NEmpty v-else size="small" description="没有匹配的图标" class="whim-select-icon__empty" />
-      </NScrollbar>
+          <template #default="{ item }">
+            <div class="whim-select-icon__row" :style="{ height: `${rowHeight}px` }">
+              <NButton
+                v-for="(icon, index) in item.icons"
+                :key="icon.name"
+                class="whim-select-icon__option"
+                :type="selectedName === getIconName(icon.name) ? 'primary' : 'default'"
+                :aria-label="icon.label"
+                :title="`${icon.label}（${icon.name}）`"
+                :aria-pressed="selectedName === getIconName(icon.name)"
+                :data-icon-index="item.start + index"
+                :tabindex="activeIndex === item.start + index ? 0 : -1"
+                @focus="activeIndex = item.start + index"
+                @click="selectIcon(icon.name)"
+              >
+                <Icon :name="icon.name" :size="22" />
+              </NButton>
+            </div>
+          </template>
+        </NVirtualList>
+      </div>
+      <NEmpty v-else size="small" description="没有匹配的图标" class="whim-select-icon__empty" />
     </div>
   </NPopover>
 </template>
@@ -209,11 +240,20 @@ const {
 .whim-select-icon__search {
   padding: 12px;
 }
+.whim-select-icon__count {
+  padding: 0 14px 8px;
+  color: v-bind('theme.textColor3');
+  font-size: 12px;
+}
 .whim-select-icon__grid {
+  padding-bottom: 8px;
+}
+.whim-select-icon__row {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 8px;
-  padding: 2px;
+  box-sizing: border-box;
+  padding: 0 14px 8px;
 }
 .whim-select-icon__option {
   width: 100%;
@@ -222,5 +262,11 @@ const {
 }
 .whim-select-icon__empty {
   padding: 28px 0;
+}
+.whim-select-icon__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
 }
 </style>

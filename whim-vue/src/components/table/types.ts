@@ -52,6 +52,7 @@ export type WhimTableOptions<Row extends object, Query extends object> = Omit<
   | 'onFiltersChange'
   | 'onCheckedRowKeysChange'
 > & {
+  title?: string
   columns: MaybeRefOrGetter<DataTableColumns<Row>>
   rowKey: (row: Row) => DataTableRowKey
   request?: (query: Query & TablePageQuery) => Promise<ApiResponse<TablePage<Row> | Row[]>>
@@ -68,6 +69,7 @@ export type WhimTableOptions<Row extends object, Query extends object> = Omit<
 
 /** 组件消费的视图接口，业务泛型留在 hook 的公开 API 中。 */
 export interface WhimTableBinding {
+  title: ComputedRef<string>
   tableProps: ComputedRef<DataTableProps>
   toolbar: ComputedRef<TableToolbarOptions>
   columnOptions: ComputedRef<Array<{ key: DataTableRowKey; label: string }>>

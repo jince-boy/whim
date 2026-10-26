@@ -25,6 +25,11 @@ export const useTabStore = defineStore('tab', {
       state.tabs.map((tab) => ({ ...tab, focused: router.currentRoute.value.name === tab.name })),
   },
   actions: {
+    /** 退出或切换账号时清空访问记录和关闭状态。 */
+    clearTabs() {
+      this.tabs = []
+      this.closing = false
+    },
     /** 同一路由只保留一个标签，参数变化时记录最新可恢复地址。 */
     visitRoute(route: RouteLocationNormalized) {
       if (!route.meta.isTab || typeof route.name !== 'string') return

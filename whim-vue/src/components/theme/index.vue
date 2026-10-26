@@ -83,7 +83,7 @@ function handlePageTransitionChange(value: string): void {
       <n-divider>主题颜色</n-divider>
       <n-space vertical size="large">
         <n-color-picker
-          :value="themeStore.config.primaryColor"
+          :value="themeVars.primaryColor"
           :show-alpha="false"
           :modes="['hex']"
           @update:value="themeStore.setThemeColor"

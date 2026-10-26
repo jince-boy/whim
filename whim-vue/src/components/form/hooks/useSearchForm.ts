@@ -28,12 +28,16 @@ export function useSearchForm<Values extends object>(
   }
 
   const formProps = computed(() => {
-    const { defaultValues, grid, searchText, resetText, ...nativeProps } = options.value
+    const { title, collapsed, defaultValues, grid, searchText, resetText, ...nativeProps } =
+      options.value
+    void title
+    void collapsed
     void defaultValues
     void grid
     void searchText
     void resetText
     return {
+      size: 'medium' as const,
       labelWidth: 'auto',
       labelPlacement: 'left' as const,
       showFeedback: !!nativeProps.rules,
@@ -42,6 +46,8 @@ export function useSearchForm<Values extends object>(
     }
   })
   const binding = {
+    title: computed(() => options.value.title ?? '筛选条件'),
+    collapsed: computed(() => options.value.collapsed ?? false),
     formProps,
     gridProps: computed(() => ({
       xGap: 16,

@@ -1,1 +1,1 @@
-export { setupNaiveDiscreteApi } from '@/plugins/naiveDiscreteApi.ts'
+export { message, loadingBar } from './naiveDiscreteApi'

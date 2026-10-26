@@ -1,6 +1,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
-import { useMessage, type DropdownOption } from 'naive-ui'
+import type { DropdownOption } from 'naive-ui'
+import { message } from '@/plugins'
 import screenfull from 'screenfull'
 import { useIcon } from '@/components/icon/useIcon'
 import { usePermissionStore } from '@/stores/modules/permission'
@@ -11,7 +12,6 @@ export function useHeader() {
   const route = useRoute()
   const router = useRouter()
   const permissionStore = usePermissionStore()
-  const message = useMessage()
   const searchShowModal = ref(false)
   const themeShowModal = ref(false)
   const fullscreenEnabled = screenfull.isEnabled

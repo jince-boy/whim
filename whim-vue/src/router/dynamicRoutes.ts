@@ -1,17 +1,18 @@
-import { defineAsyncComponent, defineComponent, h, markRaw } from 'vue'
-import type { Component } from 'vue'
+import { defineComponent, h, type Component } from 'vue'
 import type { LocationQueryRaw, RouteLocationRaw, RouteRecordRaw } from 'vue-router'
-import type { MenuItem } from '@/views/system/menu/hooks/types'
+import { MenuType, type UserMenu } from '@/stores/modules/permission/types'
 import type { BreadcrumbItem, NavigationNode } from '@/types/navigation'
 
-const pageModules = import.meta.glob<{ default: Component }>('@/views/**/index.vue')
-export const componentOptions = Object.keys(pageModules)
-  .filter((path) => !/^\/src\/views\/(login|profile|error|unavailable)\//.test(path))
-  .map((path) => ({
-    label: path.slice('/src/views/'.length, -4),
-    value: path.slice('/src/views/'.length, -4),
-  }))
-const availableComponents = new Set(componentOptions.map((option) => option.value))
+// 构建期收集页面入口；账号入口和异常页只由固定路由加载。
+const modules = import.meta.glob<{ default: Component }>('/src/views/**/index.vue')
+const pageLoaders = new Map(
+  Object.entries(modules)
+    .filter(([path]) => !/^\/src\/views\/(login|profile|error|unavailable)\//.test(path))
+    .map(([path, loader]) => [path.slice('/src/views/'.length, -4), loader]),
+)
+
+/** 可供菜单配置使用的页面组件标识。 */
+export const pageComponentPaths = [...pageLoaders.keys()]
 
 /** 入口只从可见、组件已实现的内部页面中选择；以后独立首页配置也使用此授权范围。 */
 export function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw | undefined {
@@ -24,25 +25,25 @@ export function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw
 }
 
 /** 一次解析授权树，统一路由元数据、菜单目标和目录跳转，不在各组件重复解释后端字段。 */
-export function buildNavigation(menus: MenuItem[]) {
+export function buildNavigation(menus: UserMenu[]) {
   const routes: RouteRecordRaw[] = []
   const names = new Set<string>()
   const paths = new Set<string>()
   const ids = new Set<string>()
   /** 逐层建立导航；隐藏节点保留路由，按钮与停用分支不参与解析。 */
   function resolveNodes(
-    nodes: MenuItem[],
+    nodes: UserMenu[],
     ancestry: BreadcrumbItem[] = [],
     visibleParentKey?: string,
   ): NavigationNode[] {
     return [...nodes]
       .sort((a, b) => a.sort - b.sort)
       .flatMap((menu) => {
-        if (menu.status !== 0 || menu.menuType === 3) return []
+        if (menu.status !== 0 || menu.menuType === MenuType.BUTTON) return []
         const id = String(menu.id)
         if (ids.has(id)) throw new Error('菜单节点重复，请检查菜单配置')
         ids.add(id)
-        const external = menu.menuType === 4
+        const external = menu.menuType === MenuType.EXTERNAL
         const key = external ? `external:${id}` : menu.routeName
         if (!key || !menu.path) throw new Error('菜单缺少路由名称或地址')
         const path = external || menu.path.startsWith('/') ? menu.path : `/${menu.path}`
@@ -55,14 +56,15 @@ export function buildNavigation(menus: MenuItem[]) {
           throw new Error('菜单外链地址无效')
         }
         const visible = menu.visible === 0
-        const directory = menu.menuType === 1
+        const directory = menu.menuType === MenuType.DIRECTORY
         const breadcrumbs = [...ancestry, { title: menu.menuName, path, name: key }]
         const children = directory
           ? resolveNodes(menu.children ?? [], breadcrumbs, visible ? key : visibleParentKey)
           : []
-        const loader = availableComponents.has(menu.component ?? '')
-          ? pageModules[`/src/views/${menu.component}.vue`]
-          : undefined
+        // 兼容数据库已有的首页组件标识。
+        const componentPath =
+          menu.component === 'layout/default/index' ? 'home/index' : menu.component
+        const loader = componentPath ? pageLoaders.get(componentPath) : undefined
         const query: LocationQueryRaw = Object.create(null)
         new URLSearchParams(menu.param || '').forEach((value, name) => {
           const previous = query[name]
@@ -99,31 +101,31 @@ export function buildNavigation(menus: MenuItem[]) {
           menuKey: visible ? key : visibleParentKey,
         }
         if (directory) {
-          if (target)
-            routes.push({
-              path,
-              name: key,
-              redirect: (to) => {
-                const location = target as { path: string; query?: LocationQueryRaw }
-                return { ...location, query: { ...location.query, ...to.query }, hash: to.hash }
-              },
-              meta,
-            })
+          routes.push({
+            path,
+            name: key,
+            redirect: (to) => {
+              if (!target) return { path: '/noAccess' }
+              const location = target as { path: string; query?: LocationQueryRaw }
+              return { ...location, query: { ...location.query, ...to.query }, hash: to.hash }
+            },
+            meta,
+          })
         } else if (!external) {
-          const view = defineAsyncComponent(
-            loader ?? pageModules['/src/views/unavailable/index.vue']!,
-          )
-          // 名称与路由保持一致，独立控制每个页面的缓存；透传参数到实际页面。
-          const component = markRaw(
-            defineComponent({
+          // 路由懒加载完成后再导航；包装名称用于按菜单独立控制 KeepAlive。
+          const component = async () => {
+            const { default: view } = await (loader
+              ? loader()
+              : import('@/views/unavailable/index.vue'))
+            return defineComponent({
               name: key,
               inheritAttrs: false,
               setup:
                 (_, { attrs }) =>
                 () =>
                   h(view, attrs),
-            }),
-          )
+            })
+          }
           routes.push({ path, name: key, component, props: true, meta })
         }
         return [node]

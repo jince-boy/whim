@@ -1,36 +1,43 @@
-import type { UserState } from './user/types'
-import { getUserInfo } from './user/api'
+import { defineStore } from 'pinia'
+import { computed, shallowRef } from 'vue'
+import type { UserInfoResult } from './user/types'
+import { getUserInfo as fetchUserInfo } from './user/api'
 import { useAuthStore } from './auth'
 
-export const useUserStore = defineStore('user', {
-  /** 初始化当前用户状态，授权随用户资料统一更新。 */
-  state: (): UserState => ({
-    user: null,
-  }),
-  getters: {
-    /** 判断当前会话是否已完成用户信息初始化。 */
-    hasUserInfo(): boolean {
-      return !!this.user
-    },
-    /** 提供按钮权限指令使用的权限编码。 */
-    permissionCode: (state): string[] => state.user?.permissionCodeSet ?? [],
-    /** 提供角色指令使用的角色编码。 */
-    roleCode: (state): string[] => state.user?.roleCodeSet ?? [],
-  },
-  actions: {
-    /** 获取真实用户资料；失败时阻止进入依赖授权信息的页面。 */
-    async getUserInfo() {
-      const authStore = useAuthStore()
-      const token = authStore.getToken
-      const res = await getUserInfo()
-      // 退出或切换账号后，丢弃旧会话尚未完成的响应。
-      if (authStore.getToken !== token) throw new Error('登录会话已变更，请重新获取用户信息')
-      if (res.code !== 200) {
-        const message = res.message || '用户信息获取失败，请重试'
-        window.$message?.error(message)
-        throw new Error(message)
-      }
-      this.user = res.data
-    },
-  },
+/** 当前用户资料和授权共用一次请求，清理会话时使未完成的请求失效。 */
+export const useUserStore = defineStore('user', () => {
+  const user = shallowRef<UserInfoResult | null>(null)
+  const hasUserInfo = computed(() => user.value !== null)
+  const permissionCode = computed(() => user.value?.permissionCodeSet ?? [])
+  const roleCode = computed(() => user.value?.roleCodeSet ?? [])
+  let revision = 0
+  let pending: Promise<void> | undefined
+
+  /** 获取用户资料；并发调用复用请求，旧会话的响应不能覆盖新账号。 */
+  async function getUserInfo(): Promise<void> {
+    if (pending) return pending
+    const version = revision
+    const token = useAuthStore().getToken
+    const request = (async () => {
+      const response = await fetchUserInfo()
+      if (version !== revision || token !== useAuthStore().getToken) return
+      if (response.code !== 200) throw new Error(response.message || '用户信息获取失败，请重试')
+      user.value = response.data
+    })()
+    pending = request
+    try {
+      await request
+    } finally {
+      if (pending === request) pending = undefined
+    }
+  }
+
+  /** 清空当前用户和授权，并丢弃未完成请求的结果。 */
+  function clearUserInfo(): void {
+    revision++
+    pending = undefined
+    user.value = null
+  }
+
+  return { user, hasUserInfo, permissionCode, roleCode, getUserInfo, clearUserInfo }
 })

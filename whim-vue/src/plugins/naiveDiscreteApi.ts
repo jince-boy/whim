@@ -1,22 +1,18 @@
-import { type ConfigProviderProps, createDiscreteApi } from 'naive-ui'
-import { useThemeStore } from '@/stores/modules/theme.ts'
+import { computed } from 'vue'
+import { type ConfigProviderProps, createDiscreteApi, dateZhCN, zhCN } from 'naive-ui'
+import store from '@/stores'
+import { useThemeStore } from '@/stores/modules/theme'
 
-/** 注册响应当前主题配置的全局消息、通知、对话框和加载条。 */
-export function setupNaiveDiscreteApi() {
-  const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
-    theme: useThemeStore().getTheme,
-    themeOverrides: useThemeStore().getThemeOverrides,
-  }))
-  const { message, notification, dialog, loadingBar, modal } = createDiscreteApi(
-    ['message', 'notification', 'dialog', 'loadingBar', 'modal'],
-    {
-      configProviderProps: configProviderPropsRef,
-    },
-  )
+// 在组件 setup 外创建单一实例；显式传入 Pinia，初次导航前即可使用。
+const themeStore = useThemeStore(store)
+const configProviderProps = computed<ConfigProviderProps>(() => ({
+  theme: themeStore.getTheme,
+  themeOverrides: themeStore.getThemeOverrides,
+  locale: zhCN,
+  dateLocale: dateZhCN,
+}))
 
-  window['$message'] = message
-  window['$dialog'] = dialog
-  window['$notification'] = notification
-  window['$loadingBar'] = loadingBar
-  window['$modal'] = modal
-}
+/** 消息和进度条统一使用官方离散 API，随应用主题同步更新。 */
+export const { message, loadingBar } = createDiscreteApi(['message', 'loadingBar'], {
+  configProviderProps,
+})

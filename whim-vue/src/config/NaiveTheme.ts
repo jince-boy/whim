@@ -1,7 +1,7 @@
-import { type GlobalThemeOverrides } from 'naive-ui'
+import { lightTheme, type GlobalThemeOverrides } from 'naive-ui'
 
-// 默认主色与登录页的鼠尾草绿保持一致。
-export const defaultPrimaryColor = '#4f8466'
+// 默认主色直接取自 Naive UI，深色模式使用组件库对应的原生配色。
+export const defaultPrimaryColor = lightTheme.common.primaryColor
 
 // 使用同一套全局字体变量，避免原生元素和组件库的字体不一致。
 export const fontThemeOverrides = {
@@ -28,20 +28,9 @@ const commonThemeOverrides: GlobalThemeOverrides = {
 }
 
 export const lightThemeOverrides: GlobalThemeOverrides = {
-  ...commonThemeOverrides, // 复用 common 配置
-  common: {
-    ...commonThemeOverrides.common,
-    bodyColor: '#f6f8f4',
-  },
-  Layout: {
-    footerColor: '#fff',
-    colorEmbedded: '#f6f8f4',
-  },
+  ...commonThemeOverrides,
 }
 
 export const darkThemeOverrides: GlobalThemeOverrides = {
-  ...commonThemeOverrides, // 复用 common 配置
-  Layout: {
-    footerColor: 'rgb(24,24,28)',
-  },
+  ...commonThemeOverrides,
 }

@@ -2,18 +2,20 @@ import type { FormInst } from 'naive-ui'
 import type { LoginForm } from '@/views/login/hooks/types.ts'
 import { login, fetchCaptcha } from './api'
 import { useAuthStore } from '@/stores/modules/auth.ts'
-import router from '@/router'
+import { useRoute, useRouter } from 'vue-router'
+import { message } from '@/plugins'
 import { useIcon } from '@/components/icon/useIcon.ts'
 
 const { createIcon } = useIcon()
-const userIcon = createIcon('yonghu')
-const passwordIcon = createIcon('mima')
-const captchaIcon = createIcon('yanzhengma')
+const userIcon = createIcon('user')
+const passwordIcon = createIcon('lock-keyhole')
+const captchaIcon = createIcon('shield-check')
 
 /** 管理登录表单、验证码及登录后的跳转。 */
 export function useLogin() {
   const authStore = useAuthStore()
-  const message = useMessage()
+  const router = useRouter()
+  const route = useRoute()
   const formRef = useTemplateRef<FormInst>('formRef')
   const spinShow = ref(false)
   const form = reactive<LoginForm>({
@@ -60,8 +62,8 @@ export function useLogin() {
       }
       loginToken = res.data.accessToken
       authStore.login(res.data, form.rememberMe, form.username)
-      let target = '/profile'
-      const redirect = router.currentRoute.value.query.redirect
+      let target = '/'
+      const redirect = route.query.redirect
       if (typeof redirect === 'string') {
         try {
           const path = decodeURIComponent(redirect)
@@ -69,7 +71,7 @@ export function useLogin() {
             target = path
           }
         } catch {
-          // 无效跳转参数使用个人信息页。
+          // 无效跳转参数由导航守卫选择当前用户的默认入口。
         }
       }
       await router.replace(target)

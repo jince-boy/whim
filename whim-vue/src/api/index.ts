@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver'
 import router from '@/router'
 import { useAuthStore } from '@/stores/modules/auth.ts'
 import { encryptRequest } from './requestEncryption'
+import { message } from '@/plugins'
 
 /** 接口统一响应结构。 */
 export interface ApiResponse<T = unknown> {
@@ -38,14 +39,20 @@ const readResponseBody = async (
 }
 
 /** 清理失效登录状态并跳转，合并并发请求触发的登录跳转。 */
-const handleUnauthorized = async (message: string) => {
+const handleUnauthorized = async (errorMessage: string, authorization: unknown) => {
+  const authStore = useAuthStore()
+  const activeAuthorization = authStore.isLogin
+    ? `${authStore.tokenType} ${authStore.getToken}`
+    : undefined
+  // 旧账号请求的 401 不能清理后来建立的新会话。
+  if (authorization !== activeAuthorization) return
   if (redirectingToLogin) return
   redirectingToLogin = true
   try {
     const currentRoute = router.currentRoute.value
     const redirect = window.location.pathname + window.location.search + window.location.hash
-    useAuthStore().logout()
-    window.$message?.warning(message)
+    authStore.logout()
+    message.warning(errorMessage)
     if (currentRoute.path !== '/login') {
       await router.replace({
         path: '/login',
@@ -78,38 +85,50 @@ axiosInstance.interceptors.response.use(
   async (response: AxiosResponse<unknown>) => {
     const body = await readResponseBody(response)
     if (body?.code === 401) {
-      const message = body.message || '登录状态已失效，请重新登录'
-      await handleUnauthorized(message)
-      throw new AxiosError(message, 'ERR_UNAUTHORIZED', response.config, response.request, response)
+      const errorMessage = body.message || '登录状态已失效，请重新登录'
+      await handleUnauthorized(errorMessage, response.config.headers.get('Authorization'))
+      throw new AxiosError(
+        errorMessage,
+        'ERR_UNAUTHORIZED',
+        response.config,
+        response.request,
+        response,
+      )
     }
     if (response.config.responseType === 'blob' && body?.code !== undefined && body.code !== 200) {
-      const message = body.message || '文件下载失败，请稍后重试'
-      window.$message?.error(message)
-      throw new AxiosError(message, 'ERR_BAD_RESPONSE', response.config, response.request, response)
+      const errorMessage = body.message || '文件下载失败，请稍后重试'
+      message.error(errorMessage)
+      throw new AxiosError(
+        errorMessage,
+        'ERR_BAD_RESPONSE',
+        response.config,
+        response.request,
+        response,
+      )
     }
     return response
   },
   async (error: unknown) => {
     if (!axios.isAxiosError(error) || axios.isCancel(error)) throw error
     if (error.code === 'ERR_REQUEST_ENCRYPTION') {
-      window.$message?.error(error.message)
+      message.error(error.message)
       throw error
     }
     const body = error.response ? await readResponseBody(error.response) : undefined
     const unauthorized = error.response?.status === 401 || body?.code === 401
-    let message = '网络连接失败，请检查网络'
+    let errorMessage = '网络连接失败，请检查网络'
     if (unauthorized) {
-      message = '登录状态已失效，请重新登录'
+      errorMessage = '登录状态已失效，请重新登录'
     } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-      message = '请求超时，请稍后重试'
+      errorMessage = '请求超时，请稍后重试'
     } else if (error.response) {
-      message = '请求失败，请稍后重试'
+      errorMessage = '请求失败，请稍后重试'
     }
-    error.message = body?.message || message
+    error.message = body?.message || errorMessage
     if (unauthorized) {
-      await handleUnauthorized(error.message)
+      await handleUnauthorized(error.message, error.config?.headers.get('Authorization'))
     } else {
-      window.$message?.error(error.message)
+      message.error(error.message)
     }
     throw error
   },

@@ -7,9 +7,11 @@ import {
   type MenuSave,
   type MenuItem,
 } from './types'
-import { componentOptions } from '@/utils/navigation'
+import { pageComponentPaths } from '@/router/dynamicRoutes'
 import { useUserStore } from '@/stores/modules/user'
 import { createMenuRules } from './rule'
+
+const componentOptions = pageComponentPaths.map((path) => ({ label: path, value: path }))
 
 /** 编辑草稿与列表隔离，父节点选项排除自身、后代及不匹配的节点类型。 */
 export function useMenuForm(props: MenuFormProps) {

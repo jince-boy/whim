@@ -8,7 +8,8 @@ import {
   shallowRef,
   toRaw,
 } from 'vue'
-import { useMessage, useModal, type ModalOptions, type ModalReactive } from 'naive-ui'
+import { useModal, type ModalOptions, type ModalReactive } from 'naive-ui'
+import { message } from '@/plugins'
 import { isAxiosError } from 'axios'
 import type {
   ConfirmDialogOptions,
@@ -22,7 +23,6 @@ import type {
 /** 管理表单与确认弹窗，统一提交、关闭和所属页面的生命周期。 */
 export function useFormDialog() {
   const modal = useModal()
-  const message = useMessage()
   const activeDialogs = new Set<() => void>()
   let disposed = false
 

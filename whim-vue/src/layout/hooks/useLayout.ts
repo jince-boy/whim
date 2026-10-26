@@ -1,6 +1,6 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { message } from '@/plugins'
 import screenfull from 'screenfull'
 import AppMain from '@/layout/components/appMain/index.vue'
 import { useThemeStore } from '@/stores/modules/theme'
@@ -11,7 +11,6 @@ export function useLayout() {
   const themeStore = useThemeStore()
   const permissionStore = usePermissionStore()
   const route = useRoute()
-  const message = useMessage()
   const appMainRef = useTemplateRef<InstanceType<typeof AppMain>>('appMainRef')
   const sidebarExpandedWidth = 240
   const sidebarCollapsedWidth = 64

@@ -2,23 +2,23 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { RouteLocationRaw, RouteRecordRaw } from 'vue-router'
 import router from '@/router'
-import type { MenuItem } from '@/views/system/menu/hooks/types'
+import type { UserMenu } from './permission/types'
 import { fetchUserMenus } from './permission/api'
 import { useAuthStore } from './auth'
 import { useTabStore } from './tab'
-import { buildNavigation } from '@/utils/navigation'
+import { buildNavigation } from '@/router/dynamicRoutes'
 import { buildNavigationMenus, type SafeMenuOption } from '@/utils/menu'
 
 /** 菜单请求、路由注册和首页入口由同一实例管理；退出后旧请求不能恢复旧权限。 */
 export const usePermissionStore = defineStore('permission', () => {
-  const sourceMenus = shallowRef<MenuItem[]>([])
+  const sourceMenus = shallowRef<UserMenu[]>([])
   const dynamicRoutes = shallowRef<RouteRecordRaw[]>([])
   const menus = shallowRef<SafeMenuOption[]>([])
   const initialized = ref(false)
   const entryTarget = shallowRef<RouteLocationRaw>()
-  // 尚未接入菜单时，品牌入口和固定标签统一指向个人信息页。
-  const homePath = computed(() => router.resolve(entryTarget.value ?? '/profile').fullPath)
-  const homeName = computed(() => router.resolve(entryTarget.value ?? '/profile').name)
+  // 首页、品牌入口和固定标签共用当前授权菜单中的第一个可访问页面。
+  const homePath = computed(() => router.resolve(entryTarget.value ?? '/noAccess').fullPath)
+  const homeName = computed(() => router.resolve(entryTarget.value ?? '/noAccess').name)
   const getMenus = computed(() => menus.value)
   let revision = 0
   let removers: (() => void)[] = []
@@ -93,7 +93,7 @@ export const usePermissionStore = defineStore('permission', () => {
       if (version === revision) initialized.value = wasInitialized
       throw error
     }
-    if (!initialized.value) return
+    if (version !== revision || !initialized.value) return
     const current = router.currentRoute.value.fullPath
     const name = router.resolve(current).name
     await router.replace(name === 'NotFound' || name === 'NoAccess' ? homePath.value : current)

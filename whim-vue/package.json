@@ -17,14 +17,17 @@
     "type-check": "run-p type-check:app type-check:node",
     "type-check:app": "vue-tsc --build tsconfig.app.json",
     "type-check:node": "tsc --project tsconfig.node.json",
+    "sync:icon-metadata": "node scripts/syncLucideMetadata.mjs",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@lucide/vue": "1.61.0",
     "@vue/devtools-api": "^8.2.1",
     "axios": "^1.20.0",
     "dayjs": "^1.11.23",
     "file-saver": "^2.0.5",
+    "fuse.js": "7.5.0",
     "highlight.js": "^11.12.0",
     "jose": "6.2.13",
     "pinia": "^4.0.3",

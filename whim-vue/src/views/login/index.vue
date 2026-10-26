@@ -2,11 +2,15 @@
 import { useLogin } from '@/views/login/hooks/useLogin.ts'
 import { loginRules } from '@/views/login/hooks/rule.ts'
 import systemSetting from '@/config/SystemSetting.ts'
+import { useThemeVars } from 'naive-ui'
+import { useThemeStore } from '@/stores/modules/theme'
 
 defineOptions({
   name: 'LoginPage',
 })
 
+const themeVars = useThemeVars()
+const themeStore = useThemeStore()
 const {
   formRef,
   form,
@@ -22,7 +26,7 @@ const {
 </script>
 
 <template>
-  <n-config-provider :theme="null" preflight-style-disabled>
+  <n-config-provider preflight-style-disabled>
     <div class="login-container">
       <header class="login-header">
         <div class="login-brand">
@@ -100,6 +104,15 @@ const {
 
 <style scoped lang="scss">
 .login-container {
+  // 主色、背景和文字均读取全局主题，自动适配自定义颜色与深浅模式。
+  --login-primary: v-bind('themeVars.primaryColor');
+  --login-background: v-bind('themeVars.bodyColor');
+  --login-surface: v-bind('themeVars.cardColor');
+  --login-border: v-bind('themeVars.borderColor');
+  --login-text: v-bind('themeVars.textColor1');
+  --login-text-muted: v-bind('themeVars.textColor2');
+  --login-shadow: color-mix(in srgb, var(--login-primary) 40%, #263238);
+  color-scheme: v-bind('themeStore.getTheme.name');
   position: relative;
   isolation: isolate;
   display: grid;
@@ -108,10 +121,19 @@ const {
   min-height: 100vh;
   overflow: clip;
   padding: 32px clamp(24px, 5vw, 88px) 24px;
-  color: #253d34;
+  color: var(--login-text);
   background:
-    radial-gradient(ellipse at 6% 85%, #dfede2 0, transparent 48%),
-    radial-gradient(ellipse at 94% 12%, #e4efe5 0, transparent 42%), #f6f8f4;
+    radial-gradient(
+      ellipse at 6% 85%,
+      color-mix(in srgb, var(--login-primary) 12%, var(--login-background)) 0,
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 94% 12%,
+      color-mix(in srgb, var(--login-primary) 8%, var(--login-background)) 0,
+      transparent 42%
+    ),
+    var(--login-background);
   line-height: 1.5;
 
   &::before {
@@ -119,8 +141,12 @@ const {
     z-index: -1;
     inset: 0;
     background-image:
-      linear-gradient(#668b7410 1px, transparent 1px),
-      linear-gradient(90deg, #668b7410 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--login-primary) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--login-primary) 6%, transparent) 1px,
+        transparent 1px
+      );
     background-size: 64px 64px;
     mask-image: linear-gradient(135deg, #0009, transparent 65%);
     content: '';
@@ -133,11 +159,11 @@ const {
     right: -200px;
     width: 760px;
     height: 760px;
-    border: 1px solid #8aaa8424;
+    border: 1px solid color-mix(in srgb, var(--login-primary) 14%, transparent);
     border-radius: 50%;
     box-shadow:
-      0 0 0 72px #8aaa8408,
-      0 0 0 144px #8aaa8405;
+      0 0 0 72px color-mix(in srgb, var(--login-primary) 3%, transparent),
+      0 0 0 144px color-mix(in srgb, var(--login-primary) 2%, transparent);
     content: '';
   }
 }
@@ -161,12 +187,13 @@ const {
   img {
     width: 36px;
     height: 36px;
+    filter: v-bind("themeStore.getTheme.name === 'dark' ? 'brightness(0) invert(1)' : 'none'");
   }
 }
 
 .login-header-caption,
 .login-footer {
-  color: #617266;
+  color: var(--login-text-muted);
   font-size: 12px;
 }
 
@@ -197,7 +224,7 @@ const {
 
     span {
       display: inline-block;
-      color: #4f8466;
+      color: var(--login-primary);
     }
   }
 }
@@ -207,27 +234,27 @@ const {
   align-items: center;
   gap: 10px;
   margin: 0;
-  color: #63816d;
+  color: var(--login-text-muted);
   font-size: 12px;
   letter-spacing: 3px;
 
   span {
     width: 24px;
     height: 1px;
-    background: #7b9c82;
+    background: var(--login-primary);
   }
 }
 
 .login-description {
   margin: 0;
-  color: #687b6d;
+  color: var(--login-text-muted);
   font-size: 15px;
   line-height: 1.8;
 }
 
 .login-note {
   margin: 32px 0 0;
-  color: #6b7d6f;
+  color: var(--login-text-muted);
   font-size: 12px;
   letter-spacing: 1px;
 }
@@ -240,10 +267,10 @@ const {
     position: absolute;
     z-index: -1;
     inset: -12px 12px 42px -12px;
-    border: 1px solid #b7cdbb55;
+    border: 1px solid color-mix(in srgb, var(--login-primary) 18%, transparent);
     border-radius: 24px;
     transform: rotate(-3deg);
-    background: #ffffff38;
+    background: color-mix(in srgb, var(--login-surface) 22%, transparent);
     content: '';
   }
 }
@@ -254,7 +281,7 @@ const {
   justify-content: center;
   gap: 8px;
   margin: 24px 0 0;
-  color: #657869;
+  color: var(--login-text-muted);
   font-size: 12px;
   letter-spacing: 1px;
 
@@ -262,24 +289,24 @@ const {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: #81a58a;
+    background: var(--login-primary);
   }
 }
 
 .login-box {
   max-width: 400px;
   min-height: 389.59px;
-  border: 1px solid #fff;
+  border: 1px solid var(--login-border);
   border-radius: 20px;
-  background: #ffffffed;
+  background: color-mix(in srgb, var(--login-surface) 93%, transparent);
   box-shadow:
-    0 24px 64px -24px #34583a30,
-    0 4px 16px #34583a05;
+    0 24px 64px -24px color-mix(in srgb, var(--login-shadow) 19%, transparent),
+    0 4px 16px color-mix(in srgb, var(--login-shadow) 2%, transparent);
 
   &:hover {
     box-shadow:
-      0 24px 64px -24px #34583a30,
-      0 4px 16px #34583a05;
+      0 24px 64px -24px color-mix(in srgb, var(--login-shadow) 19%, transparent),
+      0 4px 16px color-mix(in srgb, var(--login-shadow) 2%, transparent);
   }
 
   :deep(.n-input__placeholder) {
@@ -317,7 +344,7 @@ const {
     overflow: hidden;
     border: 0;
     border-radius: 4px;
-    background: #f3f5f7;
+    background: var(--login-background);
     vertical-align: middle;
     cursor: pointer;
 
@@ -326,7 +353,7 @@ const {
     }
 
     &:focus-visible {
-      outline: 2px solid #4f8466;
+      outline: 2px solid var(--login-primary);
       outline-offset: 2px;
     }
   }
@@ -350,7 +377,7 @@ const {
   }
 
   .captcha-retry {
-    color: #767c82;
+    color: var(--login-text-muted);
     font-size: 12px;
   }
 }

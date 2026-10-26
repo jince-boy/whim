@@ -63,7 +63,7 @@ const {
         <n-button
           type="error"
           v-permission="['system:operLog:clean']"
-          :render-icon="createIcon('shanchu')"
+          :render-icon="createIcon('trash-2')"
           @click="handleCleanOperLog"
           >清空</n-button
         >

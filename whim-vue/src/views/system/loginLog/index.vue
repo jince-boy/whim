@@ -47,7 +47,7 @@ const {
         <n-button
           v-permission="['system:loginLog:clean']"
           type="error"
-          :render-icon="createIcon('shanchu')"
+          :render-icon="createIcon('trash-2')"
           @click="handleCleanLoginLog"
           >清空</n-button
         >

@@ -19,7 +19,7 @@ export const constantRouter: RouteRecordRaw[] = [
         meta: {
           title: '个人信息设置',
           breadcrumbs: [{ title: '个人信息设置', path: '/profile', name: 'UserProfile' }],
-          icon: 'yonghu',
+          icon: 'user',
           isTab: true,
         },
       },

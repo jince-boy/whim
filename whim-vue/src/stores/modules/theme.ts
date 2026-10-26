@@ -11,7 +11,6 @@ import tinycolor from 'tinycolor2'
 import {
   darkThemeOverrides,
   defaultPrimaryColor,
-  fontThemeOverrides,
   lightThemeOverrides,
 } from '@/config/NaiveTheme'
 import systemSetting from '@/config/SystemSetting'
@@ -64,9 +63,10 @@ function loadThemeConfig(): ThemeConfig {
       cached.primaryColor ?? cached.themeOverrides?.lightThemeOverrides?.common?.primaryColor
     if (typeof primaryColor === 'string' && tinycolor(primaryColor).isValid()) {
       const savedPrimaryColor = tinycolor(primaryColor).toHexString()
-      // 将此前的默认绿色迁移到新主色，保留其他自定义颜色和布局偏好。
-      config.primaryColor =
-        savedPrimaryColor === '#18a058' ? defaultPrimaryColor : savedPrimaryColor
+      // 恢复此前调整过的默认主色，保留其他自定义颜色和布局偏好。
+      config.primaryColor = ['#4f8466', '#4f6bed', '#17bcfc', '#3ea4ec'].includes(savedPrimaryColor)
+        ? defaultPrimaryColor
+        : savedPrimaryColor
     }
     for (const key of [
       'menuInverted',
@@ -107,35 +107,21 @@ export const useThemeStore = defineStore('theme', {
         state.config.theme === 'dark' || (state.config.theme === 'system' && state.systemDark)
       return dark ? darkTheme : lightTheme
     },
-    /** 从基础颜色独立生成派生色，并保留默认组件样式。 */
+    /** 默认使用原生深浅主题，仅在用户选择自定义主色时覆盖公共颜色。 */
     getThemeOverrides(): GlobalThemeOverrides {
       const dark = this.getTheme === darkTheme
       const defaults = dark ? darkThemeOverrides : lightThemeOverrides
+      if (this.config.primaryColor === defaultPrimaryColor) return defaults
       const primary = tinycolor(this.config.primaryColor)
-      const base = dark ? primary.clone().lighten(10) : primary
-      const primaryColor = base.toHexString()
-      const hover = (dark ? base.clone().lighten(8) : base.clone().darken(5)).toHexString()
-      const pressed = base.clone().darken(10).toHexString()
-      const activeTextColor = tinycolor.mostReadable(primaryColor, ['#fff', '#000'])!.toHexString()
+      const hover = primary.clone().lighten(5).toHexString()
       return {
         ...defaults,
         common: {
           ...defaults.common,
-          ...fontThemeOverrides,
-          primaryColor,
+          primaryColor: primary.toHexString(),
           primaryColorHover: hover,
-          primaryColorPressed: pressed,
+          primaryColorPressed: primary.clone().darken(10).toHexString(),
           primaryColorSuppl: hover,
-        },
-        Menu: {
-          ...defaults.Menu,
-          itemColorActiveInverted: primaryColor,
-          itemColorActiveCollapsedInverted: primaryColor,
-          itemColorActiveHoverInverted: primaryColor,
-          itemTextColorActiveInverted: activeTextColor,
-          itemTextColorActiveHoverInverted: activeTextColor,
-          itemIconColorActiveInverted: activeTextColor,
-          itemIconColorActiveHoverInverted: activeTextColor,
         },
       }
     },

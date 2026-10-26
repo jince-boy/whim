@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Icon from '@/components/icon/Icon.vue'
-import type { MenuSearchItem } from './hooks/types'
+import type {MenuSearchItem} from './hooks/types'
 
-defineOptions({ name: 'MenuSearchResults' })
+defineOptions({name: 'MenuSearchResults'})
 
 const props = defineProps<{
   results: readonly MenuSearchItem[]
@@ -18,31 +18,13 @@ const emit = defineEmits<{
 
 <template>
   <n-el>
-    <ul
-      :id="props.listId"
-      class="search-results"
-      role="listbox"
-      aria-label="菜单搜索结果"
-      :aria-busy="props.navigating"
-    >
-      <li
-        v-for="(item, index) in props.results"
-        :id="`${props.listId}-${index}`"
-        :key="item.key"
-        class="search-option"
-        :class="{ 'is-active': index === props.activeIndex }"
-        role="option"
-        :aria-selected="index === props.activeIndex"
-        :aria-disabled="props.navigating"
-        @pointermove="emit('activeChange', index)"
-        @mousedown.prevent
-        @click="emit('select', item)"
-      >
+    <ul :id="props.listId" class="search-results" role="listbox" aria-label="菜单搜索结果" :aria-busy="props.navigating">
+      <li v-for="(item, index) in props.results" :id="`${props.listId}-${index}`" :key="item.key" class="search-option" :class="{ 'is-active': index === props.activeIndex }" role="option" :aria-selected="index === props.activeIndex" :aria-disabled="props.navigating" @pointermove="emit('activeChange', index)" @mousedown.prevent @click="emit('select', item)">
         <span class="option-content">
           <span class="option-name">{{ item.name }}</span>
           <span v-if="item.breadcrumb" class="option-breadcrumb">{{ item.breadcrumb }}</span>
         </span>
-        <Icon class="option-enter" name="c181huiche" :size="18" />
+        <Icon class="option-enter" name="corner-down-left" :size="18"/>
       </li>
     </ul>
   </n-el>

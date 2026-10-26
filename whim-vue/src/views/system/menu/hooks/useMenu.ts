@@ -1,6 +1,7 @@
 import { useWhimTable } from '@/components/table'
 import { computed, h, watch } from 'vue'
-import { NButton, NSpace, NTag, useMessage, type DataTableColumn } from 'naive-ui'
+import { NButton, NSpace, NTag, type DataTableColumn } from 'naive-ui'
+import { message } from '@/plugins'
 import { fetchMenuList, fetchMenuDetail, insertMenu, updateMenu, deleteMenu } from './api'
 import { menuTypeOptions, type MenuId, type MenuItem, type MenuQuery } from './types'
 import { useUserStore } from '@/stores/modules/user'
@@ -14,7 +15,6 @@ export function useMenu() {
   const { createIcon } = useIcon()
   const userStore = useUserStore()
   const navigation = usePermissionStore()
-  const message = useMessage()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
   /** 表格操作权限随当前授权变化，不依赖一次性的DOM删除。 */
   const can = (code: string) =>
@@ -153,7 +153,7 @@ export function useMenu() {
           can('system:menu:update') && can('system:menu:detail')
             ? h(
                 NButton,
-                { text: true, type: 'info', onClick: () => openEditDialog(node.id) },
+                { text: true, type: 'warning', onClick: () => openEditDialog(node.id) },
                 () => '修改',
               )
             : null,

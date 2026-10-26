@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import { useAppMain } from './hooks/useAppMain'
+import {useAppMain} from './hooks/useAppMain'
 
-const { appMainRef, pageVisible, refreshing, themeStore, keepAliveStore, refresh } = useAppMain()
-defineExpose({ appMainRef, refresh })
+const {appMainRef, pageVisible, refreshing, themeStore, keepAliveStore, refresh} = useAppMain()
+defineExpose({appMainRef, refresh})
 </script>
 
 <template>
   <div ref="appMainRef" class="appMain">
     <router-view v-slot="{ Component, route }">
-      <transition
-        :name="themeStore.config.pageTransition"
-        :css="!refreshing && themeStore.config.pageTransition !== 'none'"
-        :mode="refreshing || themeStore.config.pageTransition === 'none' ? undefined : 'out-in'"
-      >
+      <transition :name="themeStore.config.pageTransition" :css="!refreshing && themeStore.config.pageTransition !== 'none'" :mode="refreshing || themeStore.config.pageTransition === 'none' ? undefined : 'out-in'">
         <KeepAlive :include="themeStore.getCacheTabs ? keepAliveStore.keepAliveComponents : []">
-          <component v-if="pageVisible" :is="Component" :key="route.name ?? route.path" />
+          <component v-if="pageVisible" :is="Component" :key="route.name ?? route.path"/>
         </KeepAlive>
       </transition>
     </router-view>
@@ -41,9 +37,8 @@ defineExpose({ appMainRef, refresh })
 .fadeSlide-leave-active,
 .zoom-enter-active,
 .zoom-leave-active {
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s ease;
+  transition: opacity 0.24s ease,
+  transform 0.24s ease;
 }
 
 .fade-enter-from,

@@ -1,7 +1,6 @@
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { ScrollbarInst, DropdownOption } from 'naive-ui'
-import { useThemeVars } from 'naive-ui'
 import { useIcon } from '@/components/icon/useIcon'
 import { useTabStore } from '@/stores/modules/tab'
 import type { TabState } from '@/stores/type'
@@ -10,10 +9,6 @@ import { useThemeStore } from '@/stores/modules/theme'
 export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refresh') => void)) {
   const { createIcon } = useIcon()
   const themeStore = useThemeStore()
-  const themeVars = useThemeVars()
-  const tabContentBackground = computed(
-    () => themeStore.getThemeOverrides.Layout?.colorEmbedded ?? themeVars.value.bodyColor,
-  )
   const router = useRouter()
   const tabStore = useTabStore()
   const clickedTab = ref<TabState | null>(null)
@@ -35,7 +30,7 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
       {
         label: '内容全屏',
         key: 'fullscreen',
-        icon: createIcon('full-screen'),
+        icon: createIcon('maximize'),
         disabled: !isSelf,
       },
       {
@@ -45,38 +40,38 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
       {
         label: '刷新当前',
         key: 'refreshCurrent',
-        icon: createIcon('refresh-2'),
+        icon: createIcon('refresh-cw'),
         disabled: !isSelf,
       },
       {
         label: '关闭当前',
         key: 'closeCurrent',
-        icon: createIcon('add-3'),
+        icon: createIcon('x'),
         disabled: !clicked?.closeable || tabStore.closing,
       },
       {
         label: '关闭其他',
         key: 'closeOther',
         disabled: tabStore.closing || !canClose(tabStore.tabs),
-        icon: createIcon('guanbiqita'),
+        icon: createIcon('panels-top-left'),
       },
       {
         label: '关闭左侧',
         key: 'closeLeft',
         disabled: tabStore.closing || index < 0 || !canClose(tabStore.tabs.slice(0, index)),
-        icon: createIcon('d-left'),
+        icon: createIcon('chevrons-left'),
       },
       {
         label: '关闭右侧',
         key: 'closeRight',
         disabled: tabStore.closing || index < 0 || !canClose(tabStore.tabs.slice(index + 1)),
-        icon: createIcon('d-right'),
+        icon: createIcon('chevrons-right'),
       },
       {
         label: '关闭全部',
         key: 'closeAll',
         disabled: tabStore.closing || !tabStore.tabs.some((tab) => tab.closeable),
-        icon: createIcon('closure'),
+        icon: createIcon('x'),
       },
     ]
   })
@@ -203,7 +198,6 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
   return {
     createIcon,
     themeStore,
-    tabContentBackground,
     tabStore,
     showDropdown,
     x,

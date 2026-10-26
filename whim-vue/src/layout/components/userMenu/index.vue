@@ -1,35 +1,19 @@
 <script setup lang="ts">
-import { useUserMenu } from './hooks/useUserMenu'
+import {useUserMenu} from './hooks/useUserMenu'
 
-defineOptions({ name: 'LayoutUserMenu' })
+defineOptions({name: 'LayoutUserMenu'})
 const props = withDefaults(defineProps<{ collapsed?: boolean; compact?: boolean }>(), {
   collapsed: false,
   compact: false,
 })
-const { displayName, avatar, avatarText, signingOut, options, openProfile, handleSelect } =
+const {displayName, avatar, avatarText, signingOut, options, openProfile, handleSelect} =
   useUserMenu()
 </script>
 
 <template>
-  <div
-    class="user-menu"
-    :class="{ 'user-menu--compact': props.compact, 'user-menu--collapsed': props.collapsed }"
-  >
-    <n-button
-      quaternary
-      class="user-profile-button"
-      :disabled="signingOut"
-      title="个人信息设置"
-      aria-label="进入个人信息设置"
-      @click="openProfile"
-    >
-      <n-avatar
-        round
-        :size="props.compact ? 28 : 32"
-        :src="avatar"
-        :img-props="{ alt: displayName }"
-        object-fit="cover"
-      >
+  <div class="user-menu" :class="{ 'user-menu--compact': props.compact, 'user-menu--collapsed': props.collapsed }">
+    <n-button quaternary class="user-profile-button" :disabled="signingOut" title="个人信息设置" aria-label="进入个人信息设置" @click="openProfile">
+      <n-avatar round :size="props.compact ? 28 : 32" :src="avatar" :img-props="{ alt: displayName }" object-fit="cover">
         <template v-if="!avatar" #default>{{ avatarText }}</template>
         <template #fallback>{{ avatarText }}</template>
       </n-avatar>
@@ -38,13 +22,7 @@ const { displayName, avatar, avatarText, signingOut, options, openProfile, handl
       </n-ellipsis>
     </n-button>
     <n-dropdown trigger="click" :options="options" placement="bottom-end" @select="handleSelect">
-      <n-button
-        quaternary
-        class="user-menu-trigger"
-        :disabled="signingOut"
-        title="用户菜单"
-        aria-label="打开用户菜单"
-      >
+      <n-button quaternary class="user-menu-trigger" :disabled="signingOut" title="用户菜单" aria-label="打开用户菜单">
         <span aria-hidden="true">⋯</span>
       </n-button>
     </n-dropdown>

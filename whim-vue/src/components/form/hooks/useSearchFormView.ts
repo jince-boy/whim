@@ -1,5 +1,14 @@
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
-import type { FormInst, GridProps } from 'naive-ui'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  useId,
+  useTemplateRef,
+  watch,
+} from 'vue'
+import { useThemeVars, type FormInst, type GridProps } from 'naive-ui'
 import type { SearchFormBinding, SearchFormEmits, SearchFormRegistration } from '../types'
 
 /** 连接查询表单 hook，并将用户提交、重置作为事件通知调用方。 */
@@ -12,6 +21,10 @@ export function useSearchFormView(
   const binding = shallowRef<SearchFormBinding>()
   const formRef = useTemplateRef<FormInst>('formRef')
   const formContainer = useTemplateRef<HTMLElement>('formContainer')
+  const themeVars = useThemeVars()
+  const panelId = useId()
+  const title = computed(() => binding.value?.title.value ?? '筛选条件')
+  const panelCollapsed = ref(false)
   const columnCount = ref(1)
   const collapsed = ref(true)
   let resizeObserver: ResizeObserver | undefined
@@ -30,6 +43,12 @@ export function useSearchFormView(
   })
 
   watch(
+    () => binding.value?.collapsed.value,
+    (value) => {
+      panelCollapsed.value = value ?? false
+    },
+  )
+  watch(
     () => binding.value?.gridProps.value.collapsed,
     (value) => {
       collapsed.value = value ?? true
@@ -39,6 +58,11 @@ export function useSearchFormView(
   /** 展开和收起只影响布局，保留查询条件与字段实例。 */
   function toggleCollapsed() {
     collapsed.value = !collapsed.value
+  }
+
+  /** 整体收起查询区时仍保留输入、校验和字段折叠状态。 */
+  function togglePanelCollapsed() {
+    panelCollapsed.value = !panelCollapsed.value
   }
 
   /** 使用原生表单校验，未挂载时明确失败。 */
@@ -61,6 +85,7 @@ export function useSearchFormView(
       emit('submit')
       return true
     } catch {
+      panelCollapsed.value = false
       collapsed.value = false
       return false
     } finally {
@@ -100,6 +125,11 @@ export function useSearchFormView(
   })
   return {
     binding,
+    themeVars,
+    panelId,
+    title,
+    panelCollapsed,
+    togglePanelCollapsed,
     formProps,
     gridProps,
     collapsed,

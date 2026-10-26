@@ -9,12 +9,7 @@ import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 // More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
 
 export default defineConfigWithVueTs(
-  globalIgnores([
-    '**/dist/**',
-    '**/dist-ssr/**',
-    '**/coverage/**',
-    'src/assets/iconfont/iconfont.js', // 图标库生成的脚本
-  ]),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
   skipFormatting,
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,

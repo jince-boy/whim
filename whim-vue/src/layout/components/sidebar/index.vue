@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import systemSetting from '@/config/SystemSetting.ts'
 import logoUrl from '@/assets/images/logo.png'
-import { computed, useTemplateRef, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import type { MenuInst } from 'naive-ui'
-import { useThemeStore } from '@/stores/modules/theme.ts'
+import {computed, useTemplateRef, watch} from 'vue'
+import {RouterLink, useRoute} from 'vue-router'
+import type {MenuInst} from 'naive-ui'
+import {useThemeStore} from '@/stores/modules/theme.ts'
 import LayoutUserMenu from '@/layout/components/userMenu/index.vue'
-import type { SafeMenuOption } from '@/utils/menu'
-import { usePermissionStore } from '@/stores/modules/permission'
+import type {SafeMenuOption} from '@/utils/menu'
+import {usePermissionStore} from '@/stores/modules/permission'
 
 defineOptions({
   name: 'LayoutSidebar',
@@ -49,31 +49,14 @@ watch(
 </script>
 
 <template>
-  <n-layout
-    class="sidebar"
-    :class="{
+  <n-layout class="sidebar" :class="{
       'sidebar--with-logo': props.showLogo && themeStore.getShowLogo,
       'sidebar--inverted': themeStore.getMenuInverted,
-    }"
-  >
-    <n-layout-header
-      v-if="props.showLogo && themeStore.getShowLogo"
-      bordered
-      position="absolute"
-      :inverted="themeStore.getMenuInverted"
-      class="sidebar-bar"
-    >
+    }">
+    <n-layout-header v-if="props.showLogo && themeStore.getShowLogo" bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
       <RouterLink :to="navigation.homePath">
         <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
-          <n-image
-            class="sidebar-logo"
-            :src="logoUrl"
-            :width="28"
-            :height="28"
-            :img-props="{ alt: systemSetting.title }"
-            object-fit="contain"
-            preview-disabled
-          />
+          <n-image class="sidebar-logo" :src="logoUrl" :width="28" :height="28" :img-props="{ alt: systemSetting.title }" object-fit="contain" preview-disabled/>
           <n-text v-if="!props.collapsed" strong class="sidebar-title">
             {{ systemSetting.title }}
           </n-text>
@@ -81,25 +64,10 @@ watch(
       </RouterLink>
     </n-layout-header>
     <n-layout-content position="absolute" :native-scrollbar="false" class="sidebar-menu">
-      <n-menu
-        ref="menuInstRef"
-        :collapsed="props.collapsed"
-        :collapsed-width="64"
-        :collapsed-icon-size="16"
-        :icon-size="16"
-        accordion
-        :options="props.menus"
-        :value="selectedKey"
-        :inverted="themeStore.getMenuInverted"
-      />
+      <n-menu ref="menuInstRef" :collapsed="props.collapsed" :collapsed-width="64" :collapsed-icon-size="16" :icon-size="16" :theme-overrides="{ itemHeight: '36px' }" accordion :options="props.menus" :value="selectedKey" :inverted="themeStore.getMenuInverted"/>
     </n-layout-content>
-    <n-layout-footer
-      bordered
-      position="absolute"
-      :inverted="themeStore.getMenuInverted"
-      class="sidebar-bar"
-    >
-      <layout-user-menu :collapsed="props.collapsed" />
+    <n-layout-footer bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
+      <layout-user-menu :collapsed="props.collapsed"/>
     </n-layout-footer>
   </n-layout>
 </template>

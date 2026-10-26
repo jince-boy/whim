@@ -56,8 +56,8 @@ export const useAuthStore = defineStore('auth', {
     login(result: LoginResult, rememberMe: boolean, username: string) {
       // 新登录会话不能复用上一账号的授权、导航和页面实例。
       usePermissionStore().resetRouter()
-      useUserStore().$reset()
-      useTabStore().$reset()
+      useUserStore().clearUserInfo()
+      useTabStore().clearTabs()
       useKeepAliveStore().clearKeepAlive()
       this.token = result.accessToken
       this.tokenType = result.tokenType
@@ -80,8 +80,8 @@ export const useAuthStore = defineStore('auth', {
         for (const key of ['token', 'tokenType', 'username']) storage.removeItem(key)
       }
       usePermissionStore().resetRouter()
-      useUserStore().$reset()
-      useTabStore().$reset()
+      useUserStore().clearUserInfo()
+      useTabStore().clearTabs()
       useKeepAliveStore().clearKeepAlive()
     },
   },

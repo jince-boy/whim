@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import systemSetting from '@/config/SystemSetting'
 
-defineOptions({ name: 'DefaultHome' })
+defineOptions({ name: 'HomePage' })
 </script>
 
 <template>

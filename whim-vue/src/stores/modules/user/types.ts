@@ -18,8 +18,3 @@ export interface RoleInfo {
   roleCode: string
   dataScope: number | null
 }
-
-/** 当前登录用户的共享状态，菜单由导航store独立维护。 */
-export interface UserState {
-  user: UserInfoResult | null
-}

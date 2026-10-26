@@ -7,7 +7,8 @@ import {
   shallowRef,
   useTemplateRef,
 } from 'vue'
-import { useMessage, useThemeVars, type DataTableInst } from 'naive-ui'
+import { useThemeVars, type DataTableInst } from 'naive-ui'
+import { message } from '@/plugins'
 import screenfull from 'screenfull'
 import { useUserStore } from '@/stores/modules/user'
 import type { TableButton, WhimTableBinding, WhimTableEmits, WhimTableRegistration } from '../types'
@@ -20,12 +21,22 @@ export function useWhimTableView(
   const tableRef = useTemplateRef<DataTableInst>('tableRef')
   const tableContainer = useTemplateRef<HTMLElement>('tableContainer')
   const themeVars = useThemeVars()
-  const message = useMessage()
   const fullscreenEnabled = screenfull.isEnabled
   const isFullscreen = ref(false)
+  const settingsVisible = ref(false)
   const userStore = useUserStore()
+  const title = computed(() => binding.value?.title.value ?? '数据列表')
   const tableProps = computed(() => binding.value?.tableProps.value)
   const toolbar = computed(() => binding.value?.toolbar.value ?? {})
+  const showSettings = computed(
+    () => toolbar.value.showColumns !== false || toolbar.value.showStriped !== false,
+  )
+  const showTools = computed(
+    () =>
+      toolbar.value.showRefresh !== false ||
+      showSettings.value ||
+      toolbar.value.showFullscreen !== false,
+  )
   const buttons = computed(() => {
     const config = toolbar.value
     return (config.buttons ?? []).filter((button) => {
@@ -43,12 +54,18 @@ export function useWhimTableView(
     })
   })
   const buttonLabels = { add: '新增', edit: '修改', delete: '删除', export: '导出' } as const
-  const buttonTypes = { add: 'primary', edit: 'info', delete: 'error', export: 'warning' } as const
+  // 新增跟随主题主色，修改和删除使用各自的语义色。
+  const buttonTypes = {
+    add: 'primary',
+    edit: 'warning',
+    delete: 'error',
+    export: 'warning',
+  } as const
   const buttonIcons = {
-    add: 'zengjia',
-    edit: 'xiugai',
-    delete: 'shanchu',
-    export: 'daochu',
+    add: 'plus',
+    edit: 'pencil',
+    delete: 'trash-2',
+    export: 'download',
   } as const
 
   /** 编辑要求唯一选择，删除要求至少选择一行。 */
@@ -97,6 +114,7 @@ export function useWhimTableView(
   /** 全屏展示当前查询表单和表格，保留原有数据与选择状态。 */
   async function toggleFullscreen() {
     if (!fullscreenEnabled || !tableContainer.value) return
+    settingsVisible.value = false
     try {
       if (isFullscreen.value) await screenfull.exit()
       else await screenfull.request(tableContainer.value)
@@ -107,6 +125,7 @@ export function useWhimTableView(
 
   /** 离开缓存页面或卸载时释放当前表格占用的全屏。 */
   function exitFullscreen() {
+    settingsVisible.value = false
     if (fullscreenEnabled && screenfull.element === tableContainer.value) {
       void screenfull.exit().catch(() => message.error('退出表格全屏失败'))
     }
@@ -137,8 +156,12 @@ export function useWhimTableView(
     isFullscreen,
     toggleFullscreen,
     binding,
+    title,
     tableProps,
     toolbar,
+    showSettings,
+    showTools,
+    settingsVisible,
     buttons,
     buttonLabels,
     buttonTypes,
