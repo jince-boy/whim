@@ -1,5 +1,4 @@
-import { computed, h, onScopeDispose, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, watch } from 'vue'
 import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
@@ -16,35 +15,49 @@ import {
 import type { DictData, DictDataProps, DictDataQuery, DictDataResult } from './types'
 import DictDataForm from '../form.vue'
 
-/** 复用字典值面板，兼容类型管理页嵌入及已有独立路由。 */
+/** 管理当前类型的数据；类型切换由父工作区重建面板，隔离请求与勾选状态。 */
 export function useDictData(props: DictDataProps) {
-  const route = useRoute()
-  const router = useRouter()
   const userStore = useUserStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
-  const type = computed(() => props.type || String(route.params.type || ''))
+  const type = computed(() => props.type)
   const exporting = ref(false)
   const editingId = ref<string | number>()
   let disposed = false
+  let active = true
+  let editVersion = 0
 
   /** 行操作与工具栏使用一致的权限。 */
   const can = (permission: string) =>
     userStore.permissionCode.includes('*') || userStore.permissionCode.includes(permission)
   const canEdit = computed(() => can('system:dictData:update') && can('system:dictData:detail'))
+  const canAdd = computed(() => can('system:dictData:add'))
   const canExport = computed(() => can('system:dictData:export'))
 
   const columns = computed<DataTableColumns<DictDataResult>>(() => [
-    { type: 'selection', width: 40 },
+    ...(can('system:dictData:delete') ? [{ type: 'selection' as const, width: 40 }] : []),
     {
       title: '字典标签',
       key: 'label',
       width: 130,
       ellipsis: { tooltip: true },
-      render: (row) =>
-        h(NTag, { size: 'small', bordered: false, type: row.listClass }, () => row.label),
     },
     { title: '字典值', key: 'value', width: 110, ellipsis: { tooltip: true } },
     { title: '排序', key: 'sort', width: 60, align: 'center' },
+    {
+      title: '展示效果',
+      key: 'listClass',
+      width: 130,
+      render: (row) =>
+        h(
+          NTag,
+          {
+            bordered: false,
+            type: row.listClass,
+            style: 'max-width: 100%; overflow: hidden',
+          },
+          () => row.label,
+        ),
+    },
     {
       title: '备注',
       key: 'remark',
@@ -52,7 +65,7 @@ export function useDictData(props: DictDataProps) {
       ellipsis: { tooltip: true },
       render: (row) => row.remark || '—',
     },
-    { title: '创建时间', key: 'createTime', width: 180 },
+    { title: '创建时间', key: 'createTime', width: 200 },
     ...(canEdit.value || can('system:dictData:delete')
       ? [
           {
@@ -67,7 +80,6 @@ export function useDictData(props: DictDataProps) {
                       NButton,
                       {
                         text: true,
-                        size: 'small',
                         type: 'warning',
                         loading: editingId.value === row.id,
                         disabled: editingId.value !== undefined && editingId.value !== row.id,
@@ -81,7 +93,6 @@ export function useDictData(props: DictDataProps) {
                       NButton,
                       {
                         text: true,
-                        size: 'small',
                         type: 'error',
                         onClick: () => removeDictData([row.id], row.label),
                       },
@@ -95,13 +106,12 @@ export function useDictData(props: DictDataProps) {
   ])
 
   const [registerTable, table] = useWhimTable<DictDataResult, DictDataQuery>(() => ({
-    title: `字典值 · ${props.name || type.value}`,
+    title: '字典数据',
     columns,
-    size: 'small',
-    minHeight: 320,
-    maxHeight: 480,
+    minHeight: 300,
+    maxHeight: 560,
     rowKey: (row) => row.id,
-    scrollX: 752,
+    scrollX: 902,
     immediate: !!type.value,
     request: (query) => fetchDictDataPage({ ...query, type: type.value }),
     search: {
@@ -110,18 +120,17 @@ export function useDictData(props: DictDataProps) {
       size: 'medium',
       collapsed: false,
     },
-    pagination: { size: 'small', pageSlot: 5 },
+    pagination: { pageSlot: 5 },
     toolbar: {
-      buttons: ['add', 'delete'],
-      permissions: { add: ['system:dictData:add'], delete: ['system:dictData:delete'] },
-      showStriped: false,
+      buttons: ['delete'],
+      permissions: { delete: ['system:dictData:delete'] },
     },
   }))
 
   /** 新增字典值时固定所属类型，避免保存到其他字典。 */
   function openAddDialog() {
     openFormDialog({
-      title: '新增字典值',
+      title: `新增数据 · ${props.name}`,
       width: 560,
       formComponent: DictDataForm,
       formProps: {
@@ -144,17 +153,18 @@ export function useDictData(props: DictDataProps) {
   /** 读取最新数据后打开修改表单，切换类型后的旧请求不再打开弹窗。 */
   async function openEditDialog(id: string | number) {
     if (editingId.value !== undefined) return
+    const version = ++editVersion
     const currentType = type.value
     editingId.value = id
     try {
       const response = await fetchDictDataDetail({ id })
-      if (disposed || currentType !== type.value) return
+      if (disposed || !active || version !== editVersion || currentType !== type.value) return
       if (response.code !== 200) {
         message.error(response.message)
         return
       }
       openFormDialog({
-        title: '修改字典值',
+        title: `编辑数据 · ${props.name}`,
         width: 560,
         formComponent: DictDataForm,
         formProps: { initialModel: response.data },
@@ -165,7 +175,7 @@ export function useDictData(props: DictDataProps) {
     } catch {
       // 请求错误由公共拦截器提示。
     } finally {
-      editingId.value = undefined
+      if (version === editVersion) editingId.value = undefined
     }
   }
 
@@ -196,25 +206,26 @@ export function useDictData(props: DictDataProps) {
     }
   }
 
-  /** 独立访问字典值页面时可返回类型管理。 */
-  function backDictTypePage() {
-    void router.push('/system/dictType')
-  }
-
   watch(type, () => {
     if (type.value) void table.resetSearch()
   })
   onScopeDispose(() => (disposed = true))
+  onDeactivated(() => {
+    active = false
+    editVersion++
+    editingId.value = undefined
+  })
+  onActivated(() => (active = true))
 
   return {
     registerTable,
     form: table.searchModel,
     type,
+    canAdd,
     canExport,
     exporting,
     openAddDialog,
     removeDictData,
     handleExport,
-    backDictTypePage,
   }
 }

@@ -59,7 +59,7 @@ export function useWhimTableView(
     add: 'primary',
     edit: 'warning',
     delete: 'error',
-    export: 'warning',
+    export: 'info',
   } as const
   const buttonIcons = {
     add: 'plus',

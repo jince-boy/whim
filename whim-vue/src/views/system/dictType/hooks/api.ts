@@ -1,6 +1,11 @@
 import { downloadFile, request, RequestMethod } from '@/api'
 import type { DictTypePageResult, DictTypeQuery, DictTypeResult } from './types'
 
+/** 获取类型目录，名称和编码的检索在完整列表内进行。 */
+export const fetchDictTypeList = () => {
+  return request<DictTypeResult[]>('/system/dictType/list', RequestMethod.GET)
+}
+
 /** 分页查询字典类型。 */
 export const fetchDictTypePage = (params: object) => {
   return request<DictTypePageResult>('/system/dictType/page', RequestMethod.GET, { params })

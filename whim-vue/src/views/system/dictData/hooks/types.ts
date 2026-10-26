@@ -1,10 +1,9 @@
 export type TagType = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
 
-/** 字典值面板可嵌入类型管理页，也可从路由参数读取类型。 */
+/** 数据面板由父工作区明确指定归属，不自行读取路由。 */
 export interface DictDataProps {
-  type?: string
-  name?: string
-  embedded?: boolean
+  type: string
+  name: string
 }
 
 /** 字典数据查询字段。 */

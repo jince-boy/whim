@@ -191,7 +191,6 @@ export function useMenu() {
     toolbar: {
       buttons: canCreate.value ? ['add'] : [],
       permissions: { add: ['system:menu:create'] },
-      showStriped: false,
       showRefresh: true,
       showColumns: true,
       showFullscreen: true,

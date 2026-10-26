@@ -65,7 +65,12 @@ defineExpose({ reload, getTableInstance })
         <slot name="searchAction" v-bind="actions" />
       </template>
     </SearchForm>
-    <n-card class="whim-table__card" size="small" :segmented="{ content: true }">
+    <n-card
+      class="whim-table__card"
+      size="small"
+      :segmented="{ content: true }"
+      content-style="padding: 0"
+    >
       <template #header>
         <span class="whim-table__title">{{ title }}</span>
       </template>
@@ -124,11 +129,11 @@ defineExpose({ reload, getTableInstance })
                 <template #header>表格设置</template>
                 <div class="whim-table__settings">
                   <div v-if="toolbar.showStriped !== false" class="whim-table__setting-row">
-                    <n-text>斑马纹</n-text>
+                    <n-text>斑马线</n-text>
                     <n-switch
                       v-model:value="binding.striped.value"
                       size="small"
-                      aria-label="显示斑马纹"
+                      aria-label="显示斑马线"
                     />
                   </div>
                   <div v-if="toolbar.showColumns !== false" class="whim-table__columns">
@@ -207,10 +212,6 @@ defineExpose({ reload, getTableInstance })
 .whim-table__card > :deep(.n-card-header .n-card-header__main) {
   flex: 1 0 auto;
   max-width: 100%;
-}
-
-.whim-table__card > :deep(.n-card__content) {
-  padding: 16px;
 }
 
 .whim-table__title {

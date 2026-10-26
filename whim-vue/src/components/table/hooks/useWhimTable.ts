@@ -233,7 +233,6 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
     ])
       delete nativeProps[key]
     return {
-      size: 'small',
       ...nativeProps,
       // 泛型行配置在公开入口检查，此处只擦除视图层不需要的业务类型。
       columns: visibleColumns.value as DataTableProps['columns'],
