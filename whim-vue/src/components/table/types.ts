@@ -80,8 +80,7 @@ export interface WhimTableBinding {
   error: Ref<string | undefined>
   registerSearch?: SearchFormRegister
   reload: () => Promise<boolean>
-  search: () => Promise<boolean>
-  resetSearch: () => Promise<boolean>
+  applySearch: () => Promise<boolean>
   setVisibleColumns: (keys: DataTableRowKey[]) => void
 }
 

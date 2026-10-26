@@ -23,7 +23,13 @@ export function useDictTypeList() {
       { title: '字典类型', key: 'type' },
     ],
     scrollX: 1000,
-    search: { defaultValues: { name: '', type: '' } },
+    search: {
+      defaultValues: { name: '', type: '' },
+      fields: [
+        { key: 'name', label: '字典名称' },
+        { key: 'type', label: '类型编码' },
+      ],
+    },
     pagination: { pageSize: 10, pageSizes: [10, 20, 50] },
     toolbar: { buttons: ['add', 'edit', 'delete', 'export'] },
   })
@@ -49,7 +55,7 @@ export function useDictTypeList() {
 - `request` 接收查询条件及 `pageNum`、`pageSize`，返回项目的 `ApiResponse<TablePage<Row>>`；也支持 `ApiResponse<Row[]>`。数组结果使用本地分页，树列表通常配置 `pagination: false`。
 - 无 `request` 时可以传入 `data` 数组、ref 或 getter，使用本地数据模式。
 - 配置可使用普通对象、ref 或 getter。动态权限和列配置使用 getter；示例见菜单页面。`search` 是否启用在创建 hook 时确定，分页的 `pageSize` 是初始值；修改页码和每页数量由表格交互管理。
-- 搜索、重置均回到第一页；刷新和翻页使用已提交的条件，输入框尚未提交的修改不会影响当前结果。
+- 搜索、重置及移除条件标签均回到第一页并清空选择；刷新和翻页使用已提交的条件，输入框尚未提交的修改不会影响当前结果。移除标签只撤销对应条件，保留其他未提交输入。
 - 只允许最新请求写回；失败保留旧数据并显示错误；删除末页数据后最多补查一次有效页。
 - `reload()` 返回 `Promise<boolean>`，便于业务操作等待刷新结果。默认注册后加载一次，`immediate: false` 可关闭自动加载。
 - `search()` 提交当前草稿；界面搜索按钮会先进行表单校验。程序化调用 `search()` 不执行界面校验。
@@ -83,26 +89,32 @@ import { useSearchForm } from '@/components/form'
 export function useUserSearch() {
   const [registerForm, form] = useSearchForm({
     defaultValues: { username: '' },
-    labelPlacement: 'left',
-    grid: { cols: '1 s:2 m:3', responsive: 'screen' },
+    fields: [{ key: 'username', label: '用户名' }],
   })
-  return { registerForm, model: form.model, getValues: form.getValues }
+  return { registerForm, model: form.model, submittedValues: form.submittedValues }
 }
 ```
 
 ```vue
-<SearchForm @register="registerForm" @submit="handleSearch" @reset="handleSearch">
+<SearchForm
+  @register="registerForm"
+  @submit="handleSearch"
+  @reset="handleSearch"
+  @filter-change="handleSearch"
+>
   <n-form-item-gi label="用户名" path="username">
     <n-input v-model:value="model.username" clearable />
   </n-form-item-gi>
 </SearchForm>
 ```
 
-`SearchForm` 自带查询卡片，`title` 默认为“筛选条件”，无需再包一层卡片。标题栏右侧可整体收起或展开查询区，`collapsed: true` 设置默认整体收起；收起不清空条件、不卸载字段，也不触发查询。
+`SearchForm` 使用无标题栏的紧凑独立筛选条，无需再包一层卡片。`title` 仅作为无障碍名称，默认“筛选条件”。字段标签默认置于输入区域左侧，用细分隔线区分标签和输入；搜索为带图标的主按钮，重置和“更多”使用文字按钮。操作按钮紧跟最后一个可见字段，没有整块面板收起入口。
 
-表单配置保留原生 `FormProps`，包括 `rules`、标签位置、尺寸等；`grid` 使用原生 `GridProps`。默认按表单实际宽度布局：小于 640px 为 1 列，640px 起 2 列，960px 起 3 列，1280px 起 4 列。搜索、重置及“展开更多”按钮合占最右侧 1 格；默认显示一行，单列时保留第一个查询项，按钮独占下一行。展开更多后显示全部字段，收起保留已填条件；校验失败时自动展开查询区和字段以便查看错误。可通过 `grid.cols`、`grid.collapsedRows` 覆盖布局，`grid.collapsed: false` 设置默认显示全部字段，与整张查询卡片的收起独立。字段 `path` 相对于模型，例如 `username`，不要写成 `form.username`。
+表单配置保留原生 `FormProps`，包括 `rules`、标签位置、尺寸等；`grid` 使用原生 `GridProps`。默认根据表单内容区域的实际宽度，每格预留至少 220px、最多排列 4 列，每格宽度上限为 278px，横纵间距均为 10px。更窄的单列容器中字段随可用宽度收缩。搜索、重置及“更多”合占一格，按字段顺序自然排列和换行。默认显示一行，单列时保留第一个查询项，按钮另起一行。常用字段放在插槽前面，日期范围可使用 `:span="2"`，单列下会自动缩为一列。展开更多不清空条件、不卸载字段，也不触发查询；校验失败时自动展开全部字段。显式配置 `grid.cols` 时使用原生栅格列宽，可通过 `grid.collapsedRows` 覆盖折叠行数；`collapsed: false` 默认展示全部字段并自动换行，`grid.collapsed` 优先于该配置。字段 `path` 相对于模型，例如 `username`，不要写成 `form.username`。
 
-`submit`、`reset` 是无参数通知事件。处理器通过 hook 的 `getValues()` 获取具有完整查询类型的快照；事件发送时校验或重置已经完成。`setValues()` 修改草稿，`resetFields()` 只重置数据和校验，`submit()` 校验后发出提交事件，`reset()` 重置后发出重置事件。`validate()` 保留原生校验方法签名。
+`fields` 定义已应用条件标签的 `key` 和 `label`，`key` 受查询模型类型约束。可用 `format(values)` 将字典值或日期范围转换为可读文字，不改变请求参数；字典选项异步更新时标签同步更新。未配置的字段仍参与查询，但不生成标签；空字符串、空数组及空值不生成标签，`0` 和 `false` 保留。关闭标签将该字段恢复为默认值并重新查询，“清空”恢复所有默认值。
+
+`submit`、`reset`、`filterChange` 是无参数通知事件。独立表单的处理器应读取 `submittedValues.value` 获取已提交条件；`getValues()` 获取输入草稿快照。事件发送时，校验或重置、条件快照更新已经完成。`setValues()` 修改草稿，`resetFields()` 只重置草稿和校验，`commitValues()` 将草稿提交为新快照；`submit()` 校验、提交快照后发出事件，`reset()` 重置并提交后发出事件。`validate()` 保留原生校验方法签名。
 
 默认值和查询快照通过 `structuredClone` 隔离，支持日期、数组和嵌套数据。查询模型应使用可克隆的数据值，不放入函数、组件实例或 DOM 对象。
 

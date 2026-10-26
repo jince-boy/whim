@@ -34,9 +34,6 @@ const {
             <Icon name="search" :size="20"/>
           </template>
         </n-input>
-        <n-button quaternary size="small" aria-label="关闭菜单搜索" @click="show = false">
-          关闭
-        </n-button>
       </div>
 
       <div ref="resultsContainer" class="results-container">
@@ -72,7 +69,6 @@ const {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 12px;
   padding: 20px;
 }
 

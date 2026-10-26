@@ -20,16 +20,16 @@ export function useSearchFormView(
 ) {
   const binding = shallowRef<SearchFormBinding>()
   const formRef = useTemplateRef<FormInst>('formRef')
-  const formContainer = useTemplateRef<HTMLElement>('formContainer')
+  const formLayout = useTemplateRef<HTMLElement>('formLayout')
   const themeVars = useThemeVars()
   const panelId = useId()
   const title = computed(() => binding.value?.title.value ?? '筛选条件')
-  const panelCollapsed = ref(false)
   const columnCount = ref(1)
   const collapsed = ref(true)
   let resizeObserver: ResizeObserver | undefined
   const submitting = ref(false)
   const formProps = computed(() => binding.value?.formProps.value)
+  const filters = computed(() => binding.value?.filters.value ?? [])
   const gridProps = computed<GridProps>(() => {
     const config = binding.value?.gridProps.value
     const cols = config?.cols ?? columnCount.value
@@ -41,15 +41,15 @@ export function useSearchFormView(
       collapsed: collapsed.value,
     }
   })
+  const gridStyle = computed(() => ({
+    // 显式配置列数时保留原生栅格；默认字段不随宽屏拉伸。
+    gridTemplateColumns: binding.value?.gridProps.value.cols
+      ? undefined
+      : `repeat(${columnCount.value}, minmax(0, 278px))`,
+  }))
 
   watch(
     () => binding.value?.collapsed.value,
-    (value) => {
-      panelCollapsed.value = value ?? false
-    },
-  )
-  watch(
-    () => binding.value?.gridProps.value.collapsed,
     (value) => {
       collapsed.value = value ?? true
     },
@@ -58,11 +58,6 @@ export function useSearchFormView(
   /** 展开和收起只影响布局，保留查询条件与字段实例。 */
   function toggleCollapsed() {
     collapsed.value = !collapsed.value
-  }
-
-  /** 整体收起查询区时仍保留输入、校验和字段折叠状态。 */
-  function togglePanelCollapsed() {
-    panelCollapsed.value = !panelCollapsed.value
   }
 
   /** 使用原生表单校验，未挂载时明确失败。 */
@@ -82,10 +77,10 @@ export function useSearchFormView(
     submitting.value = true
     try {
       await validate()
+      binding.value.commitValues()
       emit('submit')
       return true
     } catch {
-      panelCollapsed.value = false
       collapsed.value = false
       return false
     } finally {
@@ -97,7 +92,14 @@ export function useSearchFormView(
   function reset() {
     if (!binding.value || submitting.value) return
     binding.value.resetFields()
+    binding.value.commitValues()
     emit('reset')
+  }
+
+  /** 撤销一个已应用条件后通知调用方重新查询。 */
+  function removeFilter(key: string) {
+    if (!binding.value || submitting.value) return
+    if (binding.value.removeFilter(key)) emit('filterChange')
   }
 
   const registration: SearchFormRegistration = {
@@ -114,10 +116,15 @@ export function useSearchFormView(
     emit('register', registration)
     resizeObserver = new ResizeObserver(([entry]) => {
       if (!entry) return
-      const width = entry.contentRect.width
-      columnCount.value = width >= 1280 ? 4 : width >= 960 ? 3 : width >= 640 ? 2 : 1
+      const gap = binding.value?.gridProps.value.xGap
+      const spacing = typeof gap === 'number' ? gap : 10
+      // 每格至少预留 220px，宽裕时增长到 278px，避免双栏表单过早换行。
+      columnCount.value = Math.max(
+        1,
+        Math.min(4, Math.floor((entry.contentRect.width + spacing) / (220 + spacing))),
+      )
     })
-    if (formContainer.value) resizeObserver.observe(formContainer.value)
+    if (formLayout.value) resizeObserver.observe(formLayout.value)
   })
   onBeforeUnmount(() => {
     resizeObserver?.disconnect()
@@ -128,10 +135,11 @@ export function useSearchFormView(
     themeVars,
     panelId,
     title,
-    panelCollapsed,
-    togglePanelCollapsed,
     formProps,
     gridProps,
+    gridStyle,
+    filters,
+    removeFilter,
     collapsed,
     toggleCollapsed,
     submitting,

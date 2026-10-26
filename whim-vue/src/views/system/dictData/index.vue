@@ -29,7 +29,7 @@ const {
       @delete="removeDictData"
     >
       <template #search>
-        <n-form-item-gi label="字典标签" path="label" span="1 400:2">
+        <n-form-item-gi label="字典标签" path="label">
           <n-input
             v-model:value="form.label"
             placeholder="输入完整字典标签"

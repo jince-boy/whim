@@ -114,8 +114,12 @@ export function useDictType() {
     }),
     search: {
       defaultValues: { name: '', type: '' },
+      fields: [
+        { key: 'name', label: '字典名称' },
+        { key: 'type', label: '类型编码' },
+      ],
       size: 'medium',
-      grid: { cols: '1 400:2', responsive: 'self', collapsedRows: 3 },
+      collapsed: false,
     },
     pagination: { size: 'small', pageSlot: 5 },
     toolbar: {

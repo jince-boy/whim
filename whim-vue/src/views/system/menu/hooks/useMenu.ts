@@ -184,7 +184,10 @@ export function useMenu() {
     columns: tableColumns,
     rowKey: (row) => row.id,
     pagination: false,
-    search: { defaultValues: { menuName: '' } },
+    search: {
+      defaultValues: { menuName: '' },
+      fields: [{ key: 'menuName', label: '菜单名称' }],
+    },
     toolbar: {
       buttons: canCreate.value ? ['add'] : [],
       permissions: { add: ['system:menu:create'] },

@@ -56,8 +56,9 @@ defineExpose({ reload, getTableInstance })
     <SearchForm
       v-if="binding?.registerSearch"
       @register="binding.registerSearch"
-      @submit="binding.search"
-      @reset="binding.resetSearch"
+      @submit="binding.applySearch"
+      @reset="binding.applySearch"
+      @filter-change="binding.applySearch"
     >
       <slot name="search" />
       <template v-if="$slots.searchAction" #action="actions">

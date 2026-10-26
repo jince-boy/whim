@@ -24,16 +24,24 @@ const {
   <n-space vertical>
     <WhimTable @register="registerTable" @delete="removeOperLogBatch" @export="exportExcel">
       <template #search>
-        <n-form-item-gi label="模块名称">
+        <n-form-item-gi label="模块名称" path="title">
           <n-input v-model:value="form.title" placeholder="请输入模块名称" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="操作人">
+        <n-form-item-gi label="操作人" path="operName">
           <n-input v-model:value="form.operName" placeholder="请输入操作人" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="IP地址">
-          <n-input v-model:value="form.ipAddress" placeholder="请输入登录IP地址" clearable />
+        <n-form-item-gi label="操作状态" path="status">
+          <n-select
+            placeholder="全部状态"
+            v-model:value="form.status"
+            :options="sysStatusOptions"
+            clearable
+          />
         </n-form-item-gi>
-        <n-form-item-gi label="操作类型">
+        <n-form-item-gi label="IP 地址" path="ipAddress">
+          <n-input v-model:value="form.ipAddress" placeholder="请输入操作 IP 地址" clearable />
+        </n-form-item-gi>
+        <n-form-item-gi label="操作类型" path="logType">
           <n-select
             placeholder="请选择操作类型"
             v-model:value="form.logType"
@@ -41,15 +49,7 @@ const {
             clearable
           />
         </n-form-item-gi>
-        <n-form-item-gi label="操作状态">
-          <n-select
-            placeholder="请选择登录状态"
-            v-model:value="form.status"
-            :options="sysStatusOptions"
-            clearable
-          />
-        </n-form-item-gi>
-        <n-form-item-gi label="操作时间" path="dateRange">
+        <n-form-item-gi label="操作时间" path="dateRange" :span="2">
           <n-date-picker
             start-placeholder="开始时间"
             end-placeholder="结束时间"

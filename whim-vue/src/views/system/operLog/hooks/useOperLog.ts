@@ -142,6 +142,29 @@ export function useOperLog() {
         ipAddress: '',
         dateRange: null,
       },
+      fields: [
+        { key: 'title', label: '模块名称' },
+        { key: 'operName', label: '操作人' },
+        {
+          key: 'status',
+          label: '操作状态',
+          format: (values) => getDictStatusData(String(values.status)).label,
+        },
+        { key: 'ipAddress', label: 'IP 地址' },
+        {
+          key: 'logType',
+          label: '操作类型',
+          format: (values) => getDictOperTypeData(String(values.logType)).label,
+        },
+        {
+          key: 'dateRange',
+          label: '操作时间',
+          format: (values) =>
+            values.dateRange
+              ?.map((time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'))
+              .join(' 至 ') ?? '',
+        },
+      ],
     },
     toolbar: {
       buttons: ['delete', 'export'],

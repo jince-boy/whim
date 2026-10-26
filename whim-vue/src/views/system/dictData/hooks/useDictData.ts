@@ -106,8 +106,9 @@ export function useDictData(props: DictDataProps) {
     request: (query) => fetchDictDataPage({ ...query, type: type.value }),
     search: {
       defaultValues: { label: '' },
+      fields: [{ key: 'label', label: '字典标签' }],
       size: 'medium',
-      grid: { cols: '1 400:2', responsive: 'self', collapsedRows: 3 },
+      collapsed: false,
     },
     pagination: { size: 'small', pageSlot: 5 },
     toolbar: {

@@ -1,7 +1,12 @@
 import { computed, onScopeDispose, ref, shallowRef, toRaw, toValue } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { FormInst } from 'naive-ui'
-import type { SearchFormOptions, SearchFormRegister, SearchFormRegistration } from '../types'
+import type {
+  SearchFormBinding,
+  SearchFormOptions,
+  SearchFormRegister,
+  SearchFormRegistration,
+} from '../types'
 
 /** 创建注册式查询表单，默认值、输入草稿和提交快照互相隔离。 */
 export function useSearchForm<Values extends object>(
@@ -10,6 +15,29 @@ export function useSearchForm<Values extends object>(
   const options = computed(() => toValue(source))
   const model = ref(structuredClone(toRaw(options.value.defaultValues))) as Ref<Values>
   const instance = shallowRef<SearchFormRegistration>()
+  const submittedValues = shallowRef(getValues())
+
+  const filters = computed(() =>
+    (options.value.fields ?? []).flatMap((field) => {
+      const value = submittedValues.value[field.key]
+      if (
+        value === null ||
+        value === undefined ||
+        value === '' ||
+        (Array.isArray(value) && !value.length)
+      )
+        return []
+      return [
+        {
+          key: field.key,
+          label: field.label,
+          value:
+            field.format?.(submittedValues.value) ??
+            (Array.isArray(value) ? value.join('、') : String(value)),
+        },
+      ]
+    }),
+  )
 
   /** 获取独立快照，修改请求参数不会影响输入框。 */
   function getValues(): Values {
@@ -27,36 +55,55 @@ export function useSearchForm<Values extends object>(
     instance.value?.restoreValidation()
   }
 
+  /** 提交独立的查询快照，标签、刷新和翻页共用这一份条件。 */
+  function commitValues() {
+    submittedValues.value = getValues()
+  }
+
+  /** 只撤销指定的已提交条件，不提交其他字段尚未搜索的修改。 */
+  function removeFilter(key: string) {
+    const field = options.value.fields?.find((item) => item.key === key)
+    if (!field) return false
+    const defaults = structuredClone(toRaw(options.value.defaultValues))
+    model.value = { ...getValues(), [field.key]: structuredClone(defaults[field.key]) }
+    submittedValues.value = { ...submittedValues.value, [field.key]: defaults[field.key] }
+    instance.value?.restoreValidation()
+    return true
+  }
+
   const formProps = computed(() => {
-    const { title, collapsed, defaultValues, grid, searchText, resetText, ...nativeProps } =
+    const { title, collapsed, defaultValues, fields, grid, searchText, resetText, ...nativeProps } =
       options.value
     void title
     void collapsed
     void defaultValues
+    void fields
     void grid
     void searchText
     void resetText
     return {
       size: 'medium' as const,
-      labelWidth: 'auto',
       labelPlacement: 'left' as const,
       showFeedback: !!nativeProps.rules,
       ...nativeProps,
       model: model.value,
     }
   })
-  const binding = {
+  const binding: SearchFormBinding = {
     title: computed(() => options.value.title ?? '筛选条件'),
-    collapsed: computed(() => options.value.collapsed ?? false),
+    collapsed: computed(() => options.value.grid?.collapsed ?? options.value.collapsed ?? true),
+    filters,
     formProps,
     gridProps: computed(() => ({
-      xGap: 16,
-      yGap: 16,
+      xGap: 10,
+      yGap: 10,
       ...options.value.grid,
     })),
     searchText: computed(() => options.value.searchText ?? '搜索'),
     resetText: computed(() => options.value.resetText ?? '重置'),
     resetFields,
+    commitValues,
+    removeFilter,
   }
 
   /** 同一 hook 只连接一个表单；重新挂载时可以再次注册。 */
@@ -82,5 +129,19 @@ export function useSearchForm<Values extends object>(
   onScopeDispose(() => {
     instance.value = undefined
   })
-  return [register, { model, getValues, setValues, resetFields, validate, submit, reset }] as const
+  return [
+    register,
+    {
+      model,
+      getValues,
+      setValues,
+      resetFields,
+      validate,
+      submit,
+      reset,
+      commitValues,
+      removeFilter,
+      submittedValues: computed(() => submittedValues.value),
+    },
+  ] as const
 }

@@ -31,7 +31,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   const [registerSearch, form] = useSearchForm<Query>(
     () => options.value.search ?? { defaultValues: {} as Query },
   )
-  const submittedQuery = shallowRef(form.getValues())
+  const submittedQuery = form.submittedValues
   const rows = shallowRef<Row[]>([])
   const data = computed(() =>
     options.value.request ? rows.value : (toValue(options.value.data) ?? []),
@@ -137,7 +137,12 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
 
   /** 提交当前输入，搜索条件变化后回到第一页并清空选择。 */
   async function search() {
-    submittedQuery.value = form.getValues()
+    form.commitValues()
+    return applySearch()
+  }
+
+  /** 使用表单已提交的快照查询第一页，保留其他尚未提交的输入。 */
+  function applySearch() {
     page.value = 1
     checkedRowKeys.value = []
     return reload()
@@ -283,8 +288,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
     error,
     registerSearch: options.value.search ? registerSearch : undefined,
     reload,
-    search,
-    resetSearch,
+    applySearch,
     setVisibleColumns,
   }
 

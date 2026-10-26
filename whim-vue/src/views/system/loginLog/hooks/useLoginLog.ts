@@ -105,7 +105,26 @@ export function useLoginLog() {
         startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : '',
         endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : '',
       }),
-    search: { defaultValues: { username: '', status: null, ipAddress: '', dateRange: null } },
+    search: {
+      defaultValues: { username: '', status: null, ipAddress: '', dateRange: null },
+      fields: [
+        { key: 'username', label: '用户名' },
+        {
+          key: 'status',
+          label: '登录状态',
+          format: (values) => getDictData(String(values.status)).label,
+        },
+        { key: 'ipAddress', label: 'IP 地址' },
+        {
+          key: 'dateRange',
+          label: '登录时间',
+          format: (values) =>
+            values.dateRange
+              ?.map((time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'))
+              .join(' 至 ') ?? '',
+        },
+      ],
+    },
     toolbar: {
       buttons: ['delete', 'export'],
       permissions: { delete: ['system:loginLog:delete'], export: ['system:loginLog:export'] },
