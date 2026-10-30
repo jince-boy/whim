@@ -136,7 +136,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
   }
 
   /** 提交当前输入，搜索条件变化后回到第一页并清空选择。 */
-  async function search() {
+  function search() {
     form.commitValues()
     return applySearch()
   }
@@ -203,6 +203,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
     delete config.onUpdatePageSize
     delete config['onUpdate:pageSize']
     return {
+      size: 'small' as const,
       showSizePicker: true,
       pageSizes: [10, 20, 50],
       ...config,
@@ -346,7 +347,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
       setCheckedRowKeys,
       setExpandedRowKeys,
       getTableInstance,
-      data: computed(() => data.value),
+      data,
       loading: computed(() => loading.value),
       error: computed(() => error.value),
     },

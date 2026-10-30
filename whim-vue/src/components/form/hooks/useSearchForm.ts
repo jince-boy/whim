@@ -1,6 +1,6 @@
 import { computed, onScopeDispose, ref, shallowRef, toRaw, toValue } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
-import type { FormInst } from 'naive-ui'
+import type { FormInst, FormProps } from 'naive-ui'
 import type {
   SearchFormBinding,
   SearchFormOptions,
@@ -71,19 +71,22 @@ export function useSearchForm<Values extends object>(
     return true
   }
 
-  const formProps = computed(() => {
-    const { title, collapsed, defaultValues, fields, grid, searchText, resetText, ...nativeProps } =
-      options.value
-    void title
-    void collapsed
-    void defaultValues
-    void fields
-    void grid
-    void searchText
-    void resetText
+  const formProps = computed<FormProps>(() => {
+    const nativeProps: Record<string, unknown> = { ...options.value }
+    for (const key of [
+      'title',
+      'collapsed',
+      'defaultValues',
+      'fields',
+      'grid',
+      'searchText',
+      'resetText',
+    ])
+      delete nativeProps[key]
     return {
       size: 'medium' as const,
       labelPlacement: 'left' as const,
+      labelWidth: 76,
       showFeedback: !!nativeProps.rules,
       ...nativeProps,
       model: model.value,
@@ -95,11 +98,11 @@ export function useSearchForm<Values extends object>(
     filters,
     formProps,
     gridProps: computed(() => ({
-      xGap: 10,
-      yGap: 10,
+      xGap: 14,
+      yGap: 16,
       ...options.value.grid,
     })),
-    searchText: computed(() => options.value.searchText ?? '搜索'),
+    searchText: computed(() => options.value.searchText ?? '查询'),
     resetText: computed(() => options.value.resetText ?? '重置'),
     resetFields,
     commitValues,

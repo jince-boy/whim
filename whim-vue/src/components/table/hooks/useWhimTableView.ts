@@ -7,7 +7,7 @@ import {
   shallowRef,
   useTemplateRef,
 } from 'vue'
-import { useThemeVars, type DataTableInst } from 'naive-ui'
+import { useThemeVars, type ConfigProviderProps, type DataTableInst } from 'naive-ui'
 import { message } from '@/plugins'
 import screenfull from 'screenfull'
 import { useUserStore } from '@/stores/modules/user'
@@ -21,6 +21,21 @@ export function useWhimTableView(
   const tableRef = useTemplateRef<DataTableInst>('tableRef')
   const tableContainer = useTemplateRef<HTMLElement>('tableContainer')
   const themeVars = useThemeVars()
+  const tableComponentOptions: ConfigProviderProps['componentOptions'] = {
+    Button: { size: 'small' },
+    Checkbox: { size: 'small' },
+    DataTable: { size: 'small' },
+    DatePicker: { size: 'small', timePickerSize: 'small' },
+    Form: { size: 'small' },
+    Input: { size: 'small' },
+    InputNumber: { size: 'small' },
+    Pagination: { size: 'small', inputSize: 'small', selectSize: 'small' },
+    Select: { size: 'small' },
+    Switch: { size: 'small' },
+    Tag: { size: 'small' },
+    TimePicker: { size: 'small' },
+    TreeSelect: { size: 'small' },
+  }
   const fullscreenEnabled = screenfull.isEnabled
   const isFullscreen = ref(false)
   const settingsVisible = ref(false)
@@ -53,19 +68,11 @@ export function useWhimTableView(
       return permitted && hasRole
     })
   })
-  const buttonLabels = { add: '新增', edit: '修改', delete: '删除', export: '导出' } as const
-  // 新增跟随主题主色，修改和删除使用各自的语义色。
-  const buttonTypes = {
-    add: 'primary',
-    edit: 'warning',
-    delete: 'error',
-    export: 'info',
-  } as const
-  const buttonIcons = {
-    add: 'plus',
-    edit: 'pencil',
-    delete: 'trash-2',
-    export: 'download',
+  const buttonOptions = {
+    add: { label: '新增', type: 'primary', icon: 'plus' },
+    edit: { label: '修改', type: 'warning', icon: 'pencil' },
+    delete: { label: '删除', type: 'error', icon: 'trash-2' },
+    export: { label: '导出', type: 'info', icon: 'download' },
   } as const
 
   /** 编辑要求唯一选择，删除要求至少选择一行。 */
@@ -152,6 +159,7 @@ export function useWhimTableView(
   return {
     tableContainer,
     themeVars,
+    tableComponentOptions,
     fullscreenEnabled,
     isFullscreen,
     toggleFullscreen,
@@ -163,9 +171,7 @@ export function useWhimTableView(
     showTools,
     settingsVisible,
     buttons,
-    buttonLabels,
-    buttonTypes,
-    buttonIcons,
+    buttonOptions,
     isDisabled,
     handleAction,
     refresh,

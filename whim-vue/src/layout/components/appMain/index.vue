@@ -19,7 +19,7 @@ defineExpose({appMainRef, refresh})
 
 <style scoped lang="scss">
 .appMain {
-  padding: 12px;
+  padding: 10px;
 }
 
 /* 保留原有缩小退出、右侧滑入的默认效果。 */

@@ -117,8 +117,6 @@ export function useDictData(props: DictDataProps) {
     search: {
       defaultValues: { label: '' },
       fields: [{ key: 'label', label: '字典标签' }],
-      size: 'medium',
-      collapsed: false,
     },
     pagination: { pageSlot: 5 },
     toolbar: {

@@ -23,6 +23,7 @@ export type SearchFormOptions<Values extends object> = Omit<FormProps, 'model'> 
   collapsed?: boolean
   defaultValues: Values
   fields?: SearchFormField<Values>[]
+  /** 查询操作紧随字段排列；单列窄屏默认保留条件和操作两行。 */
   grid?: GridProps
   searchText?: string
   resetText?: string

@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from 'vue'
-import { useThemeVars, type FormInst, type GridProps } from 'naive-ui'
+import type { FormInst, GridProps, NGrid } from 'naive-ui'
 import type { SearchFormBinding, SearchFormEmits, SearchFormRegistration } from '../types'
 
 /** 连接查询表单 hook，并将用户提交、重置作为事件通知调用方。 */
@@ -20,33 +20,26 @@ export function useSearchFormView(
 ) {
   const binding = shallowRef<SearchFormBinding>()
   const formRef = useTemplateRef<FormInst>('formRef')
-  const formLayout = useTemplateRef<HTMLElement>('formLayout')
-  const themeVars = useThemeVars()
+  const gridRef = useTemplateRef<InstanceType<typeof NGrid>>('gridRef')
   const panelId = useId()
   const title = computed(() => binding.value?.title.value ?? '筛选条件')
-  const columnCount = ref(1)
   const collapsed = ref(true)
-  let resizeObserver: ResizeObserver | undefined
+  const canCollapse = ref(false)
   const submitting = ref(false)
   const formProps = computed(() => binding.value?.formProps.value)
   const filters = computed(() => binding.value?.filters.value ?? [])
   const gridProps = computed<GridProps>(() => {
     const config = binding.value?.gridProps.value
-    const cols = config?.cols ?? columnCount.value
     return {
       ...config,
-      cols,
-      // 单列时保留一个查询项，操作区占用下一行。
-      collapsedRows: config?.collapsedRows ?? (cols === 1 || cols === '1' ? 2 : 1),
+      // 查询项和操作项使用同一栅格，最多四列，空间不足时自然换行。
+      cols: config?.cols ?? '1 520:2 780:3 1040:4',
+      responsive: config?.responsive ?? 'self',
+      // 单列窄屏保留一个条件和操作行，其余宽度下条件与按钮同行。
+      collapsedRows: config?.collapsedRows ?? (gridRef.value?.responsiveCols === 1 ? 2 : 1),
       collapsed: collapsed.value,
     }
   })
-  const gridStyle = computed(() => ({
-    // 显式配置列数时保留原生栅格；默认字段不随宽屏拉伸。
-    gridTemplateColumns: binding.value?.gridProps.value.cols
-      ? undefined
-      : `repeat(${columnCount.value}, minmax(0, 278px))`,
-  }))
 
   watch(
     () => binding.value?.collapsed.value,
@@ -57,6 +50,7 @@ export function useSearchFormView(
 
   /** 展开和收起只影响布局，保留查询条件与字段实例。 */
   function toggleCollapsed() {
+    canCollapse.value = true
     collapsed.value = !collapsed.value
   }
 
@@ -81,6 +75,7 @@ export function useSearchFormView(
       emit('submit')
       return true
     } catch {
+      canCollapse.value = collapsed.value || canCollapse.value
       collapsed.value = false
       return false
     } finally {
@@ -114,33 +109,20 @@ export function useSearchFormView(
   }
   onMounted(() => {
     emit('register', registration)
-    resizeObserver = new ResizeObserver(([entry]) => {
-      if (!entry) return
-      const gap = binding.value?.gridProps.value.xGap
-      const spacing = typeof gap === 'number' ? gap : 10
-      // 每格至少预留 220px，宽裕时增长到 278px，避免双栏表单过早换行。
-      columnCount.value = Math.max(
-        1,
-        Math.min(4, Math.floor((entry.contentRect.width + spacing) / (220 + spacing))),
-      )
-    })
-    if (formLayout.value) resizeObserver.observe(formLayout.value)
   })
   onBeforeUnmount(() => {
-    resizeObserver?.disconnect()
     emit('register', undefined)
   })
   return {
     binding,
-    themeVars,
     panelId,
     title,
     formProps,
     gridProps,
-    gridStyle,
     filters,
     removeFilter,
     collapsed,
+    canCollapse,
     toggleCollapsed,
     submitting,
     submit,
