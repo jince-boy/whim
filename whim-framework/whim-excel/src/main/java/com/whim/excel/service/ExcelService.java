@@ -4,13 +4,10 @@ import com.whim.excel.builder.ExcelExportBuilder;
 import com.whim.excel.builder.ExcelReadBuilder;
 import com.whim.excel.builder.ExcelTemplateBuilder;
 import com.whim.excel.config.properties.ExcelProperties;
-import com.whim.excel.core.ExcelDictionaryProvider;
 import com.whim.excel.core.ExcelOperationContext;
 import jakarta.validation.Validator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -32,9 +29,6 @@ public class ExcelService {
 
     @Getter
     private final Validator validator;
-
-    private final ObjectProvider<ExcelDictionaryProvider> dictionaryProvider;
-    private final ListableBeanFactory beanFactory;
 
     /** 创建集合导出构造器。 */
     public <T> ExcelExportBuilder<T> of(Collection<T> rows, Class<T> headType) {
@@ -61,8 +55,14 @@ public class ExcelService {
         return new ExcelTemplateBuilder(this, resource);
     }
 
-    /** 在本次操作的隔离上下文中同步执行读写，不跨线程传递 writer。 */
+    /**
+     * 在本次操作的隔离上下文中同步执行读写，不跨线程传递 writer。
+     *
+     * @param action Excel 读写操作
+     * @param <T> 操作结果类型
+     * @return 操作结果
+     */
     public <T> T execute(Supplier<T> action) {
-        return new ExcelOperationContext(dictionaryProvider.getIfAvailable(), beanFactory).execute(action);
+        return new ExcelOperationContext().execute(action);
     }
 }

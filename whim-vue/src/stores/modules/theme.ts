@@ -32,7 +32,7 @@ function getDefaultThemeConfig(): ThemeConfig {
     watermarkText: systemSetting.title,
     showLogo: true,
     tableBordered: false,
-    tabStyle: 'browser',
+    tabStyle: 'button',
   }
 }
 

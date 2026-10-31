@@ -186,10 +186,6 @@ const {
   flex-shrink: 0;
 }
 
-.tab--button .tab-box {
-  padding: 0;
-}
-
 .button-tab {
   flex-shrink: 0;
 }

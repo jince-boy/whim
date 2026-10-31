@@ -348,6 +348,7 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
       setExpandedRowKeys,
       getTableInstance,
       data,
+      submittedQuery,
       loading: computed(() => loading.value),
       error: computed(() => error.value),
     },

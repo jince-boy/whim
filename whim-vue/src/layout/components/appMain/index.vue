@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {useAppMain} from './hooks/useAppMain'
 
-const {appMainRef, pageVisible, refreshing, themeStore, keepAliveStore, refresh} = useAppMain()
+const {appMainRef, pageVisible, refreshing, themeStore, themeVars, keepAliveStore, refresh} = useAppMain()
 defineExpose({appMainRef, refresh})
 </script>
 
 <template>
-  <div ref="appMainRef" class="appMain">
+  <div ref="appMainRef" class="appMain" :style="{ '--app-main-background': themeVars.bodyColor }">
     <router-view v-slot="{ Component, route }">
       <transition :name="themeStore.config.pageTransition" :css="!refreshing && themeStore.config.pageTransition !== 'none'" :mode="refreshing || themeStore.config.pageTransition === 'none' ? undefined : 'out-in'">
         <KeepAlive :include="themeStore.getCacheTabs ? keepAliveStore.keepAliveComponents : []">
@@ -20,6 +20,12 @@ defineExpose({appMainRef, refresh})
 <style scoped lang="scss">
 .appMain {
   padding: 10px;
+}
+
+.appMain:fullscreen {
+  box-sizing: border-box;
+  overflow: auto;
+  background-color: var(--app-main-background);
 }
 
 /* 保留原有缩小退出、右侧滑入的默认效果。 */

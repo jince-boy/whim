@@ -13,4 +13,5 @@ export const insertMenu = (data: MenuSave) =>
 export const updateMenu = (id: MenuId, data: MenuSave) =>
   request<void>(`/system/permission/${id}`, RequestMethod.PUT, { data })
 /** 删除无引用的自定义节点。 */
-export const deleteMenu = (id: MenuId) => request<void>(`/system/permission/${id}`, RequestMethod.DELETE)
+export const deleteMenu = (id: MenuId) =>
+  request<void>(`/system/permission/${id}`, RequestMethod.DELETE)

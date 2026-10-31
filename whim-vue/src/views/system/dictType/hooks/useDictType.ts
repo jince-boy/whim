@@ -45,7 +45,6 @@ export function useDictType() {
   const exporting = ref(false)
   const editingId = ref<string>()
   let active = true
-  let disposed = false
   let editVersion = 0
 
   /** 类型和数据分别按对应的业务权限显示操作。 */
@@ -58,62 +57,63 @@ export function useDictType() {
   const canResetCache = computed(() => can('system:dictType:reset'))
   const canExport = computed(() => can('system:dictType:export'))
 
-  const columns = computed<DataTableColumns<DictTypeResult>>(() => [
-    ...(canDelete.value ? [{ type: 'selection' as const, width: 40 }] : []),
-    { title: '字典名称', key: 'name', minWidth: 130, ellipsis: { tooltip: true } },
-    { title: '类型编码', key: 'type', minWidth: 180, ellipsis: { tooltip: true } },
-    {
-      title: '备注',
-      key: 'remark',
-      minWidth: 160,
-      ellipsis: { tooltip: true },
-      render: (row) => row.remark || '—',
-    },
-    { title: '创建时间', key: 'createTime', width: 180 },
-    ...(canViewData.value || canEdit.value || canDelete.value
-      ? [
-          {
-            title: '操作',
-            key: 'action',
-            width: 190,
-            fixed: 'right' as const,
-            render: (row: DictTypeResult) =>
-              h(NSpace, { size: 12, wrap: false }, () => [
-                canViewData.value
-                  ? h(
-                      NButton,
-                      { text: true, type: 'info', onClick: () => openData(row) },
-                      () => '查看数据',
-                    )
-                  : null,
-                canEdit.value
-                  ? h(
-                      NButton,
-                      {
-                        text: true,
-                        type: 'warning',
-                        loading: editingId.value === row.id,
-                        disabled: editingId.value !== undefined,
-                        onClick: () => openEditDialog(row.id),
-                      },
-                      () => '修改',
-                    )
-                  : null,
-                canDelete.value
-                  ? h(
-                      NButton,
-                      { text: true, type: 'error', onClick: () => removeDictTypes([row.id]) },
-                      () => '删除',
-                    )
-                  : null,
-              ]),
-          },
-        ]
-      : []),
-  ])
+  const columns = computed(() => {
+    const columns: DataTableColumns<DictTypeResult> = [
+      ...(canDelete.value ? [{ type: 'selection' as const, width: 40 }] : []),
+      { title: '字典名称', key: 'name', minWidth: 130, ellipsis: { tooltip: true } },
+      { title: '字典编码', key: 'type', minWidth: 180, ellipsis: { tooltip: true } },
+      {
+        title: '备注',
+        key: 'remark',
+        minWidth: 160,
+        ellipsis: { tooltip: true },
+        render: (row) => row.remark || '—',
+      },
+      { title: '创建时间', key: 'createTime', width: 180 },
+    ]
+    if (canViewData.value || canEdit.value || canDelete.value) {
+      columns.push({
+        title: '操作',
+        key: 'action',
+        width: 190,
+        fixed: 'right',
+        render: (row) =>
+          h(NSpace, { size: 12, wrap: false }, () => [
+            canViewData.value
+              ? h(
+                  NButton,
+                  { text: true, type: 'info', onClick: () => openData(row) },
+                  () => '查看数据',
+                )
+              : null,
+            canEdit.value
+              ? h(
+                  NButton,
+                  {
+                    text: true,
+                    type: 'warning',
+                    loading: editingId.value === row.id,
+                    disabled: editingId.value !== undefined,
+                    onClick: () => openEditDialog(row.id),
+                  },
+                  () => '修改',
+                )
+              : null,
+            canDelete.value
+              ? h(
+                  NButton,
+                  { text: true, type: 'error', onClick: () => removeDictTypes([row.id]) },
+                  () => '删除',
+                )
+              : null,
+          ]),
+      })
+    }
+    return columns
+  })
 
   const [registerTable, table] = useWhimTable<DictTypeResult, DictTypeQuery>(() => ({
-    title: '字典类型',
+    title: '字典管理',
     columns,
     rowKey: (row) => row.id,
     scrollX: 840,
@@ -132,7 +132,7 @@ export function useDictType() {
       defaultValues: { name: '', type: '' },
       fields: [
         { key: 'name', label: '字典名称' },
-        { key: 'type', label: '类型编码' },
+        { key: 'type', label: '字典编码' },
       ],
     },
     toolbar: {
@@ -156,11 +156,11 @@ export function useDictType() {
   /** 新增类型后刷新主列表，数据维护由查看数据入口打开。 */
   function openAddDialog() {
     openFormDialog({
-      title: '新增字典类型',
+      title: '新增字典',
       width: 520,
       formComponent: DictTypeForm,
       onSubmit: insertDictType,
-      successMessage: '新增字典类型成功',
+      successMessage: '新增字典成功',
       onSuccess: table.reload,
     })
   }
@@ -172,18 +172,18 @@ export function useDictType() {
     editingId.value = id
     try {
       const response = await fetchDictTypeDetail({ id })
-      if (disposed || !active || version !== editVersion) return
+      if (version !== editVersion) return
       if (response.code !== 200) {
         message.error(response.message)
         return
       }
       openFormDialog({
-        title: '编辑字典类型',
+        title: '修改字典',
         width: 520,
         formComponent: DictTypeForm,
         formProps: { initialModel: response.data },
         onSubmit: updateDictType,
-        successMessage: '字典类型已更新',
+        successMessage: '字典已更新',
         onSuccess: table.reload,
       })
     } catch {
@@ -199,7 +199,7 @@ export function useDictType() {
     const name =
       ids.length === 1 ? table.data.value.find((item) => item.id === ids[0])?.name : undefined
     openDeleteDialog({
-      content: `确定删除${name ? `字典类型“${name}”` : `选中的 ${ids.length} 个字典类型`}？类型下存在数据时无法删除，删除后无法恢复。`,
+      content: `确定删除${name ? `字典“${name}”` : `选中的 ${ids.length} 个字典`}？字典下存在数据时无法删除，删除后无法恢复。`,
       onSubmit: () => deleteDictType({ dictTypeIds: ids.join(',') }),
       onSuccess: async () => {
         table.setCheckedRowKeys([])
@@ -261,10 +261,7 @@ export function useDictType() {
     active = true
     void table.reload()
   })
-  onScopeDispose(() => {
-    disposed = true
-    editVersion++
-  })
+  onScopeDispose(() => editVersion++)
 
   return {
     registerTable,

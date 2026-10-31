@@ -1,33 +1,28 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { DictTypePageResult, DictTypeQuery, DictTypeResult } from './types'
+import type { DictType, DictTypeQuery, DictTypeResult } from './types'
 
 /** 获取类型目录，名称和编码的检索在完整列表内进行。 */
 export const fetchDictTypeList = () => {
   return request<DictTypeResult[]>('/system/dictType/list', RequestMethod.GET)
 }
 
-/** 分页查询字典类型。 */
-export const fetchDictTypePage = (params: object) => {
-  return request<DictTypePageResult>('/system/dictType/page', RequestMethod.GET, { params })
-}
-
 /** 查询字典类型详情。 */
-export const fetchDictTypeDetail = (params: object) => {
+export const fetchDictTypeDetail = (params: { id: string }) => {
   return request<DictTypeResult>('/system/dictType/detail', RequestMethod.GET, { params })
 }
 
 /** 新增字典类型。 */
-export const insertDictType = (data: object) => {
+export const insertDictType = (data: DictType) => {
   return request('/system/dictType/add', RequestMethod.POST, { data })
 }
 
 /** 修改字典类型。 */
-export const updateDictType = (data: object) => {
+export const updateDictType = (data: DictType) => {
   return request('/system/dictType/update', RequestMethod.PUT, { data })
 }
 
 /** 删除字典类型。 */
-export const deleteDictType = (params: object) => {
+export const deleteDictType = (params: { dictTypeIds: string }) => {
   return request('/system/dictType/delete', RequestMethod.DELETE, { params })
 }
 

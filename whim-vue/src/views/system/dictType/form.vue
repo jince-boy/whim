@@ -24,7 +24,7 @@ defineExpose({
     <n-form-item label="字典名称" path="name">
       <n-input v-model:value="formModel.name" placeholder="请输入字典名称" :maxlength="64" />
     </n-form-item>
-    <n-form-item label="类型编码" path="type">
+    <n-form-item label="字典编码" path="type">
       <n-input
         v-model:value="formModel.type"
         placeholder="以字母开头，可包含数字和下划线"

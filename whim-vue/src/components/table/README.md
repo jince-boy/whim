@@ -8,14 +8,17 @@
 
 ```ts
 import { useWhimTable } from '@/components/table'
-import { fetchDictTypePage } from '@/views/system/dictType/hooks/api'
+import { fetchDictTypeList } from '@/views/system/dictType/hooks/api'
 import type { DictTypeQuery, DictTypeResult } from '@/views/system/dictType/hooks/types'
 
 /** 创建字典类型列表。 */
 export function useDictTypeList() {
   const [registerTable, table] = useWhimTable<DictTypeResult, DictTypeQuery>({
     title: '字典类型',
-    request: fetchDictTypePage,
+    request: fetchDictTypeList,
+    transformData: (rows, query) => rows.filter((row) =>
+      row.name.includes(query.name.trim()) && row.type.includes(query.type.trim()),
+    ),
     rowKey: (row) => row.id,
     columns: [
       { type: 'selection' },
@@ -63,6 +66,7 @@ export function useDictTypeList() {
 - 默认只保留当前数据中的选择，包括树子节点。跨页选择需显式设置 `preserveSelection: true`，并由业务通过 `setCheckedRowKeys()` 清理已删除记录。
 - 列设置记录主动隐藏的列，新增列默认显示；支持数字列 key。分组列按整组切换，`action` 列始终显示。
 - `transformData(rows, query)` 仅转换表格展示，必须是纯函数；`table.data` 仍提供原始数据。菜单页面借此保留完整的父节点候选目录。
+- `submittedQuery` 提供已提交的查询快照，可用于树表搜索后的自动展开；输入框草稿变化不会触发该联动。
 
 表格卡片通过 `title` 设置标题，默认“数据列表”，不显示描述。标题栏使用当前主题的浅底色，业务操作和图标工具组统一靠右；窄容器下自动换行。卡片内容区不设置内边距，表格贴合卡片边缘。表格和分页使用 Naive UI 默认尺寸，不在封装或页面中擅自设置 `small`；查询表单默认 `size: 'medium'`。只有明确要求时才覆盖尺寸。
 

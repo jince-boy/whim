@@ -39,7 +39,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     private final SysDictTypeMapper sysDictTypeMapper;
 
     /**
-     * 分页查询字典数据。
+     * 分页查询指定字典类型的数据。
      *
      * @param query 查询参数
      * @return 分页数据
@@ -47,6 +47,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     @Override
     public PageDataVO<SysDictDataVO> getDictDataPage(SysDictDataQueryDTO query) {
         LambdaQueryWrapper<SysDictData> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(SysDictData::getType, query.getType());
         lambdaQueryWrapper.eq(StringUtils.isNotBlank(query.getLabel()), SysDictData::getLabel, query.getLabel());
         lambdaQueryWrapper.orderByAsc(SysDictData::getSort, SysDictData::getId);
         return new PageDataVO<>(this.page(query.getPage(), lambdaQueryWrapper).convert(row -> BeanConvertUtils.convert(row, SysDictDataVO.class)));

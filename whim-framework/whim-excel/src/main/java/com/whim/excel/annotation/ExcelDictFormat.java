@@ -8,16 +8,17 @@ import java.lang.annotation.Target;
 /**
  * @author Jince
  * @date 2026/10/25
- * @description 字典双向转换与下拉选项，转换时配合 ExcelMappingConverter 使用。
+ * @description 固定值映射与下拉选项，转换时配合 ExcelMappingConverter 使用，不查询业务字典。
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcelDictFormat {
-    /** 系统字典类型，与固定表达式二选一。 */
-    String dictType() default "";
-
-    /** 固定表达式，例如 0=停用,1=启用；键值本身不能包含逗号。 */
-    String readConverterExp() default "";
+    /**
+     * 配置固定值与显示文本的映射，例如 0=停用,1=启用；键值本身不能包含逗号。
+     *
+     * @return 固定值映射表达式
+     */
+    String readConverterExp();
 
     /** 多值字段的分隔符。 */
     String separator() default ",";

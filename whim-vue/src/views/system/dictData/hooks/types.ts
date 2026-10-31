@@ -21,25 +21,11 @@ export interface DictData {
   remark: string
 }
 
-export interface DictDataResult {
-  id: string
-  type: string
-  label: string
-  value: string
-  listClass: TagType
-  sort: number
-  remark: string
+export interface DictDataResult extends DictData {
   createTime: string
 }
 
-export interface DictDataPageResult {
-  currentPage: number
-  data: DictDataResult[]
-  pages: number
-  size: number
-  total: number
-}
 /** 字典数据编辑表单的只读初始数据。 */
 export interface DictDataFormProps {
-  initialModel?: DictData
+  initialModel?: Partial<DictData>
 }

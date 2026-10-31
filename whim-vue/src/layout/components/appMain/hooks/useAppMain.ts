@@ -2,6 +2,7 @@ import { useKeepAliveStore } from '@/stores/modules/keepAlive.ts'
 import { useThemeStore } from '@/stores/modules/theme'
 import { nextTick, ref, watch, useTemplateRef } from 'vue'
 import { useRoute } from 'vue-router'
+import { useThemeVars } from 'naive-ui'
 
 /** 管理菜单页面缓存和刷新，不把路由业务逻辑放在布局模板中。 */
 export function useAppMain() {
@@ -13,6 +14,7 @@ export function useAppMain() {
 
   const keepAliveStore = useKeepAliveStore()
   const themeStore = useThemeStore()
+  const themeVars = useThemeVars()
 
   // 关闭全局缓存时清理旧实例；开启及路由变化时按菜单配置缓存当前页面。
   watch(
@@ -49,5 +51,5 @@ export function useAppMain() {
     }
   }
 
-  return { appMainRef, pageVisible, refreshing, themeStore, keepAliveStore, refresh }
+  return { appMainRef, pageVisible, refreshing, themeStore, themeVars, keepAliveStore, refresh }
 }

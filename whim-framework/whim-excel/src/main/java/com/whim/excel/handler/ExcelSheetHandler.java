@@ -2,7 +2,6 @@ package com.whim.excel.handler;
 
 import com.whim.core.utils.IdUtils;
 import com.whim.excel.annotation.ExcelDictFormat;
-import com.whim.excel.annotation.ExcelDynamicOptions;
 import com.whim.excel.annotation.ExcelEnumFormat;
 import com.whim.excel.annotation.ExcelNotation;
 import com.whim.excel.annotation.ExcelRequired;
@@ -51,7 +50,11 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
     private final int dropdownRows;
     private final boolean freezeHead;
 
-    /** 根据实际列位置和表头高度创建下拉，适配列筛选、重排和多级标题。 */
+    /**
+     * 根据实际列位置和表头高度创建下拉，适配列筛选、重排和多级标题。
+     *
+     * @param context 工作表写入上下文
+     */
     @Override
     public void afterSheetCreate(SheetWriteHandlerContext context) {
         var holder = context.getWriteSheetHolder();
@@ -76,13 +79,10 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
                 continue;
             }
             columns.put(field.getName(), head.getColumnIndex());
-            ExcelDynamicOptions dynamic = field.getAnnotation(ExcelDynamicOptions.class);
             ExcelDictFormat dictionary = field.getAnnotation(ExcelDictFormat.class);
             ExcelEnumFormat enumeration = field.getAnnotation(ExcelEnumFormat.class);
             List<String> values = List.of();
-            if (dynamic != null) {
-                values = ExcelOperationContext.current().getOptions(dynamic.providerClass());
-            } else if (
+            if (
                 (dictionary != null && dictionary.dropdown()) || (enumeration != null && enumeration.dropdown())
             ) {
                 values = new ArrayList<>(ExcelOperationContext.current().getMapping(field).values());

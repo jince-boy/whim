@@ -5,13 +5,16 @@ export { MenuType, type MenuId } from '@/stores/modules/permission/types'
 /** 菜单查询字段。 */
 export interface MenuQuery {
   menuName: string
+  menuType: MenuType | null
+  status: 0 | 1 | null
 }
-export const menuTypeOptions = [
-  { label: '目录', value: MenuType.DIRECTORY },
-  { label: '菜单', value: MenuType.MENU },
-  { label: '按钮', value: MenuType.BUTTON },
-  { label: '外链', value: MenuType.EXTERNAL },
-]
+/** 菜单字段沿用后端数值编码，展示文本由系统字典提供。 */
+export interface MenuDictionaryOptions {
+  menuTypes: { label: string; value: number }[]
+  statuses: { label: string; value: number }[]
+  visibilities: { label: string; value: number }[]
+  cacheModes: { label: string; value: number }[]
+}
 export interface MenuSave extends Omit<UserMenu, 'id' | 'children'> {
   perms: string | null
   remark: string | null
@@ -24,6 +27,8 @@ export interface MenuItem extends MenuSave {
   children?: MenuItem[]
 }
 export interface MenuFormProps {
-  initialModel?: MenuSave & { id?: MenuId; builtIn?: 0 | 1 }
-  extendedData?: { parentId?: MenuId; menuData: MenuItem[] }
+  initialModel?: MenuItem
+  parentMenu?: MenuItem
+  menus: MenuItem[]
+  dictionaryOptions: MenuDictionaryOptions
 }

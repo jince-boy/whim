@@ -2,7 +2,7 @@
 
 基于 Apache Fesod `2.1.0-incubating` 的 Excel 框架模块，适用于 JDK 25、Spring Boot 4.1。
 
-模块已加入框架聚合、根依赖管理、`whim-system` 和 `whim-start`。`ExcelAutoConfiguration` 自动注册 `ExcelService`。应用层的 `ExcelDictionaryConfiguration` 将系统字典服务接入 Excel，框架不依赖系统模块、认证实现或持久化实现。
+模块已加入框架聚合、根依赖管理、`whim-system` 和 `whim-start`。`ExcelAutoConfiguration` 自动注册 `ExcelService`。业务层负责查询数据、匹配系统字典并填充导出模型，再将结果交给 Excel 模块。Excel 模块负责文件读写、格式和校验，不查询业务字典或调用业务选项提供者。
 
 ## 能力
 
@@ -18,8 +18,8 @@
 | 容错导入 | `failFast(false)` 与结构化错误回执 |
 | 分批、逐行导入 | `batch(...)`、`listener(...)` |
 | 精度保护 | Long、BigInteger、BigDecimal 自动处理 |
-| 字典、枚举 | 双向转换、自动下拉、未知值报错 |
-| 动态、级联下拉 | Spring 选项提供者、`DropDownOptions` |
+| 固定映射、枚举 | 双向转换、自动下拉、未知值报错 |
+| 动态、级联下拉 | 业务层通过 `DropDownOptions` 传入选项 |
 | 多级表头、列筛选与排序 | Fesod 注解和构造器配置 |
 | 表头样式 | 必填标红、填写批注、冻结表头 |
 | 相邻行合并 | `@CellMerge`，支持依赖字段和跨批次合并 |
@@ -213,19 +213,18 @@ try (InputStream input = file.getInputStream()) {
 
 解析成功不等于数据已入库或事务已提交。权限、唯一性、归属校验和缓存失效继续由业务服务负责。
 
-## 系统字典、枚举与动态选项
+## 业务数据、固定映射与枚举
 
-系统字典配置：
+字段与系统字典类型的对应关系、字典查询及标签赋值均由业务层负责。导出模型直接接收业务层填好的显示文本：
 
 ```java
-@ExcelProperty(value = "状态", converter = ExcelMappingConverter.class)
-@ExcelDictFormat(dictType = "实际字典类型编码")
-private String status;
+@ExcelProperty("状态")
+private String statusLabel;
 ```
 
-应用层适配器复用 `ISysDictDataService.getDictDataByType` 和已有字典缓存；同次操作内按字典类型加载一次，保持转换与下拉一致，下次操作重新获取，Excel 模块不引入长期字典缓存。
+Excel 模块将 `statusLabel` 的值原样写入单元格。导入时也由业务层根据读取结果完成字典匹配、业务校验和赋值，Excel 模块不根据字段名推断字典类型。
 
-多选字段使用字符串并指定分隔符，关闭单选下拉：
+对于由模型明确声明的固定格式，可使用 `ExcelDictFormat` 配合 `ExcelMappingConverter` 转换；该注解仅支持固定表达式，不关联系统字典。多选字段使用字符串并指定分隔符，关闭单选下拉：
 
 ```java
 @ExcelProperty(value = "分类", converter = ExcelMappingConverter.class)
@@ -233,7 +232,7 @@ private String status;
 private String categories;
 ```
 
-固定表达式通过逗号拆分映射项，通过第一个等号拆分编码与文本；包含复杂标点的标签应使用系统字典。多选编码与标签不能包含所选的多值分隔符。未知编码、未知文本或重复显示文本会报错。
+固定表达式通过逗号拆分映射项，通过第一个等号拆分编码与文本；包含逗号的复杂标签应由业务层转换后直接写入导出模型。多选编码与标签不能包含所选的多值分隔符。未知编码、未知文本或重复显示文本会报错。
 
 枚举配置：
 
@@ -245,17 +244,19 @@ private Integer level;
 
 枚举需提供对应属性的 getter，也支持字段本身声明为该枚举类型。
 
-动态下拉：
+## 动态与级联下拉
+
+业务层先查询并准备选项，再显式传入：
 
 ```java
-@ExcelProperty("部门")
-@ExcelDynamicOptions(providerClass = DepartmentExcelOptions.class)
-private String department;
+ExcelBuilder.of(rows, OrganizationExcelRow.class)
+        .options(List.of(DropDownOptions.of("department", departmentNames)))
+        .toResponse(response);
 ```
 
-`DepartmentExcelOptions` 是业务层实现并注册的 Spring Bean，实现 `ExcelOptionsProvider#getOptions()` 返回 `List<String>`。同次操作中，同类型提供者只查询一次。动态下拉不会隐式转换部门名称与 ID；需要转换时使用自定义转换器。Excel 数据校验可以被用户绕过，服务端仍需校验业务有效性和权限。
+`departmentNames` 是业务层查询得到的 `List<String>`，Excel 模块只负责生成下拉规则。部门名称与 ID 的对应关系由业务层处理。Excel 数据校验可以被用户绕过，服务端仍需校验业务有效性和权限。
 
-## 级联下拉与合并
+级联选项同样由业务层准备：
 
 ```java
 Map<String, List<String>> departments = new LinkedHashMap<>();
@@ -271,6 +272,8 @@ ExcelBuilder.of(rows, OrganizationExcelRow.class)
 普通下拉使用 `DropDownOptions.of("字段名", options)`。按最终导出字段定位，支持列重排。被排除的父字段不生成规则；保留父字段时，级联子字段必须同时导出。级联当前支持两级，同一子列只能配置一次。父标签通过内部命名区域映射，允许中文、数字开头、空格和标点。为符合 Excel 查找行为，同一层级不能出现重复或仅大小写不同的标签。
 
 同一字段的显式选项覆盖注解选项；级联子字段不会再生成普通下拉规则。数据范围从实际表头结束处开始，不把多级表头当作数据。修改父选项后，Excel 不会自动清空原子选项，导入业务应校验父子关系。
+
+## 相邻行合并
 
 ```java
 @ExcelProperty({"组织信息", "部门"})
@@ -323,6 +326,6 @@ whim:
 
 `Long`、`BigInteger`、`BigDecimal` 超过十五位有效数字时按文本导出，保留原值；在 Excel 中需要运算的金额字段应根据业务精度选择格式或自定义转换器。读取整数时拒绝小数截断与数值溢出。
 
-所有构造器都只能执行一次，不应缓存或跨线程共享。输入流和输出流的所有权始终归调用者；文件与模板方法仅关闭自己打开的流。模块使用 JDK 25 正式版 `ScopedValue` 管理操作内字典快照，不需要开启预览特性。
+所有构造器都只能执行一次，不应缓存或跨线程共享。输入流和输出流的所有权始终归调用者；文件与模板方法仅关闭自己打开的流。模块使用 JDK 25 正式版 `ScopedValue` 管理操作内固定值与枚举映射缓存，不需要开启预览特性。
 
 该模块提供基础能力，没有新增或修改业务 HTTP 接口，因此不涉及 Apifox 契约同步。
