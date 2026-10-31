@@ -83,7 +83,7 @@ export function useDictType() {
               ? h(
                   NButton,
                   { text: true, type: 'info', onClick: () => openData(row) },
-                  () => '查看数据',
+                  () => '查看',
                 )
               : null,
             canEdit.value
