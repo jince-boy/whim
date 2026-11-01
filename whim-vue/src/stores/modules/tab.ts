@@ -38,6 +38,17 @@ export const useTabStore = defineStore('tab', {
       if (index < 0) this.tabs.push(tab)
       else this.tabs[index] = tab
     },
+    /** 将可关闭标签移到目标标签前后，固定入口始终保留原位。 */
+    moveTab(name: string, targetName: string, after: boolean) {
+      if (this.closing || name === targetName) return
+      const tab = this.tabs.find((item) => item.name === name)
+      const target = this.tabs.find((item) => item.name === targetName)
+      if (!tab?.closeable || !target?.closeable) return
+      const reordered = this.tabs.filter((item) => item.name !== name)
+      const targetIndex = reordered.findIndex((item) => item.name === targetName)
+      reordered.splice(targetIndex + Number(after), 0, tab)
+      this.tabs = reordered
+    },
     /** 先完成目标导航，再删除标签；中止或重定向不应误删当前页面。 */
     async closeTabs(names: string[], preferredName?: string) {
       if (this.closing) return

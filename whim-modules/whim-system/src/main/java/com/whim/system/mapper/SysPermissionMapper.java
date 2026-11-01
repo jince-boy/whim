@@ -27,14 +27,6 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     List<RolePermissionDTO> getRolePermissionsByRoleIds(@Param("roleIds") Set<Long> roleIds);
 
     /**
-     * 锁定菜单维护配置行，避免并发修改破坏菜单层级。
-     *
-     * @return 菜单维护配置id，配置不存在时返回null
-     */
-    @DataPermissionMetadata
-    Long lockMenuTree();
-
-    /**
      * 查询受菜单权限变更影响的用户。
      *
      * @param permissionId 菜单权限id

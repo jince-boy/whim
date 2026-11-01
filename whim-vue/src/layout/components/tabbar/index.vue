@@ -18,16 +18,24 @@ const {
   handleTabClick,
   handleCloseTab,
   handleScroll,
+  draggingName,
+  dragOffset,
+  dropTargetName,
+  dropAfter,
+  handleTabPointerDown,
+  handleLostPointerCapture,
+  handleDragClick,
+  handleDragContextMenu,
 } = useTabBar(emit)
 </script>
 
 <template>
-  <n-el ref="tabRoot" class="tab" :class="`tab--${themeStore.getTabStyle}`">
+  <n-el ref="tabRoot" class="tab" :class="[`tab--${themeStore.getTabStyle}`, { 'tab--dragging': draggingName }]" :style="{ '--tab-drag-offset': `${dragOffset}px` }" @pointerdown="handleTabPointerDown" @lostpointercapture="handleLostPointerCapture" @click.capture="handleDragClick" @contextmenu.capture="handleDragContextMenu" @dragstart.prevent>
     <n-flex align="center" justify="space-between" :wrap="false" :size="0" class="tab-wrapper">
       <n-button quaternary :focusable="false" :render-icon="createIcon('chevron-left')" class="tab-scroll tab-scroll-left" aria-label="向左滚动标签" @click="handleScroll('left')"/>
       <n-scrollbar trigger="none" ref="scrollbar" class="tab-scrollbar" x-scrollable content-style="height:100%">
         <n-flex v-if="themeStore.getTabStyle === 'button'" align="center" class="tab-box" :wrap="false" role="navigation" aria-label="页面标签">
-          <n-button v-for="item in tabStore.getAllTabs" :key="item.name" class="button-tab" :type="item.focused ? 'primary' : 'default'" size="small" :secondary="!item.focused" :focusable="false" icon-placement="left" :render-icon="themeStore.getShowTabIcon ? createIcon(item.icon) : null" :aria-current="item.focused ? 'page' : undefined" @click="handleTabClick(item.path)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)">
+          <n-button v-for="item in tabStore.getAllTabs" :key="item.name" class="button-tab" :class="{ 'tab-dragging': item.name === draggingName, 'tab-drop-before': item.name === dropTargetName && !dropAfter, 'tab-drop-after': item.name === dropTargetName && dropAfter }" :data-tab-name="item.name" :data-tab-draggable="item.closeable ? '' : undefined" :title="item.closeable ? `${item.title}（按住拖动排序）` : item.title" :type="item.focused ? 'primary' : 'default'" size="small" :secondary="!item.focused" :focusable="false" icon-placement="left" :render-icon="themeStore.getShowTabIcon ? createIcon(item.icon) : null" :aria-current="item.focused ? 'page' : undefined" @click="handleTabClick(item.path)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)">
             {{ item.title }}
             <span v-if="item.closeable" class="button-tab-close" :title="`关闭${item.title}`" @click.stop="handleCloseTab(item.name)">
               <Icon name="x" :size="12" />
@@ -35,9 +43,9 @@ const {
           </n-button>
         </n-flex>
         <div v-else class="tab-box" role="navigation" aria-label="页面标签">
-          <div v-for="item in tabStore.getAllTabs" :key="item.name" class="tab-item" :class="{ 'tab-item--active': item.focused }" @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)">
+          <div v-for="item in tabStore.getAllTabs" :key="item.name" class="tab-item" :class="{ 'tab-item--active': item.focused, 'tab-dragging': item.name === draggingName, 'tab-drop-before': item.name === dropTargetName && !dropAfter, 'tab-drop-after': item.name === dropTargetName && dropAfter }" :data-tab-name="item.name" :data-tab-draggable="item.closeable ? '' : undefined" @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)">
             <span v-if="themeStore.getTabStyle === 'browser'" class="tab-separator" aria-hidden="true"/>
-            <button type="button" class="tab-link" :aria-current="item.focused ? 'page' : undefined" :title="item.title" @click="handleTabClick(item.path)">
+            <button type="button" class="tab-link" :aria-current="item.focused ? 'page' : undefined" :title="item.closeable ? `${item.title}（按住拖动排序）` : item.title" @click="handleTabClick(item.path)">
               <n-icon v-if="themeStore.getShowTabIcon && item.icon" :size="16" :component="createIcon(item.icon)"/>
               <span class="tab-title">{{ item.title }}</span>
             </button>
@@ -94,6 +102,7 @@ const {
     height: 100%;
     padding: 0 8px;
     box-sizing: border-box;
+    user-select: none;
   }
 
   :deep(.n-scrollbar-rail__scrollbar) {
@@ -104,6 +113,34 @@ const {
 .tab-scrollbar {
   flex: 1;
   min-width: 0;
+}
+
+[data-tab-draggable] {
+  touch-action: pan-y pinch-zoom;
+}
+
+.tab--dragging {
+  &,
+  :deep(*) {
+    cursor: grabbing !important;
+  }
+
+  .tab-dragging {
+    position: relative;
+    z-index: 3;
+    opacity: 0.8;
+    transform: translateX(var(--tab-drag-offset));
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--text-color-1) 18%, transparent);
+    pointer-events: none;
+  }
+}
+
+.tab-drop-before {
+  box-shadow: inset 2px 0 var(--primary-color);
+}
+
+.tab-drop-after {
+  box-shadow: inset -2px 0 var(--primary-color);
 }
 
 .tab-item {

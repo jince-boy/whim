@@ -11,7 +11,6 @@ import com.whim.system.model.vo.permission.SysRoleMenuTreeVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,7 +43,7 @@ public class SysPermissionController {
      */
     @GetMapping("/{id}")
     @SystemCheckPermission("system:menu:detail")
-    public Result<SysMenuVO> getMenuDetail(@PathVariable @Positive(message = "菜单ID必须大于0") Long id) {
+    public Result<SysMenuVO> getMenuDetail(@PathVariable Long id) {
         return Result.success("菜单详情查询成功", permissionService.getMenuDetail(id));
     }
 
@@ -90,7 +89,7 @@ public class SysPermissionController {
     @GetMapping("/roleTree/{roleId}")
     @SystemCheckPermission("system:rolePermission:list")
     public Result<SysRoleMenuTreeVO> getRoleMenuTree(
-            @PathVariable @Positive(message = "角色ID必须大于0") Long roleId) {
+            @PathVariable Long roleId) {
         return Result.success("角色菜单树查询成功", permissionService.getRoleMenuTree(roleId));
     }
 
@@ -116,7 +115,7 @@ public class SysPermissionController {
      */
     @PutMapping("/{id}")
     @SystemCheckPermission("system:menu:update")
-    public Result<Void> updateMenu(@PathVariable @Positive(message = "菜单ID必须大于0") Long id,
+    public Result<Void> updateMenu(@PathVariable Long id,
                                  @Valid @RequestBody SysMenuSaveDTO parameter) {
         permissionService.updateMenu(id, parameter);
         return Result.success("菜单修改成功");
@@ -130,7 +129,7 @@ public class SysPermissionController {
      */
     @DeleteMapping("/{id}")
     @SystemCheckPermission("system:menu:delete")
-    public Result<Void> deleteMenu(@PathVariable @Positive(message = "菜单ID必须大于0") Long id) {
+    public Result<Void> deleteMenu(@PathVariable Long id) {
         permissionService.deleteMenu(id);
         return Result.success("菜单删除成功");
     }

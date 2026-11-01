@@ -2,6 +2,8 @@ package com.whim.system.model.entity;
 
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,18 +43,26 @@ public class SysDept extends BaseEntity implements Serializable {
     private String deptName;
 
     /**
+     * 部门编码，未删除部门之间唯一
+     */
+    private String deptCode;
+
+    /**
      * 负责人用户ID
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long leaderUserId;
 
     /**
      * 联系电话
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String phone;
 
     /**
      * 邮箱
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String email;
 
     /**
@@ -68,6 +78,7 @@ public class SysDept extends BaseEntity implements Serializable {
     /**
      * 备注
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String remark;
 
     /**

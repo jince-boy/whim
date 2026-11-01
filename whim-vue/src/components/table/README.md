@@ -2,6 +2,8 @@
 
 统一从 `@/components/table` 导入 `WhimTable`、`useWhimTable`，从 `@/components/form` 导入 `SearchForm`、`useSearchForm`。旧版根目录 hook 和 `WhimTable2` 已移除。
 
+表格、分页和表格内控件统一继承公共封装的 `small` 尺寸，页面不覆盖为 `medium`；搜索区和编辑表单保持默认尺寸。
+
 ## 完整列表
 
 页面 hook 配置表格，页面模板连接实例并提供查询字段。实际接入示例见 `src/views/system/dictType/hooks/useDictType.ts` 和该功能的 `index.vue`。

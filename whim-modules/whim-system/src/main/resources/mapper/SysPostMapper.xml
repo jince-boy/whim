@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whim.system.mapper.SysPostMapper">
+    <select id="getPostMemberPage" resultType="com.whim.system.model.vo.post.SysPostMemberVO">
+        SELECT account.id AS user_id, account.username, account.name, account.dept_id, account.status
+        <choose>
+            <when test="query.assigned">
+                FROM sys_user_post relation
+                INNER JOIN sys_user account ON account.id = relation.user_id AND account.deleted = 0
+                WHERE relation.post_id = #{postId}
+            </when>
+            <otherwise>
+                FROM sys_user account
+                WHERE account.deleted = 0 AND account.status = 0
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sys_user_post relation
+                        WHERE relation.user_id = account.id AND relation.post_id = #{postId}
+                    )
+            </otherwise>
+        </choose>
+        <if test="query.username != null and query.username != ''">
+            AND account.username LIKE CONCAT('%', #{query.username}, '%')
+        </if>
+        <if test="query.name != null and query.name != ''">
+            AND account.name LIKE CONCAT('%', #{query.name}, '%')
+        </if>
+        <if test="query.deptId != null">
+            AND account.dept_id = #{query.deptId}
+        </if>
+        <if test="query.status != null">
+            AND account.status = #{query.status}
+        </if>
+        ORDER BY account.id
+    </select>
+</mapper>

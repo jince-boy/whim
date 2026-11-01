@@ -19,6 +19,13 @@ const commonThemeOverrides: GlobalThemeOverrides = {
     contentMargin: '32px 0',
     iconSize: '22px',
   },
+  Switch: {
+    railHeightSmall: '20px',
+    railWidthSmall: '36px',
+    buttonHeightSmall: '16px',
+    buttonWidthSmall: '16px',
+    buttonWidthPressedSmall: '20px',
+  },
   Card: {
     paddingSmall: '12px',
     paddingMedium: '12px',

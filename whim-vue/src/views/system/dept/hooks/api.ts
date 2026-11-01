@@ -1,0 +1,47 @@
+import { request, RequestMethod } from '@/api'
+import type {
+  DeptId,
+  DeptItem,
+  DeptLeaderOption,
+  DeptQuery,
+  DeptSave,
+  OrganizationStatusUpdate,
+} from './types'
+import type { TablePage, TablePageQuery } from '@/components/table'
+
+/** 查询当前用户可见的部门树。 */
+export const fetchDeptTree = (params?: Partial<DeptQuery>) =>
+  request<DeptItem[]>('/system/dept', RequestMethod.GET, { params })
+
+export const fetchDeptDetail = (id: DeptId) =>
+  request<DeptItem>(`/system/dept/${id}`, RequestMethod.GET)
+
+/** 负责人仅从已归属当前部门的正常用户中选择。 */
+export const fetchDeptLeaderOptions = (id: DeptId, params: TablePageQuery & { keyword?: string }) =>
+  request<TablePage<DeptLeaderOption>>(`/system/dept/${id}/leaderOptions`, RequestMethod.GET, {
+    params,
+  })
+
+export const addDept = (data: DeptSave) =>
+  request<DeptId>('/system/dept', RequestMethod.POST, { data: getDeptPayload(data) })
+
+export const updateDept = (data: DeptSave) =>
+  request('/system/dept', RequestMethod.PUT, { data: getDeptPayload(data) })
+
+export const updateDeptStatus = (data: OrganizationStatusUpdate) =>
+  request('/system/dept/status', RequestMethod.PUT, { data })
+
+export const deleteDept = (id: DeptId) => request(`/system/dept/${id}`, RequestMethod.DELETE)
+
+/** 清空字段显式提交 null，用户 ID 始终按文本传输。 */
+function getDeptPayload(data: DeptSave): DeptSave {
+  return {
+    ...data,
+    deptName: data.deptName.trim(),
+    deptCode: data.deptCode.trim(),
+    leaderUserId: data.leaderUserId?.trim() || null,
+    phone: data.phone?.trim() || null,
+    email: data.email?.trim() || null,
+    remark: data.remark?.trim() || null,
+  }
+}

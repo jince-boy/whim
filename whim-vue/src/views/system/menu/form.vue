@@ -58,21 +58,27 @@ defineExpose({ formRef, formModel })
         <n-input v-model:value="formModel.param" placeholder="例如 tab=basic，选填" :maxlength="255" clearable />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isButton" label="显示状态" path="visible" span="24 560:8">
-        <n-radio-group v-model:value="formModel.visible">
-          <n-radio-button v-for="item in props.dictionaryOptions.visibilities" :key="item.value" :value="item.value" :label="item.label" />
+        <n-radio-group v-model:value="formModel.visible" aria-label="显示状态">
+          <n-space>
+            <n-radio v-for="item in props.dictionaryOptions.visibilities" :key="item.value" :value="item.value" :label="item.label" />
+          </n-space>
         </n-radio-group>
       </n-form-item-gi>
       <n-form-item-gi label="菜单状态" path="status" span="24 560:8">
         <n-flex vertical :size="8">
-          <n-radio-group v-model:value="formModel.status">
-            <n-radio-button v-for="item in props.dictionaryOptions.statuses" :key="item.value" :value="item.value" :disabled="item.value === 1 && !!statusLockReason">{{ item.label }}</n-radio-button>
+          <n-radio-group v-model:value="formModel.status" aria-label="菜单状态">
+            <n-space>
+              <n-radio v-for="item in props.dictionaryOptions.statuses" :key="item.value" :value="item.value" :label="item.label" :disabled="item.value === 1 && !!statusLockReason" />
+            </n-space>
           </n-radio-group>
           <n-text v-if="statusLockReason" depth="3">{{ statusLockReason }}</n-text>
         </n-flex>
       </n-form-item-gi>
       <n-form-item-gi v-if="isPage" label="页面缓存" path="isCache" span="24 560:8">
-        <n-radio-group v-model:value="formModel.isCache">
-          <n-radio-button v-for="item in props.dictionaryOptions.cacheModes" :key="item.value" :value="item.value" :label="item.label" />
+        <n-radio-group v-model:value="formModel.isCache" aria-label="页面缓存">
+          <n-space>
+            <n-radio v-for="item in props.dictionaryOptions.cacheModes" :key="item.value" :value="item.value" :label="item.label" />
+          </n-space>
         </n-radio-group>
       </n-form-item-gi>
       <n-form-item-gi label="备注" path="remark" :span="24">

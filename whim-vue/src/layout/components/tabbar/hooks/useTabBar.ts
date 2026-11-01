@@ -5,6 +5,7 @@ import { useIcon } from '@/components/icon/useIcon'
 import { useTabStore } from '@/stores/modules/tab'
 import type { TabState } from '@/stores/type'
 import { useThemeStore } from '@/stores/modules/theme'
+import { useTabDrag } from './useTabDrag'
 /** 标签操作交由store，右键菜单和滚动只维护本组件的交互状态。 */
 export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refresh') => void)) {
   const { createIcon } = useIcon()
@@ -15,10 +16,15 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
 
   const scrollbar = useTemplateRef<ScrollbarInst>('scrollbar')
   const tabRoot = useTemplateRef<ComponentPublicInstance>('tabRoot')
+  const tabDrag = useTabDrag(tabRoot, scrollbar)
 
   const showDropdown = ref(false)
   const x = ref(0)
   const y = ref(0)
+
+  watch(tabDrag.draggingName, (name) => {
+    if (name) showDropdown.value = false
+  })
 
   const dropdownOptions = computed<DropdownOption[]>(() => {
     const clicked = tabStore.getAllTabs.find((tab) => tab.name === clickedTab.value?.name)
@@ -176,6 +182,7 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
       () => themeStore.getShowTabIcon,
     ],
     async () => {
+      tabDrag.cancelTabDrag()
       showDropdown.value = false
       clickedTab.value = null
       await nextTick()
@@ -196,6 +203,7 @@ export function useTabBar(emit: ((event: 'fullScreen') => void) & ((event: 'refr
     { immediate: true, flush: 'post' },
   )
   return {
+    ...tabDrag,
     createIcon,
     themeStore,
     tabStore,

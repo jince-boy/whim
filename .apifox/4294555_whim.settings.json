@@ -6,7 +6,7 @@
     "teamId": 2106563,
     "statistics": {
       "moduleCount": 1,
-      "endpointFolderCount": 4,
+      "endpointFolderCount": 6,
       "schemaFolderCount": 0,
       "testCaseCategoryCount": 5,
       "testScenarioFolderCount": 0,
@@ -36,7 +36,7 @@
         "name": "认证",
         "moduleId": 3753331,
         "parentId": 0,
-        "updatedAt": "2026-09-28 15:59:12"
+        "updatedAt": "2026-10-25 19:26:24"
       },
       {
         "id": 98236679,
@@ -58,6 +58,20 @@
         "moduleId": 3753331,
         "parentId": 0,
         "updatedAt": "2026-10-25 17:37:00"
+      },
+      {
+        "id": 98730509,
+        "name": "部门管理",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-11-01 00:34:34"
+      },
+      {
+        "id": 98730510,
+        "name": "岗位管理",
+        "moduleId": 3753331,
+        "parentId": 0,
+        "updatedAt": "2026-11-01 00:28:35"
       }
     ],
     "schemaFolders": [],
@@ -101,5 +115,5 @@
     "testScenarioFolders": [],
     "testSuiteFolders": []
   },
-  "fetchedAt": "2026-10-25T11:06:04.636Z"
+  "fetchedAt": "2026-10-31T16:37:20.068Z"
 }

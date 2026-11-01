@@ -29,7 +29,7 @@ const editor = openFormDialog({
 - `successMessage` 覆盖成功提示，`false` 关闭提示。删除默认提示“删除成功”，其他弹窗默认使用接口消息或“操作成功”。
 - 校验失败保留字段错误。提交异常保留草稿；项目 Axios 错误由公共拦截器提示，其他异常由弹窗提示。
 - `onSuccess` 在操作成功、弹窗关闭后执行，适合刷新列表。刷新失败不会重新打开弹窗或重复保存。
-- 提交期间锁定确定、取消、关闭、Esc 和遮罩；默认禁止点击遮罩关闭，空闲时可通过 `modalProps.maskClosable` 开启。
+- 空闲时默认允许点击遮罩关闭，可通过 `modalProps.maskClosable` 覆盖；提交期间统一锁定确定、取消、关闭、Esc 和遮罩，提交结束后恢复空闲配置。
 - `modalProps` 保留 Naive UI 原生配置的类型提示，内容、提交和关闭事件由封装管理。`modalProps.onAfterLeave` 可监听实际离场。
 - 返回的 `editor.submit()` 走同一校验流程；`editor.close()` 在提交中返回 false；`editor.submitting` 为只读状态。
 - 每个弹窗独立持有实例。页面卸载或 KeepAlive 页面停用时，只清理该 hook 创建的弹窗；已经发出的 HTTP 请求不会被撤销，晚到结果不会再操作已关闭弹窗。

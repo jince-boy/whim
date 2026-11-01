@@ -1,5 +1,6 @@
 package com.whim.web.handler;
 
+import com.baomidou.lock.exception.LockFailureException;
 import com.whim.core.exception.*;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -378,6 +379,19 @@ public class GlobalExceptionHandler {
     public Result<Void> handleHttpException(HttpException exception, HttpServletRequest request) {
         log.error("请求 [{} {}] 的远程 HTTP 调用失败：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.error(HttpStatus.BAD_GATEWAY, "远程服务调用失败");
+    }
+
+    /**
+     * 将分布式锁获取失败转换为统一的中文错误响应。
+     *
+     * @param exception 锁获取失败异常
+     * @param request 当前请求
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(LockFailureException.class)
+    public Result<Void> handleLockFailureException(LockFailureException exception, HttpServletRequest request) {
+        log.warn("请求 [{} {}] 获取分布式锁失败", request.getMethod(), request.getRequestURI());
+        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR, "相关数据正在处理中，请稍后重试");
     }
 
     /**

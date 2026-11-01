@@ -44,7 +44,7 @@ export function useFormDialog() {
     const idleProps = {
       closable: nativeProps.closable ?? true,
       closeOnEsc: nativeProps.closeOnEsc ?? true,
-      maskClosable: nativeProps.maskClosable ?? false,
+      maskClosable: nativeProps.maskClosable ?? true,
       negativeButtonProps: nativeProps.negativeButtonProps,
       positiveButtonProps: nativeProps.positiveButtonProps,
     }

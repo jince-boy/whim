@@ -1,5 +1,6 @@
 package com.whim.system.service.impl;
 
+import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationContext;
@@ -221,14 +222,12 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      * @param parameter 菜单新增参数
      * @return 新增菜单id
      */
+    @Lock4j(name = "system:menu")
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long addMenu(SysMenuSaveDTO parameter) {
         if (!authenticationContext.isSuperAdministrator()) {
             throw new AccessDeniedException("只有超级管理员可以新增菜单权限");
-        }
-        if (baseMapper.lockMenuTree() == null) {
-            throw new ServiceException("菜单维护锁未初始化");
         }
         SysPermission permission = BeanConvertUtils.convert(parameter, SysPermission.class);
         permission.setBuiltIn(0);
@@ -249,12 +248,10 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      * @param id 菜单id
      * @param parameter 菜单修改参数
      */
+    @Lock4j(name = "system:menu")
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateMenu(Long id, SysMenuSaveDTO parameter) {
-        if (baseMapper.lockMenuTree() == null) {
-            throw new ServiceException("菜单维护锁未初始化");
-        }
         SysPermission oldPermission = this.getById(id);
         if (Objects.isNull(oldPermission)) {
             throw new ServiceException("菜单不存在");
@@ -295,12 +292,10 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      *
      * @param id 菜单id
      */
+    @Lock4j(name = "system:menu")
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteMenu(Long id) {
-        if (baseMapper.lockMenuTree() == null) {
-            throw new ServiceException("菜单维护锁未初始化");
-        }
         SysPermission permission = this.getById(id);
         if (Objects.isNull(permission)) {
             throw new ServiceException("菜单不存在");

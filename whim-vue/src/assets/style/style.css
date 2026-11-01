@@ -27,6 +27,11 @@ samp {
   font-family: var(--app-font-family-mono);
 }
 
+/* NSwitch 未提供字号主题项，统一在全局样式中设置。 */
+.n-switch {
+  font-size: 11px;
+}
+
 /* 侧栏、顶部及混合布局共用菜单对齐，避免图标和链接文字使用不同的行内基线。 */
 .n-menu .n-menu-item-content-header {
   line-height: 1;
