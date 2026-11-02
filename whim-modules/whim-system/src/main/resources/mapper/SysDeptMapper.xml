@@ -1,6 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysDeptMapper">
+    <select id="getDescendantDeptIds" resultType="java.lang.Long">
+        SELECT id FROM sys_dept
+        WHERE deleted = 0 AND FIND_IN_SET(#{id}, ancestors)
+    </select>
+
+    <select id="getEnabledDeptCountByIds" resultType="long">
+        SELECT COUNT(*) FROM sys_dept
+        WHERE deleted = 0 AND status = 0 AND id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+    </select>
+
+    <select id="getDeptDeleteBlockReason" resultType="java.lang.String">
+        SELECT CASE
+            WHEN EXISTS (SELECT 1 FROM sys_dept WHERE parent_id = #{id} AND deleted = 0)
+                THEN '部门存在下级部门，请先处理下级部门'
+            WHEN EXISTS (SELECT 1 FROM sys_user WHERE dept_id = #{id} AND deleted = 0)
+                THEN '部门仍有用户，请先调整用户归属'
+            WHEN EXISTS (SELECT 1 FROM sys_post WHERE dept_id = #{id} AND deleted = 0)
+                THEN '部门仍有岗位，请先处理关联岗位'
+            WHEN EXISTS (
+                SELECT 1 FROM sys_role_dept role_dept
+                INNER JOIN sys_role role ON role.id = role_dept.role_id AND role.deleted = 0
+                WHERE role_dept.dept_id = #{id}
+            ) THEN '部门仍被角色数据范围引用，请先调整角色授权'
+        END
+    </select>
+
+    <select id="getUserIdsByDepartments" resultType="java.lang.Long">
+        SELECT account.id FROM sys_user account
+        WHERE account.deleted = 0 AND account.dept_id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+        UNION
+        SELECT account.id FROM sys_post post
+        INNER JOIN sys_user_post user_post ON user_post.post_id = post.id
+        INNER JOIN sys_user account ON account.id = user_post.user_id AND account.deleted = 0
+        WHERE post.deleted = 0 AND post.status = 0 AND post.dept_id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+        UNION
+        SELECT account.id FROM sys_role_dept role_dept
+        INNER JOIN sys_role role ON role.id = role_dept.role_id
+            AND role.deleted = 0 AND role.status = 0 AND role.data_scope = 2
+        INNER JOIN sys_user_role user_role ON user_role.role_id = role.id
+        INNER JOIN sys_user account ON account.id = user_role.user_id AND account.deleted = 0
+        WHERE role_dept.dept_id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+    </select>
+
     <select id="getUserIdsByDepartmentAncestors" resultType="java.lang.Long">
         SELECT account.id
         FROM sys_user account
@@ -15,4 +70,12 @@
                 WHERE user_role.user_id = account.id
             )
     </select>
+
+    <update id="updateDeptDescendantAncestors">
+        UPDATE sys_dept
+        SET ancestors = CONCAT(#{et.ancestors}, ',', #{et.id},
+                SUBSTRING(ancestors, CHAR_LENGTH(#{previousPath}) + 1)),
+            update_by = #{et.updateBy}, update_time = #{et.updateTime}
+        WHERE deleted = 0 AND FIND_IN_SET(#{et.id}, ancestors)
+    </update>
 </mapper>

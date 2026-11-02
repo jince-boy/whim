@@ -41,7 +41,7 @@ export function useDeptForm(props: DeptFormProps) {
           {
             key: String(node.id),
             label: node.deptName + (disabledBranch ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
-            disabled: formModel.value.status === 0 && disabledBranch,
+            disabled: props.initialModel?.status === 1 && formModel.value.status === 0 && disabledBranch,
             children: children.length ? children : undefined,
           },
         ]

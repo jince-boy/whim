@@ -22,8 +22,9 @@ export const fetchDeptLeaderOptions = (id: DeptId, params: TablePageQuery & { ke
     params,
   })
 
+/** 新增部门，仅返回操作结果。 */
 export const addDept = (data: DeptSave) =>
-  request<DeptId>('/system/dept', RequestMethod.POST, { data: getDeptPayload(data) })
+  request('/system/dept', RequestMethod.POST, { data: getDeptPayload(data) })
 
 export const updateDept = (data: DeptSave) =>
   request('/system/dept', RequestMethod.PUT, { data: getDeptPayload(data) })
