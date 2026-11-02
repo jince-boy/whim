@@ -1,6 +1,5 @@
 package com.whim.system.service.impl;
 
-import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
@@ -9,9 +8,7 @@ import com.whim.core.utils.BeanConvertUtils;
 import com.whim.core.utils.ValueParserUtils;
 import com.whim.mybatisplus.annotation.DataPermission;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
-import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysDeptMapper;
-import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.dept.SysDeptAddDTO;
 import com.whim.system.model.entity.SysDept;
 import com.whim.system.model.vo.dept.SysDeptVO;
@@ -36,7 +33,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
-    private final SysUserMapper userMapper;
     private final AuthenticationSession authenticationSession;
 
     /**
@@ -65,44 +61,41 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     }
 
     /**
-     * 在授权的上级部门下新增部门，提交后失效因新增下级而变化的登录授权范围。
+     * 新增部门并校验组织层级，提交后失效因新增下级而变化的登录授权范围。
      *
      * @param parameter 部门新增参数
      * @return 新增部门ID
      */
     @Override
-    @Lock4j(name = "system:organization")
     @Transactional(rollbackFor = Exception.class)
-    @DataPermission(permission = "system:dept:create", tables =
-            @DataPermissionTable(name = "sys_dept", departmentColumn = "id", userColumn = "leader_user_id"))
     public Long addDept(SysDeptAddDTO parameter) {
         SysDept department = BeanConvertUtils.convert(parameter, SysDept.class);
-        // 新部门尚未进入授权范围，新增时按挂载的上级部门校验。
-        DataPermissionContext.checkOwnership("sys_dept", null, department.getParentId());
+        Set<Long> ancestorIds = new HashSet<>();
         if (department.getParentId() == 0L) {
             department.setAncestors("0");
         } else {
             SysDept parent = this.getById(department.getParentId());
             if (parent == null) {
-                throw new ServiceException("上级部门不存在或无权访问");
-            }
-            if (department.getStatus() == 0
-                    && userMapper.getValidDepartmentsByIds(Set.of(parent.getId())).isEmpty()) {
-                throw new ServiceException("正常部门的上级及祖先部门必须全部启用");
+                throw new ServiceException("上级部门不存在");
             }
             String ancestors = parent.getAncestors() + "," + parent.getId();
-            if (ancestors.length() > 500) {
-                throw new ServiceException("部门祖先路径不能超过500个字符");
-            }
             department.setAncestors(ancestors);
+            ancestorIds.addAll(Arrays.asList(ValueParserUtils.splitToLongArray(ancestors, ",")));
+            ancestorIds.remove(0L);
+            if (department.getStatus() == 0) {
+                long enabledAncestorCount = this.lambdaQuery()
+                        .in(SysDept::getId, ancestorIds)
+                        .eq(SysDept::getStatus, 0)
+                        .count();
+                if (enabledAncestorCount != ancestorIds.size()) {
+                    throw new ServiceException("正常部门的上级及祖先部门必须全部启用");
+                }
+            }
         }
         if (!this.save(department)) {
             throw new ServiceException("新增部门失败");
         }
-        if (department.getStatus() == 0 && department.getParentId() != 0L) {
-            Set<Long> ancestorIds = new HashSet<>(Arrays.asList(
-                    ValueParserUtils.splitToLongArray(department.getAncestors(), ",")));
-            ancestorIds.remove(0L);
+        if (department.getStatus() == 0 && !ancestorIds.isEmpty()) {
             authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM,
                     baseMapper.getUserIdsByDepartmentAncestors(ancestorIds));
         }

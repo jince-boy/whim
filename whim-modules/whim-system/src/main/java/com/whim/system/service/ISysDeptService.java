@@ -21,7 +21,7 @@ public interface ISysDeptService extends IService<SysDept> {
     List<SysDeptVO> getDeptList();
 
     /**
-     * 在授权的上级部门下新增部门，并维护受影响的登录授权范围。
+     * 新增部门并维护受影响的登录授权范围，不按操作者的部门数据范围限制新增位置。
      *
      * @param parameter 部门新增参数
      * @return 新增部门ID

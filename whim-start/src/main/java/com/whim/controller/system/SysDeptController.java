@@ -40,7 +40,7 @@ public class SysDeptController {
     }
 
     /**
-     * 在当前用户授权的上级部门下新增部门。
+     * 校验部门新增功能权限后创建部门，不限制操作者的部门归属和数据范围。
      *
      * @param parameter 部门新增参数
      * @return 新增部门ID
