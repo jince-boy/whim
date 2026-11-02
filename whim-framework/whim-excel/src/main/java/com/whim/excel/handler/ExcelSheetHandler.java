@@ -13,12 +13,15 @@ import org.apache.fesod.sheet.write.handler.CellWriteHandler;
 import org.apache.fesod.sheet.write.handler.SheetWriteHandler;
 import org.apache.fesod.sheet.write.handler.context.CellWriteHandlerContext;
 import org.apache.fesod.sheet.write.handler.context.SheetWriteHandlerContext;
+import org.apache.fesod.sheet.write.metadata.holder.WriteSheetHolder;
 import org.apache.fesod.sheet.write.metadata.style.WriteCellStyle;
 import org.apache.fesod.sheet.write.metadata.style.WriteFont;
 import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
@@ -57,7 +60,7 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
      */
     @Override
     public void afterSheetCreate(SheetWriteHandlerContext context) {
-        var holder = context.getWriteSheetHolder();
+        WriteSheetHolder holder = context.getWriteSheetHolder();
         int headRows = holder.needHead() ? holder.getExcelWriteHeadProperty().getHeadRowNumber() : 0;
         int firstRow = holder.relativeHeadRowIndex() + headRows;
         Sheet sheet = holder.getSheet();
@@ -124,7 +127,11 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
         }
     }
 
-    /** 仅修改末级表头，按字段关联样式，避免相同标题误匹配。 */
+    /**
+     * 仅修改末级表头，按字段关联样式，避免相同标题误匹配。
+     *
+     * @param context 单元格写入上下文
+     */
     @Override
     public void afterCellDispose(CellWriteHandlerContext context) {
         if (
@@ -158,7 +165,7 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
             return;
         }
         Sheet sheet = context.getCell().getSheet();
-        var helper = sheet.getWorkbook().getCreationHelper();
+        CreationHelper helper = sheet.getWorkbook().getCreationHelper();
         ClientAnchor anchor = helper.createClientAnchor();
         anchor.setCol1(context.getColumnIndex());
         anchor.setCol2(Math.min(context.getColumnIndex() + 3, 16_383));
@@ -261,10 +268,17 @@ public final class ExcelSheetHandler implements SheetWriteHandler, CellWriteHand
         range.setRefersToFormula(formula);
     }
 
-    /** 为整段数据区域添加单条校验，公式中的行号按目标单元格相对移动。 */
+    /**
+     * 为整段数据区域添加单条校验，公式中的行号按目标单元格相对移动。
+     *
+     * @param sheet 目标工作表
+     * @param column 目标列索引
+     * @param firstRow 首个数据行索引
+     * @param formula 下拉校验公式
+     */
     private void addValidation(Sheet sheet, int column, int firstRow, String formula) {
-        var helper = sheet.getDataValidationHelper();
-        var range = new CellRangeAddressList(firstRow, firstRow + dropdownRows - 1, column, column);
+        DataValidationHelper helper = sheet.getDataValidationHelper();
+        CellRangeAddressList range = new CellRangeAddressList(firstRow, firstRow + dropdownRows - 1, column, column);
         DataValidation validation = helper.createValidation(helper.createFormulaListConstraint(formula), range);
         validation.setEmptyCellAllowed(true);
         validation.setSuppressDropDownArrow(true);

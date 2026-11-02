@@ -28,6 +28,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Jince
@@ -162,7 +163,13 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 仅读取已提交分片的固定长度头部和文件大小，不扫描分片正文。 */
+    /**
+     * 仅读取已提交分片的固定长度头部和文件大小，不扫描分片正文。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 分片上传会话标识
+     * @return 已提交的分片列表
+     */
     @Override
     public List<StoragePart> getUploadedParts(String key, String uploadId) {
         try {
@@ -172,7 +179,7 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
                 throw new MissingUploadSessionException(null);
             }
             List<StoragePart> result = new ArrayList<>();
-            try (var entries = Files.list(marker.getParent())) {
+            try (Stream<Path> entries = Files.list(marker.getParent())) {
                 List<Path> paths = entries.limit(20003).toList();
                 if (paths.size() > 20002) {
                     throw new FileStorageException("本地分片目录文件数量异常");
@@ -327,7 +334,12 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 仅清理当前会话目录的普通文件，不递归跟随链接或删除正式对象。 */
+    /**
+     * 仅清理当前会话目录的普通文件，不递归跟随链接或删除正式对象。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 分片上传会话标识
+     */
     @Override
     public void abortUpload(String key, String uploadId) {
         try {
@@ -338,7 +350,7 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
             }
             // 先撤销会话标记，部分清理失败时也不能再继续上传或合并。
             Files.deleteIfExists(resolveUploadFile(uploadId, "session", false));
-            try (var entries = Files.list(directory)) {
+            try (Stream<Path> entries = Files.list(directory)) {
                 List<Path> paths = entries.limit(20003).toList();
                 if (paths.size() > 20002) {
                     throw new FileStorageException("本地分片目录文件数量异常");

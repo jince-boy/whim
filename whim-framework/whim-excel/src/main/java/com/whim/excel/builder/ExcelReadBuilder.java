@@ -17,6 +17,7 @@ import org.apache.fesod.sheet.enums.CellDataTypeEnum;
 import org.apache.fesod.sheet.metadata.Head;
 import org.apache.fesod.sheet.read.builder.ExcelReaderBuilder;
 import org.apache.fesod.sheet.read.metadata.ReadSheet;
+import org.apache.fesod.sheet.read.metadata.property.ExcelReadHeadProperty;
 import org.springframework.util.Assert;
 
 import java.io.InputStream;
@@ -213,7 +214,12 @@ public final class ExcelReadBuilder<T> {
         );
     }
 
-    /** 创建独立解析器，统一管理读取配置、资源和异常传播。 */
+    /**
+     * 创建独立解析器，统一管理读取配置、资源和异常传播。
+     *
+     * @param allSheets 是否读取所有可见工作表
+     * @return Excel 导入结果
+     */
     private ExcelResult<T> read(boolean allSheets) {
         Assert.state(!used, "Excel 读取构造器只能执行一次");
         used = true;
@@ -248,7 +254,7 @@ public final class ExcelReadBuilder<T> {
             converters.forEach(builder::registerConverter);
             try (ExcelReader reader = builder.build()) {
                 // 在处理数据前加载映射，字典查询或配置失败不能被当作普通单元格错误跳过。
-                var headProperty = reader.analysisContext().readWorkbookHolder().getExcelReadHeadProperty();
+                ExcelReadHeadProperty headProperty = reader.analysisContext().readWorkbookHolder().getExcelReadHeadProperty();
                 for (Head head : headProperty.getHeadMap().values()) {
                     Field field = head.getField();
                     if (

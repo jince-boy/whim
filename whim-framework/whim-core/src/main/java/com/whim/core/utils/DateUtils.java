@@ -344,8 +344,8 @@ public final class DateUtils {
      * @return 解析后的 Date。
      */
     public static Date parse(String text) {
-        var source = requireHasText(text, "text");
-        for (var pattern : AUTO_PARSE_PATTERNS) {
+        String source = requireHasText(text, "text");
+        for (String pattern : AUTO_PARSE_PATTERNS) {
             if (source.length() != pattern.length()) {
                 continue;
             }
@@ -378,7 +378,7 @@ public final class DateUtils {
      * @return 偏移后的日期时间字符串。
      */
     public static String getOffsetDate(String dateText, int days) {
-        var base = isBlank(dateText)
+        LocalDateTime base = isBlank(dateText)
                 ? currentDateTime()
                 : parseLocalDateTime(dateText, COMPACT_DATE_TIME_PATTERN);
         return format(base.plusDays(days), COMPACT_DATE_TIME_PATTERN);
@@ -682,9 +682,17 @@ public final class DateUtils {
                 .withResolverStyle(ResolverStyle.STRICT);
     }
 
+    /**
+     * 根据指定格式和时区将日期时间文本解析为时间点。
+     *
+     * @param text 日期时间文本
+     * @param pattern 日期时间格式
+     * @param zoneId 解析使用的时区
+     * @return 解析后的时间点
+     */
     private static Instant parseToInstant(String text, String pattern, ZoneId zoneId) {
         try {
-            var parsed = formatter(pattern).parseBest(
+            TemporalAccessor parsed = formatter(pattern).parseBest(
                     text,
                     LocalDateTime::from,
                     LocalDate::from,

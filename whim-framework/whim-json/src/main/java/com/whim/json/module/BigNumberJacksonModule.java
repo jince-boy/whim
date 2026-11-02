@@ -35,7 +35,7 @@ public final class BigNumberJacksonModule extends SimpleModule {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public BigNumberJacksonModule() {
         super("whim-big-number-jackson-module");
-        var longSerializer = new LongValueSerializer();
+        LongValueSerializer longSerializer = new LongValueSerializer();
         addSerializer(Long.class, longSerializer);
         addSerializer((Class) Long.TYPE, (ValueSerializer) longSerializer);
         addSerializer(BigInteger.class, new BigIntegerValueSerializer());
@@ -95,13 +95,16 @@ public final class BigNumberJacksonModule extends SimpleModule {
 
     /**
      * 判断 BigDecimal 是否可被 JavaScript Number 精确表示。
+     *
+     * @param value 待判断的十进制数
+     * @return 是否可被精确表示
      */
     private static boolean isSafeDecimal(BigDecimal value) {
-        var normalized = value.stripTrailingZeros();
+        BigDecimal normalized = value.stripTrailingZeros();
         if (normalized.scale() <= 0) {
             return isSafeInteger(normalized.toBigIntegerExact());
         }
-        var doubleValue = normalized.doubleValue();
+        double doubleValue = normalized.doubleValue();
         if (!Double.isFinite(doubleValue)) {
             return false;
         }

@@ -9,6 +9,7 @@ import {
   watch,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { isAxiosError } from 'axios'
 import {
   NButton,
   NSpace,
@@ -19,6 +20,7 @@ import {
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
+import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
 import {
   deleteDictType,
@@ -34,6 +36,7 @@ import DictTypeForm from '../form.vue'
 
 /** 类型在主列表维护，选中类型的数据通过原生抽屉独立管理。 */
 export function useDictType() {
+  const dictionary = useDictStore()
   const userStore = useUserStore()
   const route = useRoute()
   const router = useRouter()
@@ -153,6 +156,11 @@ export function useDictType() {
       void router.replace({ query: { ...route.query, type: row.type } })
   }
 
+  /** 类型维护成功后刷新主列表和全局字典，移除旧编码的缓存。 */
+  async function refreshDictionaryTypes() {
+    await Promise.all([table.reload(), dictionary.refreshDictionaries()])
+  }
+
   /** 新增类型后刷新主列表，数据维护由查看数据入口打开。 */
   function openAddDialog() {
     openFormDialog({
@@ -161,7 +169,7 @@ export function useDictType() {
       formComponent: DictTypeForm,
       onSubmit: insertDictType,
       successMessage: '新增字典成功',
-      onSuccess: table.reload,
+      onSuccess: refreshDictionaryTypes,
     })
   }
 
@@ -184,7 +192,7 @@ export function useDictType() {
         formProps: { initialModel: response.data },
         onSubmit: updateDictType,
         successMessage: '字典已更新',
-        onSuccess: table.reload,
+        onSuccess: refreshDictionaryTypes,
       })
     } catch {
       // 请求错误由公共拦截器提示。
@@ -203,7 +211,7 @@ export function useDictType() {
       onSubmit: () => deleteDictType({ dictTypeIds: ids.join(',') }),
       onSuccess: async () => {
         table.setCheckedRowKeys([])
-        await table.reload()
+        await refreshDictionaryTypes()
       },
     })
   }
@@ -227,10 +235,13 @@ export function useDictType() {
     resettingCache.value = true
     try {
       const response = await resetDictCache()
-      if (response.code === 200) message.success('字典缓存已刷新')
-      else message.error(response.message)
-    } catch {
-      // 请求错误由公共拦截器提示。
+      if (response.code === 200) {
+        await dictionary.refreshDictionaries()
+        message.success('字典缓存已刷新')
+      } else message.error(response.message)
+    } catch (error) {
+      if (!isAxiosError(error))
+        message.error(error instanceof Error ? error.message : '字典缓存刷新失败，请重试')
     } finally {
       resettingCache.value = false
     }

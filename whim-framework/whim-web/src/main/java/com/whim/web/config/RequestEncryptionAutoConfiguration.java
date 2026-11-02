@@ -52,7 +52,7 @@ public class RequestEncryptionAutoConfiguration {
             RequestEncryptionService service,
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
-        var registration = new FilterRegistrationBean<RequestDecryptionFilter>();
+        FilterRegistrationBean<RequestDecryptionFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RequestDecryptionFilter(service, handlerMapping, exceptionResolver));
         registration.setName("requestDecryptionFilter");
         registration.addUrlPatterns("/*");

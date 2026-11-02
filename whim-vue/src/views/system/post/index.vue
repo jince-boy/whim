@@ -7,7 +7,7 @@ defineOptions({ name: 'Post' })
 const {
   registerTable, form, canView, detail, showDetail, memberPost, showMembers, membersBusy,
   canLoadDepartments, departmentOptions, departmentNames, departmentName, statusOptions,
-  openAddDialog, changeOrganizationWide,
+  openAddDialog, changeOrganizationWide, getStatusData,
 } = usePost()
 </script>
 
@@ -42,7 +42,7 @@ const {
           <n-descriptions-item label="岗位 ID">{{ detail.id }}</n-descriptions-item>
           <n-descriptions-item label="所属部门">{{ departmentName(detail.deptId) }}</n-descriptions-item>
           <n-descriptions-item label="显示排序">{{ detail.sort }}</n-descriptions-item>
-          <n-descriptions-item label="状态"><n-tag :type="detail.status === 0 ? 'success' : 'error'" :bordered="false">{{ detail.status === 0 ? '正常' : '停用' }}</n-tag></n-descriptions-item>
+          <n-descriptions-item label="状态"><n-tag :type="getStatusData(detail.status).listClass" :bordered="false">{{ getStatusData(detail.status).label }}</n-tag></n-descriptions-item>
           <n-descriptions-item label="备注">{{ detail.remark || '—' }}</n-descriptions-item>
           <n-descriptions-item label="创建时间">{{ detail.createTime || '—' }}</n-descriptions-item>
           <n-descriptions-item label="更新时间">{{ detail.updateTime || '—' }}</n-descriptions-item>

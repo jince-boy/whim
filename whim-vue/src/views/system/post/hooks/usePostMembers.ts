@@ -5,11 +5,12 @@ import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { addPostMembers, deletePostMembers, fetchPostMemberPage } from './api'
-import { organizationStatusOptions } from '@/views/system/dept/hooks/types'
+import { useDictStore } from '@/stores/modules/dict'
 import type { PostMember, PostMemberQuery, PostMembersProps } from './types'
 
 /** 成员与候选用户独立分页，批量操作只使用当前明确选择的用户。 */
 export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
+  const dictionary = useDictStore()
   const user = useUserStore()
   const { openConfirmDialog } = useFormDialog()
   const assigned = ref(true)
@@ -39,10 +40,10 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
       title: '用户状态',
       key: 'status',
       width: 100,
-      render: (row) =>
-        h(NTag, { bordered: false, type: row.status === 0 ? 'success' : 'error' }, () =>
-          row.status === 0 ? '正常' : '停用',
-        ),
+      render: (row) => {
+        const status = dictionary.getDictData('sys_common_status', row.status)
+        return h(NTag, { bordered: false, type: status.listClass }, () => status.label)
+      },
     },
     ...(canAssign.value
       ? [
@@ -96,7 +97,7 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
           key: 'status',
           label: '用户状态',
           format: (query) =>
-            organizationStatusOptions.find((item) => item.value === query.status)?.label ?? '',
+            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },
@@ -159,7 +160,7 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
     canAdd,
     selectedCount,
     loading: table.loading,
-    statusOptions: organizationStatusOptions,
+    statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     changeSelectedMembers,
   }
 }

@@ -6,7 +6,7 @@ import { useIcon } from '@/components/icon/useIcon'
 import { useUserStore } from '@/stores/modules/user'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { message } from '@/plugins'
-import { useDict } from '@/hooks/useDict'
+import { useDictStore } from '@/stores/modules/dict'
 import { fetchMenuList, fetchMenuDetail, insertMenu, updateMenu, deleteMenu } from './api'
 import {
   MenuType,
@@ -24,21 +24,20 @@ export function useMenu() {
   const navigation = usePermissionStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
   const editing = ref(false)
-  const menuTypeDictionary = useDict('sys_menu_type')
-  const menuStatusDictionary = useDict('sys_menu_status')
-  const menuVisibleDictionary = useDict('sys_menu_visible')
-  const menuCacheDictionary = useDict('sys_menu_cache')
+  const dictionary = useDictStore()
+  const menuTypeOptions = computed(() => dictionary.getDictNumberOptions('sys_menu_type'))
+  const menuStatusOptions = computed(() => dictionary.getDictNumberOptions('sys_common_status'))
   const dictionaryOptions: MenuDictionaryOptions = reactive({
-    menuTypes: menuTypeDictionary.numberOptions,
-    statuses: menuStatusDictionary.numberOptions,
-    visibilities: menuVisibleDictionary.numberOptions,
-    cacheModes: menuCacheDictionary.numberOptions,
+    menuTypes: menuTypeOptions,
+    statuses: menuStatusOptions,
+    visibilities: computed(() => dictionary.getDictNumberOptions('sys_visible_status')),
+    cacheModes: computed(() => dictionary.getDictNumberOptions('sys_menu_cache')),
   })
   let editVersion = 0
 
   /** 标签文字和颜色均取自字典，未知编码保留原值便于定位配置。 */
-  function renderDictionaryTag(dictionary: ReturnType<typeof useDict>, value: number) {
-    const item = dictionary.getDictData(value)
+  function renderDictionaryTag(type: string, value: number) {
+    const item = dictionary.getDictData(type, value)
     return h(NTag, { bordered: false, type: item.listClass }, () => item.label)
   }
 
@@ -79,7 +78,7 @@ export function useMenu() {
         key: 'menuType',
         width: 80,
         align: 'center',
-        render: (row) => renderDictionaryTag(menuTypeDictionary, row.menuType),
+        render: (row) => renderDictionaryTag('sys_menu_type', row.menuType),
       },
       {
         title: '路由地址',
@@ -111,14 +110,14 @@ export function useMenu() {
         render: (row) =>
           row.menuType === MenuType.BUTTON
             ? '—'
-            : renderDictionaryTag(menuVisibleDictionary, row.visible),
+            : renderDictionaryTag('sys_visible_status', row.visible),
       },
       {
         title: '菜单状态',
         key: 'status',
         width: 90,
         align: 'center',
-        render: (row) => renderDictionaryTag(menuStatusDictionary, row.status),
+        render: (row) => renderDictionaryTag('sys_common_status', row.status),
       },
       { title: '创建时间', key: 'createTime', width: 180 },
     ]
@@ -194,13 +193,13 @@ export function useMenu() {
           key: 'menuType',
           label: '菜单类型',
           format: (query) =>
-            query.menuType === null ? '' : menuTypeDictionary.getDictData(query.menuType).label,
+            query.menuType === null ? '' : dictionary.getDictData('sys_menu_type', query.menuType).label,
         },
         {
           key: 'status',
           label: '菜单状态',
           format: (query) =>
-            query.status === null ? '' : menuStatusDictionary.getDictData(query.status).label,
+            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },
@@ -327,8 +326,8 @@ export function useMenu() {
     canView,
     allExpanded,
     expandableKeys,
-    menuTypeOptions: menuTypeDictionary.numberOptions,
-    menuStatusOptions: menuStatusDictionary.numberOptions,
+    menuTypeOptions,
+    menuStatusOptions,
     openAddDialog,
     toggleExpand,
   }

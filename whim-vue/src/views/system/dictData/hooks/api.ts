@@ -27,11 +27,6 @@ export const deleteDictData = (params: { dictDataIds: string }) => {
   return request('/system/dictData/delete', RequestMethod.DELETE, { params })
 }
 
-/** 按字典类型查询数据，供字典选择组件复用。 */
-export const fetchDictDataListByDictType = (type: string) => {
-  return request<DictDataResult[]>('/system/dictData/type/' + type, RequestMethod.GET)
-}
-
 /** 导出指定类型下符合查询条件的字典值。 */
 export const exportDictData = (data: DictDataQuery & { type: string }) => {
   return downloadFile('/system/dictData/export', null, { method: RequestMethod.POST, data })

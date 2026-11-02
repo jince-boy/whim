@@ -212,8 +212,8 @@ public final class Result<T> implements Serializable {
     public static ResponseEntity<Resource> file(Resource resource) {
         Objects.requireNonNull(resource, "参数[resource]不能为空");
 
-        var headers = new HttpHeaders();
-        var mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM);
+        HttpHeaders headers = new HttpHeaders();
+        MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentType(mediaType);
 
         try {

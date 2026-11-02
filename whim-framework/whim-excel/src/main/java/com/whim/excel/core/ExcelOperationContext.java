@@ -3,6 +3,7 @@ package com.whim.excel.core;
 import com.whim.core.utils.ValueParserUtils;
 import com.whim.excel.annotation.ExcelDictFormat;
 import com.whim.excel.annotation.ExcelEnumFormat;
+import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.util.Assert;
 
@@ -69,7 +70,7 @@ public final class ExcelOperationContext {
                     "Excel 枚举字段类型与注解配置不一致：" + key.getName()
                 );
                 for (Enum<?> constant : enumeration.enumClass().getEnumConstants()) {
-                    var accessor = PropertyAccessorFactory.forBeanPropertyAccess(constant);
+                    BeanWrapper accessor = PropertyAccessorFactory.forBeanPropertyAccess(constant);
                     String code = key.getType().isEnum()
                         ? constant.name()
                         : ValueParserUtils.toString(accessor.getPropertyValue(enumeration.codeField()));

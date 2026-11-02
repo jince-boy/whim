@@ -37,7 +37,7 @@ public final class StringToLocalDateTimeConverter implements Converter<String, L
      */
     @Override
     public LocalDateTime convert(@NonNull String source) {
-        var normalizedText = normalizeText(source);
+        String normalizedText = normalizeText(source);
         if (normalizedText == null) {
             return null;
         }
@@ -62,7 +62,7 @@ public final class StringToLocalDateTimeConverter implements Converter<String, L
         if (text == null) {
             return null;
         }
-        var normalizedText = text.trim();
+        String normalizedText = text.trim();
         return normalizedText.isEmpty() ? null : normalizedText;
     }
 }

@@ -8,11 +8,13 @@ import {
   type MaybeRefOrGetter,
 } from 'vue'
 import { useUserStore } from '@/stores/modules/user'
+import { useDictStore } from '@/stores/modules/dict'
 import { fetchDeptTree } from './api'
 import type { DepartmentSelection, DeptItem } from './types'
 
 /** 部门选择和名称展示共用真实部门树，停用分支不可作为正常记录的归属。 */
 export function useDeptOptions(disableInactive: MaybeRefOrGetter<boolean> = false) {
+  const dictionary = useDictStore()
   const user = useUserStore()
   const departments = shallowRef<DeptItem[]>([])
   const loading = ref(false)
@@ -31,7 +33,7 @@ export function useDeptOptions(disableInactive: MaybeRefOrGetter<boolean> = fals
         const children = collect(node.children, disabled)
         return {
           key: String(node.id),
-          label: node.deptName + (disabled ? '（停用）' : ''),
+          label: node.deptName + (disabled ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
           disabled: toValue(disableInactive) && disabled,
           children: children.length ? children : undefined,
         }

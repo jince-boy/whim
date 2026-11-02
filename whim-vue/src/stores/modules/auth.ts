@@ -2,6 +2,7 @@ import { usePermissionStore } from '@/stores/modules/permission.ts'
 import { useUserStore } from '@/stores/modules/user.ts'
 import { useTabStore } from '@/stores/modules/tab.ts'
 import { useKeepAliveStore } from '@/stores/modules/keepAlive.ts'
+import { useDictStore } from '@/stores/modules/dict'
 import type { LoginResult } from '@/views/login/hooks/types'
 
 export const useAuthStore = defineStore('auth', {
@@ -57,6 +58,7 @@ export const useAuthStore = defineStore('auth', {
       // 新登录会话不能复用上一账号的授权、导航和页面实例。
       usePermissionStore().resetRouter()
       useUserStore().clearUserInfo()
+      useDictStore().clearDictionaries()
       useTabStore().clearTabs()
       useKeepAliveStore().clearKeepAlive()
       this.token = result.accessToken
@@ -81,6 +83,7 @@ export const useAuthStore = defineStore('auth', {
       }
       usePermissionStore().resetRouter()
       useUserStore().clearUserInfo()
+      useDictStore().clearDictionaries()
       useTabStore().clearTabs()
       useKeepAliveStore().clearKeepAlive()
     },

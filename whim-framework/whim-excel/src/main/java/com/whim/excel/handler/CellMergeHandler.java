@@ -9,6 +9,7 @@ import org.apache.fesod.sheet.write.handler.SheetWriteHandler;
 import org.apache.fesod.sheet.write.handler.context.CellWriteHandlerContext;
 import org.apache.fesod.sheet.write.handler.context.RowWriteHandlerContext;
 import org.apache.fesod.sheet.write.handler.context.SheetWriteHandlerContext;
+import org.apache.fesod.sheet.write.property.ExcelWriteHeadProperty;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -32,11 +33,15 @@ public final class CellMergeHandler implements CellWriteHandler, RowWriteHandler
     private final Map<Sheet, List<MergeGroup>> groups = new IdentityHashMap<>();
     private final Map<Sheet, Map<String, Object>> rowValues = new IdentityHashMap<>();
 
-    /** 依据最终列映射初始化需要合并的列，校验分组依赖字段。 */
+    /**
+     * 依据最终列映射初始化需要合并的列，校验分组依赖字段。
+     *
+     * @param context 工作表写入上下文
+     */
     @Override
     public void afterSheetCreate(SheetWriteHandlerContext context) {
         Map<String, Head> heads = new LinkedHashMap<>();
-        var headProperty = context.getWriteSheetHolder().getExcelWriteHeadProperty();
+        ExcelWriteHeadProperty headProperty = context.getWriteSheetHolder().getExcelWriteHeadProperty();
         for (Head head : headProperty.getHeadMap().values()) {
             if (head.getField() != null) {
                 heads.put(head.getFieldName(), head);

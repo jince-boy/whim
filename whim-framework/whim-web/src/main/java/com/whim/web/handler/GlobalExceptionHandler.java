@@ -5,6 +5,7 @@ import com.whim.core.exception.*;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -119,7 +120,7 @@ public class GlobalExceptionHandler {
             HttpRequestMethodNotSupportedException exception,
             HttpServletRequest request
     ) {
-        var supportedMethods = exception.getSupportedMethods();
+        String[] supportedMethods = exception.getSupportedMethods();
         log.warn(
                 "请求 [{} {}] 的请求方式不受支持，支持的方式为：{}",
                 request.getMethod(),
@@ -177,15 +178,15 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request
     ) {
-        var requiredType = Optional.ofNullable(exception.getRequiredType())
+        String requiredType = Optional.ofNullable(exception.getRequiredType())
                 .map(Class::getSimpleName)
                 .orElse("未知");
-        var message = "请求参数类型不匹配，参数[%s]需要 %s 类型，当前值为 %s".formatted(
+        String message = "请求参数类型不匹配，参数[%s]需要 %s 类型，当前值为 %s".formatted(
                 exception.getName(),
                 requiredType,
                 String.valueOf(exception.getValue())
         );
-        var errors = List.of(Result.fieldError(exception.getName(), message));
+        List<Result.ValidationError> errors = List.of(Result.fieldError(exception.getName(), message));
 
         log.warn("请求 [{} {}] 的参数类型不匹配：{}", request.getMethod(), request.getRequestURI(), message, exception);
         return Result.validationError("请求参数类型不匹配", errors);
@@ -203,7 +204,7 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
-        var errors = exception.getBindingResult().getAllErrors().stream()
+        List<Result.ValidationError> errors = exception.getBindingResult().getAllErrors().stream()
                 .map(error -> {
                     if (error instanceof FieldError fieldError) {
                         return Result.fieldError(
@@ -218,7 +219,7 @@ public class GlobalExceptionHandler {
                 })
                 .distinct()
                 .toList();
-        var summary = errors.stream()
+        String summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
                 .orElse("未知校验错误");
@@ -239,7 +240,7 @@ public class GlobalExceptionHandler {
             BindException exception,
             HttpServletRequest request
     ) {
-        var errors = exception.getBindingResult().getAllErrors().stream()
+        List<Result.ValidationError> errors = exception.getBindingResult().getAllErrors().stream()
                 .map(error -> {
                     if (error instanceof FieldError fieldError) {
                         return Result.fieldError(
@@ -254,7 +255,7 @@ public class GlobalExceptionHandler {
                 })
                 .distinct()
                 .toList();
-        var summary = errors.stream()
+        String summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
                 .orElse("未知校验错误");
@@ -275,10 +276,10 @@ public class GlobalExceptionHandler {
             ConstraintViolationException exception,
             HttpServletRequest request
     ) {
-        var errors = exception.getConstraintViolations().stream()
+        List<Result.ValidationError> errors = exception.getConstraintViolations().stream()
                 .map(violation -> {
                     String field = null;
-                    for (var node : violation.getPropertyPath()) {
+                    for (Path.Node node : violation.getPropertyPath()) {
                         if (StringUtils.hasText(node.getName())) {
                             field = node.getName();
                         }
@@ -290,7 +291,7 @@ public class GlobalExceptionHandler {
                 })
                 .distinct()
                 .toList();
-        var summary = errors.stream()
+        String summary = errors.stream()
                 .map(error -> "%s=%s".formatted(error.getField(), error.getMessage()))
                 .reduce((left, right) -> left + "; " + right)
                 .orElse("未知校验错误");
@@ -327,8 +328,8 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException exception,
             HttpServletRequest request
     ) {
-        var message = "缺少必要的请求参数";
-        var errors = List.of(Result.fieldError(exception.getParameterName(), message));
+        String message = "缺少必要的请求参数";
+        List<Result.ValidationError> errors = List.of(Result.fieldError(exception.getParameterName(), message));
 
         log.warn("请求 [{} {}] 缺少必要参数：{}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
         return Result.validationError(message, errors);

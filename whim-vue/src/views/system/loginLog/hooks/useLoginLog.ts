@@ -4,10 +4,12 @@ import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from
 import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog'
-import { useDict } from '@/hooks/useDict'
+import { computed } from 'vue'
+import { useDictStore } from '@/stores/modules/dict'
 /** 配置注册式列表并处理登录日志业务操作。 */
 export function useLoginLog() {
-  const { dictData: sysStatusOptions, getDictData } = useDict('sys_result_status')
+  const dictionary = useDictStore()
+  const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
   const { openDeleteDialog } = useFormDialog()
   const tableColumns: DataTableColumn<LoginLog>[] = [
     {
@@ -49,7 +51,7 @@ export function useLoginLog() {
       align: 'center',
       render(row: object) {
         const loginLog = row as LoginLog
-        const dictData = getDictData(String(loginLog.status))
+        const dictData = dictionary.getDictData('sys_result_status', loginLog.status)
         return h(
           NTag,
           {
@@ -112,7 +114,7 @@ export function useLoginLog() {
         {
           key: 'status',
           label: '登录状态',
-          format: (values) => getDictData(String(values.status)).label,
+          format: (values) => dictionary.getDictData('sys_result_status', String(values.status)).label,
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {

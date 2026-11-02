@@ -4,7 +4,7 @@ import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
-import { organizationStatusOptions } from '@/views/system/dept/hooks/types'
+import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
 import {
   addPost,
@@ -19,6 +19,7 @@ import PostForm from '../form.vue'
 
 /** 岗位分页、详情、编辑及成员抽屉的页面协调。 */
 export function usePost() {
+  const dictionary = useDictStore()
   const user = useUserStore()
   const { selection, canLoad, reload: reloadDepartments } = useDeptOptions()
   const { openFormDialog, openConfirmDialog, openDeleteDialog } = useFormDialog()
@@ -66,7 +67,10 @@ export function usePost() {
               'aria-label': `${row.postName}状态`,
               onUpdateValue: () => changeStatus(row),
             },
-            { checked: () => '正常', unchecked: () => '停用' },
+            {
+              checked: () => dictionary.getDictData('sys_common_status', 0).label,
+              unchecked: () => dictionary.getDictData('sys_common_status', 1).label,
+            },
           ),
       },
       { title: '创建时间', key: 'createTime', width: 180 },
@@ -161,7 +165,7 @@ export function usePost() {
           key: 'status',
           label: '状态',
           format: (query) =>
-            organizationStatusOptions.find((item) => item.value === query.status)?.label ?? '',
+            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },
@@ -267,7 +271,8 @@ export function usePost() {
     departmentOptions: computed(() => selection.value.options),
     departmentNames: computed(() => selection.value.names),
     departmentName,
-    statusOptions: organizationStatusOptions,
+    statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
+    getStatusData: (value: number) => dictionary.getDictData('sys_common_status', value),
     openAddDialog,
     changeOrganizationWide,
   }

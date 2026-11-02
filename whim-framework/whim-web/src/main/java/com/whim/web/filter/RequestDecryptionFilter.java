@@ -12,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -46,7 +47,7 @@ public class RequestDecryptionFilter extends OncePerRequestFilter {
         HandlerMethod handler = null;
         HttpServletRequest processed = request;
         try {
-            var executionChain = handlerMapping.getHandler(request);
+            HandlerExecutionChain executionChain = handlerMapping.getHandler(request);
             if (executionChain != null && executionChain.getHandler() instanceof HandlerMethod method) {
                 handler = method;
                 boolean encryptionRequired = method.hasMethodAnnotation(RequestDecrypt.class);

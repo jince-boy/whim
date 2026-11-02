@@ -8,8 +8,6 @@ import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.mybatisplus.model.enums.DataScopeType;
-import com.whim.system.mapper.SysDeptMapper;
-import com.whim.system.mapper.SysRoleDeptMapper;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
@@ -37,8 +35,6 @@ import java.util.stream.Collectors;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService {
     private final ISysRoleService roleService;
     private final ISysPermissionService permissionService;
-    private final SysDeptMapper deptMapper;
-    private final SysRoleDeptMapper roleDeptMapper;
 
     /**
      * 通过id获取有效的用户信息
@@ -55,15 +51,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 用户名全局规范化，登录阶段不依赖业务数据权限。
+     * 按忽略大小写的用户名查询账号，登录阶段不依赖业务数据权限。
+     *
+     * @param username 用户名
+     * @return 用户账号，不存在时返回 null
      */
     @Override
     public SysUser getByUsername(String username) {
-        return lambdaQuery().eq(SysUser::getUsername, username.trim().toLowerCase(Locale.ROOT)).one();
+        return lambdaQuery().eq(SysUser::getUsername, username.toLowerCase(Locale.ROOT)).one();
     }
 
     /**
      * 构建用户、部门、岗位和角色授权快照，登录时一次性展开各角色的有效部门范围。
+     *
+     * @param user 登录用户
+     * @return 包含部门、岗位和角色授权范围的登录信息
      */
     @Override
     public UserInfo buildUserInfo(SysUser user) {
@@ -99,20 +101,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
         if (!customRoleIds.isEmpty()) {
-            for (SysRoleDept relation : roleDeptMapper.getRoleDepartmentsByRoleIds(customRoleIds)) {
+            for (SysRoleDept relation : baseMapper.getRoleDepartmentsByRoleIds(customRoleIds)) {
                 info.getRoleDepartmentIds().get(relation.getRoleId()).add(relation.getDeptId());
                 departmentIds.add(relation.getDeptId());
             }
         }
 
         // 主部门、岗位部门和自定义范围共用一次祖先链校验。
-        Map<Long, DepartmentInfo> departments = deptMapper.getValidDepartmentsByIds(departmentIds).stream()
+        Map<Long, DepartmentInfo> departments = baseMapper.getValidDepartmentsByIds(departmentIds).stream()
                 .collect(Collectors.toMap(DepartmentInfo::getDeptId, department -> department));
         info.setDepartmentInfo(departments.get(user.getDeptId()));
         info.setPostInfoList(posts.stream()
                 .filter(post -> post.getDeptId() == null || departments.containsKey(post.getDeptId())).toList());
         Set<Long> descendantIds = includeDescendants && info.getDepartmentInfo() != null
-                ? deptMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
+                ? baseMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
         for (RoleInfo role : roles) {
             Set<Long> roleDepartments = info.getRoleDepartmentIds().get(role.getRoleId());
             switch (DataScopeType.fromCode(role.getDataScope())) {

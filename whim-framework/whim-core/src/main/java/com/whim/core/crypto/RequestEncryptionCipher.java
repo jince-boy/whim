@@ -3,6 +3,7 @@ package com.whim.core.crypto;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -29,7 +30,7 @@ public class RequestEncryptionCipher {
     public byte[] decryptRequest(String encryptedData) {
         try {
             JWEObject encrypted = JWEObject.parse(encryptedData);
-            var header = encrypted.getHeader();
+            JWEHeader header = encrypted.getHeader();
             if (!JWEAlgorithm.RSA_OAEP_256.equals(header.getAlgorithm())
                     || !EncryptionMethod.A256GCM.equals(header.getEncryptionMethod())
                     || !key.getKeyID().equals(header.getKeyID())

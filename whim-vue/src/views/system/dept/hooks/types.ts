@@ -63,9 +63,3 @@ export interface DepartmentSelection {
   options: TreeSelectOption[]
   names: ReadonlyMap<string, string>
 }
-
-/** 状态编码属于接口固定枚举。 */
-export const organizationStatusOptions = [
-  { label: '正常', value: 0 },
-  { label: '停用', value: 1 },
-]

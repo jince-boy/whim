@@ -7,4 +7,41 @@
         INNER JOIN sys_post p ON p.id = up.post_id AND p.deleted = 0 AND p.status = 0
         WHERE up.user_id = #{userId}
     </select>
+
+    <!-- 部门自身及所有祖先部门均须启用且未删除。 -->
+    <select id="getValidDepartmentsByIds" resultType="com.whim.core.auth.model.DepartmentInfo">
+        SELECT department.id AS dept_id, department.parent_id, department.dept_name, department.leader_user_id
+        FROM sys_dept department
+        WHERE department.id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+            AND department.deleted = 0 AND department.status = 0
+            AND NOT EXISTS (
+                SELECT 1 FROM sys_dept ancestor
+                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
+            )
+    </select>
+
+    <!-- 包含本部门，停用或删除的部门及其整条下级分支均不参与授权。 -->
+    <select id="getValidDepartmentAndDescendantIds" resultType="java.lang.Long">
+        SELECT department.id
+        FROM sys_dept department
+        WHERE (department.id = #{deptId} OR FIND_IN_SET(#{deptId}, department.ancestors))
+            AND department.deleted = 0 AND department.status = 0
+            AND NOT EXISTS (
+                SELECT 1 FROM sys_dept ancestor
+                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
+            )
+    </select>
+
+    <select id="getRoleDepartmentsByRoleIds" resultType="com.whim.system.model.entity.SysRoleDept">
+        SELECT role_id, dept_id FROM sys_role_dept
+        WHERE role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </select>
 </mapper>

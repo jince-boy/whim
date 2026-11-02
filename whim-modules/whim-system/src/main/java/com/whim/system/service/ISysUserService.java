@@ -25,6 +25,9 @@ public interface ISysUserService extends IService<SysUser> {
 
     /**
      * 构建登录账号的部门、岗位、角色、精确权限及角色部门范围快照。
+     *
+     * @param user 登录用户
+     * @return 包含部门、岗位和角色授权范围的登录信息
      */
     UserInfo buildUserInfo(SysUser user);
 }

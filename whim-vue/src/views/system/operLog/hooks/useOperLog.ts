@@ -4,13 +4,13 @@ import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
 import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog'
-import { useDict } from '@/hooks/useDict'
+import { computed } from 'vue'
+import { useDictStore } from '@/stores/modules/dict'
 /** 配置注册式列表并处理操作日志业务操作。 */
 export function useOperLog() {
-  const { dictData: sysStatusOptions, getDictData: getDictStatusData } =
-    useDict('sys_result_status')
-  const { dictData: sysOperTypeOptions, getDictData: getDictOperTypeData } =
-    useDict('sys_oper_type')
+  const dictionary = useDictStore()
+  const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
+  const sysOperTypeOptions = computed(() => dictionary.getDictOptions('sys_oper_type'))
   const { openDeleteDialog } = useFormDialog()
   const showModal = ref(false)
   const currentOperLog: Ref<OperLog | null> = ref(null)
@@ -35,7 +35,7 @@ export function useOperLog() {
       align: 'center',
       render(row: object) {
         const operLog = row as OperLog
-        const dictData = getDictOperTypeData(String(operLog.logType))
+        const dictData = dictionary.getDictData('sys_oper_type', operLog.logType)
         return h(
           NTag,
           {
@@ -62,7 +62,7 @@ export function useOperLog() {
       align: 'center',
       render(row: object) {
         const operLog = row as OperLog
-        const dictData = getDictStatusData(String(operLog.status))
+        const dictData = dictionary.getDictData('sys_result_status', operLog.status)
         return h(
           NTag,
           {
@@ -148,13 +148,13 @@ export function useOperLog() {
         {
           key: 'status',
           label: '操作状态',
-          format: (values) => getDictStatusData(String(values.status)).label,
+          format: (values) => dictionary.getDictData('sys_result_status', String(values.status)).label,
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {
           key: 'logType',
           label: '操作类型',
-          format: (values) => getDictOperTypeData(String(values.logType)).label,
+          format: (values) => dictionary.getDictData('sys_oper_type', String(values.logType)).label,
         },
         {
           key: 'dateRange',
@@ -231,7 +231,7 @@ export function useOperLog() {
     handleCleanOperLog,
     showModal,
     currentOperLog,
-    getDictOperTypeData,
-    getDictStatusData,
+    getDictOperTypeData: (value: string | number) => dictionary.getDictData('sys_oper_type', value),
+    getDictStatusData: (value: string | number) => dictionary.getDictData('sys_result_status', value),
   }
 }

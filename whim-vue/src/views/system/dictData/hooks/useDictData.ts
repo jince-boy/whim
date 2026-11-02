@@ -3,6 +3,7 @@ import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
+import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
 import {
   deleteDictData,
@@ -17,6 +18,7 @@ import DictDataForm from '../form.vue'
 
 /** 管理当前类型的数据；类型切换由父工作区重建面板，隔离请求与勾选状态。 */
 export function useDictData(props: DictDataProps) {
+  const dictionary = useDictStore()
   const userStore = useUserStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
   const exporting = ref(false)
@@ -121,6 +123,11 @@ export function useDictData(props: DictDataProps) {
     },
   }))
 
+  /** 维护成功后同时更新管理列表和全局选项。 */
+  async function refreshDictionaryData() {
+    await Promise.all([table.reload(), dictionary.refreshDictionaries()])
+  }
+
   /** 新增字典值时固定所属类型，避免保存到其他字典。 */
   function openAddDialog() {
     openFormDialog({
@@ -130,7 +137,7 @@ export function useDictData(props: DictDataProps) {
       formProps: { initialModel: { type: props.type } },
       onSubmit: insertDictData,
       successMessage: '新增字典值成功',
-      onSuccess: table.reload,
+      onSuccess: refreshDictionaryData,
     })
   }
 
@@ -153,7 +160,7 @@ export function useDictData(props: DictDataProps) {
         formProps: { initialModel: response.data },
         onSubmit: updateDictData,
         successMessage: '修改字典值成功',
-        onSuccess: table.reload,
+        onSuccess: refreshDictionaryData,
       })
     } catch {
       // 请求错误由公共拦截器提示。
@@ -171,7 +178,7 @@ export function useDictData(props: DictDataProps) {
       onSubmit: () => deleteDictData({ dictDataIds: ids.join(',') }),
       onSuccess: async () => {
         table.setCheckedRowKeys([])
-        await table.reload()
+        await refreshDictionaryData()
       },
     })
   }

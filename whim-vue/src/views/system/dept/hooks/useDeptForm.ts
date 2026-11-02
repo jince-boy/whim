@@ -1,4 +1,4 @@
-import { organizationStatusOptions } from './types'
+import { useDictStore } from '@/stores/modules/dict'
 import { computed, onScopeDispose, ref, shallowRef, useTemplateRef, watch } from 'vue'
 import type { FormInst, SelectOption, TreeSelectOption } from 'naive-ui'
 import { useDeptOptions } from './useDeptOptions'
@@ -8,6 +8,7 @@ import { fetchDeptLeaderOptions } from './api'
 
 /** 编辑草稿与原数据隔离，父级选择排除自身和全部下级。 */
 export function useDeptForm(props: DeptFormProps) {
+  const dictionary = useDictStore()
   const formRef = useTemplateRef<FormInst>('formRef')
   const { departments, loading, error, reload } = useDeptOptions()
   const leaderResults = shallowRef<SelectOption[]>([])
@@ -39,7 +40,7 @@ export function useDeptForm(props: DeptFormProps) {
         return [
           {
             key: String(node.id),
-            label: node.deptName + (disabledBranch ? '（停用）' : ''),
+            label: node.deptName + (disabledBranch ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
             disabled: formModel.value.status === 0 && disabledBranch,
             children: children.length ? children : undefined,
           },
@@ -183,7 +184,7 @@ export function useDeptForm(props: DeptFormProps) {
   return {
     formRef,
     formModel,
-    statusOptions: organizationStatusOptions,
+    statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     rules: createDeptRules(parentValid, leaderValid),
     parentOptions,
     loading,

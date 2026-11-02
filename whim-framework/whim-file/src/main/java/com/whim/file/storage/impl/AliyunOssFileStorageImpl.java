@@ -17,6 +17,7 @@ import com.aliyun.sdk.service.oss2.models.InitiateMultipartUploadRequest;
 import com.aliyun.sdk.service.oss2.models.ListPartsRequest;
 import com.aliyun.sdk.service.oss2.models.ListPartsResult;
 import com.aliyun.sdk.service.oss2.models.Part;
+import com.aliyun.sdk.service.oss2.models.PresignResult;
 import com.aliyun.sdk.service.oss2.models.UploadPartRequest;
 import com.whim.file.model.PartUploadSignature;
 import com.whim.file.model.StoragePart;
@@ -198,13 +199,24 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         }
     }
 
-    /** Content-MD5 参与签名并由 OSS 校验实际分片内容。 */
+    /**
+     * 生成分片上传签名，由 OSS 校验参与签名的 Content-MD5 与实际分片内容。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 分片上传会话标识
+     * @param partNumber 分片编号
+     * @param size 分片字节数
+     * @param contentMd5 分片内容的 MD5 摘要
+     * @param contentSha256 分片内容的 SHA-256 摘要
+     * @param expiration 签名有效期
+     * @return 分片上传签名信息
+     */
     @Override
     public PartUploadSignature getPartUploadSignature(String key, String uploadId, int partNumber,
                                                        long size, String contentMd5, String contentSha256,
                                                        Duration expiration) {
         try {
-            var signature = client.presign(UploadPartRequest.newBuilder().bucket(bucket).key(objectName(key))
+            PresignResult signature = client.presign(UploadPartRequest.newBuilder().bucket(bucket).key(objectName(key))
                             .uploadId(uploadId).partNumber((long) partNumber).contentMD5(contentMd5)
                             .contentLength(size).build(),
                     PresignOptions.newBuilder().expiration(expiration).build());

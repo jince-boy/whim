@@ -12,11 +12,13 @@ import {
   updateDept,
   updateDeptStatus,
 } from './api'
-import { organizationStatusOptions, type DeptId, type DeptItem, type DeptQuery } from './types'
+import { useDictStore } from '@/stores/modules/dict'
+import type { DeptId, DeptItem, DeptQuery } from './types'
 import DeptForm from '../form.vue'
 
 /** 部门管理树、独立状态操作和新增修改流程。 */
 export function useDept() {
+  const dictionary = useDictStore()
   const user = useUserStore()
   const { openFormDialog, openConfirmDialog, openDeleteDialog } = useFormDialog()
   const can = (permission: string) =>
@@ -46,7 +48,10 @@ export function useDept() {
             'aria-label': `${row.deptName}状态`,
             onUpdateValue: () => changeStatus(row),
           },
-          { checked: () => '正常', unchecked: () => '停用' },
+          {
+            checked: () => dictionary.getDictData('sys_common_status', 0).label,
+            unchecked: () => dictionary.getDictData('sys_common_status', 1).label,
+          },
         ),
     },
     { title: '创建时间', key: 'createTime', width: 180 },
@@ -107,7 +112,7 @@ export function useDept() {
           key: 'status',
           label: '状态',
           format: (query) =>
-            organizationStatusOptions.find((item) => item.value === query.status)?.label ?? '',
+            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },
@@ -212,7 +217,7 @@ export function useDept() {
     registerTable,
     form: table.searchModel,
     canView,
-    statusOptions: organizationStatusOptions,
+    statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     expandableKeys,
     allExpanded,
     openAddDialog,

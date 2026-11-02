@@ -69,6 +69,18 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     }
 
     /**
+     * 查询全部字典数据，供前端一次加载并按类型缓存。
+     *
+     * @return 按类型、排序值和主键升序排列的字典数据列表
+     */
+    @Override
+    public List<SysDictDataVO> getDictDataList() {
+        LambdaQueryWrapper<SysDictData> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByAsc(SysDictData::getType, SysDictData::getSort, SysDictData::getId);
+        return BeanConvertUtils.convertList(this.list(wrapper), SysDictDataVO.class);
+    }
+
+    /**
      * 根据类型查询字典数据，没有数据时返回空列表。
      *
      * @param type 字典类型编码

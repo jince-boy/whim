@@ -2,6 +2,7 @@ package com.whim.json.config;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.whim.json.config.properties.DateTimeProperties;
+import com.whim.json.deserializer.TrimStringDeserializer;
 import com.whim.json.module.BigNumberJacksonModule;
 import com.whim.json.utils.JsonUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,21 +26,26 @@ import java.util.TimeZone;
 /**
  * @author Jince
  * @date 2026/03/27
- * @description Jackson 自动配置，注册时间、大数字等通用序列化模块。
+ * @description Jackson 自动配置，统一日期、大数字与全局字符串处理。
  */
 @AutoConfiguration(before = JacksonAutoConfiguration.class)
 @EnableConfigurationProperties(DateTimeProperties.class)
 public class JacksonConfig {
     /**
      * 配置 Jackson 全局日期时间格式与通用模块。
+     *
+     * @param props 日期时间配置
+     * @return Jackson 构建器定制配置
      */
     @Bean
     public JsonMapperBuilderCustomizer serializationJsonMapperCustomizer(
             DateTimeProperties props) {
-        var zone = TimeZone.getTimeZone(props.getZoneId());
-        var dtFormat = JsonFormat.Value.forPattern(props.getDateTimePattern()).withTimeZone(zone);
+        TimeZone zone = TimeZone.getTimeZone(props.getZoneId());
+        JsonFormat.Value dtFormat = JsonFormat.Value.forPattern(props.getDateTimePattern()).withTimeZone(zone);
+        SimpleModule stringModule = new SimpleModule("stringModule")
+                .addDeserializer(String.class, new TrimStringDeserializer());
         return builder -> builder
-                .addModules(new BigNumberJacksonModule())
+                .addModules(new BigNumberJacksonModule(), stringModule)
                 .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
                 .defaultTimeZone(zone)
                 .withConfigOverride(LocalDateTime.class, o -> o.setFormat(JsonFormat.Value.forPattern(props.getDateTimePattern())))

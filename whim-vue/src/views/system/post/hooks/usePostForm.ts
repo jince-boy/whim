@@ -1,4 +1,4 @@
-import { organizationStatusOptions } from '@/views/system/dept/hooks/types'
+import { useDictStore } from '@/stores/modules/dict'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst } from 'naive-ui'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
@@ -7,6 +7,7 @@ import type { PostFormProps, PostSave } from './types'
 
 /** 岗位编辑草稿与部门选项，部门为空表示全组织岗位。 */
 export function usePostForm(props: PostFormProps) {
+  const dictionary = useDictStore()
   const formRef = useTemplateRef<FormInst>('formRef')
   const formModel = ref<PostSave>({
     deptId: null,
@@ -51,7 +52,7 @@ export function usePostForm(props: PostFormProps) {
   return {
     formRef,
     formModel,
-    statusOptions: organizationStatusOptions,
+    statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     rules: postRules,
     departmentOptions,
     loading,

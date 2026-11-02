@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/modules/auth'
 import { useUserStore } from '@/stores/modules/user'
 import { useTabStore } from '@/stores/modules/tab'
 import { usePermissionStore } from '@/stores/modules/permission'
+import { useDictStore } from '@/stores/modules/dict'
 import { loadingBar, message } from '@/plugins'
 import systemSetting from '@/config/SystemSetting'
 
@@ -40,6 +41,16 @@ router.beforeEach(async (to) => {
         redirect: to.path === '/login' ? to.query.redirect : encodeURIComponent(to.fullPath),
       },
     }
+  }
+  // 字典加载失败时保留登录状态，取消本次导航以便重试。
+  try {
+    await useDictStore().loadDictionaries()
+    if (auth.getToken !== token) return false
+  } catch (error) {
+    if (auth.getToken !== token) return false
+    if (!isAxiosError(error))
+      message.error(error instanceof Error ? error.message : '字典加载失败，请重试')
+    return false
   }
   if (to.path === '/login' || to.path === '/') {
     const home = router.resolve(permission.homePath)

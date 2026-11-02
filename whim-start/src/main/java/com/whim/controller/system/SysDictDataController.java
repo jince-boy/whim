@@ -50,6 +50,16 @@ public class SysDictDataController {
     }
 
     /**
+     * 已登录用户一次读取全部字典数据，供前端共享缓存。
+     *
+     * @return 全部未删除的字典数据
+     */
+    @GetMapping("/list")
+    public Result<List<SysDictDataVO>> getDictDataList() {
+        return Result.success("字典选项查询成功", dictService.getDictDataList());
+    }
+
+    /**
      * 已登录用户按编码读取字典选项。
      */
     @GetMapping("/type/{type}")

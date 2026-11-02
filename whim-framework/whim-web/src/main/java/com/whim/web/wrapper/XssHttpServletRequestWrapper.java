@@ -192,7 +192,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             return requestBody;
         }
         try {
-            var rootNode = JSON_MAPPER.readTree(requestBody);
+            JsonNode rootNode = JSON_MAPPER.readTree(requestBody);
             if (rootNode == null) {
                 return requestBody;
             }

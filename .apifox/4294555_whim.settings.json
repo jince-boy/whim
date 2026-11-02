@@ -50,7 +50,7 @@
         "name": "字典数据",
         "moduleId": 3753331,
         "parentId": 0,
-        "updatedAt": "2026-10-25 17:37:00"
+        "updatedAt": "2026-11-02 13:55:43"
       },
       {
         "id": 98236681,
@@ -115,5 +115,5 @@
     "testScenarioFolders": [],
     "testSuiteFolders": []
   },
-  "fetchedAt": "2026-10-31T16:37:20.068Z"
+  "fetchedAt": "2026-11-02T07:18:26.289Z"
 }
