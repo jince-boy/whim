@@ -57,9 +57,15 @@ public class DataPermissionInterceptor extends com.baomidou.mybatisplus.extensio
         super.beforePrepare(handler, connection, transactionTimeout);
     }
 
-    /** 元数据始终只读；受保护业务禁止通过方法、Mapper 或线程级忽略策略关闭过滤。 */
+    /**
+     * 允许内部元数据查询读取完整范围，并阻止借助元数据查询或忽略策略绕过写入权限。
+     *
+     * @param statement 当前执行的映射语句
+     * @return 是否跳过本条只读查询的数据过滤，或当前未启用数据权限
+     */
     private boolean skipDataPermission(MappedStatement statement) {
-        if (isMetadataStatement(statement.getId())) {
+        // Lambda 完整性查询与标记的 Mapper 查询共用只读约束，不能借此更新或删除不可见记录。
+        if (Boolean.TRUE.equals(DataPermissionContext.METADATA_READ.get()) || isMetadataStatement(statement.getId())) {
             if (statement.getSqlCommandType() != SqlCommandType.SELECT) {
                 throw new DataAccessDeniedException("授权元数据声明只能用于内部只读查询");
             }

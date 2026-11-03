@@ -1,40 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserMapper">
-    <select id="getPostInfoListByUserId" resultType="com.whim.core.auth.model.PostInfo">
-        SELECT p.id AS post_id, p.post_code, p.post_name, p.dept_id
-        FROM sys_user_post up
-        INNER JOIN sys_post p ON p.id = up.post_id AND p.deleted = 0 AND p.status = 0
-        WHERE up.user_id = #{userId}
+    <!-- 在数据库中按任职关系筛选并分页，避免加载全部成员ID或分页后在内存中过滤。 -->
+    <select id="getPostMemberPage" resultType="com.whim.system.model.vo.post.SysPostMemberVO">
+        SELECT account.id AS user_id, account.username, account.name, account.dept_id, account.status
+        FROM sys_user account
+        WHERE account.deleted = 0
+        <if test="query.username != null and query.username != ''">
+            AND account.username LIKE CONCAT('%', #{query.username}, '%')
+        </if>
+        <if test="query.name != null and query.name != ''">
+            AND account.name LIKE CONCAT('%', #{query.name}, '%')
+        </if>
+        <if test="query.deptId != null">
+            AND account.dept_id = #{query.deptId}
+        </if>
+        <choose>
+            <when test="query.assigned">
+                <if test="query.status != null">
+                    AND account.status = #{query.status}
+                </if>
+            </when>
+            <otherwise>
+                AND account.status = 0
+            </otherwise>
+        </choose>
+        AND <if test="!query.assigned">NOT</if> EXISTS (
+            SELECT 1 FROM sys_user_post user_post
+            WHERE user_post.user_id = account.id AND user_post.post_id = #{query.postId}
+        )
+        ORDER BY account.id
     </select>
 
-    <!-- 部门自身及所有祖先部门均须启用且未删除。 -->
-    <select id="getValidDepartmentsByIds" resultType="com.whim.core.auth.model.DepartmentInfo">
-        SELECT department.id AS dept_id, department.parent_id, department.dept_name, department.leader_user_id
-        FROM sys_dept department
-        WHERE department.id IN
+    <!-- 部门移动或启停涉及主部门、岗位和角色关系，使用一次联合查询收集并去重用户。 -->
+    <select id="getAffectedUserIdsByDepartments" resultType="java.lang.Long">
+        SELECT account.id FROM sys_user account
+        WHERE account.deleted = 0 AND account.dept_id IN
         <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
             #{departmentId}
         </foreach>
-            AND department.deleted = 0 AND department.status = 0
-            AND NOT EXISTS (
-                SELECT 1 FROM sys_dept ancestor
-                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
-                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
-            )
-    </select>
 
-    <!-- 包含本部门，停用或删除的部门及其整条下级分支均不参与授权。 -->
-    <select id="getValidDepartmentAndDescendantIds" resultType="java.lang.Long">
-        SELECT department.id
-        FROM sys_dept department
-        WHERE (department.id = #{deptId} OR FIND_IN_SET(#{deptId}, department.ancestors))
-            AND department.deleted = 0 AND department.status = 0
-            AND NOT EXISTS (
-                SELECT 1 FROM sys_dept ancestor
-                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
-                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
-            )
+        UNION
+        SELECT account.id FROM sys_post post
+        INNER JOIN sys_user_post user_post ON user_post.post_id = post.id
+        INNER JOIN sys_user account ON account.id = user_post.user_id AND account.deleted = 0
+        WHERE post.deleted = 0 AND post.status = 0 AND post.dept_id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+
+        UNION
+        SELECT account.id FROM sys_role_dept role_dept
+        INNER JOIN sys_role role ON role.id = role_dept.role_id
+            AND role.deleted = 0 AND role.status = 0 AND role.data_scope = 2
+        INNER JOIN sys_user_role user_role ON user_role.role_id = role.id
+        INNER JOIN sys_user account ON account.id = user_role.user_id AND account.deleted = 0
+        WHERE role_dept.dept_id IN
+        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
     </select>
 
     <select id="getRoleDepartmentsByRoleIds" resultType="com.whim.system.model.entity.SysRoleDept">

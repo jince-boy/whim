@@ -1,11 +1,12 @@
 package com.whim.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.whim.core.auth.model.DepartmentInfo;
-import com.whim.core.auth.model.PostInfo;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.whim.mybatisplus.annotation.DataPermissionMetadata;
+import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.vo.post.SysPostMemberVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,31 +21,23 @@ import java.util.Set;
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
     /**
-     * 登录时读取用户关联的有效岗位，部门有效性在构建上下文时统一核验。
+     * 分页查询岗位成员或未分配的正常用户，用户范围由当前操作的数据权限过滤。
      *
-     * @param userId 用户ID
-     * @return 用户关联的有效岗位信息
+     * @param page 分页参数
+     * @param query 岗位ID、成员类型及用户筛选条件
+     * @return 用户分页结果
      */
-    @DataPermissionMetadata
-    List<PostInfo> getPostInfoListByUserId(@Param("userId") Long userId);
+    Page<SysPostMemberVO> getPostMemberPage(Page<SysPostMemberVO> page,
+                                          @Param("query") SysPostMemberQueryDTO query);
 
     /**
-     * 登录时读取自身及所有祖先均启用、未删除的部门。
+     * 查询部门移动或启停影响的主部门用户、岗位成员和自定义数据范围角色用户。
      *
-     * @param departmentIds 候选部门ID集合
-     * @return 有效部门信息
+     * @param departmentIds 发生变化的非空部门ID集合
+     * @return 需要重新加载部门授权信息的用户ID集合
      */
     @DataPermissionMetadata
-    List<DepartmentInfo> getValidDepartmentsByIds(@Param("departmentIds") Set<Long> departmentIds);
-
-    /**
-     * 登录时读取有效的本部门及下级，排除停用或删除的分支。
-     *
-     * @param deptId 主部门ID
-     * @return 有效部门ID集合
-     */
-    @DataPermissionMetadata
-    Set<Long> getValidDepartmentAndDescendantIds(@Param("deptId") Long deptId);
+    Set<Long> getAffectedUserIdsByDepartments(@Param("departmentIds") Set<Long> departmentIds);
 
     /**
      * 登录时批量读取角色自定义部门关系，保留每个角色对应的部门范围。

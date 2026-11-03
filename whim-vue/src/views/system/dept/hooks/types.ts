@@ -1,4 +1,5 @@
 import type { TreeSelectOption } from 'naive-ui'
+import type { TablePageQuery } from '@/components/table'
 
 export type DeptId = string | number
 export type OrganizationStatus = 0 | 1
@@ -51,6 +52,12 @@ export interface DeptSave {
 export interface DeptFormProps {
   initialModel?: DeptItem
   parentDept?: DeptItem
+}
+
+/** 部门ID、分页和搜索条件统一传递。 */
+export interface DeptLeaderQuery extends TablePageQuery {
+  deptId: DeptId
+  keyword?: string
 }
 
 export interface DeptLeaderOption {

@@ -1,76 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysDeptMapper">
-    <select id="getDescendantDeptIds" resultType="java.lang.Long">
-        SELECT id FROM sys_dept
-        WHERE deleted = 0 AND FIND_IN_SET(#{id}, ancestors)
+    <!-- 一次查询同时判断部门是否存在及祖先链是否有效，避免按祖先逐个查询。 -->
+    <select id="getDeptEffectiveStatusById" resultType="java.lang.Integer">
+        SELECT CASE WHEN department.status = 0 AND NOT EXISTS (
+            SELECT 1 FROM sys_dept ancestor
+            WHERE FIND_IN_SET(ancestor.id, department.ancestors)
+                AND (ancestor.deleted != 0 OR ancestor.status = 1)
+        ) THEN 0 ELSE 1 END
+        FROM sys_dept department
+        WHERE department.id = #{id} AND department.deleted = 0
     </select>
 
-    <select id="getEnabledDeptCountByIds" resultType="long">
-        SELECT COUNT(*) FROM sys_dept
-        WHERE deleted = 0 AND status = 0 AND id IN
+    <!-- 同时判断关联与角色未删除状态，保留联表查询，避免先加载角色ID再发起第二次查询。 -->
+    <select id="getRoleReferenceExistsByDeptId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM sys_role_dept role_dept
+            INNER JOIN sys_role role ON role.id = role_dept.role_id AND role.deleted = 0
+            WHERE role_dept.dept_id = #{id}
+        )
+    </select>
+
+    <!-- 授权范围需同时校验部门及全部祖先，使用关联子查询排除停用或删除的祖先。 -->
+    <select id="getValidDepartmentsByIds" resultType="com.whim.core.auth.model.DepartmentInfo">
+        SELECT department.id AS dept_id, department.parent_id, department.dept_name, department.leader_user_id
+        FROM sys_dept department
+        WHERE department.id IN
         <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
             #{departmentId}
         </foreach>
-    </select>
-
-    <select id="getDeptDeleteBlockReason" resultType="java.lang.String">
-        SELECT CASE
-            WHEN EXISTS (SELECT 1 FROM sys_dept WHERE parent_id = #{id} AND deleted = 0)
-                THEN '部门存在下级部门，请先处理下级部门'
-            WHEN EXISTS (SELECT 1 FROM sys_user WHERE dept_id = #{id} AND deleted = 0)
-                THEN '部门仍有用户，请先调整用户归属'
-            WHEN EXISTS (SELECT 1 FROM sys_post WHERE dept_id = #{id} AND deleted = 0)
-                THEN '部门仍有岗位，请先处理关联岗位'
-            WHEN EXISTS (
-                SELECT 1 FROM sys_role_dept role_dept
-                INNER JOIN sys_role role ON role.id = role_dept.role_id AND role.deleted = 0
-                WHERE role_dept.dept_id = #{id}
-            ) THEN '部门仍被角色数据范围引用，请先调整角色授权'
-        END
-    </select>
-
-    <select id="getUserIdsByDepartments" resultType="java.lang.Long">
-        SELECT account.id FROM sys_user account
-        WHERE account.deleted = 0 AND account.dept_id IN
-        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
-            #{departmentId}
-        </foreach>
-        UNION
-        SELECT account.id FROM sys_post post
-        INNER JOIN sys_user_post user_post ON user_post.post_id = post.id
-        INNER JOIN sys_user account ON account.id = user_post.user_id AND account.deleted = 0
-        WHERE post.deleted = 0 AND post.status = 0 AND post.dept_id IN
-        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
-            #{departmentId}
-        </foreach>
-        UNION
-        SELECT account.id FROM sys_role_dept role_dept
-        INNER JOIN sys_role role ON role.id = role_dept.role_id
-            AND role.deleted = 0 AND role.status = 0 AND role.data_scope = 2
-        INNER JOIN sys_user_role user_role ON user_role.role_id = role.id
-        INNER JOIN sys_user account ON account.id = user_role.user_id AND account.deleted = 0
-        WHERE role_dept.dept_id IN
-        <foreach collection="departmentIds" item="departmentId" open="(" separator="," close=")">
-            #{departmentId}
-        </foreach>
-    </select>
-
-    <select id="getUserIdsByDepartmentAncestors" resultType="java.lang.Long">
-        SELECT account.id
-        FROM sys_user account
-        WHERE account.deleted = 0 AND account.dept_id IN
-        <foreach collection="ancestorIds" item="ancestorId" open="(" separator="," close=")">
-            #{ancestorId}
-        </foreach>
-            AND EXISTS (
-                SELECT 1 FROM sys_user_role user_role
-                INNER JOIN sys_role role ON role.id = user_role.role_id
-                    AND role.deleted = 0 AND role.status = 0 AND role.data_scope = 4
-                WHERE user_role.user_id = account.id
+            AND department.deleted = 0 AND department.status = 0
+            AND NOT EXISTS (
+                SELECT 1 FROM sys_dept ancestor
+                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
             )
     </select>
 
+    <!-- 祖先路径匹配与有效性校验合并查询，包含本部门并排除停用或删除的整条分支。 -->
+    <select id="getValidDepartmentAndDescendantIds" resultType="java.lang.Long">
+        SELECT department.id
+        FROM sys_dept department
+        WHERE (department.id = #{deptId} OR FIND_IN_SET(#{deptId}, department.ancestors))
+            AND department.deleted = 0 AND department.status = 0
+            AND NOT EXISTS (
+                SELECT 1 FROM sys_dept ancestor
+                WHERE FIND_IN_SET(ancestor.id, department.ancestors)
+                    AND (ancestor.deleted != 0 OR ancestor.status = 1)
+            )
+    </select>
+
+    <!-- 每个下级保留自己的路径后缀，单条语句完成批量替换并返回行数，用于校验整棵分支更新完整。 -->
     <update id="updateDeptDescendantAncestors">
         UPDATE sys_dept
         SET ancestors = CONCAT(#{et.ancestors}, ',', #{et.id},

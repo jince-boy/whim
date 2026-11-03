@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Jince
@@ -17,9 +18,32 @@ import java.util.Set;
  */
 public final class DataPermissionContext {
     static final ThreadLocal<Deque<Frame>> FRAMES = new ThreadLocal<>();
+    static final ThreadLocal<Boolean> METADATA_READ = new ThreadLocal<>();
 
     /** 禁止实例化上下文。 */
     private DataPermissionContext() {
+    }
+
+    /**
+     * 执行不受可见范围限制的内部完整性查询，查询期间禁止任何数据库写入。
+     *
+     * @param query 立即执行的只读查询，不得返回延迟执行的查询构造器
+     * @param <T> 查询结果类型
+     * @return 完整的内部查询结果，不用于向业务接口返回越权数据
+     */
+    public static <T> T getMetadata(Supplier<T> query) {
+        Boolean previous = METADATA_READ.get();
+        METADATA_READ.set(Boolean.TRUE);
+        try {
+            return query.get();
+        } finally {
+            // 嵌套查询恢复外层标记，最外层退出时清理线程变量，原有权限范围始终保留。
+            if (previous == null) {
+                METADATA_READ.remove();
+            } else {
+                METADATA_READ.set(previous);
+            }
+        }
     }
 
     /** 按表映射校验新增或新归属，同时遵守所有嵌套调用的范围。 */

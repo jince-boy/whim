@@ -42,8 +42,13 @@ export interface PostMember {
   userId: string | number
   username: string
   name: string
-  deptId: string | number
+  deptId: string | number | null
   status: OrganizationStatus
+}
+
+export interface PostMembersSave {
+  postId: PostId
+  userIds: PostId[]
 }
 
 export interface PostMemberQuery {

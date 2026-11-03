@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.model.dto.dept.SysDeptAddDTO;
 import com.whim.system.model.dto.dept.SysDeptLeaderQueryDTO;
+import com.whim.system.model.dto.dept.SysDeptQueryDTO;
 import com.whim.system.model.dto.dept.SysDeptUpdateDTO;
 import com.whim.system.model.entity.SysDept;
 import com.whim.system.model.vo.dept.SysDeptDetailVO;
@@ -19,13 +20,12 @@ import java.util.List;
  */
 public interface ISysDeptService extends IService<SysDept> {
     /**
-     * 分页查询可作为指定部门负责人的正常用户。
+     * 分页查询可见部门内可作为负责人的正常用户。
      *
-     * @param id 部门ID
-     * @param query 分页及搜索参数
+     * @param query 部门ID、分页及搜索参数
      * @return 主部门为指定部门的负责人候选用户
      */
-    PageDataVO<SysDeptLeaderVO> getDeptLeaderOptions(Long id, SysDeptLeaderQueryDTO query);
+    PageDataVO<SysDeptLeaderVO> getDeptLeaderOptions(SysDeptLeaderQueryDTO query);
 
     /**
      * 查询修改权限范围内的部门详情。
@@ -36,11 +36,12 @@ public interface ISysDeptService extends IService<SysDept> {
     SysDeptDetailVO getDeptDetail(Long id);
 
     /**
-     * 查询当前用户数据权限范围内的部门树，不分页。
+     * 按名称和状态查询可见部门树，不分页。
      *
+     * @param query 部门名称和状态查询条件
      * @return 按排序值和ID升序排列的部门树
      */
-    List<SysDeptVO> getDeptList();
+    List<SysDeptVO> getDeptList(SysDeptQueryDTO query);
 
     /**
      * 新增部门并维护受影响的登录授权范围，不按操作者的部门数据范围限制新增位置。

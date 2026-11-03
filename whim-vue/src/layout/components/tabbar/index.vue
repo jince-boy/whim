@@ -198,6 +198,7 @@ const {
 
 .tab-title {
   max-width: 180px;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -225,6 +226,7 @@ const {
 
 .button-tab {
   flex-shrink: 0;
+  font-size: 12px;
 }
 
 .button-tab-close {

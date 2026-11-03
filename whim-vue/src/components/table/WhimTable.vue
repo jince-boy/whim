@@ -90,6 +90,7 @@ defineExpose({ reload, getTableInstance })
           <n-button
             v-for="button in buttons"
             :key="button"
+            size="small"
             :type="buttonOptions[button].type"
             :secondary="button !== 'add'"
             :render-icon="createIcon(buttonOptions[button].icon)"
@@ -111,6 +112,7 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                size="small"
                 aria-label="刷新表格"
                 :loading="binding.loading.value"
                 :render-icon="createIcon('refresh-cw')"
@@ -129,6 +131,7 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                size="small"
                 aria-label="表格设置"
                 :aria-expanded="settingsVisible"
                 :render-icon="createIcon('sliders-horizontal')"
@@ -167,6 +170,7 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                size="small"
                 :disabled="!fullscreenEnabled"
                 :aria-label="isFullscreen ? '退出表格全屏' : '表格全屏'"
                 :render-icon="createIcon(isFullscreen ? 'minimize' : 'maximize')"

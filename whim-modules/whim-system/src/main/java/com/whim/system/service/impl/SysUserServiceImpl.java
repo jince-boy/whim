@@ -7,13 +7,24 @@ import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.utils.BeanConvertUtils;
+import com.whim.mybatisplus.annotation.DataPermission;
+import com.whim.mybatisplus.annotation.DataPermissionTable;
 import com.whim.mybatisplus.model.enums.DataScopeType;
+import com.whim.mybatisplus.model.vo.PageDataVO;
+import com.whim.mybatisplus.permission.DataPermissionContext;
+import com.whim.system.mapper.SysDeptMapper;
+import com.whim.system.mapper.SysPostMapper;
 import com.whim.system.mapper.SysUserMapper;
+import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
+import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
+import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.enums.SysUserStatus;
+import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
+import com.whim.system.service.ISysUserRoleService;
 import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +46,22 @@ import java.util.stream.Collectors;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService {
     private final ISysRoleService roleService;
     private final ISysPermissionService permissionService;
+    private final ISysUserRoleService userRoleService;
+    private final SysDeptMapper deptMapper;
+    private final SysPostMapper postMapper;
+
+    /**
+     * 分页查询岗位成员或候选用户，供岗位服务校验岗位访问权限后调用。
+     *
+     * @param query 岗位ID、成员类型及用户筛选条件
+     * @return 当前成员查询权限范围内的用户分页
+     */
+    @Override
+    @DataPermission(permission = "system:post:member:list", tables =
+            @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public PageDataVO<SysPostMemberVO> getPostMemberPage(SysPostMemberQueryDTO query) {
+        return new PageDataVO<>(baseMapper.getPostMemberPage(query.getPage(), query));
+    }
 
     /**
      * 通过id获取有效的用户信息
@@ -62,6 +89,53 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 查询部门移动或启停影响的主部门用户、岗位成员和自定义数据范围角色用户。
+     *
+     * @param departmentIds 发生变化的非空部门ID集合
+     * @return 需要重新加载部门授权信息的用户ID集合
+     */
+    @Override
+    public Set<Long> getAffectedUserIdsByDepartments(Set<Long> departmentIds) {
+        // 会话失效必须覆盖所有受影响用户，Mapper 的内部只读查询不受操作者可见范围限制。
+        return baseMapper.getAffectedUserIdsByDepartments(departmentIds);
+    }
+
+    /**
+     * 内部查询祖先部门中拥有本部门及下级范围角色的用户，用于组织变更后的会话失效。
+     *
+     * @param ancestorIds 受影响的祖先部门ID集合，不包含根标识0
+     * @return 主部门位于指定祖先中且拥有启用的下级范围角色的未删除用户ID集合
+     */
+    @Override
+    public Set<Long> getUserIdsByDepartmentAncestors(Set<Long> ancestorIds) {
+        if (ancestorIds.isEmpty()) {
+            return Set.of();
+        }
+        // 会话失效要覆盖所有受影响用户，不能被操作者的可见范围截断；这里仅执行内部只读查询。
+        return DataPermissionContext.getMetadata(() -> {
+            List<Long> userIds = this.lambdaQuery().select(SysUser::getId)
+                    .in(SysUser::getDeptId, ancestorIds).list().stream().map(SysUser::getId).toList();
+            if (userIds.isEmpty()) {
+                return Set.of();
+            }
+            List<SysUserRole> userRoles = userRoleService.lambdaQuery()
+                    .select(SysUserRole::getUserId, SysUserRole::getRoleId)
+                    .in(SysUserRole::getUserId, userIds).list();
+            if (userRoles.isEmpty()) {
+                return Set.of();
+            }
+            // 批量筛选这些用户实际持有的角色；一人有多个符合条件的角色时，只使其会话失效一次。
+            Set<Long> roleIds = roleService.lambdaQuery().select(SysRole::getId)
+                    .in(SysRole::getId, userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toSet()))
+                    .eq(SysRole::getStatus, 0)
+                    .eq(SysRole::getDataScope, DataScopeType.DEPARTMENT_AND_DESCENDANTS.getCode())
+                    .list().stream().map(SysRole::getId).collect(Collectors.toSet());
+            return userRoles.stream().filter(relation -> roleIds.contains(relation.getRoleId()))
+                    .map(SysUserRole::getUserId).collect(Collectors.toSet());
+        });
+    }
+
+    /**
      * 构建用户、部门、岗位和角色授权快照，登录时一次性展开各角色的有效部门范围。
      *
      * @param user 登录用户
@@ -80,7 +154,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         info.setMenuIdSet(permissionService.getMenuIdsByRoleIds(roles.stream().map(RoleInfo::getRoleId)
                 .collect(Collectors.toSet())));
 
-        List<PostInfo> posts = baseMapper.getPostInfoListByUserId(user.getId());
+        List<PostInfo> posts = postMapper.getPostInfoListByUserId(user.getId());
         Set<Long> departmentIds = new LinkedHashSet<>();
         departmentIds.add(user.getDeptId());
         for (PostInfo post : posts) {
@@ -108,13 +182,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         // 主部门、岗位部门和自定义范围共用一次祖先链校验。
-        Map<Long, DepartmentInfo> departments = baseMapper.getValidDepartmentsByIds(departmentIds).stream()
+        Map<Long, DepartmentInfo> departments = deptMapper.getValidDepartmentsByIds(departmentIds).stream()
                 .collect(Collectors.toMap(DepartmentInfo::getDeptId, department -> department));
         info.setDepartmentInfo(departments.get(user.getDeptId()));
         info.setPostInfoList(posts.stream()
                 .filter(post -> post.getDeptId() == null || departments.containsKey(post.getDeptId())).toList());
         Set<Long> descendantIds = includeDescendants && info.getDepartmentInfo() != null
-                ? baseMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
+                ? deptMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
         for (RoleInfo role : roles) {
             Set<Long> roleDepartments = info.getRoleDepartmentIds().get(role.getRoleId());
             switch (DataScopeType.fromCode(role.getDataScope())) {

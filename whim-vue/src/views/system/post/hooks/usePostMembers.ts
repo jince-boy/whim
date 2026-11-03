@@ -20,8 +20,8 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
       user.permissionCode.includes('system:post:member:assign'),
   )
   const canAdd = computed(() => canAssign.value && props.post.status === 0)
-  const departmentName = (id: string | number) =>
-    props.departmentNames.get(String(id)) ?? `部门 ${id}`
+  const departmentName = (id: string | number | null) =>
+    id == null ? '未分配部门' : (props.departmentNames.get(String(id)) ?? `部门 ${id}`)
 
   const columns: ComputedRef<DataTableColumns<PostMember>> = computed(() => [
     ...(canAssign.value
@@ -74,8 +74,9 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
     rowKey: (row) => String(row.userId),
     scrollX: 650,
     request: (query) =>
-      fetchPostMemberPage(props.post.id, {
+      fetchPostMemberPage({
         ...query,
+        postId: props.post.id,
         username: query.username.trim(),
         name: query.name.trim(),
         assigned: assigned.value,
@@ -128,8 +129,8 @@ export function usePostMembers(props: PostMembersProps, busy: Ref<boolean>) {
         busy.value = true
         try {
           return await (removing
-            ? deletePostMembers(props.post.id, snapshot)
-            : addPostMembers(props.post.id, snapshot))
+            ? deletePostMembers({ postId: props.post.id, userIds: snapshot })
+            : addPostMembers({ postId: props.post.id, userIds: snapshot }))
         } finally {
           busy.value = false
         }

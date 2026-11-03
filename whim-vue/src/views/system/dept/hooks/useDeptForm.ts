@@ -41,7 +41,6 @@ export function useDeptForm(props: DeptFormProps) {
           {
             key: String(node.id),
             label: node.deptName + (disabledBranch ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
-            disabled: props.initialModel?.status === 1 && formModel.value.status === 0 && disabledBranch,
             children: children.length ? children : undefined,
           },
         ]
@@ -94,7 +93,8 @@ export function useDeptForm(props: DeptFormProps) {
     leaderLoading.value = true
     leaderError.value = ''
     try {
-      const response = await fetchDeptLeaderOptions(department.id, {
+      const response = await fetchDeptLeaderOptions({
+        deptId: department.id,
         keyword: leaderKeyword.value,
         pageNum,
         pageSize: 20,
