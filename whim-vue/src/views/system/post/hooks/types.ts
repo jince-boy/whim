@@ -1,4 +1,3 @@
-import type { TreeSelectOption } from 'naive-ui'
 import type { OrganizationStatus } from '@/views/system/dept/hooks/types'
 
 export type PostId = string | number
@@ -36,26 +35,5 @@ export interface PostQuery {
 
 export interface PostFormProps {
   initialModel?: PostItem
-}
-
-export interface PostMember {
-  userId: string | number
-  username: string
-  name: string
-  deptId: string | number | null
-  status: OrganizationStatus
-}
-
-export interface PostMemberQuery {
-  username: string
-  name: string
-  deptId: string | null
-  status: OrganizationStatus | null
-}
-
-export interface PostMembersProps {
-  post: PostItem
-  departmentOptions: TreeSelectOption[]
-  departmentNames: ReadonlyMap<string, string>
-  canLoadDepartments: boolean
+  defaultDeptId?: string | null
 }

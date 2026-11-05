@@ -3,17 +3,15 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.model.dto.post.SysPostAddDTO;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.dto.post.SysPostQueryDTO;
 import com.whim.system.model.dto.post.SysPostUpdateDTO;
 import com.whim.system.model.entity.SysPost;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.model.vo.post.SysPostVO;
 
 /**
  * @author Jince
  * @date 2026/11/03
- * @description 岗位管理及成员查询服务。
+ * @description 岗位基础信息管理服务。
  */
 public interface ISysPostService extends IService<SysPost> {
     /**
@@ -23,14 +21,6 @@ public interface ISysPostService extends IService<SysPost> {
      * @return 岗位分页
      */
     PageDataVO<SysPostVO> getPostPage(SysPostQueryDTO query);
-
-    /**
-     * 分页查询岗位已分配成员。
-     *
-     * @param query 岗位ID及用户筛选条件
-     * @return 岗位和用户均在本次操作范围内的用户分页
-     */
-    PageDataVO<SysPostMemberVO> getPostMemberPage(SysPostMemberQueryDTO query);
 
     /**
      * 查询岗位详情。

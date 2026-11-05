@@ -2,10 +2,7 @@ package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.core.auth.model.UserInfo;
-import com.whim.mybatisplus.model.vo.PageDataVO;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.entity.SysUser;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 
 import java.util.Set;
 
@@ -15,14 +12,6 @@ import java.util.Set;
  * @description 登录账号查询及认证信息构建。
  */
 public interface ISysUserService extends IService<SysUser> {
-    /**
-     * 分页查询岗位已分配成员，供岗位服务校验岗位访问权限后调用。
-     *
-     * @param query 岗位ID及用户筛选条件
-     * @return 当前成员查询权限范围内的用户分页
-     */
-    PageDataVO<SysPostMemberVO> getPostMemberPage(SysPostMemberQueryDTO query);
-
     /**
      * 通过id获取有效的用户信息
      *

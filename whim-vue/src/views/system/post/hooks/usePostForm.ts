@@ -33,11 +33,15 @@ export function usePostForm(props: PostFormProps) {
   })
 
   watch(
-    () => props.initialModel,
-    (model) => {
+    () => [props.initialModel, props.defaultDeptId] as const,
+    ([model, defaultDeptId]) => {
       formModel.value = {
         id: model?.id,
-        deptId: model?.deptId == null ? null : String(model.deptId),
+        deptId: model
+          ? model.deptId == null
+            ? null
+            : String(model.deptId)
+          : (defaultDeptId ?? null),
         postName: model?.postName ?? '',
         postCode: model?.postCode ?? '',
         sort: model?.sort ?? 0,

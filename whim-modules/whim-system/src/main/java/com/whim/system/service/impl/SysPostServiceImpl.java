@@ -15,16 +15,13 @@ import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysDeptMapper;
 import com.whim.system.mapper.SysPostMapper;
 import com.whim.system.model.dto.post.SysPostAddDTO;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.dto.post.SysPostQueryDTO;
 import com.whim.system.model.dto.post.SysPostUpdateDTO;
 import com.whim.system.model.entity.SysPost;
 import com.whim.system.model.entity.SysUserPost;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.model.vo.post.SysPostVO;
 import com.whim.system.service.ISysPostService;
 import com.whim.system.service.ISysUserPostService;
-import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +33,7 @@ import java.util.Objects;
 /**
  * @author Jince
  * @date 2026/11/03
- * @description 岗位管理与成员查询，岗位只表达任职关系，不授予角色。
+ * @description 岗位基础信息管理，用户任职关系由用户管理维护。
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +41,6 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
     private final SysDeptMapper deptMapper;
-    private final ISysUserService userService;
     private final ISysUserPostService userPostService;
 
     /**
@@ -66,23 +62,6 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
                 .orderByAsc(SysPost::getSort, SysPost::getId)
                 .page(query.getPage());
         return new PageDataVO<>(posts.convert(post -> BeanConvertUtils.convert(post, SysPostVO.class)));
-    }
-
-    /**
-     * 分页查询岗位已分配成员。
-     *
-     * @param query 岗位ID及用户筛选条件
-     * @return 岗位和用户均在本次操作范围内的用户分页
-     */
-    @Override
-    @DataPermission(permission = "system:post:member:list", tables =
-            @DataPermissionTable(name = "sys_post"))
-    public PageDataVO<SysPostMemberVO> getPostMemberPage(SysPostMemberQueryDTO query) {
-        if (!this.lambdaQuery().eq(SysPost::getId, query.getPostId()).exists()) {
-            throw new ServiceException("岗位不存在或无权查看成员");
-        }
-        // 岗位访问与用户访问分别校验，不能因可见岗位而读取范围外用户。
-        return userService.getPostMemberPage(query);
     }
 
     /**
@@ -172,7 +151,7 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
         }
         // 完整检查任职关系，包括停用或当前操作者不可见的成员。
         if (userPostService.lambdaQuery().eq(SysUserPost::getPostId, id).exists()) {
-            throw new ServiceException("岗位仍有成员，请先解除成员关联");
+            throw new ServiceException("岗位仍被用户使用，请先在用户管理中调整岗位");
         }
         if (!this.removeById(id)) {
             throw new ServiceException("删除岗位失败");

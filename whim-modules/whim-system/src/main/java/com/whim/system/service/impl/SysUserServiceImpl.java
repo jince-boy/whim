@@ -7,21 +7,16 @@ import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.utils.BeanConvertUtils;
-import com.whim.mybatisplus.annotation.DataPermission;
-import com.whim.mybatisplus.annotation.DataPermissionTable;
 import com.whim.mybatisplus.model.enums.DataScopeType;
-import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysDeptMapper;
 import com.whim.system.mapper.SysPostMapper;
 import com.whim.system.mapper.SysUserMapper;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.enums.SysUserStatus;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserRoleService;
@@ -49,19 +44,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysUserRoleService userRoleService;
     private final SysDeptMapper deptMapper;
     private final SysPostMapper postMapper;
-
-    /**
-     * 分页查询岗位已分配成员，供岗位服务校验岗位访问权限后调用。
-     *
-     * @param query 岗位ID及用户筛选条件
-     * @return 当前成员查询权限范围内的用户分页
-     */
-    @Override
-    @DataPermission(permission = "system:post:member:list", tables =
-            @DataPermissionTable(name = "sys_user", userColumn = "id"))
-    public PageDataVO<SysPostMemberVO> getPostMemberPage(SysPostMemberQueryDTO query) {
-        return new PageDataVO<>(baseMapper.getPostMemberPage(query.getPage(), query));
-    }
 
     /**
      * 通过id获取有效的用户信息

@@ -1,12 +1,9 @@
 package com.whim.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.whim.mybatisplus.annotation.DataPermissionMetadata;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,16 +17,6 @@ import java.util.Set;
  */
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
-    /**
-     * 分页查询岗位已分配成员，用户范围由当前操作的数据权限过滤。
-     *
-     * @param page 分页参数
-     * @param query 岗位ID及用户筛选条件
-     * @return 用户分页结果
-     */
-    Page<SysPostMemberVO> getPostMemberPage(Page<SysPostMemberVO> page,
-                                          @Param("query") SysPostMemberQueryDTO query);
-
     /**
      * 查询部门移动或启停影响的主部门用户、岗位成员和自定义数据范围角色用户。
      *

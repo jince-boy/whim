@@ -4,10 +4,8 @@ import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.post.SysPostAddDTO;
-import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
 import com.whim.system.model.dto.post.SysPostQueryDTO;
 import com.whim.system.model.dto.post.SysPostUpdateDTO;
-import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.model.vo.post.SysPostVO;
 import com.whim.system.service.ISysPostService;
 import com.whim.web.model.Result;
@@ -25,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jince
  * @date 2026/11/03
- * @description 系统岗位管理及成员查询接口。
+ * @description 系统岗位基础信息管理接口。
  */
 @RestController
 @RequiredArgsConstructor
@@ -44,18 +42,6 @@ public class SysPostController {
     @SystemCheckPermission("system:post:list")
     public Result<PageDataVO<SysPostVO>> getPostPage(@Valid SysPostQueryDTO query) {
         return Result.success("岗位查询成功", postService.getPostPage(query));
-    }
-
-    /**
-     * 分页查询岗位已分配成员。
-     *
-     * @param query 岗位ID及用户筛选条件
-     * @return 用户分页
-     */
-    @GetMapping("/memberPage")
-    @SystemCheckPermission("system:post:member:list")
-    public Result<PageDataVO<SysPostMemberVO>> getPostMemberPage(@Valid SysPostMemberQueryDTO query) {
-        return Result.success("岗位成员查询成功", postService.getPostMemberPage(query));
     }
 
     /**

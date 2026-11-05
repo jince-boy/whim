@@ -1,30 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysUserMapper">
-    <!-- 在数据库中按任职关系筛选并分页，避免加载全部成员ID或分页后在内存中过滤。 -->
-    <select id="getPostMemberPage" resultType="com.whim.system.model.vo.post.SysPostMemberVO">
-        SELECT account.id AS user_id, account.username, account.name, account.dept_id, account.status
-        FROM sys_user account
-        WHERE account.deleted = 0
-        <if test="query.username != null and query.username != ''">
-            AND account.username LIKE CONCAT('%', #{query.username}, '%')
-        </if>
-        <if test="query.name != null and query.name != ''">
-            AND account.name LIKE CONCAT('%', #{query.name}, '%')
-        </if>
-        <if test="query.deptId != null">
-            AND account.dept_id = #{query.deptId}
-        </if>
-        <if test="query.status != null">
-            AND account.status = #{query.status}
-        </if>
-        AND EXISTS (
-            SELECT 1 FROM sys_user_post user_post
-            WHERE user_post.user_id = account.id AND user_post.post_id = #{query.postId}
-        )
-        ORDER BY account.id
-    </select>
-
     <!-- 部门移动或启停涉及主部门、岗位和角色关系，使用一次联合查询收集并去重用户。 -->
     <select id="getAffectedUserIdsByDepartments" resultType="java.lang.Long">
         SELECT account.id FROM sys_user account
