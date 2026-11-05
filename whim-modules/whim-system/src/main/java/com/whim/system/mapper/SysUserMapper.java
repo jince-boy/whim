@@ -21,10 +21,10 @@ import java.util.Set;
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
     /**
-     * 分页查询岗位成员或未分配的正常用户，用户范围由当前操作的数据权限过滤。
+     * 分页查询岗位已分配成员，用户范围由当前操作的数据权限过滤。
      *
      * @param page 分页参数
-     * @param query 岗位ID、成员类型及用户筛选条件
+     * @param query 岗位ID及用户筛选条件
      * @return 用户分页结果
      */
     Page<SysPostMemberVO> getPostMemberPage(Page<SysPostMemberVO> page,

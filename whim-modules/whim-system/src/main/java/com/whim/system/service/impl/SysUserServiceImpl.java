@@ -51,9 +51,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysPostMapper postMapper;
 
     /**
-     * 分页查询岗位成员或候选用户，供岗位服务校验岗位访问权限后调用。
+     * 分页查询岗位已分配成员，供岗位服务校验岗位访问权限后调用。
      *
-     * @param query 岗位ID、成员类型及用户筛选条件
+     * @param query 岗位ID及用户筛选条件
      * @return 当前成员查询权限范围内的用户分页
      */
     @Override

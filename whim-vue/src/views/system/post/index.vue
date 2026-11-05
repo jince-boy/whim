@@ -5,7 +5,7 @@ import { usePost } from './hooks/usePost'
 
 defineOptions({ name: 'Post' })
 const {
-  registerTable, form, canView, detail, showDetail, memberPost, showMembers, membersBusy,
+  registerTable, form, canView, detail, showDetail, memberPost, showMembers,
   canLoadDepartments, departmentOptions, departmentNames, departmentName, statusOptions,
   openAddDialog, changeOrganizationWide, getStatusData,
 } = usePost()
@@ -48,9 +48,9 @@ const {
           <n-descriptions-item label="更新时间">{{ detail.updateTime || '—' }}</n-descriptions-item>
         </n-descriptions>
     </n-modal>
-    <n-drawer v-model:show="showMembers" :default-width="960" :min-width="360" :style="{ maxWidth: '100vw' }" :mask-closable="!membersBusy" :close-on-esc="!membersBusy" resizable>
-      <n-drawer-content :title="memberPost ? `${memberPost.postName} · 岗位成员` : '岗位成员'" :closable="!membersBusy">
-        <PostMembers v-if="showMembers && memberPost" :key="String(memberPost.id)" v-model:busy="membersBusy" :post="memberPost" :department-options="departmentOptions" :department-names="departmentNames" :can-load-departments="canLoadDepartments" />
+    <n-drawer v-model:show="showMembers" :default-width="960" :min-width="360" :style="{ maxWidth: '100vw' }" resizable>
+      <n-drawer-content :title="memberPost ? `${memberPost.postName} · 岗位成员` : '岗位成员'" closable>
+        <PostMembers v-if="showMembers && memberPost" :key="String(memberPost.id)" :post="memberPost" :department-options="departmentOptions" :department-names="departmentNames" :can-load-departments="canLoadDepartments" />
       </n-drawer-content>
     </n-drawer>
   </div>

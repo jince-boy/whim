@@ -1,5 +1,5 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, shallowRef } from 'vue'
-import { NButton, NSpace, NSwitch, type DataTableColumns } from 'naive-ui'
+import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
@@ -12,7 +12,6 @@ import {
   fetchPostDetail,
   fetchPostPage,
   updatePost,
-  updatePostStatus,
 } from './api'
 import type { PostId, PostItem, PostQuery } from './types'
 import PostForm from '../form.vue'
@@ -22,7 +21,7 @@ export function usePost() {
   const dictionary = useDictStore()
   const user = useUserStore()
   const { selection, canLoad, reload: reloadDepartments } = useDeptOptions()
-  const { openFormDialog, openConfirmDialog, openDeleteDialog } = useFormDialog()
+  const { openFormDialog, openDeleteDialog } = useFormDialog()
   const can = (permission: string) =>
     user.permissionCode.includes('*') || user.permissionCode.includes(permission)
   const canView = computed(() => can('system:post:list'))
@@ -30,7 +29,6 @@ export function usePost() {
   const showDetail = ref(false)
   const memberPost = shallowRef<PostItem>()
   const showMembers = ref(false)
-  const membersBusy = ref(false)
   const recordLoading = ref(false)
   let recordVersion = 0
   let active = true
@@ -56,22 +54,10 @@ export function usePost() {
         key: 'status',
         width: 100,
         align: 'center',
-        render: (row) =>
-          h(
-            NSwitch,
-            {
-              value: row.status,
-              checkedValue: 0,
-              uncheckedValue: 1,
-              disabled: !can('system:post:status'),
-              'aria-label': `${row.postName}状态`,
-              onUpdateValue: () => changeStatus(row),
-            },
-            {
-              checked: () => dictionary.getDictData('sys_common_status', 0).label,
-              unchecked: () => dictionary.getDictData('sys_common_status', 1).label,
-            },
-          ),
+        render: (row) => {
+          const status = dictionary.getDictData('sys_common_status', row.status)
+          return h(NTag, { bordered: false, type: status.listClass }, () => status.label)
+        },
       },
       { title: '创建时间', key: 'createTime', width: 180 },
     ]
@@ -218,17 +204,6 @@ export function usePost() {
     }
   }
 
-  function changeStatus(row: PostItem) {
-    const status = row.status === 0 ? 1 : 0
-    openConfirmDialog({
-      title: status === 1 ? '停用岗位' : '启用岗位',
-      modalProps: { type: status === 0 ? 'success' : 'warning' },
-      content: `确定${status === 1 ? '停用' : '启用'}“${row.postName}”？相关成员的登录会话将失效，需要重新登录。`,
-      onSubmit: () => updatePostStatus({ id: row.id, status }),
-      onSuccess: table.reload,
-    })
-  }
-
   function removePost(row: PostItem) {
     openDeleteDialog({
       content: `确定删除“${row.postName}”？岗位仍有成员时无法删除，请先解除成员关联。`,
@@ -266,7 +241,6 @@ export function usePost() {
     showDetail,
     memberPost,
     showMembers,
-    membersBusy,
     canLoadDepartments: canLoad,
     departmentOptions: computed(() => selection.value.options),
     departmentNames: computed(() => selection.value.names),

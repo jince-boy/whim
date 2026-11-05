@@ -72,7 +72,7 @@ defineExpose({ reload, getTableInstance })
     <n-card
       class="whim-table__card"
       size="medium"
-      content-style="padding: 0"
+      content-style="padding: 10px"
       :theme-overrides="{ borderRadius: '8px' }"
     >
       <n-flex
@@ -90,7 +90,6 @@ defineExpose({ reload, getTableInstance })
           <n-button
             v-for="button in buttons"
             :key="button"
-            size="small"
             :type="buttonOptions[button].type"
             :secondary="button !== 'add'"
             :render-icon="createIcon(buttonOptions[button].icon)"
@@ -205,7 +204,6 @@ defineExpose({ reload, getTableInstance })
 
 .whim-table__toolbar {
   min-width: 0;
-  padding: 10px 10px 0;
   margin-bottom: 10px;
 }
 

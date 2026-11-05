@@ -46,11 +46,6 @@ export interface PostMember {
   status: OrganizationStatus
 }
 
-export interface PostMembersSave {
-  postId: PostId
-  userIds: PostId[]
-}
-
 export interface PostMemberQuery {
   username: string
   name: string

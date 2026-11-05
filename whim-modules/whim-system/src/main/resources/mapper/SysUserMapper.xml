@@ -15,17 +15,10 @@
         <if test="query.deptId != null">
             AND account.dept_id = #{query.deptId}
         </if>
-        <choose>
-            <when test="query.assigned">
-                <if test="query.status != null">
-                    AND account.status = #{query.status}
-                </if>
-            </when>
-            <otherwise>
-                AND account.status = 0
-            </otherwise>
-        </choose>
-        AND <if test="!query.assigned">NOT</if> EXISTS (
+        <if test="query.status != null">
+            AND account.status = #{query.status}
+        </if>
+        AND EXISTS (
             SELECT 1 FROM sys_user_post user_post
             WHERE user_post.user_id = account.id AND user_post.post_id = #{query.postId}
         )

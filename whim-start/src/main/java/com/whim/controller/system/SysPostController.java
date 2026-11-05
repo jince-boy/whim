@@ -5,9 +5,7 @@ import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.post.SysPostAddDTO;
 import com.whim.system.model.dto.post.SysPostMemberQueryDTO;
-import com.whim.system.model.dto.post.SysPostMembersDTO;
 import com.whim.system.model.dto.post.SysPostQueryDTO;
-import com.whim.system.model.dto.post.SysPostStatusDTO;
 import com.whim.system.model.dto.post.SysPostUpdateDTO;
 import com.whim.system.model.vo.post.SysPostMemberVO;
 import com.whim.system.model.vo.post.SysPostVO;
@@ -27,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jince
  * @date 2026/11/03
- * @description 系统岗位及成员管理接口。
+ * @description 系统岗位管理及成员查询接口。
  */
 @RestController
 @RequiredArgsConstructor
@@ -49,9 +47,9 @@ public class SysPostController {
     }
 
     /**
-     * 分页查询岗位成员或候选用户。
+     * 分页查询岗位已分配成员。
      *
-     * @param query 岗位ID、成员类型及用户筛选条件
+     * @param query 岗位ID及用户筛选条件
      * @return 用户分页
      */
     @GetMapping("/memberPage")
@@ -86,19 +84,6 @@ public class SysPostController {
     }
 
     /**
-     * 增量添加岗位成员。
-     *
-     * @param parameter 岗位ID和本次选择的用户ID
-     * @return 添加结果
-     */
-    @PostMapping("/addMembers")
-    @SystemCheckPermission("system:post:member:assign")
-    public Result<Void> addPostMembers(@Valid @RequestBody SysPostMembersDTO parameter) {
-        postService.addPostMembers(parameter);
-        return Result.success("添加岗位成员成功");
-    }
-
-    /**
      * 完整修改岗位。
      *
      * @param parameter 岗位ID及修改字段
@@ -112,19 +97,6 @@ public class SysPostController {
     }
 
     /**
-     * 修改岗位状态。
-     *
-     * @param parameter 岗位ID和目标状态
-     * @return 状态修改结果
-     */
-    @PutMapping("/updateStatus")
-    @SystemCheckPermission("system:post:status")
-    public Result<Void> updatePostStatus(@Valid @RequestBody SysPostStatusDTO parameter) {
-        postService.updatePostStatus(parameter);
-        return Result.success("修改岗位状态成功");
-    }
-
-    /**
      * 删除没有成员的岗位。
      *
      * @param id 岗位ID
@@ -135,18 +107,5 @@ public class SysPostController {
     public Result<Void> deletePost(@RequestParam Long id) {
         postService.deletePost(id);
         return Result.success("删除岗位成功");
-    }
-
-    /**
-     * 解除指定岗位成员的关联。
-     *
-     * @param parameter 岗位ID和本次选择的用户ID
-     * @return 解除结果
-     */
-    @DeleteMapping("/deleteMembers")
-    @SystemCheckPermission("system:post:member:assign")
-    public Result<Void> deletePostMembers(@Valid @RequestBody SysPostMembersDTO parameter) {
-        postService.deletePostMembers(parameter);
-        return Result.success("解除岗位成员成功");
     }
 }

@@ -29,7 +29,8 @@ export function useWhimTableView(
     Form: { size: 'small' },
     Input: { size: 'small' },
     InputNumber: { size: 'small' },
-    Pagination: { size: 'small', inputSize: 'small', selectSize: 'small' },
+    // 分页内部控件由 Naive UI 自动匹配尺寸，强制 small 会比页码按钮更高。
+    Pagination: { size: 'small' },
     Select: { size: 'small' },
     Switch: { size: 'small' },
     Tag: { size: 'small' },
