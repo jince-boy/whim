@@ -1,6 +1,8 @@
 package com.whim.system.model.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.mybatisplus.model.entity.BaseEntity;
@@ -54,11 +56,13 @@ public class SysUser extends BaseEntity implements Serializable {
     /**
      * 电子邮箱
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String email;
 
     /**
      * 手机号码
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String phone;
 
     /**
@@ -72,11 +76,13 @@ public class SysUser extends BaseEntity implements Serializable {
     private Integer status;
 
     /** 用户主部门ID。 */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long deptId;
 
     /**
      * 备注
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String remark;
 
     /**

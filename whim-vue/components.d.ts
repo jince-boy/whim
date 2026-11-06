@@ -81,6 +81,7 @@ declare module 'vue' {
     Search: typeof import('./src/components/search/index.vue')['default']
     SearchForm: typeof import('./src/components/form/SearchForm.vue')['default']
     Theme: typeof import('./src/components/theme/index.vue')['default']
+    WhimPassword: typeof import('./src/components/password/WhimPassword.vue')['default']
     WhimSelectIcon: typeof import('./src/components/icon/WhimSelectIcon.vue')['default']
     WhimTable: typeof import('./src/components/table/WhimTable.vue')['default']
   }
@@ -157,6 +158,7 @@ declare global {
   const Search: typeof import('./src/components/search/index.vue')['default']
   const SearchForm: typeof import('./src/components/form/SearchForm.vue')['default']
   const Theme: typeof import('./src/components/theme/index.vue')['default']
+  const WhimPassword: typeof import('./src/components/password/WhimPassword.vue')['default']
   const WhimSelectIcon: typeof import('./src/components/icon/WhimSelectIcon.vue')['default']
   const WhimTable: typeof import('./src/components/table/WhimTable.vue')['default']
 }

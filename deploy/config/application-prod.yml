@@ -1,0 +1,46 @@
+# 挂载到 /app/config/application-prod.yml，覆盖 JAR 内的生产运行配置。
+server:
+  port: 8089
+  shutdown: graceful
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+
+sa-token:
+  jwt-secret-key: ${SA_TOKEN_JWT_SECRET}
+
+whim:
+  request-encryption:
+    private-key: ${REQUEST_ENCRYPTION_PRIVATE_KEY}
+
+logging:
+  file:
+    name: /app/logs/whim.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 14
+      total-size-cap: 1GB
+
+# 监控仅在容器回环地址提供，供健康检查使用。
+management:
+  server:
+    port: 9090
+    address: 127.0.0.1
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+# 生产关闭 SQL 明细日志，防止业务参数进入日志文件。
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false

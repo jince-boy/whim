@@ -40,6 +40,7 @@ export function useWhimTableView(
   const fullscreenEnabled = screenfull.isEnabled
   const isFullscreen = ref(false)
   const settingsVisible = ref(false)
+  const refreshing = ref(false)
   const userStore = useUserStore()
   const title = computed(() => binding.value?.title.value ?? '数据列表')
   const tableProps = computed(() => binding.value?.tableProps.value)
@@ -96,10 +97,17 @@ export function useWhimTableView(
     else if (button === 'export') emit('export', keys)
   }
 
-  /** 刷新由 hook 完成，事件只作为操作通知。 */
+  /** 刷新数据并启动箭头旋转，刷新期间不重复发起请求。 */
   function refresh() {
-    void binding.value?.reload()
+    if (!binding.value || binding.value.loading.value || refreshing.value) return
+    refreshing.value = true
+    void binding.value.reload()
     emit('refresh')
+  }
+
+  /** 请求结束后在完整一圈的边界停止动画，避免快速请求导致图标闪烁。 */
+  function finishRefreshRotation() {
+    if (!binding.value?.loading.value) refreshing.value = false
   }
 
   /** 命令式刷新返回请求是否成功。 */
@@ -151,7 +159,10 @@ export function useWhimTableView(
     emit('register', registration)
     if (fullscreenEnabled) screenfull.on('change', syncFullscreen)
   })
-  onDeactivated(exitFullscreen)
+  onDeactivated(() => {
+    refreshing.value = false
+    exitFullscreen()
+  })
   onBeforeUnmount(() => {
     exitFullscreen()
     if (fullscreenEnabled) screenfull.off('change', syncFullscreen)
@@ -175,6 +186,8 @@ export function useWhimTableView(
     buttonOptions,
     isDisabled,
     handleAction,
+    refreshing,
+    finishRefreshRotation,
     refresh,
     reload,
     getTableInstance,

@@ -28,6 +28,7 @@ export interface PostSave {
 export interface PostQuery {
   postName: string
   postCode: string
+  /** 所选部门及全部下级部门；为空时不按部门筛选。 */
   deptId: string | null
   organizationWide: boolean | null
   status: OrganizationStatus | null

@@ -39,15 +39,13 @@ export function useDictData(props: DictDataProps) {
       {
         title: '字典标签',
         key: 'label',
-        width: 130,
         ellipsis: { tooltip: true },
       },
-      { title: '字典值', key: 'value', width: 110, ellipsis: { tooltip: true } },
-      { title: '排序', key: 'sort', width: 60, align: 'center' },
+      { title: '字典值', key: 'value', ellipsis: { tooltip: true } },
+      { title: '排序', key: 'sort', align: 'center' },
       {
         title: '展示效果',
         key: 'listClass',
-        width: 130,
         render: (row) =>
           h(
             NTag,
@@ -62,17 +60,15 @@ export function useDictData(props: DictDataProps) {
       {
         title: '备注',
         key: 'remark',
-        minWidth: 120,
         ellipsis: { tooltip: true },
         render: (row) => row.remark || '—',
       },
-      { title: '创建时间', key: 'createTime', width: 200 },
+      { title: '创建时间', key: 'createTime', ellipsis: { tooltip: true } },
     ]
     if (canEdit.value || canDelete.value) {
       columns.push({
         title: '操作',
         key: 'action',
-        width: 112,
         fixed: 'right',
         render: (row) =>
           h(NSpace, { size: 12 }, () => [

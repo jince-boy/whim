@@ -16,7 +16,7 @@ whim:
     requests-per-minute: 120
 ```
 
-私钥直接保存在这份 YAML 中，不再引入外部配置文件。当前已填入原有私钥，与 `whim-vue/.env` 中的公钥配对。缺少私钥或格式不正确时启动失败，不自动更换密钥。
+本地开发的私钥保存在这份 YAML 中，与 `whim-vue/.env` 中的公钥配对。Docker 生产部署通过挂载的 `deploy/config/application-prod.yml` 读取后端 `.env` 中的 `REQUEST_ENCRYPTION_PRIVATE_KEY`，覆盖 JAR 内的值；前端独立配置对应公钥，具体步骤见 [Docker 部署说明](docker-deployment.md)。缺少私钥或格式不正确时启动失败，不自动更换密钥。
 
 前端 `.env` 直接填写对应公钥的 Base64 字符串，格式示意：
 

@@ -41,7 +41,7 @@ const {
         <n-flex align="center" :wrap="false" :size="4" class="header-actions">
           <n-tooltip placement="bottom" trigger="hover" :delay="300">
             <template #trigger>
-              <n-button quaternary size="small" class="header-action" aria-label="搜索" @click="searchShowModal = true">
+              <n-button quaternary native-focus-behavior size="small" class="header-action" aria-label="搜索" @mousedown.prevent @click="searchShowModal = true">
                 <template #icon>
                   <n-icon :component="createIcon('search', 18)"/>
                 </template>
@@ -51,7 +51,7 @@ const {
           </n-tooltip>
           <n-tooltip placement="bottom" trigger="hover" :delay="300">
             <template #trigger>
-              <n-button quaternary size="small" class="header-action" :disabled="!fullscreenEnabled" :aria-label="isFullscreen ? '退出全屏' : '全屏'" @click="toggleFullscreen">
+              <n-button quaternary native-focus-behavior size="small" class="header-action" :disabled="!fullscreenEnabled" :aria-label="isFullscreen ? '退出全屏' : '全屏'" @mousedown.prevent @click="toggleFullscreen">
                 <template #icon>
                   <n-icon v-if="isFullscreen" :component="createIcon('minimize', 18)"/>
                   <n-icon v-else :component="createIcon('maximize', 18)"/>
@@ -62,7 +62,7 @@ const {
           </n-tooltip>
           <n-tooltip placement="bottom" trigger="hover" :delay="300">
             <template #trigger>
-              <n-button quaternary size="small" class="header-action" aria-label="主题配置" @click="themeShowModal = true">
+              <n-button quaternary native-focus-behavior size="small" class="header-action" aria-label="主题配置" @mousedown.prevent @click="themeShowModal = true">
                 <template #icon>
                   <n-icon :component="createIcon('palette', 18)"/>
                 </template>
@@ -72,7 +72,7 @@ const {
           </n-tooltip>
           <n-popover trigger="click" placement="bottom-end" :show-arrow="false" :width="240">
             <template #trigger>
-              <n-button quaternary size="small" class="header-action" aria-label="通知">
+              <n-button quaternary native-focus-behavior size="small" class="header-action" aria-label="通知" @mousedown.prevent>
                 <template #icon>
                   <n-icon :component="createIcon('bell', 18)"/>
                 </template>

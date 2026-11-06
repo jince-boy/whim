@@ -6,7 +6,6 @@ import type {
   DeptLeaderQuery,
   DeptQuery,
   DeptSave,
-  OrganizationStatusUpdate,
 } from './types'
 import type { TablePage } from '@/components/table'
 
@@ -29,9 +28,6 @@ export const addDept = (data: DeptSave) =>
 
 export const updateDept = (data: DeptSave) =>
   request('/system/dept/update', RequestMethod.PUT, { data: getDeptPayload(data) })
-
-export const updateDeptStatus = (data: OrganizationStatusUpdate) =>
-  request('/system/dept/status', RequestMethod.PUT, { data })
 
 export const deleteDept = (id: DeptId) =>
   request('/system/dept/delete', RequestMethod.DELETE, { params: { id } })

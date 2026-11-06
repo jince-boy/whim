@@ -1,5 +1,5 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, watch } from 'vue'
-import { NButton, NSpace, NSwitch, type DataTableColumns } from 'naive-ui'
+import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
@@ -10,17 +10,16 @@ import {
   fetchDeptDetail,
   fetchDeptTree,
   updateDept,
-  updateDeptStatus,
 } from './api'
 import { useDictStore } from '@/stores/modules/dict'
 import type { DeptId, DeptItem, DeptQuery } from './types'
 import DeptForm from '../form.vue'
 
-/** 部门管理树、独立状态操作和新增修改流程。 */
+/** 部门管理树、状态展示和新增修改流程。 */
 export function useDept() {
   const dictionary = useDictStore()
   const user = useUserStore()
-  const { openFormDialog, openConfirmDialog, openDeleteDialog } = useFormDialog()
+  const { openFormDialog, openDeleteDialog } = useFormDialog()
   const can = (permission: string) =>
     user.permissionCode.includes('*') || user.permissionCode.includes(permission)
   const canView = computed(() => can('system:dept:list'))
@@ -29,36 +28,22 @@ export function useDept() {
   let active = true
 
   const columns = computed<DataTableColumns<DeptItem>>(() => [
-    { title: '部门名称', key: 'deptName', minWidth: 240, ellipsis: { tooltip: true } },
-    { title: '部门编码', key: 'deptCode', minWidth: 180, ellipsis: { tooltip: true } },
-    { title: '排序', key: 'sort', width: 80, align: 'center' },
+    { title: '部门名称', key: 'deptName', ellipsis: { tooltip: true } },
+    { title: '部门编码', key: 'deptCode', ellipsis: { tooltip: true } },
+    { title: '排序', key: 'sort', align: 'center' },
     {
       title: '状态',
       key: 'status',
-      width: 100,
       align: 'center',
-      render: (row) =>
-        h(
-          NSwitch,
-          {
-            value: row.status,
-            checkedValue: 0,
-            uncheckedValue: 1,
-            disabled: !can('system:dept:status'),
-            'aria-label': `${row.deptName}状态`,
-            onUpdateValue: () => changeStatus(row),
-          },
-          {
-            checked: () => dictionary.getDictData('sys_common_status', 0).label,
-            unchecked: () => dictionary.getDictData('sys_common_status', 1).label,
-          },
-        ),
+      render: (row) => {
+        const status = dictionary.getDictData('sys_common_status', row.status)
+        return h(NTag, { bordered: false, type: status.listClass }, () => status.label)
+      },
     },
-    { title: '创建时间', key: 'createTime', width: 180 },
+    { title: '创建时间', key: 'createTime' },
     {
       title: '操作',
       key: 'action',
-      width: 180,
       fixed: 'right',
       render: (row) =>
         h(NSpace, { size: 12, wrap: false }, () => [
@@ -100,7 +85,7 @@ export function useDept() {
     title: '部门管理',
     columns,
     rowKey: (row) => String(row.id),
-    scrollX: 960,
+    scrollX: 1080,
     pagination: false,
     immediate: canView.value,
     request: ({ deptName, status }) => fetchDeptTree({ deptName: deptName.trim(), status }),
@@ -172,20 +157,6 @@ export function useDept() {
     } finally {
       if (version === recordVersion) recordLoading.value = false
     }
-  }
-
-  function changeStatus(row: DeptItem) {
-    const status = row.status === 0 ? 1 : 0
-    openConfirmDialog({
-      title: status === 1 ? '停用部门' : '启用部门',
-      modalProps: { type: status === 0 ? 'success' : 'warning' },
-      content:
-        status === 1
-          ? `确定停用“${row.deptName}”？其下级分支也将停止参与授权，相关用户需要重新登录。`
-          : `确定启用“${row.deptName}”？上级部门必须正常，下级部门保留各自的启停设置。`,
-      onSubmit: () => updateDeptStatus({ id: row.id, status }),
-      onSuccess: table.reload,
-    })
   }
 
   function removeDept(row: DeptItem) {

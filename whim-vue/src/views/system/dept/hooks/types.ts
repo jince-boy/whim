@@ -4,12 +4,6 @@ import type { TablePageQuery } from '@/components/table'
 export type DeptId = string | number
 export type OrganizationStatus = 0 | 1
 
-/** 状态修改在同一请求体中提交目标ID和状态。 */
-export interface OrganizationStatusUpdate {
-  id: DeptId
-  status: OrganizationStatus
-}
-
 /** 部门详情和树节点，ID 保留后端原始精度。 */
 export interface DeptItem {
   id: DeptId

@@ -1,0 +1,56 @@
+# 独立更新后端容器后重新解析地址，避免 Nginx 一直访问旧容器 IP。
+resolver 127.0.0.11 valid=10s ipv6=off;
+resolver_timeout 5s;
+
+upstream whim_backend {
+    zone whim_backend 64k;
+    server ${BACKEND_ADDRESS} resolve;
+    keepalive 16;
+}
+
+server {
+    listen 80;
+    server_name _;
+    server_tokens off;
+    root /usr/share/nginx/html;
+    index index.html;
+    client_max_body_size 20m;
+
+    access_log /dev/stdout;
+    error_log /dev/stderr warn;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # 去掉前端接口前缀，后端仍接收 /system/...；保留原始查询参数。
+    location ${VITE_API_BASE_URL}/ {
+        proxy_pass http://whim_backend/;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 带内容哈希的构建资源可长期缓存，缺失资源不返回 HTML。
+    location /assets/ {
+        try_files $uri =404;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    # Vue Router history 模式刷新业务页面时回到应用入口。
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

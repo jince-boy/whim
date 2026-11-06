@@ -25,9 +25,6 @@ public class SysDeptDetailVO extends SysDeptVO {
     /** 当前有效负责人的用户名。 */
     private String leaderUsername;
 
-    /** 创建时间。 */
-    private LocalDateTime createTime;
-
     /** 修改时间。 */
     private LocalDateTime updateTime;
 }

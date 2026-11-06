@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNode } from 'vue'
 import { SearchForm } from '../form'
+import Icon from '@/components/icon/Icon.vue'
 import { useIcon } from '@/components/icon/useIcon'
 import type { WhimTableEmits } from './types'
 import { useWhimTableView } from './hooks/useWhimTableView'
@@ -35,6 +36,8 @@ const {
   buttonOptions,
   isDisabled,
   handleAction,
+  refreshing,
+  finishRefreshRotation,
   refresh,
   reload,
   getTableInstance,
@@ -111,12 +114,22 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                native-focus-behavior
                 size="small"
                 aria-label="刷新表格"
-                :loading="binding.loading.value"
-                :render-icon="createIcon('refresh-cw')"
+                :aria-busy="refreshing || binding.loading.value"
+                :disabled="refreshing || binding.loading.value"
+                @mousedown.prevent
                 @click="refresh"
-              />
+              >
+                <template #icon>
+                  <Icon
+                    name="refresh-cw"
+                    :class="{ 'refresh-icon--spinning': refreshing }"
+                    @animationiteration="finishRefreshRotation"
+                  />
+                </template>
+              </n-button>
             </template>
             刷新
           </n-tooltip>
@@ -130,10 +143,12 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                native-focus-behavior
                 size="small"
                 aria-label="表格设置"
                 :aria-expanded="settingsVisible"
                 :render-icon="createIcon('sliders-horizontal')"
+                @mousedown.prevent
               />
             </template>
             <template #header>表格设置</template>
@@ -169,10 +184,12 @@ defineExpose({ reload, getTableInstance })
             <template #trigger>
               <n-button
                 quaternary
+                native-focus-behavior
                 size="small"
                 :disabled="!fullscreenEnabled"
                 :aria-label="isFullscreen ? '退出表格全屏' : '表格全屏'"
                 :render-icon="createIcon(isFullscreen ? 'minimize' : 'maximize')"
+                @mousedown.prevent
                 @click="toggleFullscreen"
               />
             </template>
@@ -183,7 +200,10 @@ defineExpose({ reload, getTableInstance })
       <n-config-provider abstract :component-options="tableComponentOptions">
         <n-space vertical :size="12">
           <n-alert v-if="binding?.error.value" type="error">{{ binding.error.value }}</n-alert>
-          <n-data-table ref="tableRef" v-bind="{ 'aria-label': title, ...$attrs, ...tableProps }">
+          <n-data-table
+            ref="tableRef"
+            v-bind="{ tableLayout: 'fixed', 'aria-label': title, ...$attrs, ...tableProps }"
+          >
             <template v-if="$slots.default" #default><slot /></template>
             <template v-if="$slots.empty" #empty><slot name="empty" /></template>
             <template v-if="$slots.loading" #loading><slot name="loading" /></template>
@@ -210,6 +230,16 @@ defineExpose({ reload, getTableInstance })
 .whim-table__tools {
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.refresh-icon--spinning {
+  animation: refresh-rotate 0.6s linear infinite;
+}
+
+@keyframes refresh-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .whim-table__settings {

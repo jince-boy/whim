@@ -4,6 +4,7 @@ import com.whim.system.model.entity.SysDept;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,9 @@ public class SysDeptVO {
 
     /** 备注。 */
     private String remark;
+
+    /** 创建时间，由持久化层自动填充。 */
+    private LocalDateTime createTime;
 
     /** 数据权限范围内的下级部门，无下级时为空数组。 */
     private List<SysDeptVO> children = new ArrayList<>();

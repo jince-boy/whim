@@ -22,7 +22,7 @@ public class SysPostQueryDTO extends PageQueryDTO {
     /** 岗位编码，包含匹配。 */
     @Size(max = 64, message = "岗位编码不能超过64个字符")
     private String postCode;
-    /** 所属部门ID。 */
+    /** 所选部门ID，查询本部门及全部下级部门的岗位；省略时不限制部门。 */
     private Long deptId;
     /** true时仅查询全组织岗位，false或省略时不限制。 */
     private Boolean organizationWide;

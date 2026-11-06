@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysDeptMapper">
+    <!-- 自关联一次取得所选部门和完整下级分支，避免逐层查询或先加载路径再查询；管理筛选保留停用部门。 -->
+    <select id="getDeptAndDescendantIds" resultType="java.lang.Long">
+        SELECT department.id
+        FROM sys_dept selected_department
+        INNER JOIN sys_dept department ON (
+            department.id = selected_department.id
+            OR department.ancestors = CONCAT(selected_department.ancestors, ',', selected_department.id)
+            OR department.ancestors LIKE CONCAT(selected_department.ancestors, ',', selected_department.id, ',%')
+        )
+        WHERE selected_department.id = #{deptId} AND selected_department.deleted = 0
+            AND department.deleted = 0
+    </select>
+
     <!-- 一次查询同时判断部门是否存在及祖先链是否有效，避免按祖先逐个查询。 -->
     <select id="getDeptEffectiveStatusById" resultType="java.lang.Integer">
         SELECT CASE WHEN department.status = 0 AND NOT EXISTS (

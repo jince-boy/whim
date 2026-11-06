@@ -1,0 +1,18 @@
+# 后端镜像只接收 Maven 工程，前端独立构建。
+**
+!pom.xml
+!whim-framework/
+!whim-framework/**
+!whim-modules/
+!whim-modules/**
+!whim-start/
+!whim-start/**
+**/target/
+**/.idea/
+**/.env
+**/.env.*
+**/logs/
+**/data/
+**/*.log
+**/*.pem
+**/*.key

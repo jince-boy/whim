@@ -44,7 +44,7 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
     private final ISysUserPostService userPostService;
 
     /**
-     * 按名称、编码、部门和状态分页查询可见岗位。
+     * 按名称、编码、部门及全部下级部门和状态分页查询可见岗位。
      *
      * @param query 岗位筛选及分页条件
      * @return 按排序值和ID升序排列的岗位分页
@@ -53,10 +53,17 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
     @DataPermission(permission = "system:post:list", tables =
             @DataPermissionTable(name = "sys_post"))
     public PageDataVO<SysPostVO> getPostPage(SysPostQueryDTO query) {
+        // 部门分支只用于缩小筛选范围，岗位可见性仍由当前操作的数据权限统一限制。
+        List<Long> departmentIds = query.getDeptId() == null
+                ? List.of() : deptMapper.getDeptAndDescendantIds(query.getDeptId());
+        if (query.getDeptId() != null && departmentIds.isEmpty()) {
+            // 无效或已删除的部门返回空页，不能因空集合忽略部门筛选。
+            return new PageDataVO<>(query.getPage());
+        }
         Page<SysPost> posts = this.lambdaQuery()
                 .like(StringUtils.hasText(query.getPostName()), SysPost::getPostName, query.getPostName())
                 .like(StringUtils.hasText(query.getPostCode()), SysPost::getPostCode, query.getPostCode())
-                .eq(query.getDeptId() != null, SysPost::getDeptId, query.getDeptId())
+                .in(query.getDeptId() != null, SysPost::getDeptId, departmentIds)
                 .isNull(Boolean.TRUE.equals(query.getOrganizationWide()), SysPost::getDeptId)
                 .eq(query.getStatus() != null, SysPost::getStatus, query.getStatus())
                 .orderByAsc(SysPost::getSort, SysPost::getId)

@@ -11,7 +11,6 @@
 | GET | `/system/dept/leaderOptions` | 本部门负责人候选用户分页，部门ID在查询参数中 | `system:dept:list` |
 | POST | `/system/dept/add` | 新增部门 | `system:dept:create` |
 | PUT | `/system/dept/update` | 完整修改部门，ID在Body中 | `system:dept:update` |
-| PUT | `/system/dept/status` | 修改部门状态，ID在Body中 | `system:dept:status` |
 | DELETE | `/system/dept/delete` | 删除部门，ID在查询参数中 | `system:dept:delete` |
 | GET | `/system/post/page` | 岗位分页 | `system:post:list` |
 | GET | `/system/post/detail` | 岗位详情，ID在查询参数中 | `system:post:detail` |
@@ -23,11 +22,13 @@
 
 部门树通过 GET 查询参数绑定 `SysDeptQueryDTO`，支持可选的 `deptName` 名称模糊筛选（最多64字符，空白时不筛选）和 `status` 状态精确筛选（0正常、1停用，省略时不筛选）。两个条件同时提供时取交集；不传条件返回完整的可见部门树，无匹配结果返回空数组，不分页。例如 `GET /system/dept/list?deptName=研发&status=0` 查询名称包含“研发”的正常部门。只将匹配且有权查看的部门组装成树；上级未匹配或不可见时，当前部门作为返回树的根节点，保留原始 `parentId`，不补查祖先。返回节点按排序值和ID升序排列，停用部门仍能查询和维护。上级选择框在前端排除当前部门及其下级分支，不接收 `excludeDeptId` 查询参数。
 
-部门列表及详情增加 `leaderName/leaderUsername`，仅在负责人仍是本部门正常用户时返回姓名和用户名，否则为null。负责人候选接口属于部门查询能力，功能权限和数据范围统一使用 `system:dept:list`，无需部门修改权限；先确认目标部门在查询范围内，再查询主部门为目标部门、正常且未删除的用户，不包含下级部门用户。部门不存在或超出查询范围时返回500及“部门不存在或无权查看”。必填的 `deptId`、可选的 `keyword`（按姓名或用户名模糊搜索，最多64字符）及标准 `pageNum/pageSize` 分页统一放在 `SysDeptLeaderQueryDTO` 中，通过 GET 查询参数提交，例如 `/system/dept/leaderOptions?deptId=1&pageNum=1&pageSize=20`；缺少部门ID返回400。控制器和服务均只接收该DTO，不再单独传部门ID。选项仅包含 `id/username/name`，不返回密码或联系方式。保存负责人仍由部门修改接口校验 `system:dept:update` 及其数据范围，并重新校验用户的部门归属和状态。
+部门列表与详情均返回 `createTime`，直接映射实体中由 MyBatis-Plus 自动填充的创建时间；前端只展示，不提交或维护该字段。列表状态列使用字典标签，只读展示；状态统一在修改表单中维护。
 
-岗位分页支持 `postName/postCode` 模糊筛选（最多64字符）、`deptId/status` 精确筛选，按 `sort/id` 升序返回。`organizationWide=true` 只查询 `deptId IS NULL` 的全组织岗位，不能同时指定 `deptId`，冲突返回400；false或省略时不限制岗位范围。全组织岗位仍受操作级数据权限限制，不意味着所有用户都能查看或修改。详情和删除使用查询参数，例如 `GET /system/post/detail?id=1`、`DELETE /system/post/delete?id=1`。
+部门详情返回 `leaderName/leaderUsername`，仅在负责人仍是本部门正常用户时返回姓名和用户名，否则为null。负责人候选接口属于部门查询能力，功能权限和数据范围统一使用 `system:dept:list`，无需部门修改权限；先确认目标部门在查询范围内，再查询主部门为目标部门、正常且未删除的用户，不包含下级部门用户。部门不存在或超出查询范围时返回500及“部门不存在或无权查看”。必填的 `deptId`、可选的 `keyword`（按姓名或用户名模糊搜索，最多64字符）及标准 `pageNum/pageSize` 分页统一放在 `SysDeptLeaderQueryDTO` 中，通过 GET 查询参数提交，例如 `/system/dept/leaderOptions?deptId=1&pageNum=1&pageSize=20`；缺少部门ID返回400。控制器和服务均只接收该DTO，不再单独传部门ID。选项仅包含 `id/username/name`，不返回密码或联系方式。保存负责人仍由部门修改接口校验 `system:dept:update` 及其数据范围，并重新校验用户的部门归属和状态。
 
-岗位页面采用左侧部门树、右侧岗位表格，点击部门按该部门ID精确查询，不自动包含下级部门。左侧另提供“全部岗位”和“全组织岗位”入口；切换部门回到第一页，搜索重置保留当前部门，新增岗位默认带入当前部门。岗位页面不提供成员查询、选择或分配入口。用户的主部门和多个岗位统一由用户编辑流程维护，本次不实现用户管理界面或预留分配接口。
+岗位分页支持 `postName/postCode` 模糊筛选（最多64字符）、`status` 精确筛选，按 `sort/id` 升序返回。指定 `deptId` 时查询该部门及全部层级下级部门的岗位，部门分支包含停用但未删除的部门，岗位结果仍受当前操作的数据权限和岗位状态筛选限制；所选部门不存在或已删除时返回空页。省略 `deptId` 时不按部门筛选。`organizationWide=true` 只查询 `deptId IS NULL` 的全组织岗位，不能同时指定 `deptId`，冲突返回400；false或省略时不限制岗位范围。全组织岗位仍受操作级数据权限限制，不意味着所有用户都能查看或修改。详情和删除使用查询参数，例如 `GET /system/post/detail?id=1`、`DELETE /system/post/delete?id=1`。
+
+岗位页面采用左侧部门树、右侧岗位表格，点击部门查询该部门及全部下级部门的岗位，表格标题注明“及下级部门”。例如点击“总部”可查询总部及开发部门等下级分支中的可见岗位。左侧另提供“全部岗位”和“全组织岗位”入口；切换部门回到第一页，搜索重置保留当前部门，新增岗位默认带入当前部门。岗位页面不提供成员查询、选择或分配入口。用户的主部门和多个岗位统一由用户编辑流程维护，详见[用户管理](user-management.md)。
 
 ## JSON 请求
 
@@ -91,9 +92,9 @@
 }
 ```
 
-新增接口不接收主键；完整修改和状态修改的 `id` 必填且不能为null，缺失时返回400。ID沿用大于0的项目约定，Long可使用数字或十进制字符串，前端保留其原始精度。ID只用于定位目标记录，不作为可修改的业务字段。
+新增接口不接收主键；完整修改的 `id` 必填且不能为null，缺失时返回400。ID沿用大于0的项目约定，Long可使用数字或十进制字符串，前端保留其原始精度。ID只用于定位目标记录，不作为可修改的业务字段。
 
-新增部门、岗位的 `sort/status` 省略时默认为0，显式null不通过校验；完整修改时两个字段均必填。修改权限包含表单内的状态修改。部门状态独立维护，正常岗位须通过所属部门及祖先有效性检查。岗位状态通过完整修改接口 `/system/post/update` 的 `status` 字段维护，使用 `system:post:update` 权限；不提供独立状态接口。
+新增部门、岗位的 `sort/status` 省略时默认为0，显式null不通过校验；完整修改时两个字段均必填。修改权限包含表单内的状态修改。部门和岗位状态分别通过完整修改接口 `/system/dept/update`、`/system/post/update` 的 `status` 字段维护，使用对应的修改权限，均不提供独立状态接口。正常岗位须通过所属部门及祖先有效性检查。
 
 这些接口兼容业务JSON，也自动识别公共请求层生成的JWE密文包装，协议见 [请求加密](request-encryption.md)。Apifox 中直接维护 Body 字段、约束和示例，不创建调试用例；文档示例不代表运行页已填入可用密文。
 
@@ -107,7 +108,7 @@
 - 部门和岗位写操作使用 `@Lock4j(name = "system:organization")`，复用现有 Redisson 分布式锁，避免部门移动、删除、岗位归属变更之间发生竞争。锁由切面在进入事务前获取，在事务结束后释放；Redisson 自动续期，不依赖 `sys_config` 配置记录。空岗位删除后，岗位编码可以重新使用。
 - 部门名称或负责人变化时，仅使该部门主部门用户的会话失效；部门移动或启停时，查询受影响的主部门用户、岗位成员、角色自定义范围持有者，并补充相关祖先部门的下级范围持有者。祖先部门用户通过 MyBatis-Plus 按用户、用户角色关系、有效角色进行批量查询，不逐个用户查库。部门电话、邮箱、编码、排序和备注变更不失效会话。会话失效在事务提交后执行，重新登录时构建新的授权快照；岗位名称、编码、所属部门或状态变化使全部成员会话失效，单独修改岗位排序或备注不失效会话。
 
-`V1__initialize.sql` 初始化部门、岗位和关联表；`V2__expand_department_ancestors.sql` 扩展部门路径；`V3__remove_unused_post_permissions.sql` 清理独立岗位状态与成员分配权限；本次新增 `V4__remove_post_member_query_permission.sql` 清理岗位成员查询权限及其角色授权。已有版本化迁移保持原样。
+`V1__initialize.sql` 初始化部门、岗位和关联表；`V2__expand_department_ancestors.sql` 扩展部门路径；`V3__remove_unused_post_permissions.sql` 清理独立岗位状态与成员分配权限；`V4__remove_post_member_query_permission.sql` 清理岗位成员查询权限及其角色授权；`V5__remove_department_status_permission.sql` 清理独立部门状态权限及其角色授权。已有版本化迁移保持原样。
 
 参数或JSON校验错误返回400，未认证返回401，功能或数据权限拒绝返回403，数据库唯一约束冲突返回409；沿用当前全局异常处理，业务规则拒绝通过 `ServiceException` 返回500。密文解密限流返回429。HTTP状态与 `Result.code` 保持一致。
 

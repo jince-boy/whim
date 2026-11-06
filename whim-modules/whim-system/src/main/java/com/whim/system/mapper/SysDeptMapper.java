@@ -19,6 +19,15 @@ import java.util.Set;
 @Mapper
 public interface SysDeptMapper extends BaseMapper<SysDept> {
     /**
+     * 查询未删除的本部门及全部下级部门ID，供用户和岗位列表筛选使用。
+     *
+     * @param deptId 所选部门ID
+     * @return 部门分支ID列表，包含停用部门；所选部门不存在或已删除时为空
+     */
+    @DataPermissionMetadata
+    List<Long> getDeptAndDescendantIds(@Param("deptId") Long deptId);
+
+    /**
      * 查询部门及其祖先链的有效状态，供岗位归属校验使用。
      *
      * @param id 部门ID

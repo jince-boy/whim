@@ -15,7 +15,7 @@ import com.whim.system.model.vo.post.SysPostVO;
  */
 public interface ISysPostService extends IService<SysPost> {
     /**
-     * 按名称、编码、部门和状态分页查询可见岗位。
+     * 按名称、编码、部门及全部下级部门和状态分页查询可见岗位。
      *
      * @param query 岗位筛选及分页条件
      * @return 岗位分页

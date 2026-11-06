@@ -1,0 +1,14 @@
+.git
+.idea
+.vscode
+node_modules
+dist
+coverage
+.env
+.env.*
+*.log
+*.tsbuildinfo
+deploy/certs
+deploy/runtime
+**/*.pem
+**/*.key

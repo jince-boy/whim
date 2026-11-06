@@ -63,22 +63,20 @@ export function useDictType() {
   const columns = computed(() => {
     const columns: DataTableColumns<DictTypeResult> = [
       ...(canDelete.value ? [{ type: 'selection' as const, width: 40 }] : []),
-      { title: '字典名称', key: 'name', minWidth: 130, ellipsis: { tooltip: true } },
-      { title: '字典编码', key: 'type', minWidth: 180, ellipsis: { tooltip: true } },
+      { title: '字典名称', key: 'name', ellipsis: { tooltip: true } },
+      { title: '字典编码', key: 'type', ellipsis: { tooltip: true } },
       {
         title: '备注',
         key: 'remark',
-        minWidth: 160,
         ellipsis: { tooltip: true },
         render: (row) => row.remark || '—',
       },
-      { title: '创建时间', key: 'createTime', width: 180 },
+      { title: '创建时间', key: 'createTime', ellipsis: { tooltip: true } },
     ]
     if (canViewData.value || canEdit.value || canDelete.value) {
       columns.push({
         title: '操作',
         key: 'action',
-        width: 190,
         fixed: 'right',
         render: (row) =>
           h(NSpace, { size: 12, wrap: false }, () => [

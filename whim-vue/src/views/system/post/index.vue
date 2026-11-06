@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { WhimTable } from '@/components/table'
-import { createIcon } from '@/components/icon/useIcon'
+import Icon from '@/components/icon/Icon.vue'
 import { usePost } from './hooks/usePost'
 
 defineOptions({ name: 'Post' })
 const {
-  registerTable, form, canView, detail, showDetail,
+  registerTable, form, canView,
   canLoadDepartments, departmentTree, departmentPattern, departmentLoading, departmentError,
-  selectedDepartmentKeys, selectDepartment, reloadDepartments, departmentName, statusOptions,
-  openAddDialog, getStatusData,
+  selectedDepartmentKeys, selectDepartment, statusOptions,
+  departmentRefreshing, refreshDepartments, finishDepartmentRefreshRotation,
+  openAddDialog,
 } = usePost()
 </script>
 
@@ -20,7 +21,11 @@ const {
           <n-text strong>部门</n-text>
           <n-tooltip>
             <template #trigger>
-              <n-button quaternary size="small" aria-label="刷新部门" :render-icon="createIcon('refresh-cw')" :loading="departmentLoading" :disabled="!canLoadDepartments" @click="reloadDepartments" />
+              <n-button quaternary native-focus-behavior size="small" aria-label="刷新部门" :aria-busy="departmentRefreshing || departmentLoading" :disabled="!canLoadDepartments || departmentRefreshing || departmentLoading" @mousedown.prevent @click="refreshDepartments">
+                <template #icon>
+                  <Icon name="refresh-cw" :class="{ 'refresh-icon--spinning': departmentRefreshing }" @animationiteration="finishDepartmentRefreshRotation" />
+                </template>
+              </n-button>
             </template>
             刷新
           </n-tooltip>
@@ -60,19 +65,6 @@ const {
       </div>
     </div>
     <n-empty v-else description="暂无岗位查询权限" />
-    <n-modal v-model:show="showDetail" preset="card" title="岗位详情" :style="{ width: '640px', maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto' }" :mask-closable="true">
-      <n-descriptions v-if="detail" :column="1" label-placement="left" bordered>
-        <n-descriptions-item label="岗位名称">{{ detail.postName }}</n-descriptions-item>
-        <n-descriptions-item label="岗位编码">{{ detail.postCode }}</n-descriptions-item>
-        <n-descriptions-item label="岗位 ID">{{ detail.id }}</n-descriptions-item>
-        <n-descriptions-item label="所属部门">{{ departmentName(detail.deptId) }}</n-descriptions-item>
-        <n-descriptions-item label="显示排序">{{ detail.sort }}</n-descriptions-item>
-        <n-descriptions-item label="状态"><n-tag :type="getStatusData(detail.status).listClass" :bordered="false">{{ getStatusData(detail.status).label }}</n-tag></n-descriptions-item>
-        <n-descriptions-item label="备注">{{ detail.remark || '—' }}</n-descriptions-item>
-        <n-descriptions-item label="创建时间">{{ detail.createTime || '—' }}</n-descriptions-item>
-        <n-descriptions-item label="更新时间">{{ detail.updateTime || '—' }}</n-descriptions-item>
-      </n-descriptions>
-    </n-modal>
   </div>
 </template>
 
@@ -93,6 +85,16 @@ const {
 .department-toolbar {
   min-height: 34px;
   margin-bottom: 10px;
+}
+
+.refresh-icon--spinning {
+  animation: refresh-rotate 0.6s linear infinite;
+}
+
+@keyframes refresh-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .post-table {

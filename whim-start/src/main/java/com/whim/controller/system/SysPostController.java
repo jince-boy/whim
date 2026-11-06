@@ -33,7 +33,7 @@ public class SysPostController {
     private final ISysPostService postService;
 
     /**
-     * 分页查询岗位。
+     * 分页查询岗位，选择部门时包含该部门及全部下级部门。
      *
      * @param query 岗位筛选及分页条件
      * @return 岗位分页

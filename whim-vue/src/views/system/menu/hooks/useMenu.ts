@@ -56,7 +56,6 @@ export function useMenu() {
       {
         title: '菜单名称',
         key: 'menuName',
-        minWidth: 240,
         render: (row) =>
           h(
             NFlex,
@@ -76,36 +75,31 @@ export function useMenu() {
       {
         title: '菜单类型',
         key: 'menuType',
-        width: 80,
         align: 'center',
         render: (row) => renderDictionaryTag('sys_menu_type', row.menuType),
       },
       {
         title: '路由地址',
         key: 'path',
-        minWidth: 180,
         ellipsis: { tooltip: true },
         render: (row) => row.path || '—',
       },
       {
         title: '路由名称',
         key: 'routeName',
-        minWidth: 140,
         ellipsis: { tooltip: true },
         render: (row) => row.routeName || '—',
       },
       {
         title: '权限标识',
         key: 'perms',
-        minWidth: 200,
         ellipsis: { tooltip: true },
         render: (row) => row.perms || '—',
       },
-      { title: '排序', key: 'sort', width: 70, align: 'center' },
+      { title: '排序', key: 'sort', align: 'center' },
       {
         title: '显示状态',
         key: 'visible',
-        width: 90,
         align: 'center',
         render: (row) =>
           row.menuType === MenuType.BUTTON
@@ -115,17 +109,15 @@ export function useMenu() {
       {
         title: '菜单状态',
         key: 'status',
-        width: 90,
         align: 'center',
         render: (row) => renderDictionaryTag('sys_common_status', row.status),
       },
-      { title: '创建时间', key: 'createTime', width: 180 },
+      { title: '创建时间', key: 'createTime', ellipsis: { tooltip: true } },
     ]
     if (canAdd.value || canEdit.value || canDelete.value) {
       columns.push({
         title: '操作',
         key: 'action',
-        width: 190,
         fixed: 'right',
         render: (row) => {
           const node = catalog.value.byId.get(String(row.id))!

@@ -1,5 +1,7 @@
 # whim-vue
 
+Docker 部署使用本目录的 `Dockerfile`、`docker-compose.yml` 和 `.env.example`，与后端独立构建和启动。完整步骤见 [Docker 部署说明](../docs/docker-deployment.md)。生产域名需要 HTTPS，以支持登录请求使用的 Web Crypto。
+
 This template should help get you started developing with Vue 3 in Vite.
 
 ## Recommended IDE Setup
