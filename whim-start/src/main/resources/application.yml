@@ -3,6 +3,9 @@ server:
 
 # 文件存储：本地目录不自动映射为公开静态资源
 file:
+  management:
+    # 配置云存储前提供独立随机密钥；必须持久保管，替换后旧凭据无法解密。
+    secret-key: ${FILE_STORAGE_SECRET_KEY:}
   storage:
     enabled: true
     default-storage: local
@@ -45,7 +48,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 20MB
-      max-request-size: 20MB
+      max-request-size: 21MB
       enabled: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

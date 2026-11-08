@@ -16,7 +16,7 @@ whim:
     requests-per-minute: 120
 ```
 
-本地开发的私钥保存在这份 YAML 中，与 `whim-vue/.env` 中的公钥配对。Docker 生产部署通过挂载的 `deploy/config/application-prod.yml` 读取后端 `.env` 中的 `REQUEST_ENCRYPTION_PRIVATE_KEY`，覆盖 JAR 内的值；前端独立配置对应公钥，具体步骤见 [Docker 部署说明](docker-deployment.md)。缺少私钥或格式不正确时启动失败，不自动更换密钥。
+本地开发的私钥保存在这份 YAML 中，与 `whim-vue/.env` 中的公钥配对。当前 Docker 部署直接沿用后端镜像内的这份私钥，Compose 不重复注入 `WHIM_REQUESTENCRYPTION_PRIVATEKEY`，避免空环境变量覆盖有效配置。前端公钥在构建时编译进镜像，服务器仅运行镜像时不需要重复填写公钥或上传 `.env`。具体步骤见 [Docker 部署说明](docker-deployment.md)。缺少私钥或格式不正确时启动失败，不自动更换密钥；更换时必须同步更新前后端密钥及相应镜像。
 
 前端 `.env` 直接填写对应公钥的 Base64 字符串，格式示意：
 
@@ -98,7 +98,7 @@ public Result<AuthenticationToken> login(@RequestBody @Valid AuthLoginDTO loginD
 
 `method` 为实际 HTTP 方法的大写形式。`path` 使用实际路径变量值，不含反向代理前缀或 Servlet context path。加密请求的业务参数全部放在 Body 中，不附带查询参数或 Content-Encoding。
 
-标准 JWE Compact 算法固定为 `RSA-OAEP-256` + `A256GCM`，每次加密由 JOSE 库生成新的 AES 密钥和 IV。受保护头包含 `alg`、`enc`、`kid`（公钥 RFC 7638 SHA-256 指纹）、`typ: whim-request+jwe` 和 `cty: application/json`。后端拒绝其他算法、错误指纹、压缩和未知关键头。
+标准 JWE Compact 算法固定为 `RSA-OAEP-256` + `A256GCM`。浏览器提供 SubtleCrypto 时使用 `jose`；HTTP 页面缺少该能力时按需加载 `node-forge` 兼容实现。每次加密使用新的 256 位 AES 密钥、96 位 IV 和 RSA-OAEP 随机种子，随机数来自浏览器密码学随机源 `crypto.getRandomValues`，不回退到 `Math.random`。受保护头包含 `alg`、`enc`、`kid`（公钥 RFC 7638 SHA-256 指纹）、`typ: whim-request+jwe` 和 `cty: application/json`。两种前端实现保持相同协议，后端拒绝其他算法、错误指纹、压缩和未知关键头。
 
 向原业务接口直接发送 `Content-Type: application/json`：
 
@@ -112,6 +112,6 @@ public Result<AuthenticationToken> login(@RequestBody @Valid AuthLoginDTO loginD
 
 HTTP 400 表示明文被拒绝、JSON 或密文无效、请求体过大、密钥或目标不匹配，以及原有参数校验失败；HTTP 429 表示限流。身份、权限和其他业务错误沿用现有规则。响应保持原有 JSON 或文件下载格式。
 
-应用层加密不替代 HTTPS。生产使用 HTTPS，Web Crypto 在开发时允许 localhost 安全上下文。此简化方案不提供一次性凭证或通用防重放能力，登录验证码仍按原业务流程校验和消费。业务代码不记录密码、解密请求体或密钥。
+HTTP 与 HTTPS 均可使用当前请求加密。应用层加密只覆盖请求体，不提供 TLS 的服务器身份校验，也不保护响应或令牌传输。此简化方案不提供一次性凭证或通用防重放能力，登录验证码仍按原业务流程校验和消费。业务代码不记录密码、解密请求体或密钥。
 
 协议参考：[RFC 7516](https://www.rfc-editor.org/rfc/rfc7516)、[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)、[jose](https://github.com/panva/jose)。

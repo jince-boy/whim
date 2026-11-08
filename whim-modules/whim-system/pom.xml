@@ -13,6 +13,11 @@
     <description>系统业务模块</description>
 
     <dependencies>
+        <!-- 文件管理复用存储基础设施 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-file</artifactId>
+        </dependency>
         <!-- Excel 业务模型注解和导入导出能力 -->
         <dependency>
             <groupId>com.whim</groupId>

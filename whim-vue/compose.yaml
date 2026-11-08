@@ -1,0 +1,54 @@
+name: whim-frontend
+
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE:-whim-frontend:local}
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        # 公钥由 Dockerfile 在构建时校验；启动已有镜像无需再次提供。
+        VITE_REQUEST_ENCRYPTION_PUBLIC_KEY: ${VITE_REQUEST_ENCRYPTION_PUBLIC_KEY:-}
+        VITE_APP_TITLE: ${VITE_APP_TITLE:-Whim Vue}
+        VITE_APP_DESCRIPTION: ${VITE_APP_DESCRIPTION:-Whim 后台管理系统}
+        VITE_APP_COPYRIGHT: ${VITE_APP_COPYRIGHT:-Copyright © 2025–Present Whim. All Rights Reserved.}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    # 首次启动从镜像准备模板；保留服务器已修改的模板，之后交给 Nginx 官方入口处理。
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        install -d -m 0755 /app/nginx-templates
+        if [ ! -s /app/nginx-templates/default.conf.template ]; then
+          cp /etc/nginx/templates/default.conf.template /app/nginx-templates/default.conf.template
+        fi
+        exec /docker-entrypoint.sh nginx -g 'daemon off;'
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      BACKEND_ADDRESS: ${BACKEND_ADDRESS:-whim-api:8089}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      NGINX_ENVSUBST_TEMPLATE_DIR: /app/nginx-templates
+      NGINX_ENVSUBST_FILTER: ^(BACKEND_ADDRESS|VITE_API_BASE_URL)$$
+    ports:
+      # 宿主机使用 9191，容器内 Nginx 仍监听 80。
+      - "${FRONTEND_BIND_ADDRESS:-0.0.0.0}:${FRONTEND_PORT:-9191}:80"
+    volumes:
+      - type: bind
+        source: ${NGINX_TEMPLATE_DIR:-/opt/whim/frontend/nginx/templates}
+        target: /app/nginx-templates
+        bind:
+          create_host_path: true
+    networks:
+      - backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+networks:
+  backend:
+    external: true
+    name: ${SHARED_NETWORK_NAME:-my-network}

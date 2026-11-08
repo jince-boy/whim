@@ -25,6 +25,7 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
     VITE_APP_DESCRIPTION=${VITE_APP_DESCRIPTION} \
     VITE_APP_COPYRIGHT=${VITE_APP_COPYRIGHT}
 
+# 公钥只在构建时校验，运行镜像使用编译进前端静态资源的公钥。
 RUN test -n "$VITE_REQUEST_ENCRYPTION_PUBLIC_KEY" \
     && timeout 600 pnpm build
 

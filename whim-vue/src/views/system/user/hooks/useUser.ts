@@ -34,7 +34,9 @@ export function useUser() {
   let active = true
 
   const isSelf = (row: UserItem) => String(row.id) === String(currentUser.user?.userId)
-  const isProtected = (row: UserItem) => row.superAdministrator && !currentUser.roleCode.includes('superadmin')
+  const isProtected = (row: UserItem) =>
+    (row.username === 'admin' && !isSelf(row)) ||
+    (row.superAdministrator && !currentUser.roleCode.includes('superadmin'))
 
   const columns = computed<DataTableColumns<UserItem>>(() => {
     const columns: DataTableColumns<UserItem> = [
@@ -52,22 +54,28 @@ export function useUser() {
       },
       { title: '创建时间', key: 'createTime', ellipsis: { tooltip: true } },
     ]
-    if ((can('system:user:detail') && can('system:user:update')) || can('system:user:delete') ||
-      can('system:user:resetPassword') || (can('system:userRole:list') && can('system:userRole:assign'))) {
+    const canEdit = can('system:user:detail') && can('system:user:update')
+    const canResetPassword = can('system:user:resetPassword')
+    const canAssignRoles = can('system:userRole:list') && can('system:userRole:assign')
+    const canDelete = can('system:user:delete')
+    if (canEdit || canResetPassword || canAssignRoles || canDelete) {
       columns.push({
         title: '操作', key: 'action', fixed: 'right',
-        // 四个操作保留完整文字，其余数据列沿用公共组件默认均分。
+        // 当前最多四项操作，直接显示完整按钮，编辑和删除优先排列。
         width: 260,
-        render: (row) => h(NSpace, { size: 12, wrap: false }, () => [
-          can('system:user:detail') && can('system:user:update')
-            ? h(NButton, { text: true, type: 'warning', disabled: recordLoading.value || isProtected(row), onClick: () => openEditDialog(row.id) }, () => '编辑') : null,
-          can('system:user:delete')
-            ? h(NButton, { text: true, type: 'error', disabled: isSelf(row) || isProtected(row), onClick: () => removeUser(row) }, () => '删除') : null,
-          can('system:user:resetPassword')
-            ? h(NButton, { text: true, type: 'warning', disabled: isProtected(row), onClick: () => openPasswordDialog(row) }, () => '修改密码') : null,
-          can('system:userRole:list') && can('system:userRole:assign')
-            ? h(NButton, { text: true, type: 'primary', disabled: recordLoading.value || isSelf(row) || isProtected(row), onClick: () => openRoleDialog(row) }, () => '分配角色') : null,
-        ]),
+        render: (row) => {
+          const protectedUser = isProtected(row)
+          return h(NSpace, { size: 12, align: 'center', wrap: false }, () => [
+            canEdit
+              ? h(NButton, { text: true, type: 'warning', disabled: recordLoading.value || protectedUser, onClick: () => openEditDialog(row.id) }, () => '编辑') : null,
+            canDelete
+              ? h(NButton, { text: true, type: 'error', disabled: isSelf(row) || protectedUser, onClick: () => removeUser(row) }, () => '删除') : null,
+            canResetPassword
+              ? h(NButton, { text: true, type: 'warning', disabled: protectedUser, onClick: () => openPasswordDialog(row) }, () => '修改密码') : null,
+            canAssignRoles
+              ? h(NButton, { text: true, type: 'primary', disabled: recordLoading.value || isSelf(row) || protectedUser, onClick: () => openRoleDialog(row) }, () => '分配角色') : null,
+          ])
+        },
       })
     }
     return columns

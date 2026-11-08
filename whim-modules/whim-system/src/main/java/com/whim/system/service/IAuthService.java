@@ -12,6 +12,13 @@ import com.whim.system.model.vo.auth.LoginCaptchaVO;
  */
 public interface IAuthService {
     /**
+     * 获取当前用户信息并刷新当前令牌的授权快照。
+     *
+     * @return 当前登录用户信息
+     */
+    AuthUserVO getUserInfo();
+
+    /**
      * 生成与当前客户端地址绑定的登录 GIF 验证码。
      *
      * @param clientAddress 客户端地址
@@ -31,9 +38,4 @@ public interface IAuthService {
      * 注销当前登录会话。
      */
     void logout();
-
-    /**
-     * 获取当前用户信息并刷新当前令牌的授权快照。
-     */
-    AuthUserVO getUserInfo();
 }

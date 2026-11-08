@@ -4,15 +4,22 @@ import { calculateJwkThumbprint, CompactEncrypt, exportJWK } from 'jose'
 const bodyMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 let encryptionKey: Promise<{ publicKey: CryptoKey; keyId: string }> | undefined
 
-/** 从前端单行 Base64 配置导入固定公钥，同一页面只解析一次。 */
-const getEncryptionKey = (): Promise<{ publicKey: CryptoKey; keyId: string }> => {
+/** 读取并校验两种加密实现共用的固定公钥配置。 */
+const getPublicKeyBase64 = (): string => {
+  const publicKeyBase64 = import.meta.env.VITE_REQUEST_ENCRYPTION_PUBLIC_KEY?.trim()
+  if (!publicKeyBase64) throw new Error('请配置请求加密公钥 VITE_REQUEST_ENCRYPTION_PUBLIC_KEY')
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(publicKeyBase64)) {
+    throw new Error('请求加密公钥必须是无头尾标记和换行的单行 Base64 字符串')
+  }
+  return publicKeyBase64
+}
+
+/** 使用浏览器原生能力导入固定公钥，同一页面只解析一次。 */
+const getEncryptionKey = (
+  publicKeyBase64: string,
+): Promise<{ publicKey: CryptoKey; keyId: string }> => {
   if (!encryptionKey) {
     encryptionKey = (async () => {
-      const publicKeyBase64 = import.meta.env.VITE_REQUEST_ENCRYPTION_PUBLIC_KEY?.trim()
-      if (!publicKeyBase64) throw new Error('请配置请求加密公钥 VITE_REQUEST_ENCRYPTION_PUBLIC_KEY')
-      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(publicKeyBase64)) {
-        throw new Error('请求加密公钥必须是无头尾标记和换行的单行 Base64 字符串')
-      }
       const publicKey = await crypto.subtle.importKey(
         'spki',
         Uint8Array.from(atob(publicKeyBase64), (character) => character.charCodeAt(0)),
@@ -47,27 +54,30 @@ export const encryptRequest = async (config: InternalAxiosRequestConfig): Promis
     ) {
       throw new Error('业务请求必须使用项目统一的接口地址')
     }
-    if (!window.isSecureContext || !globalThis.crypto?.subtle) {
-      throw new Error('当前地址无法安全加密请求，请使用 HTTPS 或 localhost 访问')
-    }
     const target = new URL(config.url, window.location.origin)
     if (target.search || target.hash || (config.params && Object.keys(config.params).length)) {
       throw new Error('加密请求的业务参数必须放在 JSON 请求体中')
     }
     if (config.signal?.aborted) throw new CanceledError()
-    const { publicKey, keyId } = await getEncryptionKey()
-    const payload = new TextEncoder().encode(
-      JSON.stringify({ method, path: target.pathname, body: config.data }),
-    )
-    const encryptedData = await new CompactEncrypt(payload)
-      .setProtectedHeader({
-        alg: 'RSA-OAEP-256',
-        enc: 'A256GCM',
-        kid: keyId,
-        typ: 'whim-request+jwe',
-        cty: 'application/json',
-      })
-      .encrypt(publicKey)
+    const publicKeyBase64 = getPublicKeyBase64()
+    const payload = JSON.stringify({ method, path: target.pathname, body: config.data })
+    let encryptedData: string
+    if (globalThis.crypto?.subtle) {
+      const { publicKey, keyId } = await getEncryptionKey(publicKeyBase64)
+      encryptedData = await new CompactEncrypt(new TextEncoder().encode(payload))
+        .setProtectedHeader({
+          alg: 'RSA-OAEP-256',
+          enc: 'A256GCM',
+          kid: keyId,
+          typ: 'whim-request+jwe',
+          cty: 'application/json',
+        })
+        .encrypt(publicKey)
+    } else {
+      // HTTP 不提供 SubtleCrypto，按需加载兼容实现并保持相同的 JWE 协议。
+      const { encryptRequestWithoutWebCrypto } = await import('./requestEncryptionFallback')
+      encryptedData = encryptRequestWithoutWebCrypto(payload, publicKeyBase64)
+    }
     if (config.signal?.aborted) throw new CanceledError()
     config.data = { encryptedData }
     config.headers.setContentType('application/json')

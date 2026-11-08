@@ -1,0 +1,97 @@
+name: whim-backend
+
+services:
+  backend:
+    image: whim-backend:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 45s
+    # 首次启动自动准备挂载目录，随后降权运行应用，避免 root 创建的目录不可写。
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        install -d -m 0750 -o 10001 -g 10001 /app/data/files /app/logs
+        exec setpriv --reuid=10001 --regid=10001 --init-groups -- java -jar /app/app.jar
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: "8089"
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUTPERSHUTDOWNPHASE: 30s
+
+      # 通过 my-network 连接已有的 MySQL 容器，地址只填写容器名。
+      # 直接填写的值如果含有 $，需写成 $$，避免被 Compose 当成变量展开。
+      MYSQL_HOST: mysql8.2
+      MYSQL_PORT: "3306"
+      MYSQL_DB: whim
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "Jince20010413225x."
+      MYSQL_SSL_MODE: REQUIRED
+
+      # redis://redis:6379 拆为主机名和端口；无认证时不要设置用户名和密码环境变量。
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      SPRING_DATA_REDIS_SSL_ENABLED: "false"
+
+      # JWT 使用固定随机密钥；请求加密直接沿用镜像内已与前端配对的私钥。
+      # 不传入空的私钥环境变量，避免覆盖 application.yml 中的有效配置。
+      SATOKEN_JWTSECRETKEY: "c66ccaf919c71f1548a55f8b75a4e9638d7efd3755559d034b9e48487ce3c6e66eb49d3f6728c9162c6f45362e091eed2692d7a35cab425bfbc339fe852a0eb9"
+
+      FILE_STORAGE_PATH: /app/data/files
+      # 云存储凭据加密主密钥，从宿主环境或 .env 注入并持久保管。
+      FILE_STORAGE_SECRET_KEY: ${FILE_STORAGE_SECRET_KEY:-}
+      LOGGING_FILE_NAME: /app/logs/whim.log
+      LOGGING_LOGBACK_ROLLINGPOLICY_MAXFILESIZE: 50MB
+      LOGGING_LOGBACK_ROLLINGPOLICY_MAXHISTORY: "14"
+      LOGGING_LOGBACK_ROLLINGPOLICY_TOTALSIZECAP: 1GB
+      # 生产关闭 SQL 明细日志，避免业务参数进入日志。
+      DECORATOR_DATASOURCE_P6SPY_ENABLELOGGING: "false"
+      # 监控仅在容器回环地址提供，供健康检查使用。
+      MANAGEMENT_SERVER_PORT: "9090"
+      MANAGEMENT_SERVER_ADDRESS: 127.0.0.1
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health
+      MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS: never
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.awt.headless=true -Dfile.encoding=UTF-8"
+    ports:
+      # 宿主机使用 9192；同网络的前端仍通过 whim-api:8089 访问后端。
+      - "9192:8089"
+    volumes:
+      - type: bind
+        source: /opt/whim/backend/files
+        target: /app/data/files
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /opt/whim/backend/logs
+        target: /app/logs
+        bind:
+          create_host_path: true
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "--connect-timeout", "2", "--max-time", "5", "http://127.0.0.1:9090/actuator/health"]
+      interval: 30s
+      timeout: 8s
+      start_period: 120s
+      retries: 5
+    mem_limit: 2g
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      frontend:
+        aliases:
+          - whim-api
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+networks:
+  frontend:
+    external: true
+    name: my-network

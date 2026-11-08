@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
-import com.whim.core.auth.model.DepartmentInfo;
-import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
-import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.DataAccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BCryptUtils;
@@ -21,7 +18,6 @@ import com.whim.mybatisplus.model.enums.DataScopeType;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.mybatisplus.permission.DataPermissionContext;
 import com.whim.system.mapper.SysDeptMapper;
-import com.whim.system.mapper.SysPostMapper;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.user.SysUserAddDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
@@ -31,7 +27,6 @@ import com.whim.system.model.dto.user.SysUserUpdateDTO;
 import com.whim.system.model.entity.SysDept;
 import com.whim.system.model.entity.SysPost;
 import com.whim.system.model.entity.SysRole;
-import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserPost;
 import com.whim.system.model.entity.SysUserRole;
@@ -41,7 +36,6 @@ import com.whim.system.model.vo.user.SysUserDetailVO;
 import com.whim.system.model.vo.user.SysUserRoleOptionVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
-import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysPostService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserPostService;
@@ -63,7 +57,7 @@ import java.util.stream.Collectors;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 用户管理及登录账号的角色、权限信息构建。
+ * @description 用户管理及账号信息查询。
  */
 @Service
 @RequiredArgsConstructor
@@ -73,10 +67,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysPostService postService;
     private final ISysUserPostService userPostService;
     private final ISysRoleService roleService;
-    private final ISysPermissionService permissionService;
     private final ISysUserRoleService userRoleService;
     private final SysDeptMapper deptMapper;
-    private final SysPostMapper postMapper;
 
     /**
      * 按部门分支和用户信息分页查询可见用户。
@@ -309,11 +301,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         boolean departmentChanged = !Objects.equals(originalUser.getDeptId(), user.getDeptId());
         Set<Long> postIds = new LinkedHashSet<>(parameter.getPostIds());
         if (user.getId().equals(authenticationContext.getUserId())) {
-            Set<Long> currentPostIds = userPostService.lambdaQuery().eq(SysUserPost::getUserId, user.getId())
-                    .list().stream().map(SysUserPost::getPostId).collect(Collectors.toSet());
-            // 本人编辑不能扩张组织身份，也不能停用当前登录账号。
-            if (user.getStatus() != 0 || departmentChanged || !currentPostIds.equals(postIds)) {
-                throw new ServiceException("不能停用当前账号或调整自己的部门、岗位");
+            if (user.getStatus() != 0) {
+                throw new ServiceException("不能停用当前登录账号");
+            }
+            // 内置 admin 只能由本人维护组织归属，其他账号仍不能自行扩张组织身份。
+            if (!"admin".equals(originalUser.getUsername())) {
+                Set<Long> currentPostIds = userPostService.lambdaQuery().eq(SysUserPost::getUserId, user.getId())
+                        .list().stream().map(SysUserPost::getPostId).collect(Collectors.toSet());
+                if (departmentChanged || !currentPostIds.equals(postIds)) {
+                    throw new ServiceException("不能调整自己的部门、岗位");
+                }
             }
         }
         DataPermissionContext.checkOwnership("sys_user", user.getId(), user.getDeptId());
@@ -363,7 +360,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public void assignUserRoles(SysUserRoleDTO parameter) {
         validateManagedUser(this.getById(parameter.getId()));
         if (parameter.getId().equals(authenticationContext.getUserId())) {
-            throw new ServiceException("不能修改当前账号的角色，请由其他管理员操作");
+            throw new ServiceException("不能修改当前账号的角色");
         }
         Set<Long> requestedIds = new LinkedHashSet<>(parameter.getRoleIds());
         Set<Long> currentIds = userRoleService.lambdaQuery().eq(SysUserRole::getUserId, parameter.getId())
@@ -435,81 +432,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 构建用户、部门、岗位和角色授权快照，登录时一次性展开各角色的有效部门范围。
-     *
-     * @param user 登录用户
-     * @return 包含部门、岗位和角色授权范围的登录信息
-     */
-    @Override
-    public UserInfo buildUserInfo(SysUser user) {
-        UserInfo info = BeanConvertUtils.convert(user, UserInfo.class);
-        info.setLoginType(AuthUserType.SYSTEM);
-        List<RoleInfo> roles = roleService.getRoleInfoListByUserId(user.getId());
-        info.setRoleInfoList(roles);
-        info.setRoleCodeSet(roles.stream().map(RoleInfo::getRoleCode)
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
-        info.setPermissionRoleIds(permissionService.getPermissionRoleIds(roles));
-        info.setPermissionCodeSet(new LinkedHashSet<>(info.getPermissionRoleIds().keySet()));
-        info.setMenuIdSet(permissionService.getMenuIdsByRoleIds(roles.stream().map(RoleInfo::getRoleId)
-                .collect(Collectors.toSet())));
-
-        List<PostInfo> posts = postMapper.getPostInfoListByUserId(user.getId());
-        Set<Long> departmentIds = new LinkedHashSet<>();
-        if (user.getDeptId() != null) {
-            departmentIds.add(user.getDeptId());
-        }
-        for (PostInfo post : posts) {
-            if (post.getDeptId() != null) {
-                departmentIds.add(post.getDeptId());
-            }
-        }
-        Set<Long> customRoleIds = new LinkedHashSet<>();
-        boolean includeDescendants = false;
-        for (RoleInfo role : roles) {
-            info.getRoleDepartmentIds().put(role.getRoleId(), new LinkedHashSet<>());
-            switch (DataScopeType.fromCode(role.getDataScope())) {
-                case CUSTOM_DEPARTMENTS -> customRoleIds.add(role.getRoleId());
-                case DEPARTMENT_AND_DESCENDANTS -> includeDescendants = true;
-                case ALL, OWN_DEPARTMENT, SELF -> {
-                    // 这些范围不需要额外加载角色部门关系或下级部门。
-                }
-            }
-        }
-        if (!customRoleIds.isEmpty()) {
-            for (SysRoleDept relation : baseMapper.getRoleDepartmentsByRoleIds(customRoleIds)) {
-                info.getRoleDepartmentIds().get(relation.getRoleId()).add(relation.getDeptId());
-                departmentIds.add(relation.getDeptId());
-            }
-        }
-
-        // 主部门、岗位部门和自定义范围共用一次祖先链校验。
-        Map<Long, DepartmentInfo> departments = departmentIds.isEmpty() ? Map.of()
-                : deptMapper.getValidDepartmentsByIds(departmentIds).stream()
-                .collect(Collectors.toMap(DepartmentInfo::getDeptId, department -> department));
-        info.setDepartmentInfo(user.getDeptId() == null ? null : departments.get(user.getDeptId()));
-        info.setPostInfoList(posts.stream()
-                .filter(post -> post.getDeptId() == null || departments.containsKey(post.getDeptId())).toList());
-        Set<Long> descendantIds = includeDescendants && info.getDepartmentInfo() != null
-                ? deptMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
-        for (RoleInfo role : roles) {
-            Set<Long> roleDepartments = info.getRoleDepartmentIds().get(role.getRoleId());
-            switch (DataScopeType.fromCode(role.getDataScope())) {
-                case CUSTOM_DEPARTMENTS -> roleDepartments.retainAll(departments.keySet());
-                case OWN_DEPARTMENT -> {
-                    if (info.getDepartmentInfo() != null) {
-                        roleDepartments.add(user.getDeptId());
-                    }
-                }
-                case DEPARTMENT_AND_DESCENDANTS -> roleDepartments.addAll(descendantIds);
-                case ALL, SELF -> {
-                    // 全部及本人范围由角色范围类型表达，不依赖部门集合。
-                }
-            }
-        }
-        return info;
-    }
-
-    /**
      * 批量识别指定账号中的超级管理员，避免列表逐行查询角色。
      *
      * @param userIds 用户ID集合
@@ -529,13 +451,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 校验目标账号存在且操作者可以管理其管理员身份。
+     * 校验目标账号存在、内置管理员仅限本人维护及超级管理员保护规则。
      *
      * @param user 已按本次操作数据范围查询的用户
      */
     private void validateManagedUser(SysUser user) {
         if (user == null) {
             throw new ServiceException("用户不存在或无权操作");
+        }
+        // admin 的用户名不可修改；即使操作者同为超级管理员，也不能代为维护该账号。
+        if ("admin".equals(user.getUsername()) && !user.getId().equals(authenticationContext.getUserId())) {
+            throw new DataAccessDeniedException("admin账号仅允许本人维护");
         }
         if (!authenticationContext.isSuperAdministrator()
                 && !getSuperAdministratorIds(Set.of(user.getId())).isEmpty()) {

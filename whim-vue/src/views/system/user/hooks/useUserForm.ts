@@ -19,6 +19,11 @@ export function useUserForm(props: UserFormProps) {
   })
   const isEdit = computed(() => props.initialModel != null)
   const isSelf = computed(() => isEdit.value && String(props.initialModel?.id) === String(currentUser.user?.userId))
+  const isBuiltInAdministrator = computed(() => props.initialModel?.username === 'admin')
+  const organizationReadonly = computed(() => isSelf.value && !isBuiltInAdministrator.value)
+  const selfEditNotice = computed(() => isBuiltInAdministrator.value
+    ? 'admin账号仅限本人维护，可修改个人资料、部门和岗位，不能停用或删除当前登录账号。'
+    : '当前账号的部门、岗位和状态需由其他管理员调整。')
   const { selection, loading, error, canLoad, reload } = useDeptOptions(() => formModel.value.status === 0)
   const departmentOptions = computed(() => {
     const current = props.initialModel
@@ -40,7 +45,7 @@ export function useUserForm(props: UserFormProps) {
 
   /** 岗位搜索使用真实分页，切换关键词时丢弃过期响应，保留已选项的回显。 */
   async function loadPosts(reset = false) {
-    if (!canLoadPosts.value || isSelf.value || (!reset && postLoading.value)) return
+    if (!canLoadPosts.value || organizationReadonly.value || (!reset && postLoading.value)) return
     const version = reset ? ++postVersion : postVersion
     const pageNum = reset ? 1 : postPage.value + 1
     if (reset) posts.value = []
@@ -103,7 +108,7 @@ export function useUserForm(props: UserFormProps) {
   onScopeDispose(() => postVersion++)
 
   return {
-    formRef, formModel, isEdit, isSelf,
+    formRef, formModel, isEdit, isSelf, organizationReadonly, selfEditNotice,
     rules: computed(() => createUserRules(() => isEdit.value, () => formModel.value.password)),
     statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     genderOptions: computed(() => dictionary.getDictNumberOptions('sys_user_gender')),

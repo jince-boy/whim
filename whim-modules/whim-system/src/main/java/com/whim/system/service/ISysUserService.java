@@ -1,7 +1,6 @@
 package com.whim.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.whim.core.auth.model.UserInfo;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.model.dto.user.SysUserAddDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
@@ -18,7 +17,7 @@ import java.util.Set;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 用户管理及登录认证信息构建。
+ * @description 用户管理及账号信息查询。
  */
 public interface ISysUserService extends IService<SysUser> {
     /**
@@ -111,12 +110,4 @@ public interface ISysUserService extends IService<SysUser> {
      * @param id 用户ID
      */
     void deleteUser(Long id);
-
-    /**
-     * 构建登录账号的部门、岗位、角色、精确权限及角色部门范围快照。
-     *
-     * @param user 登录用户
-     * @return 包含部门、岗位和角色授权范围的登录信息
-     */
-    UserInfo buildUserInfo(SysUser user);
 }

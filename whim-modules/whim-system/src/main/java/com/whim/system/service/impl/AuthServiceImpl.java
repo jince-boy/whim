@@ -3,7 +3,11 @@ package com.whim.system.service.impl;
 import com.wf.captcha.GifCaptcha;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.AuthenticationToken;
+import com.whim.core.auth.model.DepartmentInfo;
+import com.whim.core.auth.model.PostInfo;
+import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.TooManyRequestsException;
 import com.whim.core.exception.UserDisableException;
@@ -13,24 +17,36 @@ import com.whim.core.utils.BCryptUtils;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.core.utils.IPUtils;
 import com.whim.core.utils.IdUtils;
+import com.whim.mybatisplus.model.enums.DataScopeType;
 import com.whim.redis.utils.RedisUtils;
+import com.whim.system.mapper.SysDeptMapper;
+import com.whim.system.mapper.SysPostMapper;
+import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
+import com.whim.system.service.ISysPermissionService;
+import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RateType;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jince
  * @date 2026/07/03
- * @description 认证服务实现类
+ * @description 登录认证及用户授权快照构建。
  */
 @Service
 @RequiredArgsConstructor
@@ -45,6 +61,12 @@ public class AuthServiceImpl implements IAuthService {
      */
     private final ISysUserService sysUserService;
 
+    private final ISysRoleService roleService;
+    private final ISysPermissionService permissionService;
+    private final SysDeptMapper deptMapper;
+    private final SysPostMapper postMapper;
+    private final SysUserMapper userMapper;
+
     /**
      * 当前请求认证上下文
      */
@@ -54,6 +76,25 @@ public class AuthServiceImpl implements IAuthService {
      * 认证会话操作对象
      */
     private final AuthenticationSession authenticationSession;
+
+    /**
+     * 查询当前账号并刷新部门、岗位、角色及完整授权快照。
+     *
+     * @return 当前登录用户信息
+     */
+    @Override
+    public AuthUserVO getUserInfo() {
+        SysUser user = sysUserService.getById(authenticationContext.getUserId());
+        if (user == null) {
+            throw new UserNotFoundException("当前登录用户不存在");
+        }
+        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
+            throw new UserDisableException("用户已被禁用");
+        }
+        UserInfo userInfo = buildUserInfo(user);
+        authenticationSession.updateUserInfo(userInfo);
+        return BeanConvertUtils.convert(userInfo, AuthUserVO.class);
+    }
 
     /**
      * 生成 GIF 验证码，并按 UUID 和客户端地址保存答案。
@@ -99,13 +140,21 @@ public class AuthServiceImpl implements IAuthService {
             throw new UserDisableException("用户已被禁用");
         }
 
-        return authenticationSession.login(sysUserService.buildUserInfo(user));
+        return authenticationSession.login(buildUserInfo(user));
+    }
+
+    /**
+     * 注销当前登录会话。
+     */
+    @Override
+    public void logout() {
+        authenticationSession.logout();
     }
 
     /**
      * 根据 UUID 和客户端地址一次性取出验证码，分别提示过期和答案错误。
      *
-     * @param loginDTO      登录参数
+     * @param loginDTO 登录参数
      */
     private void validateCaptcha(AuthLoginDTO loginDTO) {
         String captchaKey = CAPTCHA_KEY_PREFIX + loginDTO.getUuid() + ":" + IPUtils.getClientIpAddress();
@@ -119,25 +168,76 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     /**
-     * 注销当前登录会话。
+     * 构建用户、部门、岗位和角色授权快照，登录时一次性展开各角色的有效部门范围。
+     *
+     * @param user 登录用户
+     * @return 包含部门、岗位和角色授权范围的登录信息
      */
-    @Override
-    public void logout() {
-        authenticationSession.logout();
-    }
+    private UserInfo buildUserInfo(SysUser user) {
+        UserInfo info = BeanConvertUtils.convert(user, UserInfo.class);
+        info.setLoginType(AuthUserType.SYSTEM);
+        List<RoleInfo> roles = roleService.getRoleInfoListByUserId(user.getId());
+        info.setRoleInfoList(roles);
+        info.setRoleCodeSet(roles.stream().map(RoleInfo::getRoleCode)
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
+        info.setPermissionRoleIds(permissionService.getPermissionRoleIds(roles));
+        info.setPermissionCodeSet(new LinkedHashSet<>(info.getPermissionRoleIds().keySet()));
+        info.setMenuIdSet(permissionService.getMenuIdsByRoleIds(roles.stream().map(RoleInfo::getRoleId)
+                .collect(Collectors.toSet())));
 
-    /** 查询当前账号并刷新部门、岗位、角色及完整授权快照。 */
-    @Override
-    public AuthUserVO getUserInfo() {
-        SysUser user = sysUserService.getById(authenticationContext.getUserId());
-        if (user == null) {
-            throw new UserNotFoundException("当前登录用户不存在");
+        List<PostInfo> posts = postMapper.getPostInfoListByUserId(user.getId());
+        Set<Long> departmentIds = new LinkedHashSet<>();
+        if (user.getDeptId() != null) {
+            departmentIds.add(user.getDeptId());
         }
-        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
-            throw new UserDisableException("用户已被禁用");
+        for (PostInfo post : posts) {
+            if (post.getDeptId() != null) {
+                departmentIds.add(post.getDeptId());
+            }
         }
-        UserInfo userInfo = sysUserService.buildUserInfo(user);
-        authenticationSession.updateUserInfo(userInfo);
-        return BeanConvertUtils.convert(userInfo, AuthUserVO.class);
+        Set<Long> customRoleIds = new LinkedHashSet<>();
+        boolean includeDescendants = false;
+        for (RoleInfo role : roles) {
+            info.getRoleDepartmentIds().put(role.getRoleId(), new LinkedHashSet<>());
+            switch (DataScopeType.fromCode(role.getDataScope())) {
+                case CUSTOM_DEPARTMENTS -> customRoleIds.add(role.getRoleId());
+                case DEPARTMENT_AND_DESCENDANTS -> includeDescendants = true;
+                case ALL, OWN_DEPARTMENT, SELF -> {
+                    // 这些范围不需要额外加载角色部门关系或下级部门。
+                }
+            }
+        }
+        if (!customRoleIds.isEmpty()) {
+            for (SysRoleDept relation : userMapper.getRoleDepartmentsByRoleIds(customRoleIds)) {
+                info.getRoleDepartmentIds().get(relation.getRoleId()).add(relation.getDeptId());
+                departmentIds.add(relation.getDeptId());
+            }
+        }
+
+        // 主部门、岗位部门和自定义范围共用一次祖先链校验。
+        Map<Long, DepartmentInfo> departments = departmentIds.isEmpty() ? Map.of()
+                : deptMapper.getValidDepartmentsByIds(departmentIds).stream()
+                .collect(Collectors.toMap(DepartmentInfo::getDeptId, department -> department));
+        info.setDepartmentInfo(user.getDeptId() == null ? null : departments.get(user.getDeptId()));
+        info.setPostInfoList(posts.stream()
+                .filter(post -> post.getDeptId() == null || departments.containsKey(post.getDeptId())).toList());
+        Set<Long> descendantIds = includeDescendants && info.getDepartmentInfo() != null
+                ? deptMapper.getValidDepartmentAndDescendantIds(user.getDeptId()) : Set.of();
+        for (RoleInfo role : roles) {
+            Set<Long> roleDepartments = info.getRoleDepartmentIds().get(role.getRoleId());
+            switch (DataScopeType.fromCode(role.getDataScope())) {
+                case CUSTOM_DEPARTMENTS -> roleDepartments.retainAll(departments.keySet());
+                case OWN_DEPARTMENT -> {
+                    if (info.getDepartmentInfo() != null) {
+                        roleDepartments.add(user.getDeptId());
+                    }
+                }
+                case DEPARTMENT_AND_DESCENDANTS -> roleDepartments.addAll(descendantIds);
+                case ALL, SELF -> {
+                    // 全部及本人范围由角色范围类型表达，不依赖部门集合。
+                }
+            }
+        }
+        return info;
     }
 }
