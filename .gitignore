@@ -44,3 +44,6 @@ build/
 .cursor
 
 CLAUDE.md
+
+/whim-backend.tar
+/whim-vue/whim-frontend.tar

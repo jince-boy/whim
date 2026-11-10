@@ -1,6 +1,6 @@
 # whim-vue
 
-Docker 本地构建使用本目录的 `Dockerfile`、`compose.yaml` 和 `.env`，与后端独立构建和启动。服务器导入镜像后只需上传 `compose.yaml`，使用默认部署参数时无需 `.env`；Nginx 模板目录在首次启动时自动初始化。完整步骤见 [Docker 部署说明](../docs/docker-deployment.md)。HTTP 和 HTTPS 均支持请求加密；缺少浏览器 SubtleCrypto 时按需加载兼容实现，仍发送相同格式的 JWE 密文。
+Docker 本地构建使用本目录的 `Dockerfile`、`compose.yaml` 和 `.env`，与后端独立构建和启动。服务器导入镜像后只需上传 `compose.yaml`，使用默认部署参数时无需 `.env`；Nginx 模板目录在首次启动时自动初始化。完整步骤见 [Docker 部署说明](../docs/部署指南.md)。HTTP 和 HTTPS 均支持请求加密；缺少浏览器 SubtleCrypto 时按需加载兼容实现，仍发送相同格式的 JWE 密文。
 
 This template should help get you started developing with Vue 3 in Vite.
 
