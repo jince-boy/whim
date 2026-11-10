@@ -25,6 +25,7 @@ const goHome = () => {
 
 <style scoped lang="scss">
 .not-found-container {
+  box-sizing: border-box;
   height: 100vh;
   //background-color: #33cc99;
   display: flex;

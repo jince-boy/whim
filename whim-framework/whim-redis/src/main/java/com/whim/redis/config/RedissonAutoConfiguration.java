@@ -1,6 +1,8 @@
 package com.whim.redis.config;
 
 import com.whim.redis.config.properties.RedissonProperties;
+import com.whim.redis.executor.RedissonReadLockExecutor;
+import com.whim.redis.executor.RedissonWriteLockExecutor;
 import com.whim.redis.handler.KeyPrefixHandler;
 import com.whim.redis.utils.RedisUtils;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.util.StringUtils;
@@ -120,6 +123,30 @@ public class RedissonAutoConfiguration {
     @Bean
     public RedisUtils.Initializer redisUtilsInitializer(RedissonClient redissonClient) {
         return new RedisUtils.Initializer(redissonClient);
+    }
+
+    /**
+     * 注册供Lock4j显式选择的读锁执行器，不替换默认互斥锁。
+     *
+     * @param redissonClient Redis客户端
+     * @return 读锁执行器
+     */
+    @Bean
+    @Order(200)
+    public RedissonReadLockExecutor redissonReadLockExecutor(RedissonClient redissonClient) {
+        return new RedissonReadLockExecutor(redissonClient);
+    }
+
+    /**
+     * 注册供Lock4j显式选择的写锁执行器，与同资源的读锁互斥。
+     *
+     * @param redissonClient Redis客户端
+     * @return 写锁执行器
+     */
+    @Bean
+    @Order(201)
+    public RedissonWriteLockExecutor redissonWriteLockExecutor(RedissonClient redissonClient) {
+        return new RedissonWriteLockExecutor(redissonClient);
     }
 
     /**

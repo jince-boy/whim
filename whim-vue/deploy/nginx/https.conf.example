@@ -12,8 +12,8 @@ server {
     ssl_certificate /etc/nginx/certs/admin.example.com/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/admin.example.com/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    # 为20 MiB文件保留 multipart 请求封装空间。
-    client_max_body_size 21m;
+    # 与后端200 MiB上传上限一致，并为 multipart 请求封装保留空间。
+    client_max_body_size 201m;
 
     location / {
         proxy_pass http://127.0.0.1:9191;

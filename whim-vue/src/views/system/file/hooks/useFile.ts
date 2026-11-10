@@ -1,12 +1,13 @@
-import { computed, h, onMounted, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import dayjs from 'dayjs'
 import {
   NButton,
   NSpace,
+  NSpin,
   NTag,
   useThemeVars,
   type DataTableColumns,
   type GlobalThemeOverrides,
-  type UploadCustomRequestOptions,
 } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
@@ -14,7 +15,10 @@ import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
 import StorageForm from '../form.vue'
+import FileThumbnail from '../components/FileThumbnail.vue'
 import * as api from './api'
+import { useFileUpload } from './useFileUpload'
+import { formatFileSize as formatSize } from '../utils'
 import type { FileItem, FileQuery, StorageItem } from './types'
 
 /** 文件及存储配置共用一个页面，各操作遵循独立功能权限。 */
@@ -24,7 +28,6 @@ export function useFile() {
   const themeVars = useThemeVars()
   const tabThemeOverrides = computed<GlobalThemeOverrides['Tabs']>(() => ({
     tabBorderRadius: '6px',
-    tabPaddingMediumSegment: '8px 16px',
     tabTextColorActiveSegment: themeVars.value.primaryColor,
     tabTextColorHoverSegment: themeVars.value.primaryColor,
   }))
@@ -35,26 +38,16 @@ export function useFile() {
   const canStorage = computed(() => can('storageList'))
   const canUpload = computed(() => can('upload'))
   const canDelete = computed(() => can('delete'))
-  const canDownload = computed(() => can('download'))
   const activeTab = ref(canView.value ? 'files' : 'storage')
-  const uploading = ref(false)
-  const uploadProgress = ref(0)
-  const uploadLimit = ref<number>()
   const downloadingId = ref<string>()
   const deleting = ref(false)
   const platformLabel = (value: string) =>
     dictionary.getDictData('sys_file_storage_platform', value)
-
-  /** 使用字节单位展示真实大小，兼容后端字符串形式的 Long。 */
-  function formatSize(size: string | number) {
-    const bytes = Number(size)
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-  }
+  const platformOptions = computed(() => dictionary.getDictOptions('sys_file_storage_platform'))
+  const uploadSourceOptions = computed(() => dictionary.getDictOptions('sys_file_upload_source'))
 
   const fileColumns = computed<DataTableColumns<FileItem>>(() => [
-    ...(canDelete.value || canDownload.value
+    ...(canDelete.value
       ? [
           {
             type: 'selection' as const,
@@ -63,9 +56,29 @@ export function useFile() {
           },
         ]
       : []),
-    { title: '文件名称', key: 'originalName', minWidth: 200, ellipsis: { tooltip: true } },
+    {
+      title: '缩略图',
+      key: 'thumbnail',
+      width: 80,
+      align: 'center',
+      render: (row) => h(FileThumbnail, { file: row, canPreview: can('download') }),
+    },
+    { title: '文件名称', key: 'fileName', minWidth: 220, ellipsis: { tooltip: true } },
+    { title: '原文件名称', key: 'originalName', minWidth: 220, ellipsis: { tooltip: true } },
+    { title: '文件后缀', key: 'fileSuffix', width: 90, render: (row) => row.fileSuffix || '—' },
     { title: '大小', key: 'fileSize', width: 100, render: (row) => formatSize(row.fileSize) },
-    { title: '内容类型', key: 'contentType', width: 170, ellipsis: { tooltip: true } },
+    { title: '文件类型', key: 'contentType', width: 170, ellipsis: { tooltip: true } },
+    {
+      title: '上传途径',
+      key: 'uploadSource',
+      width: 140,
+      ellipsis: { tooltip: true },
+      render: (row) => {
+        if (!row.uploadSource) return '—'
+        const item = dictionary.getDictData('sys_file_upload_source', row.uploadSource)
+        return h(NTag, { size: 'small', bordered: false, type: item.listClass }, () => item.label)
+      },
+    },
     { title: '存储配置', key: 'storageName', width: 150, ellipsis: { tooltip: true } },
     {
       title: '存储类型',
@@ -76,6 +89,13 @@ export function useFile() {
         return h(NTag, { size: 'small', bordered: false, type: item.listClass }, () => item.label)
       },
     },
+    {
+      title: '上传人',
+      key: 'createByName',
+      width: 140,
+      ellipsis: { tooltip: true },
+      render: (row) => row.createByName || row.createBy || '—',
+    },
     { title: '上传时间', key: 'createTime', width: 180 },
     {
       title: '操作',
@@ -83,7 +103,7 @@ export function useFile() {
       width: 150,
       fixed: 'right',
       render: (row) =>
-        h(NSpace, { size: 12, wrap: false }, () => [
+        h(NSpace, { size: 12, align: 'center', wrap: false, wrapItem: false }, () => [
           can('download')
             ? h(
                 NButton,
@@ -91,11 +111,16 @@ export function useFile() {
                   text: true,
                   size: 'small',
                   type: 'info',
-                  loading: downloadingId.value === row.id,
+                  style: { width: '2em' },
+                  'aria-label': '下载',
+                  'aria-busy': downloadingId.value === row.id,
                   disabled: !!downloadingId.value || deleting.value,
                   onClick: () => download(row),
                 },
-                () => '下载',
+                () =>
+                  downloadingId.value === row.id
+                    ? h(NSpin, { size: 14, stroke: themeVars.value.infoColor })
+                    : '下载',
               )
             : null,
           can('delete')
@@ -118,14 +143,61 @@ export function useFile() {
     title: '文件列表',
     columns: fileColumns,
     rowKey: (row) => row.id,
-    scrollX: 1080,
-    request: api.getFilePage,
+    scrollX: 1900,
+    request: ({ dateRange, ...query }) =>
+      api.getFilePage({
+        ...query,
+        fileName: query.fileName.trim(),
+        originalName: query.originalName.trim(),
+        fileSuffix: query.fileSuffix.trim(),
+        startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : undefined,
+        endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : undefined,
+      }),
     immediate: canView.value,
     search: {
-      defaultValues: { originalName: '', storageId: null },
+      defaultValues: {
+        fileName: '',
+        originalName: '',
+        fileSuffix: '',
+        storageId: null,
+        platform: null,
+        uploadSource: null,
+        dateRange: null,
+      },
       fields: [
-        { key: 'originalName', label: '文件名称' },
-        ...(canStorage.value ? [{ key: 'storageId' as const, label: '存储配置' }] : []),
+        { key: 'fileName', label: '文件名称' },
+        { key: 'originalName', label: '原文件名称' },
+        ...(canStorage.value
+          ? [
+              {
+                key: 'storageId' as const,
+                label: '存储配置',
+                format: (values: Readonly<FileQuery>) =>
+                  storageOptions.value.find((item) => item.value === values.storageId)?.label ??
+                  String(values.storageId),
+              },
+            ]
+          : []),
+        { key: 'fileSuffix', label: '文件后缀' },
+        {
+          key: 'platform',
+          label: '存储类型',
+          format: (values) => platformLabel(values.platform ?? '').label,
+        },
+        {
+          key: 'uploadSource',
+          label: '上传途径',
+          format: (values) =>
+            dictionary.getDictData('sys_file_upload_source', values.uploadSource ?? '').label,
+        },
+        {
+          key: 'dateRange',
+          label: '上传时间',
+          format: (values) =>
+            values.dateRange
+              ?.map((time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'))
+              .join(' 至 ') ?? '',
+        },
       ],
     },
   }))
@@ -258,7 +330,7 @@ export function useFile() {
   /** 删除前由后端检查默认项及文件引用。 */
   function removeStorage(row: StorageItem) {
     openDeleteDialog({
-      content: `确定删除存储配置“${row.name}”？仍有文件的配置无法删除。`,
+      content: `确定删除存储配置“${row.name}”？仍有文件或未完成上传任务的配置无法删除。`,
       onSubmit: () => api.deleteStorage(row.id),
       onSuccess: async () => {
         if (files.searchModel.value.storageId === row.id) files.searchModel.value.storageId = null
@@ -272,7 +344,14 @@ export function useFile() {
     if (deleting.value || downloadingId.value) return
     openDeleteDialog({
       content: `确定永久删除文件“${row.originalName}”？存储中的文件会同时删除，无法恢复。`,
-      onSubmit: () => api.deleteFile(row.id),
+      onSubmit: async () => {
+        deleting.value = true
+        try {
+          return await api.deleteFile(row.id)
+        } finally {
+          deleting.value = false
+        }
+      },
       onSuccess: () => files.reload(),
     })
   }
@@ -302,8 +381,11 @@ export function useFile() {
           // 请求错误由公共拦截器提示；下方同时报告本次实际完成的数量。
         } finally {
           files.setCheckedRowKeys(selected.slice(deletedCount).map((row) => row.id))
-          if (deletedCount) await files.reload()
-          deleting.value = false
+          try {
+            if (deletedCount) await files.reload()
+          } finally {
+            deleting.value = false
+          }
         }
         if (deletedCount === selected.length) message.success(`已删除 ${deletedCount} 个文件`)
         else
@@ -313,13 +395,6 @@ export function useFile() {
         return true
       },
     })
-  }
-
-  /** 工具栏下载当前唯一选中的文件，与行内下载共用认证和加载状态。 */
-  async function downloadSelectedFile() {
-    if (selectedFiles.value.length !== 1) return
-    const file = selectedFiles.value[0]
-    if (file) await download(file)
   }
 
   /** 下载请求通过公共客户端携带登录凭据。 */
@@ -335,77 +410,27 @@ export function useFile() {
     }
   }
 
-  /** 校验真实文件大小，上传完成后才刷新服务器列表。 */
-  async function upload(options: UploadCustomRequestOptions) {
-    const file = options.file.file
-    if (!file || uploading.value) {
-      options.onError()
-      return
-    }
-    if (!uploadLimit.value || !file.size || file.size > uploadLimit.value) {
-      message.error(`请选择非空且不超过 ${formatSize(uploadLimit.value ?? 0)} 的文件`)
-      options.onError()
-      return
-    }
-    uploading.value = true
-    uploadProgress.value = 0
-    try {
-      const result = await api.uploadFile(file, (percent) => {
-        uploadProgress.value = percent
-        options.onProgress({ percent })
-      })
-      if (result.code !== 200) {
-        message.error(result.message)
-        options.onError()
-        return
-      }
-      options.onFinish()
-      message.success('文件上传成功')
-      await files.reload()
-    } catch {
-      options.onError()
-    } finally {
-      uploading.value = false
-    }
-  }
-
-  /** 从真实后端获取限制，加载失败时保持上传禁用。 */
-  async function loadUploadLimit() {
-    if (!canUpload.value) return
-    try {
-      const response = await api.getUploadLimit()
-      if (response.code === 200) uploadLimit.value = Number(response.data)
-      else message.error(response.message)
-    } catch {
-      /* 公共请求层提示错误。 */
-    }
-  }
-  onMounted(loadUploadLimit)
+  const uploads = useFileUpload(canUpload, () => files.reload())
   return {
     themeVars,
     tabThemeOverrides,
-    can,
     canView,
     canStorage,
     canUpload,
     canDelete,
-    canDownload,
     activeTab,
     registerFiles,
     registerStorage,
     form: files.searchModel,
     storageOptions,
-    uploading,
-    uploadProgress,
+    platformOptions,
+    uploadSourceOptions,
+    ...uploads,
     deleting,
     downloadingId,
     selectedFiles,
-    uploadLimit,
     formatSize,
     addStorage,
-    upload,
-    loadUploadLimit,
     removeSelectedFiles,
-    downloadSelectedFile,
   }
 }

@@ -15,7 +15,6 @@ import com.whim.system.service.ISysDictTypeService;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,10 +94,13 @@ public class SysDictTypeController {
 
     /**
      * 批量删除字典类型，支持逗号分隔或重复查询参数。
+     *
+     * @param dictTypeIds 字典类型id列表
+     * @return 字典类型删除结果
      */
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:dictType:delete")
-    public Result<Void> deleteDictTypes(List<Long> dictTypeIds) {
+    public Result<Void> deleteDictTypes(@RequestParam("dictTypeIds") List<Long> dictTypeIds) {
         dictService.deleteDictTypes(dictTypeIds);
         return Result.success("字典类型删除成功");
     }

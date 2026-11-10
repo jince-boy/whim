@@ -11,6 +11,14 @@
     <description>统一文件存储与流式传输</description>
     <dependencies>
         <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-imaging</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.whim</groupId>
             <artifactId>whim-core</artifactId>
         </dependency>

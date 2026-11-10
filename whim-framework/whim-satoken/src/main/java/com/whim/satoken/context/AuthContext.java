@@ -6,6 +6,7 @@ import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.model.UserInfo;
 import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Objects;
 
@@ -33,13 +34,14 @@ public class AuthContext implements AuthenticationContext {
     }
 
     /**
-     * 判断当前请求是否已完成登录认证。
+     * 判断当前请求是否已完成登录认证，后台任务没有登录身份。
      *
      * @return true 表示当前请求已登录
      */
     @Override
     public boolean isLogin() {
-        return StpAuthManager.isLogin();
+        // 定时清理等后台任务也会触发审计填充，不应访问不存在的 Servlet 上下文。
+        return RequestContextHolder.getRequestAttributes() != null && StpAuthManager.isLogin();
     }
 
     /**

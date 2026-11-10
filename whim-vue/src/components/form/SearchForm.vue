@@ -113,6 +113,10 @@ defineExpose({ submit, reset, validate, restoreValidation })
   width: 100%;
 }
 
+.search-form :deep(.n-form-item-label__text) {
+  white-space: nowrap;
+}
+
 .search-form__summary {
   margin-top: 16px;
 }

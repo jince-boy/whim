@@ -65,6 +65,7 @@ const {
 .tab {
   --tab-color-transition: 0.3s var(--n-bezier);
 
+  box-sizing: border-box;
   height: 36px;
   background-color: var(--card-color);
   border-bottom: 1px solid var(--divider-color);

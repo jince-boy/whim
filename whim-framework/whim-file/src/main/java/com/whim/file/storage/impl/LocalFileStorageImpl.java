@@ -41,11 +41,15 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
     private static final int PART_HEADER_SIZE = Long.BYTES * 2 + 16 + 32;
     private final Path root;
 
-    /** 创建受信任的配置根目录并固定其真实位置。 */
+    /**
+     * 校验当前系统的配置根目录并固定其真实位置。
+     *
+     * @param properties 本地存储配置
+     */
     public LocalFileStorageImpl(LocalStorageProperties properties) {
         super("local", properties.getName());
         try {
-            Path configuredRoot = Path.of(properties.getBasePath()).toAbsolutePath().normalize();
+            Path configuredRoot = StoragePath.resolveLocalRoot(properties.getBasePath());
             Files.createDirectories(configuredRoot);
             root = configuredRoot.toRealPath();
         } catch (IOException exception) {
@@ -146,7 +150,14 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         return false;
     }
 
-    /** 使用任务 ID 创建独立目录，重复初始化同一任务不会生成孤儿目录。 */
+    /**
+     * 使用稳定的存储任务标识创建独立目录，重复初始化时复用已有会话。
+     *
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @param taskId 全局唯一的32位小写十六进制存储任务标识
+     * @return 本地上传会话标识，与传入的存储任务标识一致
+     */
     @Override
     public String initiateUpload(String key, String contentType, String taskId) {
         try {

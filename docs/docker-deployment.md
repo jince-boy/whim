@@ -109,6 +109,19 @@ curl --connect-timeout 3 --max-time 15 http://127.0.0.1:9191/api/system/auth/cap
 
 前端通过 `NGINX_ENVSUBST_TEMPLATE_DIR` 使用映射后的模板目录，镜像内的原始模板仍保留在 `/etc/nginx/templates`，因此空宿主机目录不会遮住模板来源。前端静态页面保存在镜像中，不挂载空目录覆盖它们。Nginx 日志由 Docker 收集，后端文件日志保存在上述 `logs` 目录。
 
+## 文件上传的 Windows / Linux 部署约束
+
+- 文件管理页面使用数据库 `sys_file_storage` 中的存储配置；`FILE_STORAGE_PATH` 只配置文件模块的默认实例，不会覆盖数据库中已有的本地目录。Linux 容器内的文件管理配置应填写 `/app/data/files`，对应宿主机 `/opt/whim/backend/files`。不能直接沿用 Windows 的 `D:\\...` 目录，也不能在容器中填写宿主机路径。
+- 普通相对目录允许用于开发，会在保存配置时按当前工作目录解析成绝对目录；生产配置使用容器内的绝对路径。代码拒绝 Linux 下的 Windows 盘符、反斜杠，以及 Windows 下缺少完整盘符的根路径，避免静默写入错误目录。
+- 迁移已有本地文件时，需要同时保留数据库记录、存储配置 ID 和文件的相对对象路径。已有文件或未结束上传任务的配置禁止在管理页面改位置；正式迁移需先停写并备份，完整复制原存储目录，核对文件和目录权限，再按原存储配置 ID 调整数据库中的 `base_path`。仅新增一个默认配置不会改变历史文件的读取位置。未完成任务的 `.multipart` 目录也必须一起迁移，且仍受任务有效期限制。
+- 容器运行用户为 UID/GID `10001:10001`。挂载目录及迁移进来的子目录、文件都需要相应的读写权限；Compose 的启动步骤只准备根目录，不会递归修改已有文件的所有者。上传请求的临时目录也需要可写空间。
+- 本地分片目录和正式文件目录应位于同一支持原子移动的文件系统，不要单独挂载 `.multipart` 或某个对象子目录到另一块盘。合并期间还会生成完整的临时文件，磁盘容量需覆盖分片和合并内容。Java 对原子移动的支持取决于文件系统，跨卷可能失败，代码不会通过直接覆盖正式文件来掩盖失败。[JDK Files.move 文档](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...))
+- 单文件默认上限为 200 MiB，当前分片大小为 8 MiB。后端 multipart 总请求上限和前端 Nginx、HTTPS 网关示例均配置为 201 MiB，兼容普通上传的表单封装开销。服务器上已存在的 Nginx 模板不会被新镜像覆盖，更新部署时也要将保留模板中的 `client_max_body_size` 调整为 `201m`，并核对外层网关限制。
+- 文件物理名称统一使用 UUID 和安全后缀，原名称只用于元数据与下载展示；普通上传和分片上传复用同一命名规则，避免 Linux 可接受的特殊字符及过长后缀导致 Windows 存储失败。
+- 普通 HTTP 地址下，上传请求标识使用 `crypto.getRandomValues` 生成 32 位十六进制字符串，不依赖仅在安全上下文中可用的 `crypto.randomUUID`，保持与项目现有 HTTP 登录兼容方案一致。[Web Crypto 标准](https://w3c.github.io/webcrypto/#crypto-interface)
+
+上述为代码和部署配置约束，不能代替目标 Linux 环境上的实际上传、暂停继续、取消、合并及重启恢复验证。当前页面任务未持久化到浏览器，刷新页面或关闭浏览器后不会自动恢复队列。
+
 ## HTTPS 和前后端通信
 
 同一 Docker 网络内，前端通过 `whim-api:8089` 访问后端；从宿主机或其他服务器访问后端时使用 `9192`。跨服务器部署时，前端的 `BACKEND_ADDRESS` 应改为后端私网地址，例如 `10.0.0.10:9192`。

@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - img "logo" [ref=e8]
+        - generic [ref=e9]: Whim Vue
+      - generic [ref=e10]: 工作，从这里开始
+    - main [ref=e11]:
+      - region [ref=e12]:
+        - paragraph [ref=e13]: 简单一点，专注更多
+        - heading "让工作有序， 让灵感发生。" [level=1] [ref=e15]:
+          - text: 让工作有序，
+          - generic [ref=e16]: 让灵感发生。
+        - paragraph [ref=e17]: Whim 后台管理系统
+        - paragraph [ref=e18]: 留一点从容，给每一个新的开始。
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Whim Vue" [level=2] [ref=e21]
+          - generic [ref=e22]:
+            - generic [ref=e32]:
+              - textbox "用户名" [ref=e33]
+              - generic: 用户名
+            - generic [ref=e38]:
+              - generic [ref=e45]:
+                - textbox "密码" [ref=e46]
+                - generic: 密码
+              - generic [ref=e48] [cursor=pointer]
+            - generic [ref=e58]:
+              - generic [ref=e66]:
+                - textbox "验证码" [ref=e67]
+                - generic: 验证码
+              - button "刷新验证码" [disabled] [ref=e68]
+            - checkbox "保持登录" [ref=e73] [cursor=pointer]
+            - button "登录" [disabled] [ref=e84]
+        - paragraph [ref=e86]: 欢迎回来，开启今天的工作
+    - contentinfo [ref=e88]:
+      - generic [ref=e89]: Copyright © 2025–Present Whim. All Rights Reserved.
+  - generic [ref=e90]:
+    - generic "Toggle devtools panel" [ref=e91] [cursor=pointer]
+    - generic "Toggle Component Inspector" [ref=e97] [cursor=pointer]

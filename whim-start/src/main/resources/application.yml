@@ -6,11 +6,22 @@ file:
   management:
     # 配置云存储前提供独立随机密钥；必须持久保管，替换后旧凭据无法解密。
     secret-key: ${FILE_STORAGE_SECRET_KEY:}
+    # 文件总大小达到 min-file-size 时使用对应分片大小；从0B开始按下限递增配置。
+    # 单片支持5MB至64MB，末片按实际剩余大小上传；修改配置仅影响重启后创建的新任务。
+    upload-part-size-rules:
+      - min-file-size: 0B
+        part-size: 8MB
+      - min-file-size: 100MB
+        part-size: 16MB
+      - min-file-size: 1GB
+        part-size: 32MB
+      - min-file-size: 10GB
+        part-size: 64MB
   storage:
     enabled: true
     default-storage: local
     default-config-name: local
-    max-file-size: 20MB
+    max-file-size: 200MB
     local:
       - name: local
         base-path: ${FILE_STORAGE_PATH:./data/files}
@@ -47,8 +58,9 @@ spring:
       thread-name-prefix: whim-scheduling-
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 21MB
+      max-file-size: 200MB
+      # 为 multipart 边界及其他表单字段预留空间。
+      max-request-size: 201MB
       enabled: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

@@ -14,8 +14,8 @@ server {
     server_tokens off;
     root /usr/share/nginx/html;
     index index.html;
-    # 为20 MiB文件保留 multipart 请求封装空间。
-    client_max_body_size 21m;
+    # 与后端200 MiB上传上限一致，并为 multipart 请求封装保留空间。
+    client_max_body_size 201m;
 
     access_log /dev/stdout;
     error_log /dev/stderr warn;

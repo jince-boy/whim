@@ -17,7 +17,10 @@ public class SysFile extends BaseEntity {
     private Long storageId;
     private String storageName;
     private String platform;
+    private String uploadSource;
+    private String fileName;
     private String originalName;
+    private String fileSuffix;
     private String objectKey;
     private Long fileSize;
     private String contentType;

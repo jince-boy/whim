@@ -29,7 +29,7 @@ public class FileStorageProperties {
     private String defaultStorage = "local";
     private String defaultConfigName;
     @NotNull
-    private DataSize maxFileSize = DataSize.ofMegabytes(20);
+    private DataSize maxFileSize = DataSize.ofMegabytes(200);
     @NotNull
     private Duration connectTimeout = Duration.ofSeconds(10);
     /** MinIO 读写及远程 URI 读取等待时限；OSS 使用 requestTimeout 限制完整请求。 */

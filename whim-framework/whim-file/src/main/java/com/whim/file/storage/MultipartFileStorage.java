@@ -14,7 +14,14 @@ import java.util.List;
  * @description 可恢复分片存储能力；任务归属、状态、并发及校验清单由业务层管理。
  */
 public interface MultipartFileStorage extends IFileStorage {
-    /** 创建上传会话；taskId 用于本地目录的确定性定位。 */
+    /**
+     * 创建上传会话，使用稳定的存储任务标识定位本地分片目录。
+     *
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @param taskId 全局唯一的32位小写十六进制存储任务标识，同一任务重试时保持不变
+     * @return 存储端上传会话标识，后续分片、查询、合并和取消操作必须使用此返回值
+     */
     String initiateUpload(String key, String contentType, String taskId);
 
     /** 查询存储端全部已提交分片，必须处理分页；本地读取持久化摘要，会话丢失时抛出异常。 */

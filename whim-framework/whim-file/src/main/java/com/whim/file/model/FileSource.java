@@ -1,11 +1,10 @@
 package com.whim.file.model;
 
 import com.whim.core.exception.FileStorageException;
-import com.whim.core.utils.IdUtils;
 import com.whim.file.config.properties.FileStorageProperties;
 import com.whim.file.support.LimitedInputStream;
+import com.whim.file.support.StoragePath;
 import lombok.Getter;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -30,13 +29,22 @@ public final class FileSource implements AutoCloseable {
     private final String contentType;
     private final HttpURLConnection connection;
 
-    /** 包装已打开的输入，未知大小使用 -1。 */
+    /**
+     * 包装已打开的输入并生成跨平台文件名，未知大小使用-1。
+     *
+     * @param inputStream 已打开的输入流
+     * @param size 声明的文件大小
+     * @param originalName 原始文件名称
+     * @param contentType 文件内容类型
+     * @param connection 需要随输入关闭的远程连接，可以为空
+     * @param properties 文件存储配置
+     * @param deadline 本次输入读取的截止时间
+     */
     private FileSource(InputStream inputStream, long size, String originalName, String contentType,
                        HttpURLConnection connection, FileStorageProperties properties, long deadline) {
         this.inputStream = new LimitedInputStream(inputStream, properties.getMaxFileSize().toBytes(), deadline);
         this.size = size;
-        String extension = originalName == null ? "" : FilenameUtils.getExtension(originalName);
-        this.fileName = IdUtils.uuid32() + (extension.matches("[a-zA-Z0-9]{1,16}") ? "." + extension : ".bin");
+        this.fileName = StoragePath.generateFileName(originalName);
         this.contentType = contentType == null || contentType.isBlank() ? "application/octet-stream" : contentType;
         this.connection = connection;
     }

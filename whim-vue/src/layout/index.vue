@@ -212,6 +212,7 @@ const {
 }
 
 .layout--mixed .layout-brand {
+  box-sizing: border-box;
   justify-content: center;
   width: 100%;
   min-width: 0;

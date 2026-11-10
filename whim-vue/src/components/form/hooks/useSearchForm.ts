@@ -86,7 +86,7 @@ export function useSearchForm<Values extends object>(
     return {
       size: 'medium' as const,
       labelPlacement: 'left' as const,
-      labelWidth: 76,
+      labelWidth: 'auto',
       showFeedback: !!nativeProps.rules,
       ...nativeProps,
       model: model.value,

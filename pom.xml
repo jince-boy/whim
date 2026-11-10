@@ -45,6 +45,8 @@
         <minio.version>9.0.3</minio.version>
         <okhttp.version>5.3.2</okhttp.version>
         <aliyun-oss.version>0.6.1</aliyun-oss.version>
+        <thumbnailator.version>0.4.21</thumbnailator.version>
+        <commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
         <fesod.version>2.1.0-incubating</fesod.version>
         <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
@@ -85,6 +87,17 @@
                 <groupId>com.aliyun</groupId>
                 <artifactId>alibabacloud-oss-v2</artifactId>
                 <version>${aliyun-oss.version}</version>
+            </dependency>
+            <!-- 图片缩略图生成及解码前尺寸检查 -->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-imaging</artifactId>
+                <version>${commons-imaging.version}</version>
             </dependency>
             <!-- 文件上传下载工具类 -->
             <dependency>
