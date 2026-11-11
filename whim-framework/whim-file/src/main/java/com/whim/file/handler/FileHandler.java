@@ -69,7 +69,12 @@ public final class FileHandler {
             return this;
         }
 
-        /** 指定内容类型，不作为文件内容安全校验。 */
+        /**
+         * 声明文件类型供安全校验使用，实际存储元数据仍采用文件内容检测结果。
+         *
+         * @param value 声明的内容类型
+         * @return 当前构建器
+         */
         public Builder contentType(String value) {
             contentType = value;
             return this;

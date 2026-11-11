@@ -6,7 +6,6 @@ import com.whim.core.constant.CacheKeys;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.mybatisplus.model.vo.PageDataVO;
-import com.whim.redis.utils.CacheUtils;
 import com.whim.system.mapper.SysDictDataMapper;
 import com.whim.system.mapper.SysDictTypeMapper;
 import com.whim.system.model.dto.dict.SysDictDataAddDTO;
@@ -157,7 +156,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     }
 
     /**
-     * 批量删除字典数据，成功后清空字典选项缓存。
+     * 批量删除字典数据，在事务提交后清空字典选项缓存。
      *
      * @param ids 字典数据id列表
      */
@@ -165,9 +164,7 @@ public class SysDictDataServiceImpl extends ServiceImpl<SysDictDataMapper, SysDi
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteDictData(List<Long> ids) {
-        List<SysDictData> sysDictDataList = this.listByIds(ids);
-        if (this.removeByIds(ids)) {
-            sysDictDataList.forEach(sysDictData -> CacheUtils.evict(CacheKeys.SYS_DICT, sysDictData.getType()));
-        }
+        // 统一由 CacheEvict 与事务感知缓存管理器失效缓存，避免重复查询和逐项清理。
+        this.removeByIds(ids);
     }
 }

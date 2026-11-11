@@ -32,6 +32,7 @@ const {
       <template #toolbarExtra>
         <n-button
           v-if="canExport"
+          class="whim-button--with-icon"
           type="info"
           secondary
           :loading="exporting"
@@ -40,6 +41,7 @@ const {
         >导出字典</n-button>
         <n-button
           v-if="canResetCache"
+          class="whim-button--with-icon"
           secondary
           :loading="resettingCache"
           :render-icon="createIcon('database')"

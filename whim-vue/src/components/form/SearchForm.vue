@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { VNode } from 'vue'
 import { createIcon } from '@/components/icon/useIcon'
-import type { SearchFormEmits } from './types'
+import type { SearchFormEmits, SearchFormProps } from './types'
 import { useSearchFormView } from './hooks/useSearchFormView'
 
 defineOptions({ name: 'SearchForm', inheritAttrs: false })
 const emit = defineEmits<SearchFormEmits>()
+const props = defineProps<SearchFormProps>()
 
 defineSlots<{
   default(): VNode[]
@@ -23,11 +24,12 @@ const {
   canCollapse,
   toggleCollapsed,
   submitting,
+  busy,
   submit,
   reset,
   validate,
   restoreValidation,
-} = useSearchFormView(emit)
+} = useSearchFormView(emit, props)
 defineExpose({ submit, reset, validate, restoreValidation })
 </script>
 
@@ -47,17 +49,20 @@ defineExpose({ submit, reset, validate, restoreValidation })
             <n-flex align="center" :size="8" :wrap="false">
               <slot name="action" :submit="submit" :reset="reset">
                 <n-button
+                  class="whim-button--with-icon"
                   attr-type="submit"
                   type="primary"
                   :loading="submitting"
-                  :disabled="!binding"
+                  :disabled="!binding || busy"
                   :render-icon="createIcon('search')"
                 >
                   {{ binding?.searchText.value ?? '查询' }}
                 </n-button>
                 <n-button
+                  class="whim-button--with-icon"
                   attr-type="button"
-                  :disabled="!binding || submitting"
+                  :loading="props.resetting"
+                  :disabled="!binding || busy"
                   :render-icon="createIcon('rotate-ccw')"
                   @click="reset"
                 >
@@ -90,14 +95,14 @@ defineExpose({ submit, reset, validate, restoreValidation })
           type="primary"
           :bordered="false"
           closable
-          :disabled="submitting"
+          :disabled="busy"
           @close="removeFilter(filter.key)"
         >
           <n-ellipsis :style="{ maxWidth: 'min(280px, 60vw)' }">
             {{ filter.label }}：{{ filter.value }}
           </n-ellipsis>
         </n-tag>
-        <n-button size="small" text :disabled="submitting" @click="reset">清空</n-button>
+        <n-button size="small" text :disabled="busy" @click="reset">清空</n-button>
       </n-flex>
       <span class="search-form__status" role="status">已应用 {{ filters.length }} 项筛选条件</span>
     </div>

@@ -37,6 +37,7 @@ public class XssFilter extends OncePerRequestFilter {
      */
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        // 文件流不能作为HTML字符串清洗；上传内容校验及附件响应约束由whim-file负责。
         return request instanceof XssHttpServletRequestWrapper
                 || isMultipartRequest(request)
                 || isIgnoredRequest(request);

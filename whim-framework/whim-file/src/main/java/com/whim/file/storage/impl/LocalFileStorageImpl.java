@@ -10,6 +10,7 @@ import com.whim.file.model.StoragePart;
 import com.whim.file.storage.MultipartFileStorage;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
+import com.whim.file.support.FileUploadSecurity;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -57,9 +58,17 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 先完成临时文件写入，再原子替换目标；失败时保留原文件。 */
+    /**
+     * 原子保存已校验文件，业务元数据采用实际检测类型。
+     *
+     * @param source 已校验的文件输入
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @return 文件元数据
+     */
     @Override
     public MetaData upload(FileSource source, String key, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         Path temporary = null;
         try {
             Path target = resolveFile(key, true);
@@ -74,7 +83,7 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
             }
             resolveFile(key, false);
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            return createMetaData(key, size, contentType);
+            return createMetaData(key, size, source.getContentType());
         } catch (Exception exception) {
             if (temporary != null) {
                 try {
@@ -160,6 +169,7 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
      */
     @Override
     public String initiateUpload(String key, String contentType, String taskId) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             resolveFile(key, false);
             Path marker = resolveUploadFile(taskId, "session", true);
@@ -280,10 +290,21 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 逐片复核正文并原子发布正式文件，成功后清理会话；清理失败可重试 abortUpload。 */
+    /**
+     * 逐片复核并在发布前校验合并文件，成功后清理会话。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 上传会话标识
+     * @param parts 已确认的分片清单
+     * @param size 预期文件大小
+     * @param contentType 客户端声明的内容类型
+     * @return 已校验的文件元数据
+     */
     @Override
-    public void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+    public MetaData completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         Path temporary = null;
+        String detectedContentType;
         try {
             Path target = resolveFile(key, true);
             if (!Files.isRegularFile(resolveUploadFile(uploadId, "session", false), LinkOption.NOFOLLOW_LINKS)) {
@@ -326,6 +347,10 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
             if (total != size) {
                 throw new FileStorageException("合并文件总大小不一致");
             }
+            // 校验完整合并结果而非各个分片，避免把主动内容拆开后绕过检测。
+            try (InputStream input = Files.newInputStream(temporary, LinkOption.NOFOLLOW_LINKS)) {
+                detectedContentType = FileUploadSecurity.getContentType(input);
+            }
             resolveFile(key, false);
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE);
         } catch (Exception exception) {
@@ -336,6 +361,9 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
                     exception.addSuppressed(cleanup);
                 }
             }
+            if (exception instanceof IllegalArgumentException invalidFile) {
+                throw invalidFile;
+            }
             throw new FileStorageException("合并本地分片失败", exception);
         }
         try {
@@ -343,6 +371,7 @@ public final class LocalFileStorageImpl extends BaseFileStorage implements Multi
         } catch (FileStorageException exception) {
             throw new FileStorageException("本地文件已合并，但分片清理失败，请重试终止会话", exception);
         }
+        return createMetaData(key, size, detectedContentType);
     }
 
     /**

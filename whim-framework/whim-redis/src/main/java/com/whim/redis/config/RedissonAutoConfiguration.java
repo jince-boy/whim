@@ -26,9 +26,8 @@ import tools.jackson.databind.json.JsonMapper;
  * @date 2026/03/30
  * @description Redisson 自动配置，负责定制序列化编解码、连接参数、Key 前缀和虚拟线程适配。
  */
-@AutoConfiguration(
-        before = org.redisson.spring.starter.RedissonAutoConfiguration.class
-)
+// 定制器在 Boot 4 的 Redisson 配置之前注册，与缓存配置使用同一实际装配入口。
+@AutoConfiguration(before = org.redisson.spring.starter.RedissonAutoConfigurationV4.class)
 @EnableConfigurationProperties(RedissonProperties.class)
 @RequiredArgsConstructor
 public class RedissonAutoConfiguration {

@@ -4,11 +4,12 @@ import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from
 import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDictStore } from '@/stores/modules/dict'
 /** 配置注册式列表并处理登录日志业务操作。 */
 export function useLoginLog() {
   const dictionary = useDictStore()
+  const exporting = ref(false)
   const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
   const { openDeleteDialog } = useFormDialog()
   const tableColumns: DataTableColumn<LoginLog>[] = [
@@ -98,7 +99,7 @@ export function useLoginLog() {
   const [registerTable, { searchModel: form, reload: getLoginLogPage }] = useWhimTable<
     LoginLog,
     LoginLogQuery
-  >({
+  >(() => ({
     columns: tableColumns,
     rowKey: (row) => row.id,
     request: ({ dateRange, ...query }) =>
@@ -129,9 +130,10 @@ export function useLoginLog() {
     },
     toolbar: {
       buttons: ['delete', 'export'],
+      loading: { export: exporting.value },
       permissions: { delete: ['system:loginLog:delete'], export: ['system:loginLog:export'] },
     },
-  })
+  }))
 
   /**
    * 删除登录日志
@@ -168,10 +170,18 @@ export function useLoginLog() {
     })
   }
   /**
-   * 导出字典类型
+   * 导出登录日志，等待下载结束后恢复按钮。
    */
   const exportExcel = async () => {
-    await exportLoginLog()
+    if (exporting.value) return
+    exporting.value = true
+    try {
+      await exportLoginLog()
+    } catch {
+      // 下载错误由公共请求层提示，失败后允许重试。
+    } finally {
+      exporting.value = false
+    }
   }
 
   return {

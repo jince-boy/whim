@@ -36,6 +36,8 @@ const {
   buttonOptions,
   isDisabled,
   handleAction,
+  searchAction,
+  applySearch,
   refreshing,
   finishRefreshRotation,
   refresh,
@@ -61,10 +63,12 @@ defineExpose({ reload, getTableInstance })
       :theme-overrides="{ borderRadius: '8px' }"
     >
       <SearchForm
+        :loading="searchAction === 'submit'"
+        :resetting="searchAction === 'reset'"
         @register="binding.registerSearch"
-        @submit="binding.applySearch"
-        @reset="binding.applySearch"
-        @filter-change="binding.applySearch"
+        @submit="applySearch('submit')"
+        @reset="applySearch('reset')"
+        @filter-change="applySearch('filter')"
       >
         <slot name="search" />
         <template v-if="$slots.searchAction" #action="actions">
@@ -93,6 +97,9 @@ defineExpose({ reload, getTableInstance })
           <n-button
             v-for="button in buttons"
             :key="button"
+            class="whim-button--with-icon"
+            :loading="toolbar.loading?.[button]"
+            :aria-busy="!!toolbar.loading?.[button]"
             :type="buttonOptions[button].type"
             :secondary="button !== 'add'"
             :render-icon="createIcon(buttonOptions[button].icon)"

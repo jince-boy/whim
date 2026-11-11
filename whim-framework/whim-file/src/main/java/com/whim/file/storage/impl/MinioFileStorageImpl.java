@@ -9,6 +9,7 @@ import com.whim.file.model.MetaData;
 import com.whim.file.exception.MissingUploadSessionException;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
+import com.whim.file.support.FileUploadSecurity;
 import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioAsyncClient;
@@ -68,16 +69,25 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         client = new MinioStorageClient(builder.build());
     }
 
-    /** 上传文件并使用已传输字节数生成元数据，避免额外 HEAD 请求。 */
+    /**
+     * 将已校验文件存为二进制附件，业务元数据保留实际检测类型。
+     *
+     * @param source 已校验的文件输入
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @return 文件元数据
+     */
     @Override
     public MetaData upload(FileSource source, String key, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             client.putObject(PutObjectArgs.builder().bucket(bucket).object(objectName(key))
-                    .contentType(contentType)
+                    .contentType(FileUploadSecurity.DOWNLOAD_CONTENT_TYPE)
+                    .headers(Map.of("Content-Disposition", "attachment"))
                     .stream(source.getInputStream(), source.getSize() < 0 ? null : source.getSize(), 5L * 1024 * 1024)
                     .maxRetries(0)
                     .build()).join();
-            return createMetaData(key, source.getInputStream().getBytesRead(), contentType);
+            return createMetaData(key, source.getInputStream().getBytesRead(), source.getContentType());
         } catch (Exception exception) {
             throw new FileStorageException("MinIO 文件上传失败", exception);
         }
@@ -133,35 +143,54 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 原样返回 SDK 生成的 GET 签名地址，不额外请求对象。 */
+    /**
+     * 生成强制附件下载签名，覆盖历史对象可能保留的不安全类型。
+     *
+     * @param key 文件存储标识
+     * @param expiration 签名有效期
+     * @return 包含安全响应参数的签名地址
+     */
     @Override
     public String getFilePreSignedUrl(String key, Duration expiration) {
         try {
             return client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .bucket(bucket).object(objectName(key)).method(Method.GET)
+                    .extraQueryParams(Map.of("response-content-type", FileUploadSecurity.DOWNLOAD_CONTENT_TYPE,
+                            "response-content-disposition", "attachment", "response-cache-control", "no-store"))
                     .expiry(Math.toIntExact(expiration.toSeconds())).build());
         } catch (Exception exception) {
             throw new FileStorageException("生成 MinIO 下载签名失败", exception);
         }
     }
 
-    /** 生成 PUT 签名，调用方需要发送指定的 Content-Type。 */
+    /**
+     * 拒绝绕过内容校验的单次直传。
+     *
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @param expiration 签名有效期
+     * @return 本方法始终拒绝签发并抛出异常
+     */
     @Override
     public String uploadFilePreSignedUrl(String key, String contentType, Duration expiration) {
-        try {
-            return client.getUploadPreSignedUrl(bucket, objectName(key),
-                    Map.of("Content-Type", contentType), Map.of(), expiration);
-        } catch (Exception exception) {
-            throw new FileStorageException("生成 MinIO 上传签名失败", exception);
-        }
+        throw new FileStorageException("单次直传无法校验文件内容，请使用普通上传或分片上传");
     }
 
-    /** 创建原生 S3 分片会话，内容类型只在初始化时设置。 */
+    /**
+     * 创建二进制附件分片会话，合并对象也不能作为网页内联执行。
+     *
+     * @param key 文件存储标识
+     * @param contentType 客户端声明的类型
+     * @param taskId 存储任务标识
+     * @return 分片上传会话标识
+     */
     @Override
     public String initiateUpload(String key, String contentType, String taskId) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             return client.createMultipartUpload(CreateMultipartUploadArgs.builder().bucket(bucket)
-                    .object(objectName(key)).headers(new Http.Headers(Map.of("Content-Type", contentType,
+                    .object(objectName(key)).headers(new Http.Headers(Map.of("Content-Type", FileUploadSecurity.DOWNLOAD_CONTENT_TYPE,
+                            "Content-Disposition", "attachment",
                             "x-amz-checksum-algorithm", "SHA256")))
                     .build()).join().result().uploadId();
         } catch (Exception exception) {
@@ -218,9 +247,19 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         }
     }
 
-    /** 使用存储端 ETag 合并，不信任客户端提供的完成清单。 */
+    /**
+     * 使用存储端清单合并文件并校验实际内容。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 上传会话标识
+     * @param parts 已确认的分片清单
+     * @param size 预期文件大小
+     * @param contentType 客户端声明的内容类型
+     * @return 已校验的文件元数据
+     */
     @Override
-    public void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+    public MetaData completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             Part[] manifest = parts.stream().map(part -> new Part(part.getPartNumber(), part.getEtag(),
                             null, null, null, null, part.getContentSha256()))
@@ -230,6 +269,7 @@ public final class MinioFileStorageImpl extends BaseFileStorage implements Multi
         } catch (Exception exception) {
             throw new FileStorageException("合并 MinIO 分片失败", exception);
         }
+        return FileUploadSecurity.getValidatedFileMetaData(this, key);
     }
 
     /** 已终止或已合并的会话视为清理成功，其他错误保留。 */

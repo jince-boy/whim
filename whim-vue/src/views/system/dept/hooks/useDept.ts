@@ -23,7 +23,7 @@ export function useDept() {
   const can = (permission: string) =>
     user.permissionCode.includes('*') || user.permissionCode.includes(permission)
   const canView = computed(() => can('system:dept:list'))
-  const recordLoading = ref(false)
+  const editingId = ref<DeptId>()
   let recordVersion = 0
   let active = true
 
@@ -64,7 +64,8 @@ export function useDept() {
                 {
                   text: true,
                   type: 'warning',
-                  disabled: recordLoading.value,
+                  loading: editingId.value === row.id,
+                  disabled: editingId.value !== undefined,
                   onClick: () => openEditDialog(row.id),
                 },
                 () => '修改',
@@ -134,9 +135,9 @@ export function useDept() {
 
   /** 编辑前读取最新数据，离开页面后丢弃异步结果。 */
   async function openEditDialog(id: DeptId) {
-    if (recordLoading.value) return
+    if (editingId.value !== undefined) return
     const version = ++recordVersion
-    recordLoading.value = true
+    editingId.value = id
     try {
       const response = await fetchDeptDetail(id)
       if (version !== recordVersion) return
@@ -155,7 +156,7 @@ export function useDept() {
     } catch {
       // 公共请求层提示错误。
     } finally {
-      if (version === recordVersion) recordLoading.value = false
+      if (version === recordVersion) editingId.value = undefined
     }
   }
 
@@ -174,7 +175,7 @@ export function useDept() {
   onDeactivated(() => {
     active = false
     recordVersion++
-    recordLoading.value = false
+    editingId.value = undefined
   })
   onActivated(() => {
     if (!active) {

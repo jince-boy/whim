@@ -2,6 +2,7 @@ package com.whim.file.storage;
 
 import com.whim.core.exception.FileStorageException;
 import com.whim.file.model.PartUploadSignature;
+import com.whim.file.model.MetaData;
 import com.whim.file.model.StoragePart;
 
 import java.io.InputStream;
@@ -45,8 +46,17 @@ public interface MultipartFileStorage extends IFileStorage {
         throw new FileStorageException("当前存储请使用分片直传");
     }
 
-    /** 使用服务端查询得到的完整清单合并并清理会话；本地清理失败时对象已发布，可重试 abortUpload。 */
-    void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType);
+    /**
+     * 合并并校验完整文件，只有实际内容通过安全检查才能返回成功。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 上传会话标识
+     * @param parts 服务端查询得到的完整分片清单
+     * @param size 预期文件大小
+     * @param contentType 客户端声明的内容类型
+     * @return 已校验的文件元数据
+     */
+    MetaData completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType);
 
     /** 幂等终止会话并清理临时分片，不删除已完成的正式对象。 */
     void abortUpload(String key, String uploadId);

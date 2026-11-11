@@ -1,6 +1,12 @@
 import type { ComputedRef } from 'vue'
 import type { FormInst, FormProps, GridProps } from 'naive-ui'
 
+/** 页面持有实际请求状态，表单负责校验及触发操作。 */
+export interface SearchFormProps {
+  loading?: boolean
+  resetting?: boolean
+}
+
 /** 查询字段的摘要说明；格式化只影响标签，不改变请求值。 */
 export interface SearchFormField<Values extends object> {
   key: Extract<keyof Values, string>

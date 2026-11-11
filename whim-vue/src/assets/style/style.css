@@ -19,6 +19,46 @@ textarea {
   font-family: inherit;
 }
 
+/* 加载反馈覆盖在当前按钮中心；文字保留占位，避免相邻操作被挤动。 */
+.n-button.n-button--loading > .n-button__content,
+.n-button.n-button--loading > .n-button__icon {
+  opacity: 0;
+}
+
+/* 纯文字按钮的原生加载图标是临时插入的，不能让它额外占据宽度。 */
+.n-button:not(.whim-button--with-icon) > .n-button__icon:has(> .n-base-loading) {
+  position: absolute;
+  margin: 0 !important;
+  opacity: 0;
+}
+
+/* 有常驻图标的按钮保留图标槽宽度，加载前后的尺寸完全一致。 */
+.n-button.n-button--loading.whim-button--with-icon > .n-button__icon {
+  width: var(--n-icon-size) !important;
+  max-width: var(--n-icon-size) !important;
+}
+
+.n-button.n-button--loading::after {
+  position: absolute;
+  inset: 0;
+  width: var(--n-icon-size);
+  height: var(--n-icon-size);
+  margin: auto;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+  animation: whim-button-loading 0.7s linear infinite;
+}
+
+@keyframes whim-button-loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 code,
 kbd,
 pre,

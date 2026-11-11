@@ -38,7 +38,7 @@ export function usePost() {
     { key: 'organization', label: '全组织岗位' },
     ...selection.value.options,
   ])
-  const editLoading = ref(false)
+  const editingId = ref<PostId>()
   let editVersion = 0
   let active = true
 
@@ -81,7 +81,8 @@ export function usePost() {
                   {
                     text: true,
                     type: 'warning',
-                    disabled: editLoading.value,
+                    loading: editingId.value === row.id,
+                    disabled: editingId.value !== undefined,
                     onClick: () => openEditDialog(row.id),
                   },
                   () => '修改',
@@ -177,9 +178,9 @@ export function usePost() {
 
   /** 获取最新岗位信息并打开修改表单。 */
   async function openEditDialog(id: PostId) {
-    if (editLoading.value) return
+    if (editingId.value !== undefined) return
     const version = ++editVersion
-    editLoading.value = true
+    editingId.value = id
     try {
       const response = await fetchPostDetail(id)
       if (version !== editVersion) return
@@ -198,7 +199,7 @@ export function usePost() {
     } catch {
       // 公共请求层提示错误。
     } finally {
-      if (version === editVersion) editLoading.value = false
+      if (version === editVersion) editingId.value = undefined
     }
   }
 
@@ -214,7 +215,7 @@ export function usePost() {
     active = false
     departmentRefreshing.value = false
     editVersion++
-    editLoading.value = false
+    editingId.value = undefined
   })
   onActivated(() => {
     if (!active) {

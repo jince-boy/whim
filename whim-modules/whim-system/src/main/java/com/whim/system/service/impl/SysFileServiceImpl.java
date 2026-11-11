@@ -32,6 +32,7 @@ import com.whim.file.storage.impl.AliyunOssFileStorageImpl;
 import com.whim.file.storage.impl.LocalFileStorageImpl;
 import com.whim.file.storage.impl.MinioFileStorageImpl;
 import com.whim.file.support.ImageThumbnailGenerator;
+import com.whim.file.support.FileUploadSecurity;
 import com.whim.file.support.StoragePath;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.redis.executor.RedissonReadLockExecutor;
@@ -157,6 +158,30 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public byte[] getFileThumbnail(Long id) {
+        return getFileImage(id, 96);
+    }
+
+    /**
+     * 生成仅包含重新编码像素的预览图，禁止返回原始HTML、SVG或图片附带内容。
+     *
+     * @param id 文件ID
+     * @return 最大2048像素的PNG预览，不可预览时为空数组
+     */
+    @Lock4j(name = FILE_LOCK, keys = "#p0", executor = RedissonReadLockExecutor.class, acquireTimeout = 5000)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public byte[] getFilePreview(Long id) {
+        return getFileImage(id, 2048);
+    }
+
+    /**
+     * 在调用方持有文件读锁时读取原文件并生成安全位图。
+     *
+     * @param id 文件ID
+     * @param size 图片最长边
+     * @return PNG图片内容，不可预览时为空数组
+     */
+    private byte[] getFileImage(Long id, int size) {
         SysFile file = getFile(id);
         if (!Strings.CI.startsWith(file.getContentType(), "image/")
                 || file.getFileSize() > ImageThumbnailGenerator.MAXIMUM_SOURCE_BYTES) {
@@ -165,7 +190,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         // 与下载共用文件读锁；已存在的文件记录固定存储位置，预览不占用全局配置锁。
         IFileStorage storage = openStorage(getStorage(file.getStorageId()));
         try (DownloadHandler download = storage.download(file.getObjectKey())) {
-            return ImageThumbnailGenerator.generateThumbnail(download.getInputStream(), 96, 96);
+            return ImageThumbnailGenerator.generateThumbnail(download.getInputStream(), size, size);
         } finally {
             closeStorage(storage);
         }
@@ -297,6 +322,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public SysFileUploadTaskVO addFileUploadTask(SysFileUploadTaskAddDTO parameter) {
+        FileUploadSecurity.validateMetadata(parameter.getOriginalName(), parameter.getContentType());
         if (parameter.getFileSize() > storageProperties.getMaxFileSize().toBytes()) {
             throw new ServiceException("文件大小超过允许上限");
         }
@@ -558,9 +584,10 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
             SysFile file = getFile(id);
             IFileStorage storage = openStorage(getStorage(file.getStorageId()));
             try (DownloadHandler download = storage.download(file.getObjectKey())) {
-                response.setContentType("application/octet-stream");
+                response.setContentType(FileUploadSecurity.DOWNLOAD_CONTENT_TYPE);
                 response.setContentLengthLong(file.getFileSize());
                 response.setHeader("X-Content-Type-Options", "nosniff");
+                response.setHeader("Content-Security-Policy", FileUploadSecurity.CONTENT_SECURITY_POLICY);
                 response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
                 response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                         .filename(file.getOriginalName(), StandardCharsets.UTF_8).build().toString());
@@ -591,6 +618,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         SysFileStorage config = getStorage(task.getStorageId());
         MultipartFileStorage storage = openStorage(config);
         try {
+            // 已创建的旧任务同样受新策略限制，不能通过续传绕过文件类型检查。
+            FileUploadSecurity.validateMetadata(task.getOriginalName(), task.getContentType());
+            MetaData metadata;
             // 合并成功但数据库提交或响应失败时，通过固定对象标识恢复，避免重复生成文件。
             if (!storage.exists(task.getObjectKey())) {
                 List<StoragePart> parts = storage.getUploadedParts(task.getObjectKey(), task.getUploadId());
@@ -603,10 +633,13 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                         throw new ServiceException("文件分片序号或大小不一致");
                     }
                 }
-                storage.completeUpload(task.getObjectKey(), task.getUploadId(), parts,
+                metadata = storage.completeUpload(task.getObjectKey(), task.getUploadId(), parts,
                         task.getFileSize(), task.getContentType());
+            } else {
+                // 重试发现对象已存在，也必须重新校验后才能将其登记为业务文件。
+                metadata = FileUploadSecurity.getValidatedFileMetaData(storage, task.getObjectKey());
             }
-            if (storage.getFileMetaData(task.getObjectKey()).getFileSize() != task.getFileSize().longValue()) {
+            if (metadata.getFileSize() != task.getFileSize().longValue()) {
                 throw new ServiceException("合并后的文件大小不一致");
             }
             // 处理本地合并已发布、但上次清理失败的情况；清理失败保留任务供重试。
@@ -621,10 +654,22 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
             file.setFileSuffix(StoragePath.getFileExtension(task.getOriginalName()));
             file.setObjectKey(task.getObjectKey());
             file.setFileSize(task.getFileSize());
-            file.setContentType(task.getContentType());
+            file.setContentType(metadata.getContentType());
             // 存储合并和清理已结束，只把文件记录及完成标识交给短事务。
             fileServiceProvider.getObject().addFileUploadResult(task, file);
             return getUploadTaskStatus(task);
+        } catch (IllegalArgumentException exception) {
+            // 拒绝的文件不得入库；清理对象和分片后才标记取消，清理失败保留任务供重试。
+            try {
+                storage.deleteFile(task.getObjectKey());
+                if (task.getUploadId() != null) storage.abortUpload(task.getObjectKey(), task.getUploadId());
+                task.setCancelled(true);
+                if (!Db.updateById(task)) throw new ServiceException("保存安全校验拒绝状态失败");
+            } catch (RuntimeException cleanupException) {
+                exception.addSuppressed(cleanupException);
+                log.error("清理安全校验拒绝的文件失败，任务ID：{}", task.getId(), cleanupException);
+            }
+            throw exception;
         } finally {
             closeStorage(storage);
         }

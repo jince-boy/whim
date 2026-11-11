@@ -3,6 +3,7 @@ package com.whim.file.model;
 import com.whim.core.exception.FileStorageException;
 import com.whim.file.config.properties.FileStorageProperties;
 import com.whim.file.support.LimitedInputStream;
+import com.whim.file.support.FileUploadSecurity;
 import com.whim.file.support.StoragePath;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Files;
@@ -41,15 +43,27 @@ public final class FileSource implements AutoCloseable {
      * @param deadline 本次输入读取的截止时间
      */
     private FileSource(InputStream inputStream, long size, String originalName, String contentType,
-                       HttpURLConnection connection, FileStorageProperties properties, long deadline) {
-        this.inputStream = new LimitedInputStream(inputStream, properties.getMaxFileSize().toBytes(), deadline);
+                       HttpURLConnection connection, FileStorageProperties properties, long deadline) throws IOException {
+        FileUploadSecurity.validateMetadata(originalName, contentType);
+        LimitedInputStream boundedInput = new LimitedInputStream(inputStream, properties.getMaxFileSize().toBytes(), deadline);
+        byte[] prefix = boundedInput.readNBytes(FileUploadSecurity.DETECTION_BYTES);
+        this.contentType = FileUploadSecurity.getContentType(prefix);
+        // 将检测消耗的文件头原样接回，保持大文件流式传输及SDK字节计数准确。
+        this.inputStream = new LimitedInputStream(
+                new SequenceInputStream(new ByteArrayInputStream(prefix), boundedInput),
+                properties.getMaxFileSize().toBytes(), deadline);
         this.size = size;
         this.fileName = StoragePath.generateFileName(originalName);
-        this.contentType = contentType == null || contentType.isBlank() ? "application/octet-stream" : contentType;
         this.connection = connection;
     }
 
-    /** 适配常见文件输入；传入 InputStream 后，由本次上传负责关闭。 */
+    /**
+     * 适配文件输入并检查实际内容，传入的流由本次上传负责关闭。
+     *
+     * @param file 待上传文件或输入流
+     * @param properties 文件存储配置
+     * @return 已校验且可完整读取的文件输入
+     */
     public static FileSource open(Object file, FileStorageProperties properties) {
         InputStream input = null;
         HttpURLConnection remote = null;
@@ -117,6 +131,9 @@ public final class FileSource implements AutoCloseable {
             }
             if (exception instanceof FileStorageException storageException) {
                 throw storageException;
+            }
+            if (exception instanceof IllegalArgumentException invalidFile) {
+                throw invalidFile;
             }
             throw new FileStorageException("打开上传文件失败", exception);
         }

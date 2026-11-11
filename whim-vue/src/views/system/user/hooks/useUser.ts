@@ -30,6 +30,8 @@ export function useUser() {
     ...selection.value.options,
   ])
   const recordLoading = ref(false)
+  const editingId = ref<UserId>()
+  const assigningRolesId = ref<UserId>()
   let recordVersion = 0
   let active = true
 
@@ -67,13 +69,13 @@ export function useUser() {
           const protectedUser = isProtected(row)
           return h(NSpace, { size: 12, align: 'center', wrap: false }, () => [
             canEdit
-              ? h(NButton, { text: true, type: 'warning', disabled: recordLoading.value || protectedUser, onClick: () => openEditDialog(row.id) }, () => '编辑') : null,
+              ? h(NButton, { text: true, type: 'warning', loading: editingId.value === row.id, disabled: recordLoading.value || protectedUser, onClick: () => openEditDialog(row.id) }, () => '编辑') : null,
             canDelete
               ? h(NButton, { text: true, type: 'error', disabled: isSelf(row) || protectedUser, onClick: () => removeUser(row) }, () => '删除') : null,
             canResetPassword
               ? h(NButton, { text: true, type: 'warning', disabled: protectedUser, onClick: () => openPasswordDialog(row) }, () => '修改密码') : null,
             canAssignRoles
-              ? h(NButton, { text: true, type: 'primary', disabled: recordLoading.value || isSelf(row) || protectedUser, onClick: () => openRoleDialog(row) }, () => '分配角色') : null,
+              ? h(NButton, { text: true, type: 'primary', loading: assigningRolesId.value === row.id, disabled: recordLoading.value || isSelf(row) || protectedUser, onClick: () => openRoleDialog(row) }, () => '分配角色') : null,
           ])
         },
       })
@@ -136,6 +138,7 @@ export function useUser() {
     if (recordLoading.value) return
     const version = ++recordVersion
     recordLoading.value = true
+    editingId.value = id
     try {
       const response = await fetchUserDetail(id)
       if (version !== recordVersion) return
@@ -147,7 +150,10 @@ export function useUser() {
     } catch {
       // 公共请求层统一提示错误。
     } finally {
-      if (version === recordVersion) recordLoading.value = false
+      if (version === recordVersion) {
+        recordLoading.value = false
+        editingId.value = undefined
+      }
     }
   }
 
@@ -163,6 +169,7 @@ export function useUser() {
     if (recordLoading.value) return
     const version = ++recordVersion
     recordLoading.value = true
+    assigningRolesId.value = row.id
     try {
       const response = await fetchUserRoles(row.id)
       if (version !== recordVersion) return
@@ -174,7 +181,10 @@ export function useUser() {
     } catch {
       // 公共请求层统一提示错误。
     } finally {
-      if (version === recordVersion) recordLoading.value = false
+      if (version === recordVersion) {
+        recordLoading.value = false
+        assigningRolesId.value = undefined
+      }
     }
   }
 
@@ -189,6 +199,8 @@ export function useUser() {
     active = false
     recordVersion++
     recordLoading.value = false
+    editingId.value = undefined
+    assigningRolesId.value = undefined
     departmentRefreshing.value = false
   })
   onActivated(() => {

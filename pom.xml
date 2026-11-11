@@ -34,7 +34,7 @@
         <ip2region.version>3.3.6</ip2region.version>
         <yauaa.version>8.1.1</yauaa.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
-        <commons-io.version>2.21.0</commons-io.version>
+        <commons-io.version>2.22.0</commons-io.version>
         <owasp-java-html-sanitizer.version>20260313.1</owasp-java-html-sanitizer.version>
         <redisson.version>4.3.0</redisson.version>
         <lock4j.version>2.2.7</lock4j.version>
@@ -47,6 +47,7 @@
         <aliyun-oss.version>0.6.1</aliyun-oss.version>
         <thumbnailator.version>0.4.21</thumbnailator.version>
         <commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
+        <tika.version>4.2.0</tika.version>
         <fesod.version>2.1.0-incubating</fesod.version>
         <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
@@ -87,6 +88,12 @@
                 <groupId>com.aliyun</groupId>
                 <artifactId>alibabacloud-oss-v2</artifactId>
                 <version>${aliyun-oss.version}</version>
+            </dependency>
+            <!-- 文件实际内容类型识别 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
             </dependency>
             <!-- 图片缩略图生成及解码前尺寸检查 -->
             <dependency>

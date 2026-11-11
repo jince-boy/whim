@@ -86,16 +86,16 @@ export async function getFileThumbnail(id: string, signal: AbortSignal): Promise
   return response.data
 }
 
-/** 复用下载接口读取原图，保留认证和取消能力，不触发浏览器另存为。 */
-export async function getFilePreview(file: FileItem, signal: AbortSignal): Promise<Blob> {
-  const response = await axiosInstance.get<Blob>('/system/file/download', {
-    params: { id: file.id },
+/** 只读取后端重新编码的PNG，禁止按上传者声明的类型重建原文件Blob。 */
+export async function getFilePreview(id: string, signal: AbortSignal): Promise<Blob | undefined> {
+  const response = await axiosInstance.get<Blob>('/system/file/preview', {
+    params: { id },
     responseType: 'blob',
-    timeout: 300000,
+    timeout: 35000,
     signal,
   })
-  // 下载接口统一返回二进制类型，预览时使用文件记录中的真实图片类型。
-  return response.data.slice(0, response.data.size, file.contentType)
+  if (response.status === 204) return
+  return response.data
 }
 
 /** 只提交可编辑字段，列表中的审计信息和默认标志不进入请求。 */

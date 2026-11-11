@@ -4,11 +4,12 @@ import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
 import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDictStore } from '@/stores/modules/dict'
 /** 配置注册式列表并处理操作日志业务操作。 */
 export function useOperLog() {
   const dictionary = useDictStore()
+  const exporting = ref(false)
   const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
   const sysOperTypeOptions = computed(() => dictionary.getDictOptions('sys_oper_type'))
   const { openDeleteDialog } = useFormDialog()
@@ -124,7 +125,7 @@ export function useOperLog() {
   const [registerTable, { searchModel: form, reload: getOperLogPage }] = useWhimTable<
     OperLogResult,
     OperLogQuery
-  >({
+  >(() => ({
     columns: tableColumns,
     rowKey: (row) => row.id,
     request: ({ dateRange, ...query }) =>
@@ -168,9 +169,10 @@ export function useOperLog() {
     },
     toolbar: {
       buttons: ['delete', 'export'],
+      loading: { export: exporting.value },
       permissions: { delete: ['system:operLog:delete'], export: ['system:operLog:export'] },
     },
-  })
+  }))
 
   /**
    * 查看登录日志详情
@@ -215,10 +217,18 @@ export function useOperLog() {
     })
   }
   /**
-   * 导出字典类型
+   * 导出操作日志，等待下载结束后恢复按钮。
    */
   const exportExcel = async () => {
-    await exportOperLog()
+    if (exporting.value) return
+    exporting.value = true
+    try {
+      await exportOperLog()
+    } catch {
+      // 下载错误由公共请求层提示，失败后允许重试。
+    } finally {
+      exporting.value = false
+    }
   }
   return {
     registerTable,

@@ -1,6 +1,7 @@
 package com.whim.controller.system;
 
 import com.whim.mybatisplus.model.vo.PageDataVO;
+import com.whim.file.support.FileUploadSecurity;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.file.*;
@@ -79,7 +80,28 @@ public class SysFileController {
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG)
                 .cacheControl(CacheControl.noStore())
                 .header("X-Content-Type-Options", "nosniff")
+                .header("Content-Security-Policy", FileUploadSecurity.CONTENT_SECURITY_POLICY)
                 .contentLength(thumbnail.length).body(thumbnail);
+    }
+
+    /**
+     * 返回后端重新编码的PNG预览，沿用文件下载权限。
+     *
+     * @param id 文件ID
+     * @return PNG预览，不可预览时返回204空响应
+     */
+    @GetMapping("/preview")
+    @SystemCheckPermission("system:file:download")
+    public ResponseEntity<byte[]> getFilePreview(@RequestParam Long id) {
+        byte[] preview = fileService.getFilePreview(id);
+        if (preview.length == 0) {
+            return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+        }
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CacheControl.noStore())
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Content-Security-Policy", FileUploadSecurity.CONTENT_SECURITY_POLICY)
+                .contentLength(preview.length).body(preview);
     }
 
     /**

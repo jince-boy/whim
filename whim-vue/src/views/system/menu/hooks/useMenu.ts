@@ -23,7 +23,7 @@ export function useMenu() {
   const userStore = useUserStore()
   const navigation = usePermissionStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
-  const editing = ref(false)
+  const editingId = ref<MenuId>()
   const dictionary = useDictStore()
   const menuTypeOptions = computed(() => dictionary.getDictNumberOptions('sys_menu_type'))
   const menuStatusOptions = computed(() => dictionary.getDictNumberOptions('sys_common_status'))
@@ -143,7 +143,8 @@ export function useMenu() {
                   {
                     text: true,
                     type: 'warning',
-                    disabled: editing.value,
+                    loading: editingId.value === row.id,
+                    disabled: editingId.value !== undefined,
                     onClick: () => openEditDialog(row.id),
                   },
                   () => '修改',
@@ -266,9 +267,9 @@ export function useMenu() {
 
   /** 读取最新详情，离开页面或重复点击时不再打开旧弹窗。 */
   async function openEditDialog(id: MenuId) {
-    if (editing.value) return
+    if (editingId.value !== undefined) return
     const version = ++editVersion
-    editing.value = true
+    editingId.value = id
     try {
       const response = await fetchMenuDetail(id)
       if (version !== editVersion) return
@@ -281,7 +282,7 @@ export function useMenu() {
     } catch {
       // 请求错误由公共拦截器提示。
     } finally {
-      if (version === editVersion) editing.value = false
+      if (version === editVersion) editingId.value = undefined
     }
   }
 
@@ -308,7 +309,7 @@ export function useMenu() {
   })
   onDeactivated(() => {
     editVersion++
-    editing.value = false
+    editingId.value = undefined
   })
   onScopeDispose(() => editVersion++)
 

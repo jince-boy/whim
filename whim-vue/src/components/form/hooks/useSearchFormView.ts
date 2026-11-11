@@ -9,7 +9,12 @@ import {
   watch,
 } from 'vue'
 import type { FormInst, GridProps, NGrid } from 'naive-ui'
-import type { SearchFormBinding, SearchFormEmits, SearchFormRegistration } from '../types'
+import type {
+  SearchFormBinding,
+  SearchFormEmits,
+  SearchFormProps,
+  SearchFormRegistration,
+} from '../types'
 
 /** 连接查询表单 hook，并将用户提交、重置作为事件通知调用方。 */
 export function useSearchFormView(
@@ -17,6 +22,7 @@ export function useSearchFormView(
     event: Event,
     ...args: SearchFormEmits[Event]
   ) => void,
+  props: Readonly<SearchFormProps>,
 ) {
   const binding = shallowRef<SearchFormBinding>()
   const formRef = useTemplateRef<FormInst>('formRef')
@@ -25,7 +31,9 @@ export function useSearchFormView(
   const title = computed(() => binding.value?.title.value ?? '筛选条件')
   const collapsed = ref(true)
   const canCollapse = ref(false)
-  const submitting = ref(false)
+  const validating = ref(false)
+  const submitting = computed(() => validating.value || !!props.loading)
+  const busy = computed(() => submitting.value || !!props.resetting)
   const formProps = computed(() => binding.value?.formProps.value)
   const filters = computed(() => binding.value?.filters.value ?? [])
   const gridProps = computed<GridProps>(() => {
@@ -67,8 +75,8 @@ export function useSearchFormView(
 
   /** 阻止重复校验，无效字段留在表单中展示。 */
   async function submit() {
-    if (!binding.value || submitting.value) return false
-    submitting.value = true
+    if (!binding.value || busy.value) return false
+    validating.value = true
     try {
       await validate()
       binding.value.commitValues()
@@ -79,13 +87,13 @@ export function useSearchFormView(
       collapsed.value = false
       return false
     } finally {
-      submitting.value = false
+      validating.value = false
     }
   }
 
   /** 通过 hook 恢复模型，再通知调用方使用新条件。 */
   function reset() {
-    if (!binding.value || submitting.value) return
+    if (!binding.value || busy.value) return
     binding.value.resetFields()
     binding.value.commitValues()
     emit('reset')
@@ -93,7 +101,7 @@ export function useSearchFormView(
 
   /** 撤销一个已应用条件后通知调用方重新查询。 */
   function removeFilter(key: string) {
-    if (!binding.value || submitting.value) return
+    if (!binding.value || busy.value) return
     if (binding.value.removeFilter(key)) emit('filterChange')
   }
 
@@ -125,6 +133,7 @@ export function useSearchFormView(
     canCollapse,
     toggleCollapsed,
     submitting,
+    busy,
     submit,
     reset,
     validate,

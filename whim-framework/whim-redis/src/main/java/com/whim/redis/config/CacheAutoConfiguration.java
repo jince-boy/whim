@@ -18,7 +18,8 @@ import org.springframework.context.annotation.Bean;
  * @date 2026/03/30
  * @description 缓存自动配置，提供 Caffeine 本地缓存 + Redisson 远程缓存的二级缓存方案。
  */
-@AutoConfiguration(after = org.redisson.spring.starter.RedissonAutoConfiguration.class)
+// Boot 4 实际导入 V4 配置，必须先注册 RedissonClient，再评估下面的 Bean 条件。
+@AutoConfiguration(after = org.redisson.spring.starter.RedissonAutoConfigurationV4.class)
 @ConditionalOnBean(RedissonClient.class)
 @EnableCaching
 @EnableConfigurationProperties(CaffeineProperties.class)

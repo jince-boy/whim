@@ -10,6 +10,11 @@
     <artifactId>whim-file</artifactId>
     <description>统一文件存储与流式传输</description>
     <dependencies>
+        <!-- 仅使用有界文件头检测，不引入文档解析器或解压上传内容 -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>net.coobird</groupId>
             <artifactId>thumbnailator</artifactId>

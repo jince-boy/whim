@@ -41,6 +41,8 @@ export function useWhimTableView(
   const isFullscreen = ref(false)
   const settingsVisible = ref(false)
   const refreshing = ref(false)
+  const searchAction = ref<'submit' | 'reset' | 'filter'>()
+  let searchVersion = 0
   const userStore = useUserStore()
   const title = computed(() => binding.value?.title.value ?? '数据列表')
   const tableProps = computed(() => binding.value?.tableProps.value)
@@ -81,6 +83,7 @@ export function useWhimTableView(
   function isDisabled(button: TableButton) {
     const count = binding.value?.checkedRowKeys.value.length ?? 0
     return (
+      !!toolbar.value.loading?.[button] ||
       !!binding.value?.loading.value ||
       (button === 'edit' && count !== 1) ||
       (button === 'delete' && count === 0)
@@ -95,6 +98,18 @@ export function useWhimTableView(
     else if (button === 'edit' && keys[0] !== undefined) emit('edit', keys[0])
     else if (button === 'delete') emit('delete', keys)
     else if (button === 'export') emit('export', keys)
+  }
+
+  /** 请求由表格等待，查询与重置分别在自己的按钮内反馈进度。 */
+  async function applySearch(action: 'submit' | 'reset' | 'filter') {
+    if (!binding.value) return
+    const version = ++searchVersion
+    searchAction.value = action
+    try {
+      await binding.value.applySearch()
+    } finally {
+      if (version === searchVersion) searchAction.value = undefined
+    }
   }
 
   /** 刷新数据并启动箭头旋转，刷新期间不重复发起请求。 */
@@ -186,6 +201,8 @@ export function useWhimTableView(
     buttonOptions,
     isDisabled,
     handleAction,
+    searchAction,
+    applySearch,
     refreshing,
     finishRefreshRotation,
     refresh,

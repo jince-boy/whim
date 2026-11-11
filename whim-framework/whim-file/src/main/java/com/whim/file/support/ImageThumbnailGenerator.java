@@ -30,16 +30,16 @@ public final class ImageThumbnailGenerator {
      * 等比生成指定边界内的 PNG 缩略图，并关闭输入流；不支持或超出预览限制时返回空数组。
      *
      * @param source 待预览文件的输入流
-     * @param width 缩略图最大宽度，范围为 1 至 512
-     * @param height 缩略图最大高度，范围为 1 至 512
+     * @param width 图片最大宽度，范围为 1 至 2048
+     * @param height 图片最大高度，范围为 1 至 2048
      * @return PNG 图片内容，不可预览时为空数组
      */
     public static byte[] generateThumbnail(InputStream source, int width, int height) {
         boolean acquired = false;
         try (InputStream input = new LimitedInputStream(source, MAXIMUM_SOURCE_BYTES + 1L,
                 System.nanoTime() + Duration.ofSeconds(30).toNanos())) {
-            if (width < 1 || height < 1 || width > 512 || height > 512) {
-                throw new FileStorageException("缩略图尺寸必须在1至512像素之间");
+            if (width < 1 || height < 1 || width > 2048 || height > 2048) {
+                throw new FileStorageException("预览图片尺寸必须在1至2048像素之间");
             }
             // 限制同时解码的图片数量，避免列表并发预览消耗过多堆内存。
             acquired = GENERATION_PERMITS.tryAcquire(10, TimeUnit.SECONDS);

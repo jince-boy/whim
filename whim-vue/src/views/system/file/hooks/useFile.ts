@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import {
   NButton,
   NSpace,
-  NSpin,
   NTag,
   useThemeVars,
   type DataTableColumns,
@@ -111,16 +110,13 @@ export function useFile() {
                   text: true,
                   size: 'small',
                   type: 'info',
-                  style: { width: '2em' },
                   'aria-label': '下载',
                   'aria-busy': downloadingId.value === row.id,
+                  loading: downloadingId.value === row.id,
                   disabled: !!downloadingId.value || deleting.value,
                   onClick: () => download(row),
                 },
-                () =>
-                  downloadingId.value === row.id
-                    ? h(NSpin, { size: 14, stroke: themeVars.value.infoColor })
-                    : '下载',
+                () => '下载',
               )
             : null,
           can('delete')

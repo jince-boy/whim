@@ -85,7 +85,7 @@ export function useFileThumbnail(props: FileThumbnailProps) {
     unavailable.value = true
   }
 
-  /** 首次点击才加载原图，成功后复用当前记录的预览资源。 */
+  /** 首次点击加载后端生成的安全预览，成功后复用当前记录的资源。 */
   async function openPreview() {
     if (!props.canPreview || !isImage.value || !active.value || previewLoading.value) return
     if (previewUrl.value) {
@@ -97,15 +97,19 @@ export function useFileThumbnail(props: FileThumbnailProps) {
     previewController = controller
     previewLoading.value = true
     try {
-      let original: Blob
+      let preview: Blob | undefined
       try {
-        original = await getFilePreview(props.file, controller.signal)
+        preview = await getFilePreview(props.file.id, controller.signal)
       } catch {
         // 请求错误由公共客户端提示，离开页面后的取消请求无需再次提示。
         return
       }
       if (controller.signal.aborted) return
-      previewUrl.value = URL.createObjectURL(original)
+      if (!preview) {
+        message.error('该图片无法预览')
+        return
+      }
+      previewUrl.value = URL.createObjectURL(preview)
       const image = new Image()
       image.src = previewUrl.value
       try {
@@ -118,14 +122,14 @@ export function useFileThumbnail(props: FileThumbnailProps) {
         }
         return
       }
-      // 原图解码期间切页、刷新记录或失去权限后，不再打开过期预览。
+      // 图片解码期间切页、刷新记录或失去权限后，不再打开过期预览。
       if (!controller.signal.aborted) previewShown.value = true
     } finally {
       if (!controller.signal.aborted) previewLoading.value = false
     }
   }
 
-  /** 记录替换、权限变更或页面停用时关闭预览并释放原图。 */
+  /** 记录替换、权限变更或页面停用时关闭预览并释放图片。 */
   function resetPreview() {
     previewController?.abort()
     previewController = undefined

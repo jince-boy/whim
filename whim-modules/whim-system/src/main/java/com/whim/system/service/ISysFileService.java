@@ -31,6 +31,14 @@ public interface ISysFileService extends IService<SysFile> {
     byte[] getFileThumbnail(Long id);
 
     /**
+     * 查询经过重新编码的安全图片预览，不返回原始上传内容。
+     *
+     * @param id 文件ID
+     * @return 最大2048像素的PNG预览，不可预览时为空数组
+     */
+    byte[] getFilePreview(Long id);
+
+    /**
      * 查询当前用户的上传任务及已确认的分片。
      *
      * @param id 上传任务ID

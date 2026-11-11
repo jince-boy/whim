@@ -8,8 +8,8 @@ import com.whim.file.model.FileSource;
 import com.whim.file.model.MetaData;
 import com.whim.file.storage.IFileStorage;
 import com.whim.file.support.StoragePath;
+import com.whim.file.support.FileUploadSecurity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -38,15 +38,20 @@ public class FileStorageService implements AutoCloseable {
         return upload(file, null);
     }
 
-    /** 上传文件；支持 MultipartFile、Path、File、byte[]、InputStream 和受限 URI。 */
+    /**
+     * 校验实际内容后上传文件，调用配置不能覆盖检测结果。
+     *
+     * @param file 待上传文件或输入流
+     * @param configurator 存储选项配置
+     * @return 已保存的文件元数据
+     */
     public MetaData upload(Object file, Consumer<FileHandler.Builder> configurator) {
         FileHandler options = buildOptions(configurator);
         IFileStorage storage = getStorage(options);
         try (FileSource source = FileSource.open(file, properties)) {
             String key = getObjectKey(options, source.getFileName());
-            String contentType = getContentType(options.getContentType() == null
-                    ? source.getContentType() : options.getContentType());
-            return storage.upload(source, key, contentType);
+            FileUploadSecurity.validateMetadata(key, options.getContentType());
+            return storage.upload(source, key, source.getContentType());
         } catch (IOException exception) {
             throw new FileStorageException("关闭上传文件失败", exception);
         }
@@ -89,7 +94,13 @@ public class FileStorageService implements AutoCloseable {
                 .platformConfigName(metadata.getPlatformConfigName()).objectKey(metadata.getObjectKey()));
     }
 
-    /** 生成指定有效期的下载签名；不会提前检查对象是否存在。 */
+    /**
+     * 生成强制二进制附件响应的下载签名，不提前检查对象存在性。
+     *
+     * @param configurator 存储选项配置
+     * @param expiration 签名有效期
+     * @return 安全下载签名地址
+     */
     public String getFilePreSignedUrl(Consumer<FileHandler.Builder> configurator, Duration expiration) {
         validateExpiration(expiration);
         FileHandler options = buildOptions(configurator);
@@ -104,12 +115,15 @@ public class FileStorageService implements AutoCloseable {
         return getFilePreSignedUrl(configurator, Duration.ofNanos(unit.toNanos(expire)));
     }
 
-    /** 生成 PUT 上传签名；直传大小限制需由桶策略或上传后的业务校验落实。 */
+    /**
+     * 拒绝没有完成校验环节的单次直传，防止绕过实际内容检查。
+     *
+     * @param configurator 存储选项配置
+     * @param expiration 签名有效期
+     * @return 本方法始终拒绝签发并抛出异常
+     */
     public String uploadFilePreSignedUrl(Consumer<FileHandler.Builder> configurator, Duration expiration) {
-        validateExpiration(expiration);
-        FileHandler options = buildOptions(configurator);
-        return getStorage(options).uploadFilePreSignedUrl(getObjectKey(options, null),
-                getContentType(options.getContentType()), expiration);
+        throw new FileStorageException("单次直传无法校验文件内容，请使用普通上传或分片上传");
     }
 
     /** 保留原模块的时间单位调用方式。 */
@@ -161,25 +175,6 @@ public class FileStorageService implements AutoCloseable {
         String directory = options.getStoragePath();
         return StoragePath.validateKey(directory == null || directory.isEmpty()
                 ? fileName : directory + "/" + fileName);
-    }
-
-    /** 校验 MIME 语法，空缺时使用二进制默认值，不信任客户端声明的内容安全性。 */
-    private String getContentType(String contentType) {
-        if (contentType == null) {
-            return MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
-        try {
-            if (contentType.isBlank() || contentType.chars().anyMatch(Character::isISOControl)) {
-                throw new FileStorageException("文件内容类型无效");
-            }
-            MediaType parsed = MediaType.parseMediaType(contentType);
-            if (parsed.isWildcardType() || parsed.isWildcardSubtype()) {
-                throw new FileStorageException("文件内容类型不能包含通配符");
-            }
-            return parsed.toString();
-        } catch (IllegalArgumentException exception) {
-            throw new FileStorageException("文件内容类型无效", exception);
-        }
     }
 
     /** 统一签名有效期为 1 秒至 7 天的整数秒。 */

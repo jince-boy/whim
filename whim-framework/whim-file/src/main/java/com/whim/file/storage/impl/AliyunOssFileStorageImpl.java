@@ -31,6 +31,7 @@ import com.whim.file.model.MetaData;
 import com.whim.file.exception.MissingUploadSessionException;
 import com.whim.file.storage.BaseFileStorage;
 import com.whim.file.support.StoragePath;
+import com.whim.file.support.FileUploadSecurity;
 import com.whim.file.support.OssHttpClient;
 
 import java.time.Duration;
@@ -72,15 +73,23 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         }
     }
 
-    /** 流式上传文件，未知大小仍受实际读取上限约束。 */
+    /**
+     * 将已校验文件存为二进制附件，业务元数据保留实际检测类型。
+     *
+     * @param source 已校验的文件输入
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @return 文件元数据
+     */
     @Override
     public MetaData upload(FileSource source, String key, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             client.putObject(PutObjectRequest.newBuilder().bucket(bucket).key(objectName(key))
-                    .contentType(contentType)
+                    .contentType(FileUploadSecurity.DOWNLOAD_CONTENT_TYPE).contentDisposition("attachment")
                     .body(BinaryData.fromStream(source.getInputStream(), source.getSize() < 0 ? null : source.getSize()))
                     .build());
-            return createMetaData(key, source.getInputStream().getBytesRead(), contentType);
+            return createMetaData(key, source.getInputStream().getBytesRead(), source.getContentType());
         } catch (Exception exception) {
             throw new FileStorageException("阿里云 OSS 文件上传失败", exception);
         }
@@ -134,35 +143,53 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         }
     }
 
-    /** 原样返回下载签名，保留路径及查询参数编码。 */
+    /**
+     * 生成强制附件下载签名，覆盖历史对象可能保留的不安全类型。
+     *
+     * @param key 文件存储标识
+     * @param expiration 签名有效期
+     * @return 包含安全响应参数的签名地址
+     */
     @Override
     public String getFilePreSignedUrl(String key, Duration expiration) {
         try {
-            return client.presign(GetObjectRequest.newBuilder().bucket(bucket).key(objectName(key)).build(),
+            return client.presign(GetObjectRequest.newBuilder().bucket(bucket).key(objectName(key))
+                            .responseContentType(FileUploadSecurity.DOWNLOAD_CONTENT_TYPE)
+                            .responseContentDisposition("attachment").responseCacheControl("no-store").build(),
                     PresignOptions.newBuilder().expiration(expiration).build()).url();
         } catch (Exception exception) {
             throw new FileStorageException("生成阿里云 OSS 下载签名失败", exception);
         }
     }
 
-    /** 原样返回 PUT 签名，调用方必须使用相同的 Content-Type。 */
+    /**
+     * 拒绝绕过内容校验的单次直传。
+     *
+     * @param key 文件存储标识
+     * @param contentType 文件内容类型
+     * @param expiration 签名有效期
+     * @return 本方法始终拒绝签发并抛出异常
+     */
     @Override
     public String uploadFilePreSignedUrl(String key, String contentType, Duration expiration) {
-        try {
-            return client.presign(PutObjectRequest.newBuilder().bucket(bucket).key(objectName(key))
-                            .contentType(contentType).build(),
-                    PresignOptions.newBuilder().expiration(expiration).build()).url();
-        } catch (Exception exception) {
-            throw new FileStorageException("生成阿里云 OSS 上传签名失败", exception);
-        }
+        throw new FileStorageException("单次直传无法校验文件内容，请使用普通上传或分片上传");
     }
 
-    /** 创建 OSS 原生分片会话。 */
+    /**
+     * 创建二进制附件分片会话，合并对象也不能作为网页内联执行。
+     *
+     * @param key 文件存储标识
+     * @param contentType 客户端声明的类型
+     * @param taskId 存储任务标识
+     * @return 分片上传会话标识
+     */
     @Override
     public String initiateUpload(String key, String contentType, String taskId) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             return client.initiateMultipartUpload(InitiateMultipartUploadRequest.newBuilder().bucket(bucket)
-                    .key(objectName(key)).contentType(contentType).build()).initiateMultipartUpload().uploadId();
+                    .key(objectName(key)).contentType(FileUploadSecurity.DOWNLOAD_CONTENT_TYPE)
+                    .contentDisposition("attachment").build()).initiateMultipartUpload().uploadId();
         } catch (Exception exception) {
             throw new FileStorageException("创建 OSS 分片任务失败", exception);
         }
@@ -232,9 +259,19 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         }
     }
 
-    /** 以服务端读取的 ETag 清单完成合并。 */
+    /**
+     * 使用存储端清单合并文件并校验实际内容。
+     *
+     * @param key 文件存储标识
+     * @param uploadId 上传会话标识
+     * @param parts 已确认的分片清单
+     * @param size 预期文件大小
+     * @param contentType 客户端声明的内容类型
+     * @return 已校验的文件元数据
+     */
     @Override
-    public void completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+    public MetaData completeUpload(String key, String uploadId, List<StoragePart> parts, long size, String contentType) {
+        FileUploadSecurity.validateMetadata(key, contentType);
         try {
             List<Part> manifest = parts.stream().map(part -> Part.newBuilder()
                     .partNumber((long) part.getPartNumber()).eTag(part.getEtag()).build()).toList();
@@ -244,6 +281,7 @@ public final class AliyunOssFileStorageImpl extends BaseFileStorage implements M
         } catch (Exception exception) {
             throw new FileStorageException("合并 OSS 分片失败", exception);
         }
+        return FileUploadSecurity.getValidatedFileMetaData(this, key);
     }
 
     /** 会话已不存在时幂等成功，鉴权及网络故障仍然抛出。 */

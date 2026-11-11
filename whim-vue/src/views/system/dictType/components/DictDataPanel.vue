@@ -20,7 +20,7 @@ const { registerTable, form, canAdd, canExport, exporting, openAddDialog, remove
       <n-button v-if="canAdd" type="primary" :render-icon="createIcon('plus')" @click="openAddDialog">新增数据</n-button>
     </template>
     <template #toolbarExtra>
-      <n-button v-if="canExport" type="info" secondary :loading="exporting" :render-icon="createIcon('download')" @click="handleExport">导出数据</n-button>
+      <n-button v-if="canExport" class="whim-button--with-icon" type="info" secondary :loading="exporting" :render-icon="createIcon('download')" @click="handleExport">导出数据</n-button>
     </template>
     <template #empty><n-empty description="暂无字典数据，请新增或调整查询条件" /></template>
   </WhimTable>

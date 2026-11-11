@@ -55,7 +55,7 @@ const { themeVars, tabThemeOverrides, canView, canStorage, canUpload, canDelete,
             <n-button v-if="canUpload && !uploadLimit" key="uploadLimit" secondary type="info" @click="loadUploadLimit">
               <template #icon><Icon name="refresh-cw" /></template>重新获取上传限制
             </n-button>
-            <n-button v-if="canDelete" key="delete" secondary type="error" :loading="deleting"
+            <n-button v-if="canDelete" key="delete" class="whim-button--with-icon" secondary type="error" :loading="deleting"
               :disabled="!selectedFiles.length || deleting || !!downloadingId" @click="removeSelectedFiles">
               <template #icon><Icon name="trash-2" /></template>删除
             </n-button>

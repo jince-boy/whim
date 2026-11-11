@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NImage, NImagePreview, NSkeleton, NSpin, NText } from 'naive-ui'
+import { NButton, NImage, NImagePreview, NSkeleton, NText } from 'naive-ui'
 import Icon from '@/components/icon/Icon.vue'
 import { useFileThumbnail } from '../hooks/useFileThumbnail'
 import type { FileThumbnailProps } from '../hooks/types'
@@ -14,13 +14,12 @@ const {
 <template>
   <span ref="thumbnailElement" class="file-thumbnail">
     <n-button v-if="imageUrl && !unavailable" text size="small" class="file-thumbnail-trigger"
+      :loading="previewLoading"
       :disabled="!props.canPreview || previewLoading" :aria-busy="previewLoading"
       :aria-label="`查看图片：${props.file.originalName}`"
-      title="查看原图" @click="openPreview">
-      <n-spin :show="previewLoading" :size="16" content-style="display: flex">
-        <n-image :src="imageUrl" :alt="props.file.originalName" :width="32" :height="32"
-          object-fit="contain" preview-disabled @error="handleImageError" />
-      </n-spin>
+      title="查看图片" @click="openPreview">
+      <n-image :src="imageUrl" :alt="props.file.originalName" :width="32" :height="32"
+        object-fit="contain" preview-disabled @error="handleImageError" />
     </n-button>
     <n-skeleton v-else-if="loading" :width="32" :height="32" />
     <n-text v-else depth="3" :title="isImage ? '暂无图片预览' : undefined">

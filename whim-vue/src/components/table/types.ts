@@ -13,6 +13,8 @@ export type TableButton = 'add' | 'edit' | 'delete' | 'export'
 
 export interface TableToolbarOptions {
   buttons?: TableButton[]
+  /** 由页面提供各操作的请求状态，只在触发操作的按钮内显示加载反馈。 */
+  loading?: Partial<Record<TableButton, boolean>>
   permissions?: Partial<Record<TableButton, string[]>>
   roles?: Partial<Record<TableButton, string[]>>
   showStriped?: boolean
