@@ -87,7 +87,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // 列表只查询展示字段，不读取密码哈希；部门筛选不会扩大当前操作的数据范围。
         Page<SysUser> users = this.lambdaQuery()
-                .select(SysUser::getId, SysUser::getUsername, SysUser::getName, SysUser::getDeptId,
+                .select(SysUser::getId, SysUser::getUsername, SysUser::getName, SysUser::getAvatar, SysUser::getDeptId,
                         SysUser::getEmail, SysUser::getPhone, SysUser::getGender, SysUser::getStatus,
                         SysUser::getRemark, SysUser::getCreateTime)
                 .like(StringUtils.hasText(query.getUsername()), SysUser::getUsername, query.getUsername())
@@ -322,7 +322,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new ServiceException("修改用户失败");
         }
         updateUserPosts(user.getId(), postIds);
-        // 姓名、部门、岗位及状态都进入授权快照；提交后统一失效，回滚不影响登录。
+        // 头像、姓名、部门、岗位及状态都进入登录快照；提交后统一失效，回滚不影响登录。
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(user.getId()));
     }
 

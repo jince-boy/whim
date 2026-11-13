@@ -1,32 +1,36 @@
 <script setup lang="ts">
-import {useUserMenu} from './hooks/useUserMenu'
+import Icon from '@/components/icon/Icon.vue'
+import { useUserMenu } from './hooks/useUserMenu'
 
-defineOptions({name: 'LayoutUserMenu'})
+defineOptions({ name: 'LayoutUserMenu' })
 const props = withDefaults(defineProps<{ collapsed?: boolean; compact?: boolean }>(), {
   collapsed: false,
   compact: false,
 })
-const {displayName, avatar, avatarText, signingOut, options, openProfile, handleSelect} =
-  useUserMenu()
+const { username, displayName, avatar, avatarText, signingOut, menuShown, options, handleSelect } = useUserMenu()
 </script>
 
 <template>
-  <div class="user-menu" :class="{ 'user-menu--compact': props.compact, 'user-menu--collapsed': props.collapsed }">
-    <n-button quaternary class="user-profile-button" :disabled="signingOut" title="个人信息设置" aria-label="进入个人信息设置" @click="openProfile">
-      <n-avatar round :size="props.compact ? 28 : 32" :src="avatar" :img-props="{ alt: displayName }" object-fit="cover">
-        <template v-if="!avatar" #default>{{ avatarText }}</template>
-        <template #fallback>{{ avatarText }}</template>
-      </n-avatar>
-      <n-ellipsis v-if="!props.collapsed && !props.compact" :tooltip="false" class="user-menu-name">
-        {{ displayName }}
-      </n-ellipsis>
-    </n-button>
-    <n-dropdown trigger="click" :options="options" placement="bottom-end" @select="handleSelect">
-      <n-button quaternary class="user-menu-trigger" :disabled="signingOut" title="用户菜单" aria-label="打开用户菜单">
-        <span aria-hidden="true">⋯</span>
+  <n-el class="user-menu" :class="{ 'user-menu--compact': props.compact, 'user-menu--collapsed': props.collapsed }">
+    <n-dropdown v-model:show="menuShown" trigger="click" :options="options" :width="224"
+      :placement="props.compact ? 'bottom-end' : props.collapsed ? 'right-end' : 'top-start'" @select="handleSelect">
+      <n-button quaternary class="user-menu-button" :class="{ 'user-menu-button--open': menuShown }"
+        :disabled="signingOut" :loading="signingOut" :theme-overrides="{ borderRadius: '8px' }"
+        :title="props.collapsed || props.compact ? displayName : undefined"
+        :aria-label="`个人菜单：${displayName}`" aria-haspopup="menu" :aria-expanded="menuShown">
+        <n-avatar class="user-menu-avatar" :round="false" :size="props.compact ? 28 : 34" :src="avatar"
+          :img-props="{ alt: displayName }" object-fit="cover">
+          <template v-if="!avatar" #default>{{ avatarText }}</template>
+          <template #fallback>{{ avatarText }}</template>
+        </n-avatar>
+        <span v-if="!props.collapsed && !props.compact" class="user-menu-identity">
+          <n-ellipsis :tooltip="false" class="user-menu-name">{{ displayName }}</n-ellipsis>
+          <n-ellipsis :tooltip="false" class="user-menu-username">{{ username }}</n-ellipsis>
+        </span>
+        <Icon v-if="!props.collapsed" class="user-menu-chevron" name="chevrons-up-down" :size="14" />
       </n-button>
     </n-dropdown>
-  </div>
+  </n-el>
 </template>
 
 <style scoped lang="scss">
@@ -35,12 +39,12 @@ const {displayName, avatar, avatarText, signingOut, options, openProfile, handle
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 8px;
+  padding: 4px 8px;
   box-sizing: border-box;
 }
 
-.user-profile-button {
-  flex: 1;
+.user-menu-button {
+  width: 100%;
   min-width: 0;
   height: 100%;
   padding: 0 8px;
@@ -49,45 +53,69 @@ const {displayName, avatar, avatarText, signingOut, options, openProfile, handle
     width: 100%;
     min-width: 0;
     justify-content: flex-start;
-    gap: 12px;
-  }
-
-  :deep(.n-avatar) {
-    flex-shrink: 0;
+    gap: 10px;
   }
 }
 
-.user-menu-trigger {
+.user-menu-button--open {
+  background-color: var(--button-color-2-hover);
+}
+
+.user-menu-avatar {
   flex-shrink: 0;
-  width: 24px;
-  height: 32px;
-  padding: 0;
-  font-size: 20px;
+  color: var(--primary-color);
+  background-color: color-mix(in srgb, var(--primary-color) 12%, var(--card-color));
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.user-menu-name {
+.user-menu-identity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
   min-width: 0;
   text-align: left;
 }
 
+.user-menu-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.user-menu-username {
+  color: var(--text-color-3);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.user-menu-chevron {
+  flex-shrink: 0;
+  color: var(--text-color-3);
+}
+
+.user-menu--collapsed .user-menu-button {
+  padding: 0;
+
+  :deep(.n-button__content) {
+    justify-content: center;
+  }
+}
+
 .user-menu--compact {
-  width: 60px;
+  width: auto;
   height: 36px;
   padding: 0;
-}
 
-.user-menu--collapsed {
-  padding: 0 4px;
-}
+  .user-menu-button {
+    height: 36px;
+    padding: 0 6px;
+  }
 
-.user-menu--compact,
-.user-menu--collapsed {
-  .user-profile-button {
-    padding: 0;
-
-    :deep(.n-button__content) {
-      justify-content: center;
-    }
+  .user-menu-button :deep(.n-button__content) {
+    gap: 6px;
   }
 }
 </style>

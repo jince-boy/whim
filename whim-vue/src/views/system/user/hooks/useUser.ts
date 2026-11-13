@@ -1,9 +1,10 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
-import { NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
+import { NAvatar, NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
 import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
+import { useAvatarImages } from '@/hooks/useAvatarImages'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
 import { message } from '@/plugins'
 import { addUser, assignUserRoles, deleteUser, fetchUserDetail, fetchUserPage, fetchUserRoles, resetUserPassword, updateUser } from './api'
@@ -42,6 +43,28 @@ export function useUser() {
 
   const columns = computed<DataTableColumns<UserItem>>(() => {
     const columns: DataTableColumns<UserItem> = [
+      {
+        title: '头像', key: 'avatar', align: 'center',
+        cellProps: () => ({ style: { verticalAlign: 'middle' } }),
+        render: (row) => {
+          const name = row.name || row.username
+          const src = getAvatarUrl(row.avatar)
+          const avatarText = name.slice(0, 1).toUpperCase()
+          const avatar = h(NAvatar, {
+            src, size: 36, round: false, objectFit: 'cover', imgProps: { alt: name },
+            style: { display: 'flex', margin: '0 auto' },
+          }, {
+            default: () => src ? null : avatarText,
+            fallback: () => avatarText,
+          })
+          return src ? h(NButton, {
+            text: true, size: 'small', disabled: avatarPreviewLoading.value,
+            title: '查看头像', 'aria-label': `查看${name}的头像`,
+            style: { display: 'flex', width: '36px', height: '36px', margin: '0 auto' },
+            onClick: () => openAvatarPreview(row.avatar),
+          }, () => avatar) : avatar
+        },
+      },
       { title: '用户名', key: 'username', ellipsis: { tooltip: true } },
       { title: '姓名', key: 'name', ellipsis: { tooltip: true } },
       { title: '所属部门', key: 'deptName', ellipsis: { tooltip: true }, render: (row) => row.deptId == null ? '未分配部门' : row.deptName || '—' },
@@ -62,12 +85,11 @@ export function useUser() {
     const canDelete = can('system:user:delete')
     if (canEdit || canResetPassword || canAssignRoles || canDelete) {
       columns.push({
-        title: '操作', key: 'action', fixed: 'right',
-        // 当前最多四项操作，直接显示完整按钮，编辑和删除优先排列。
-        width: 260,
+        title: '操作', key: 'action',
+        // 操作列与数据列均分宽度，空间不足时换行，编辑和删除优先排列。
         render: (row) => {
           const protectedUser = isProtected(row)
-          return h(NSpace, { size: 12, align: 'center', wrap: false }, () => [
+          return h(NSpace, { size: [12, 4], align: 'center' }, () => [
             canEdit
               ? h(NButton, { text: true, type: 'warning', loading: editingId.value === row.id, disabled: recordLoading.value || protectedUser, onClick: () => openEditDialog(row.id) }, () => '编辑') : null,
             canDelete
@@ -89,7 +111,7 @@ export function useUser() {
         `${selection.value.names.get(selectedDepartmentKey.value) ?? '所选部门'}及下级部门 · 用户`,
     columns,
     rowKey: (row) => String(row.id),
-    scrollX: 1300,
+    scrollX: 1372,
     immediate: canView.value,
     request: (query) => fetchUserPage({
       ...query, username: query.username.trim(), name: query.name.trim(), phone: query.phone.trim(),
@@ -107,6 +129,9 @@ export function useUser() {
     },
     toolbar: { buttons: ['add'], permissions: { add: ['system:user:create'] } },
   }))
+
+  const { getAvatarUrl, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading, openAvatarPreview } =
+    useAvatarImages(() => table.data.value.map((row) => row.avatar))
 
   function selectDepartment(keys: Array<string | number>) {
     const key = String(keys[0] ?? 'all')
@@ -214,6 +239,7 @@ export function useUser() {
 
   return {
     registerTable, form: table.searchModel, canView, canLoadDepartments: canLoad,
+    avatarPreviewUrl, avatarPreviewShown,
     departmentTree, departmentPattern, departmentLoading, departmentError, departmentRefreshing,
     selectedDepartmentKeys: computed(() => [selectedDepartmentKey.value]),
     selectDepartment, refreshDepartments, finishDepartmentRefreshRotation, openAddDialog,

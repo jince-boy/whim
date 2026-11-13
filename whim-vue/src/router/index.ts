@@ -17,8 +17,8 @@ export const constantRouter: RouteRecordRaw[] = [
         component: () => import('@/views/profile/index.vue'),
         name: 'UserProfile',
         meta: {
-          title: '个人信息设置',
-          breadcrumbs: [{ title: '个人信息设置', path: '/profile', name: 'UserProfile' }],
+          title: '个人信息',
+          breadcrumbs: [{ title: '个人信息', path: '/profile', name: 'UserProfile' }],
           icon: 'user',
           isTab: true,
         },

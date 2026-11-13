@@ -30,6 +30,10 @@ public class SysUserUpdateDTO {
     @Size(max = 24, message = "姓名不能超过24个字符")
     private String name;
 
+    /** 头像地址，上传头像后返回，null表示清空。 */
+    @Size(max = 255, message = "头像地址不能超过255个字符")
+    private String avatar;
+
     /** 主部门ID，null表示未分配部门。 */
     private Long deptId;
 

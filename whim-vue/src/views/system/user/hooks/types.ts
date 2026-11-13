@@ -3,10 +3,16 @@ import type { OrganizationStatus } from '@/views/system/dept/hooks/types'
 
 export type UserId = string | number
 
+export interface UserAvatarQuery {
+  id: string
+  preview?: boolean
+}
+
 export interface UserItem {
   id: UserId
   username: string
   name: string
+  avatar: string | null
   deptId: UserId | null
   deptName: string | null
   email: string | null
@@ -37,6 +43,8 @@ export interface UserFormModel {
   password: string
   confirmPassword: string
   name: string
+  avatar: string | null
+  avatarFile: File | null
   deptId: string | null
   email: string | null
   phone: string | null

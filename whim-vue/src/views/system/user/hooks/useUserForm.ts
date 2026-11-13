@@ -2,10 +2,12 @@ import { computed, onScopeDispose, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst, SelectOption } from 'naive-ui'
 import { useDictStore } from '@/stores/modules/dict'
 import { useUserStore } from '@/stores/modules/user'
+import { useAvatarImages } from '@/hooks/useAvatarImages'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
 import { fetchPostPage } from '@/views/system/post/hooks/api'
 import type { PostItem } from '@/views/system/post/hooks/types'
 import { createUserRules } from './rule'
+import { message } from '@/plugins'
 import type { UserFormModel, UserFormProps } from './types'
 
 /** 用户资料草稿、部门选择和分页岗位候选项。 */
@@ -14,10 +16,60 @@ export function useUserForm(props: UserFormProps) {
   const currentUser = useUserStore()
   const formRef = useTemplateRef<FormInst>('formRef')
   const formModel = ref<UserFormModel>({
-    username: '', name: '', password: '', confirmPassword: '',
+    username: '', name: '', avatar: null, avatarFile: null, password: '', confirmPassword: '',
     deptId: null, email: null, phone: null, gender: 0, status: 0, postIds: [], remark: null,
   })
   const isEdit = computed(() => props.initialModel != null)
+  const avatarInput = useTemplateRef<HTMLInputElement>('avatarInput')
+  const avatarPreview = ref<string | null>(null)
+  const avatarName = computed(() => formModel.value.name || formModel.value.username || '用户')
+  const avatarText = computed(() => avatarName.value.slice(0, 1).toUpperCase())
+  const avatarSource = computed(() => avatarPreview.value || formModel.value.avatar)
+  const { getAvatarUrl, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading, openAvatarPreview } =
+    useAvatarImages(() => [avatarSource.value])
+  const avatarUrl = computed(() => getAvatarUrl(avatarSource.value))
+  const avatarCropFile = ref<File | null>(null)
+  const avatarCropVisible = ref(false)
+
+  /** 选择本地图片，实际上传与用户资料提交共用弹窗的提交锁。 */
+  function selectAvatar() {
+    avatarInput.value?.click()
+  }
+
+  /** 保留原头像直到所选文件通过大小和类型校验，允许重选同名文件。 */
+  function changeAvatar(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      message.error('头像仅支持JPG、PNG或GIF图片')
+      return
+    }
+    if (!file.size || file.size > 5 * 1024 * 1024) {
+      message.error('头像图片不能为空且不能超过5MB')
+      return
+    }
+    avatarCropFile.value = file
+    avatarCropVisible.value = true
+  }
+
+  /** 裁剪确认后更新头像草稿，取消裁剪不会改变原头像。 */
+  function confirmAvatarCrop(file: File) {
+    formModel.value.avatarFile = file
+  }
+
+  /** 清空草稿中的头像，保存成功后才影响用户资料。 */
+  function removeAvatar() {
+    formModel.value.avatarFile = null
+    formModel.value.avatar = null
+  }
+
+  watch(() => formModel.value.avatarFile, (file, _previous, onCleanup) => {
+    const objectUrl = file ? URL.createObjectURL(file) : null
+    avatarPreview.value = objectUrl
+    onCleanup(() => { if (objectUrl) URL.revokeObjectURL(objectUrl) })
+  })
   const isSelf = computed(() => isEdit.value && String(props.initialModel?.id) === String(currentUser.user?.userId))
   const isBuiltInAdministrator = computed(() => props.initialModel?.username === 'admin')
   const organizationReadonly = computed(() => isSelf.value && !isBuiltInAdministrator.value)
@@ -95,7 +147,7 @@ export function useUserForm(props: UserFormProps) {
   watch(() => [props.initialModel, props.defaultDeptId] as const, ([model, defaultDeptId]) => {
     formModel.value = {
       id: model?.id, username: model?.username ?? '', name: model?.name ?? '',
-      password: '', confirmPassword: '',
+      avatar: model?.avatar ?? null, avatarFile: null, password: '', confirmPassword: '',
       deptId: model ? model.deptId == null ? null : String(model.deptId) : (defaultDeptId ?? null),
       email: model?.email ?? null, phone: model?.phone ?? null,
       gender: model?.gender ?? 0, status: model?.status ?? 0,
@@ -109,6 +161,9 @@ export function useUserForm(props: UserFormProps) {
 
   return {
     formRef, formModel, isEdit, isSelf, organizationReadonly, selfEditNotice,
+    avatarName, avatarText, avatarUrl, selectAvatar, changeAvatar, removeAvatar,
+    avatarSource, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading, openAvatarPreview,
+    avatarCropFile, avatarCropVisible, confirmAvatarCrop,
     rules: computed(() => createUserRules(() => isEdit.value, () => formModel.value.password)),
     statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     genderOptions: computed(() => dictionary.getDictNumberOptions('sys_user_gender')),

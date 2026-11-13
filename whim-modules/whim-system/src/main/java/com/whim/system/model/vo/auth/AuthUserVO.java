@@ -42,6 +42,21 @@ public class AuthUserVO {
      */
     private Long deptId;
 
+    /** 当前有效主部门名称，未分配或部门不可用时为空。 */
+    private String deptName;
+
+    /** 当前有效岗位名称。 */
+    private List<String> postNames;
+
+    /** 联系手机，未填写时为空。 */
+    private String phone;
+
+    /** 联系邮箱，未填写时为空。 */
+    private String email;
+
+    /** 性别字典编码。 */
+    private Integer gender;
+
     /**
      * 账号体系
      */

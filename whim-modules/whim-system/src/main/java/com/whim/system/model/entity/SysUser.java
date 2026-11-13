@@ -46,6 +46,7 @@ public class SysUser extends BaseEntity implements Serializable {
     /**
      * 头像URL
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String avatar;
 
     /**

@@ -3,7 +3,7 @@ import systemSetting from '@/config/SystemSetting.ts'
 import logoUrl from '@/assets/images/logo.png'
 import {computed, useTemplateRef, watch} from 'vue'
 import {RouterLink, useRoute} from 'vue-router'
-import type {MenuInst} from 'naive-ui'
+import {darkTheme, type MenuInst} from 'naive-ui'
 import {useThemeStore} from '@/stores/modules/theme.ts'
 import LayoutUserMenu from '@/layout/components/userMenu/index.vue'
 import type {SafeMenuOption} from '@/utils/menu'
@@ -67,7 +67,9 @@ watch(
       <n-menu ref="menuInstRef" :collapsed="props.collapsed" :collapsed-width="64" :collapsed-icon-size="16" :icon-size="16" :theme-overrides="{ itemHeight: '36px' }" accordion :options="props.menus" :value="selectedKey" :inverted="themeStore.getMenuInverted"/>
     </n-layout-content>
     <n-layout-footer bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
-      <layout-user-menu :collapsed="props.collapsed"/>
+      <n-config-provider abstract :theme="themeStore.getMenuInverted ? darkTheme : undefined">
+        <layout-user-menu :collapsed="props.collapsed"/>
+      </n-config-provider>
     </n-layout-footer>
   </n-layout>
 </template>

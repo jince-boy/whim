@@ -5,6 +5,11 @@ export interface UserInfoResult {
   name: string | null
   avatar: string | null
   deptId: string | number | null
+  deptName: string | null
+  postNames: string[]
+  phone: string | null
+  email: string | null
+  gender: number | null
   loginType: string
   roleCodeSet: string[]
   permissionCodeSet: string[]

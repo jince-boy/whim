@@ -8,6 +8,7 @@ defineOptions({
 })
 const {
   registerTable, form, canView, canLoadDepartments,
+  avatarPreviewUrl, avatarPreviewShown,
   departmentTree, departmentPattern, departmentLoading, departmentError,
   selectedDepartmentKeys, selectDepartment, statusOptions,
   departmentRefreshing, refreshDepartments, finishDepartmentRefreshRotation, openAddDialog,
@@ -61,6 +62,7 @@ const {
       </div>
     </div>
     <n-empty v-else description="暂无用户查询权限" />
+    <n-image-preview v-model:show="avatarPreviewShown" :src="avatarPreviewUrl" show-toolbar-tooltip />
   </div>
 </template>
 

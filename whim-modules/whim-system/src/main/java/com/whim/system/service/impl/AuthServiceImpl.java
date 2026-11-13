@@ -78,7 +78,7 @@ public class AuthServiceImpl implements IAuthService {
     private final AuthenticationSession authenticationSession;
 
     /**
-     * 查询当前账号并刷新部门、岗位、角色及完整授权快照。
+     * 查询当前账号资料，并刷新部门、岗位、角色及完整授权快照。
      *
      * @return 当前登录用户信息
      */
@@ -93,7 +93,14 @@ public class AuthServiceImpl implements IAuthService {
         }
         UserInfo userInfo = buildUserInfo(user);
         authenticationSession.updateUserInfo(userInfo);
-        return BeanConvertUtils.convert(userInfo, AuthUserVO.class);
+        AuthUserVO result = BeanConvertUtils.convert(userInfo, AuthUserVO.class);
+        // 个人资料只返回给当前账号，不向公共认证快照加入联系方式或重复查询组织信息。
+        result.setPhone(user.getPhone());
+        result.setEmail(user.getEmail());
+        result.setGender(user.getGender());
+        result.setDeptName(userInfo.getDepartmentInfo() == null ? null : userInfo.getDepartmentInfo().getDeptName());
+        result.setPostNames(userInfo.getPostInfoList().stream().map(PostInfo::getPostName).toList());
+        return result;
     }
 
     /**

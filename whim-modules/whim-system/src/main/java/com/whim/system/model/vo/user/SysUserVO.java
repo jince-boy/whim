@@ -20,6 +20,8 @@ public class SysUserVO {
     private String username;
     /** 姓名。 */
     private String name;
+    /** 头像地址，未设置时为null。 */
+    private String avatar;
     /** 主部门ID。 */
     private Long deptId;
     /** 主部门名称。 */
