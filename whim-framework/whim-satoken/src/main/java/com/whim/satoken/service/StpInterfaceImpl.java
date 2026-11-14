@@ -4,6 +4,7 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
 import com.whim.core.auth.model.UserInfo;
+import com.whim.core.exception.UnauthenticatedException;
 import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
 
@@ -64,13 +65,13 @@ public class StpInterfaceImpl implements StpInterface {
         }
         SaSession session = stpLogic.getTokenSessionByToken(tokenValue, false);
         if (Objects.isNull(session)) {
-            return null;
+            throw new UnauthenticatedException("登录授权信息已失效，请重新登录");
         }
         Object userInfo = session.get(AuthSessionKeys.LOGIN_USER);
         if (userInfo instanceof UserInfo currentUserInfo
                 && Objects.equals(String.valueOf(currentUserInfo.getUserId()), String.valueOf(loginId))) {
             return currentUserInfo;
         }
-        return null;
+        throw new UnauthenticatedException("登录授权信息已失效，请重新登录");
     }
 }

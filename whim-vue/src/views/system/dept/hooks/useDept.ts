@@ -4,13 +4,7 @@ import { useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { message } from '@/plugins'
-import {
-  addDept,
-  deleteDept,
-  fetchDeptDetail,
-  fetchDeptTree,
-  updateDept,
-} from './api'
+import { addDept, deleteDept, fetchDeptDetail, fetchDeptTree, updateDept } from './api'
 import { useDictStore } from '@/stores/modules/dict'
 import type { DeptId, DeptItem, DeptQuery } from './types'
 import DeptForm from '../form.vue'
@@ -20,8 +14,7 @@ export function useDept() {
   const dictionary = useDictStore()
   const user = useUserStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
-  const can = (permission: string) =>
-    user.permissionCode.includes('*') || user.permissionCode.includes(permission)
+  const can = (permission: string) => user.hasPermission(permission)
   const canView = computed(() => can('system:dept:list'))
   const editingId = ref<DeptId>()
   let recordVersion = 0
@@ -98,7 +91,9 @@ export function useDept() {
           key: 'status',
           label: '状态',
           format: (query) =>
-            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
+            query.status === null
+              ? ''
+              : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.system.model.dto.permission.SysMenuQueryDTO;
 import com.whim.system.model.dto.permission.SysMenuSaveDTO;
+import com.whim.system.model.dto.permission.SysMenuUpdateDTO;
+import com.whim.system.model.dto.role.SysRolePermissionDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.vo.permission.SysMenuTreeVO;
 import com.whim.system.model.vo.permission.SysMenuVO;
@@ -36,7 +38,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
     List<SysMenuVO> getMenuList(SysMenuQueryDTO query);
 
     /**
-     * 根据登录上下文中的菜单授权获取动态路由，不要求菜单配置权限标识。
+     * 获取动态路由，超级管理员拥有全部有效菜单，普通账号按登录菜单授权返回。
      *
      * @return 保留隐藏页面、排除按钮和停用分支的路由菜单树
      */
@@ -82,7 +84,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
     Map<String, Set<Long>> getPermissionRoleIds(List<RoleInfo> roles);
 
     /**
-     * 新增菜单权限，仅允许超级管理员操作。
+     * 按菜单新增操作权限创建菜单定义，不自动授予任何角色。
      *
      * @param parameter 菜单新增参数
      * @return 新增菜单id
@@ -90,12 +92,18 @@ public interface ISysPermissionService extends IService<SysPermission> {
     Long addMenu(SysMenuSaveDTO parameter);
 
     /**
+     * 保存角色明确选择的菜单和按钮权限，不隐式授予祖先或后代。
+     *
+     * @param parameter 角色ID及完整菜单权限集合
+     */
+    void assignRolePermissions(SysRolePermissionDTO parameter);
+
+    /**
      * 修改菜单权限，授权变化在事务提交后使相关会话失效。
      *
-     * @param id 菜单id
-     * @param parameter 菜单修改参数
+     * @param parameter 菜单ID及完整修改参数
      */
-    void updateMenu(Long id, SysMenuSaveDTO parameter);
+    void updateMenu(SysMenuUpdateDTO parameter);
 
     /**
      * 删除没有子节点的菜单并清理角色授权，内置首页和核心菜单管理节点不能删除。

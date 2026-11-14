@@ -26,8 +26,7 @@ export function useDictData(props: DictDataProps) {
   let editVersion = 0
 
   /** 行操作与工具栏使用一致的权限。 */
-  const can = (permission: string) =>
-    userStore.permissionCode.includes('*') || userStore.permissionCode.includes(permission)
+  const can = (permission: string) => userStore.hasPermission(permission)
   const canEdit = computed(() => can('system:dictData:update') && can('system:dictData:detail'))
   const canAdd = computed(() => can('system:dictData:add'))
   const canDelete = computed(() => can('system:dictData:delete'))

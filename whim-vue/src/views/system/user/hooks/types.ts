@@ -11,6 +11,7 @@ export interface UserAvatarQuery {
 export interface UserItem {
   id: UserId
   username: string
+  superAdministrator: boolean
   name: string
   avatar: string | null
   deptId: UserId | null
@@ -21,7 +22,6 @@ export interface UserItem {
   status: OrganizationStatus
   remark: string | null
   createTime: string | null
-  superAdministrator: boolean
 }
 
 export interface UserDetail extends UserItem {
@@ -91,4 +91,3 @@ export interface RoleFormModel {
   id: UserId
   roleIds: string[]
 }
-

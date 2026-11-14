@@ -61,13 +61,10 @@ export function useWhimTableView(
     return (config.buttons ?? []).filter((button) => {
       const permissions = config.permissions?.[button]
       const roles = config.roles?.[button]
-      const permitted =
-        !permissions ||
-        userStore.permissionCode.includes('*') ||
-        permissions.some((code) => userStore.permissionCode.includes(code))
+      const permitted = !permissions || permissions.some((code) => userStore.hasPermission(code))
       const hasRole =
+        userStore.superAdministrator ||
         !roles ||
-        userStore.roleCode.includes('*') ||
         roles.some((role) => userStore.roleCode.includes(role))
       return permitted && hasRole
     })

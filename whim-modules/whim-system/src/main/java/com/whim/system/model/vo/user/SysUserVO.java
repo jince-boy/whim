@@ -18,6 +18,8 @@ public class SysUserVO {
     private Long id;
     /** 用户名。 */
     private String username;
+    /** 超级管理员账号身份，不通过角色授予。 */
+    private boolean superAdministrator;
     /** 姓名。 */
     private String name;
     /** 头像地址，未设置时为null。 */
@@ -38,6 +40,4 @@ public class SysUserVO {
     private String remark;
     /** 创建时间，由持久化层自动填充。 */
     private LocalDateTime createTime;
-    /** 是否持有超级管理员角色。 */
-    private boolean superAdministrator;
 }

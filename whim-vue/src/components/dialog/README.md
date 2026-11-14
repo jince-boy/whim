@@ -15,7 +15,7 @@ const editor = openFormDialog({
     initialModel: menu,
     extendedData: { parentId: menu.parentId, menuData: menus },
   },
-  onSubmit: (values) => updateMenu(menu.id, values),
+  onSubmit: (values) => updateMenu({ ...values, id: menu.id }),
   onSuccess: reloadMenus,
   width: 800,
   modalProps: { positiveText: '保存', draggable: true },
@@ -33,7 +33,7 @@ const editor = openFormDialog({
 - `modalProps` 保留 Naive UI 原生配置的类型提示，内容、提交和关闭事件由封装管理。`modalProps.onAfterLeave` 可监听实际离场。
 - 返回的 `editor.submit()` 走同一校验流程；`editor.close()` 在提交中返回 false；`editor.submitting` 为只读状态。
 - 每个弹窗独立持有实例。页面卸载或 KeepAlive 页面停用时，只清理该 hook 创建的弹窗；已经发出的 HTTP 请求不会被撤销，晚到结果不会再操作已关闭弹窗。
-- 默认宽度 600px，限制为视口宽高并支持滚动。全屏状态下弹窗挂载到当前全屏容器。
+- 默认宽度 600px，限制为视口宽高，仅内容区域在超高时滚动，标题与操作区保持可见。弹窗外框允许下拉菜单等浮层溢出，避免展开时被裁切或撑出外框滚动条。全屏状态下弹窗挂载到当前全屏容器。
 
 ## 删除与其他确认
 

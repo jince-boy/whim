@@ -27,6 +27,9 @@ public class AuthUserVO {
      */
     private String username;
 
+    /** 独立的超级管理员身份，为true时默认拥有全部功能和数据权限。 */
+    private boolean superAdministrator;
+
     /**
      * 真实姓名
      */

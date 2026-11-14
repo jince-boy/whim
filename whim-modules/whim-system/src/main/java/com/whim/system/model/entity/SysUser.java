@@ -38,6 +38,10 @@ public class SysUser extends BaseEntity implements Serializable {
      */
     private String username;
 
+    /** 超级管理员账号身份，仅由系统初始化或受控数据库维护设置，业务请求不能修改。 */
+    @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private Boolean superAdministrator;
+
     /**
      * 密码(加密存储)
      */

@@ -19,9 +19,7 @@ export function useDeptOptions(disableInactive: MaybeRefOrGetter<boolean> = fals
   const departments = shallowRef<DeptItem[]>([])
   const loading = ref(false)
   const error = ref('')
-  const canLoad = computed(
-    () => user.permissionCode.includes('*') || user.permissionCode.includes('system:dept:list'),
-  )
+  const canLoad = computed(() => user.hasPermission('system:dept:list'))
   let revision = 0
 
   const selection = computed<DepartmentSelection>(() => {
@@ -33,7 +31,9 @@ export function useDeptOptions(disableInactive: MaybeRefOrGetter<boolean> = fals
         const children = collect(node.children, disabled)
         return {
           key: String(node.id),
-          label: node.deptName + (disabled ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
+          label:
+            node.deptName +
+            (disabled ? `（${dictionary.getDictData('sys_common_status', 1).label}）` : ''),
           disabled: toValue(disableInactive) && disabled,
           children: children.length ? children : undefined,
         }

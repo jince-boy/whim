@@ -16,8 +16,19 @@ export function useUserForm(props: UserFormProps) {
   const currentUser = useUserStore()
   const formRef = useTemplateRef<FormInst>('formRef')
   const formModel = ref<UserFormModel>({
-    username: '', name: '', avatar: null, avatarFile: null, password: '', confirmPassword: '',
-    deptId: null, email: null, phone: null, gender: 0, status: 0, postIds: [], remark: null,
+    username: '',
+    name: '',
+    avatar: null,
+    avatarFile: null,
+    password: '',
+    confirmPassword: '',
+    deptId: null,
+    email: null,
+    phone: null,
+    gender: 0,
+    status: 0,
+    postIds: [],
+    remark: null,
   })
   const isEdit = computed(() => props.initialModel != null)
   const avatarInput = useTemplateRef<HTMLInputElement>('avatarInput')
@@ -25,8 +36,13 @@ export function useUserForm(props: UserFormProps) {
   const avatarName = computed(() => formModel.value.name || formModel.value.username || '用户')
   const avatarText = computed(() => avatarName.value.slice(0, 1).toUpperCase())
   const avatarSource = computed(() => avatarPreview.value || formModel.value.avatar)
-  const { getAvatarUrl, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading, openAvatarPreview } =
-    useAvatarImages(() => [avatarSource.value])
+  const {
+    getAvatarUrl,
+    avatarPreviewUrl,
+    avatarPreviewShown,
+    avatarPreviewLoading,
+    openAvatarPreview,
+  } = useAvatarImages(() => [avatarSource.value])
   const avatarUrl = computed(() => getAvatarUrl(avatarSource.value))
   const avatarCropFile = ref<File | null>(null)
   const avatarCropVisible = ref(false)
@@ -65,27 +81,39 @@ export function useUserForm(props: UserFormProps) {
     formModel.value.avatar = null
   }
 
-  watch(() => formModel.value.avatarFile, (file, _previous, onCleanup) => {
-    const objectUrl = file ? URL.createObjectURL(file) : null
-    avatarPreview.value = objectUrl
-    onCleanup(() => { if (objectUrl) URL.revokeObjectURL(objectUrl) })
-  })
-  const isSelf = computed(() => isEdit.value && String(props.initialModel?.id) === String(currentUser.user?.userId))
-  const isBuiltInAdministrator = computed(() => props.initialModel?.username === 'admin')
-  const organizationReadonly = computed(() => isSelf.value && !isBuiltInAdministrator.value)
-  const selfEditNotice = computed(() => isBuiltInAdministrator.value
-    ? 'admin账号仅限本人维护，可修改个人资料、部门和岗位，不能停用或删除当前登录账号。'
-    : '当前账号的部门、岗位和状态需由其他管理员调整。')
-  const { selection, loading, error, canLoad, reload } = useDeptOptions(() => formModel.value.status === 0)
+  watch(
+    () => formModel.value.avatarFile,
+    (file, _previous, onCleanup) => {
+      const objectUrl = file ? URL.createObjectURL(file) : null
+      avatarPreview.value = objectUrl
+      onCleanup(() => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl)
+      })
+    },
+  )
+  const isSelf = computed(
+    () => isEdit.value && String(props.initialModel?.id) === String(currentUser.user?.userId),
+  )
+  const organizationReadonly = computed(() => isSelf.value && !currentUser.superAdministrator)
+  const selfEditNotice = computed(() =>
+    currentUser.superAdministrator
+      ? '当前登录账号不能停用。'
+      : '当前账号的部门、岗位需由其他有权限的用户调整，当前登录账号不能停用。',
+  )
+  const { selection, loading, error, canLoad, reload } = useDeptOptions(
+    () => formModel.value.status === 0,
+  )
   const departmentOptions = computed(() => {
     const current = props.initialModel
     if (current?.deptId != null && !selection.value.names.has(String(current.deptId))) {
-      return [{ key: String(current.deptId), label: current.deptName || '当前部门' }, ...selection.value.options]
+      return [
+        { key: String(current.deptId), label: current.deptName || '当前部门' },
+        ...selection.value.options,
+      ]
     }
     return selection.value.options
   })
-  const canLoadPosts = computed(() =>
-    currentUser.permissionCode.includes('*') || currentUser.permissionCode.includes('system:post:list'))
+  const canLoadPosts = computed(() => currentUser.hasPermission('system:post:list'))
   const postLoading = ref(false)
   const postError = ref('')
   const posts = ref<PostItem[]>([])
@@ -105,8 +133,13 @@ export function useUserForm(props: UserFormProps) {
     postError.value = ''
     try {
       const response = await fetchPostPage({
-        pageNum, pageSize: 20, postName: postPattern.value.trim(), postCode: '',
-        deptId: null, organizationWide: null, status: 0,
+        pageNum,
+        pageSize: 20,
+        postName: postPattern.value.trim(),
+        postCode: '',
+        deptId: null,
+        organizationWide: null,
+        status: 0,
       })
       if (version !== postVersion) return
       if (response.code !== 200) throw new Error(response.message || '岗位加载失败')
@@ -128,8 +161,12 @@ export function useUserForm(props: UserFormProps) {
 
   function loadMorePosts(event: Event) {
     const element = event.target as HTMLElement
-    if (element.scrollTop + element.clientHeight >= element.scrollHeight - 24 &&
-      posts.value.length < postTotal.value && !postError.value) void loadPosts()
+    if (
+      element.scrollTop + element.clientHeight >= element.scrollHeight - 24 &&
+      posts.value.length < postTotal.value &&
+      !postError.value
+    )
+      void loadPosts()
   }
 
   const postOptions = computed<SelectOption[]>(() => {
@@ -144,33 +181,77 @@ export function useUserForm(props: UserFormProps) {
     }))
   })
 
-  watch(() => [props.initialModel, props.defaultDeptId] as const, ([model, defaultDeptId]) => {
-    formModel.value = {
-      id: model?.id, username: model?.username ?? '', name: model?.name ?? '',
-      avatar: model?.avatar ?? null, avatarFile: null, password: '', confirmPassword: '',
-      deptId: model ? model.deptId == null ? null : String(model.deptId) : (defaultDeptId ?? null),
-      email: model?.email ?? null, phone: model?.phone ?? null,
-      gender: model?.gender ?? 0, status: model?.status ?? 0,
-      postIds: model?.posts.map((post) => String(post.id)) ?? [], remark: model?.remark ?? null,
-    }
-    knownPosts.value = new Map((model?.posts ?? []).map((post) => [String(post.id), post]))
-    formRef.value?.restoreValidation()
-    searchPosts('')
-  }, { immediate: true })
+  watch(
+    () => [props.initialModel, props.defaultDeptId] as const,
+    ([model, defaultDeptId]) => {
+      formModel.value = {
+        id: model?.id,
+        username: model?.username ?? '',
+        name: model?.name ?? '',
+        avatar: model?.avatar ?? null,
+        avatarFile: null,
+        password: '',
+        confirmPassword: '',
+        deptId: model
+          ? model.deptId == null
+            ? null
+            : String(model.deptId)
+          : (defaultDeptId ?? null),
+        email: model?.email ?? null,
+        phone: model?.phone ?? null,
+        gender: model?.gender ?? 0,
+        status: model?.status ?? 0,
+        postIds: model?.posts.map((post) => String(post.id)) ?? [],
+        remark: model?.remark ?? null,
+      }
+      knownPosts.value = new Map((model?.posts ?? []).map((post) => [String(post.id), post]))
+      formRef.value?.restoreValidation()
+      searchPosts('')
+    },
+    { immediate: true },
+  )
   onScopeDispose(() => postVersion++)
 
   return {
-    formRef, formModel, isEdit, isSelf, organizationReadonly, selfEditNotice,
-    avatarName, avatarText, avatarUrl, selectAvatar, changeAvatar, removeAvatar,
-    avatarSource, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading, openAvatarPreview,
-    avatarCropFile, avatarCropVisible, confirmAvatarCrop,
-    rules: computed(() => createUserRules(() => isEdit.value, () => formModel.value.password)),
+    formRef,
+    formModel,
+    isEdit,
+    isSelf,
+    organizationReadonly,
+    selfEditNotice,
+    avatarName,
+    avatarText,
+    avatarUrl,
+    selectAvatar,
+    changeAvatar,
+    removeAvatar,
+    avatarSource,
+    avatarPreviewUrl,
+    avatarPreviewShown,
+    avatarPreviewLoading,
+    openAvatarPreview,
+    avatarCropFile,
+    avatarCropVisible,
+    confirmAvatarCrop,
+    rules: computed(() =>
+      createUserRules(
+        () => isEdit.value,
+        () => formModel.value.password,
+      ),
+    ),
     statusOptions: computed(() => dictionary.getDictNumberOptions('sys_common_status')),
     genderOptions: computed(() => dictionary.getDictNumberOptions('sys_user_gender')),
-    departmentOptions, departmentLoading: loading, departmentError: error,
-    canLoadDepartments: canLoad, reloadDepartments: reload,
-    canLoadPosts, postOptions, postLoading, postError, searchPosts, loadMorePosts,
+    departmentOptions,
+    departmentLoading: loading,
+    departmentError: error,
+    canLoadDepartments: canLoad,
+    reloadDepartments: reload,
+    canLoadPosts,
+    postOptions,
+    postLoading,
+    postError,
+    searchPosts,
+    loadMorePosts,
     retryPosts: () => loadPosts(true),
   }
 }
-

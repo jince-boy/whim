@@ -7,14 +7,18 @@ import cn.dev33.satoken.exception.NotSafeException;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.router.SaRouter;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.strategy.SaAnnotationStrategy;
+import cn.dev33.satoken.strategy.SaStrategy;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.model.UserInfo;
 import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.UnauthenticatedException;
 import com.whim.satoken.context.AuthContext;
+import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
 import com.whim.satoken.service.StpInterfaceImpl;
@@ -54,11 +58,21 @@ public class SaTokenConfigure implements WebMvcConfigurer {
 
     /**
      * 注册 Sa-Token 拦截器；放行路径由 {@code sa-token.exclude-paths} 配置。
+     *
+     * @param registry MVC拦截器注册器
      */
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> {
-                    SaRouter.match("/system/**").check(r -> StpAuthManager.SYSTEM.checkLogin());
+                    SaRouter.match("/system/**").check(r -> {
+                        StpAuthManager.SYSTEM.checkLogin();
+                        SaSession session = StpAuthManager.SYSTEM.getTokenSession(false);
+                        // 旧快照没有独立的管理员身份，所有受保护入口都要求重新建立登录授权上下文。
+                        if (session == null || !(session.get(AuthSessionKeys.LOGIN_USER) instanceof UserInfo)) {
+                            StpAuthManager.SYSTEM.logout();
+                            throw new UnauthenticatedException("登录授权信息已失效，请重新登录");
+                        }
+                    });
                 }))
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePaths);
@@ -80,11 +94,12 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     }
 
     /**
-     * 重写 Sa-Token 注解处理器，支持 Spring 注解合并（如元注解组合）。
+     * 配置项目注解解析和精确权限匹配，避免通配符隐式授予全部功能。
      */
     @PostConstruct
     public void rewriteSaStrategy() {
         SaAnnotationStrategy.instance.getAnnotation = AnnotatedElementUtils::getMergedAnnotation;
+        SaStrategy.instance.hasElement = (elements, element) -> elements != null && elements.contains(element);
     }
 
     /**

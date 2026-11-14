@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public final class AuthSessionKeys {
 
     /**
-     * 登录用户上下文会话键
+     * 包含独立管理员身份的登录上下文键；旧版角色授权快照需要重新登录后更新。
      */
-    public static final String LOGIN_USER = "userInfo";
+    public static final String LOGIN_USER = "userInfo:administratorIdentity:v1";
 }

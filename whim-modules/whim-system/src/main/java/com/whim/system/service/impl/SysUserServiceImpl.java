@@ -7,8 +7,7 @@ import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
-import com.whim.core.auth.model.RoleInfo;
-import com.whim.core.exception.DataAccessDeniedException;
+import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BCryptUtils;
 import com.whim.core.utils.BeanConvertUtils;
@@ -87,7 +86,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // 列表只查询展示字段，不读取密码哈希；部门筛选不会扩大当前操作的数据范围。
         Page<SysUser> users = this.lambdaQuery()
-                .select(SysUser::getId, SysUser::getUsername, SysUser::getName, SysUser::getAvatar, SysUser::getDeptId,
+                .select(SysUser::getId, SysUser::getUsername, SysUser::getSuperAdministrator, SysUser::getName, SysUser::getAvatar, SysUser::getDeptId,
                         SysUser::getEmail, SysUser::getPhone, SysUser::getGender, SysUser::getStatus,
                         SysUser::getRemark, SysUser::getCreateTime)
                 .like(StringUtils.hasText(query.getUsername()), SysUser::getUsername, query.getUsername())
@@ -97,8 +96,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .in(query.getDeptId() != null, SysUser::getDeptId, departmentIds)
                 .isNull(Boolean.TRUE.equals(query.getUnassigned()), SysUser::getDeptId)
                 .orderByDesc(SysUser::getCreateTime, SysUser::getId).page(query.getPage());
-        Set<Long> userIds = users.getRecords().stream().map(SysUser::getId).collect(Collectors.toSet());
-        Set<Long> superAdministratorIds = getSuperAdministratorIds(userIds);
         Set<Long> visibleDepartmentIds = users.getRecords().stream().map(SysUser::getDeptId)
                 .filter(Objects::nonNull).collect(Collectors.toSet());
         // 仅补齐本页已授权用户的部门名称；使用框架 Db 查询避免部门服务与用户服务循环注入。
@@ -109,7 +106,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return new PageDataVO<>(users.convert(user -> {
             SysUserVO result = BeanConvertUtils.convert(user, SysUserVO.class);
             result.setDeptName(user.getDeptId() == null ? null : departmentNames.get(user.getDeptId()));
-            result.setSuperAdministrator(superAdministratorIds.contains(user.getId()));
             return result;
         }));
     }
@@ -127,7 +123,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = this.getById(id);
         validateManagedUser(user);
         SysUserDetailVO result = BeanConvertUtils.convert(user, SysUserDetailVO.class);
-        result.setSuperAdministrator(!getSuperAdministratorIds(Set.of(id)).isEmpty());
         if (user.getDeptId() != null) {
             SysDept department = Db.lambdaQuery(SysDept.class).select(SysDept::getId, SysDept::getDeptName)
                     .eq(SysDept::getId, user.getDeptId()).one();
@@ -144,7 +139,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 查询用户当前角色和可分配的角色。
+     * 查询普通用户当前角色和可分配角色，超级管理员无需进行角色分配。
      *
      * @param id 用户ID
      * @return 当前角色及候选项
@@ -153,35 +148,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @DataPermission(permission = "system:userRole:list", tables =
             @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public SysUserRolesVO getUserRoles(Long id) {
-        validateManagedUser(this.getById(id));
+        SysUser user = this.getById(id);
+        validateManagedUser(user);
+        if (Boolean.TRUE.equals(user.getSuperAdministrator())) {
+            throw new ServiceException("超级管理员默认拥有全部权限，无需分配角色");
+        }
         SysUserRolesVO result = new SysUserRolesVO();
         result.setId(id);
         result.setRoleIds(userRoleService.lambdaQuery().select(SysUserRole::getRoleId)
                 .eq(SysUserRole::getUserId, id).list().stream().map(SysUserRole::getRoleId).toList());
-        Set<Long> assignableIds = authenticationContext.getCurrentUserInfo().getRoleInfoList().stream()
-                .map(RoleInfo::getRoleId).collect(Collectors.toSet());
-        boolean administrator = authenticationContext.isSuperAdministrator();
-        Set<Long> visibleRoleIds = new LinkedHashSet<>(result.getRoleIds());
-        visibleRoleIds.addAll(assignableIds);
-        if (!administrator && visibleRoleIds.isEmpty()) {
-            return result;
-        }
-        // 普通管理员只读取已分配和自身持有的角色，不加载整个角色表再裁剪。
-        for (SysRole role : roleService.lambdaQuery().in(!administrator, SysRole::getId, visibleRoleIds)
+        // 候选项由角色查询操作权限控制；正常角色可分配，已停用的现有角色保留回显并允许移除。
+        for (SysRole role : roleService.lambdaQuery().and(wrapper -> {
+                    wrapper.eq(SysRole::getStatus, 0);
+                    if (!result.getRoleIds().isEmpty()) {
+                        wrapper.or().in(SysRole::getId, result.getRoleIds());
+                    }
+                })
                 .orderByAsc(SysRole::getSort, SysRole::getId).list()) {
-            boolean assigned = result.getRoleIds().contains(role.getId());
-            boolean assignable = administrator || (assignableIds.contains(role.getId())
-                    && !"superadmin".equals(role.getRoleCode()));
-            if (!assigned && (!assignable || role.getStatus() != 0)) {
-                continue;
-            }
             SysUserRoleOptionVO option = new SysUserRoleOptionVO();
             option.setId(role.getId());
             option.setRoleName(role.getRoleName());
             option.setRoleCode(role.getRoleCode());
             option.setStatus(role.getStatus());
-            // 无权调整的已有角色保持只读，不能因候选列表裁剪而被意外移除。
-            option.setDisabled(!assignable || id.equals(authenticationContext.getUserId()));
+            option.setDisabled(id.equals(authenticationContext.getUserId()));
             result.getOptions().add(option);
         }
         return result;
@@ -304,8 +293,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (user.getStatus() != 0) {
                 throw new ServiceException("不能停用当前登录账号");
             }
-            // 内置 admin 只能由本人维护组织归属，其他账号仍不能自行扩张组织身份。
-            if (!"admin".equals(originalUser.getUsername())) {
+            // 普通账号不能通过调整自身组织归属扩大范围；超级管理员本身已具有全部数据权限。
+            if (!authenticationContext.isSuperAdministrator()) {
                 Set<Long> currentPostIds = userPostService.lambdaQuery().eq(SysUserPost::getUserId, user.getId())
                         .list().stream().map(SysUserPost::getPostId).collect(Collectors.toSet());
                 if (departmentChanged || !currentPostIds.equals(postIds)) {
@@ -348,7 +337,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 校验角色可授予范围后更新用户角色。
+     * 按角色分配操作权限和目标用户数据范围更新完整角色集合。
      *
      * @param parameter 用户ID及完整角色集合
      */
@@ -358,7 +347,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @DataPermission(permission = "system:userRole:assign", tables =
             @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void assignUserRoles(SysUserRoleDTO parameter) {
-        validateManagedUser(this.getById(parameter.getId()));
+        SysUser user = this.getById(parameter.getId());
+        validateManagedUser(user);
+        if (Boolean.TRUE.equals(user.getSuperAdministrator())) {
+            throw new ServiceException("超级管理员默认拥有全部权限，无需分配角色");
+        }
         if (parameter.getId().equals(authenticationContext.getUserId())) {
             throw new ServiceException("不能修改当前账号的角色");
         }
@@ -369,15 +362,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         addedIds.removeAll(currentIds);
         Set<Long> removedIds = new LinkedHashSet<>(currentIds);
         removedIds.removeAll(requestedIds);
-        if (!authenticationContext.isSuperAdministrator()) {
-            // 普通管理员只能调整自己已持有的角色，不能借分配角色取得更高授权。
-            Set<Long> assignableIds = authenticationContext.getCurrentUserInfo().getRoleInfoList().stream()
-                    .filter(role -> !"superadmin".equals(role.getRoleCode()))
-                    .map(RoleInfo::getRoleId).collect(Collectors.toSet());
-            if (!assignableIds.containsAll(addedIds) || !assignableIds.containsAll(removedIds)) {
-                throw new DataAccessDeniedException("不能分配或移除超出自身授权的角色");
-            }
-        }
         if (!addedIds.isEmpty()) {
             long availableCount = roleService.lambdaQuery().in(SysRole::getId, addedIds)
                     .eq(SysRole::getStatus, 0).count();
@@ -432,26 +416,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 批量识别指定账号中的超级管理员，避免列表逐行查询角色。
-     *
-     * @param userIds 用户ID集合
-     * @return 持有超级管理员角色的用户ID集合
-     */
-    private Set<Long> getSuperAdministratorIds(Set<Long> userIds) {
-        if (userIds.isEmpty()) {
-            return Set.of();
-        }
-        SysRole role = roleService.lambdaQuery().eq(SysRole::getRoleCode, "superadmin").one();
-        if (role == null) {
-            return Set.of();
-        }
-        return userRoleService.lambdaQuery().select(SysUserRole::getUserId)
-                .eq(SysUserRole::getRoleId, role.getId()).in(SysUserRole::getUserId, userIds)
-                .list().stream().map(SysUserRole::getUserId).collect(Collectors.toSet());
-    }
-
-    /**
-     * 校验目标账号存在、内置管理员仅限本人维护及超级管理员保护规则。
+     * 校验目标账号存在性及超级管理员账号的维护边界。
      *
      * @param user 已按本次操作数据范围查询的用户
      */
@@ -459,13 +424,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new ServiceException("用户不存在或无权操作");
         }
-        // admin 的用户名不可修改；即使操作者同为超级管理员，也不能代为维护该账号。
-        if ("admin".equals(user.getUsername()) && !user.getId().equals(authenticationContext.getUserId())) {
-            throw new DataAccessDeniedException("admin账号仅允许本人维护");
-        }
-        if (!authenticationContext.isSuperAdministrator()
-                && !getSuperAdministratorIds(Set.of(user.getId())).isEmpty()) {
-            throw new DataAccessDeniedException("不能操作超级管理员账号");
+        // 普通角色授权不能越过账号身份边界，防止重置密码或组织维护取得超级管理员身份。
+        if (Boolean.TRUE.equals(user.getSuperAdministrator()) && !authenticationContext.isSuperAdministrator()) {
+            throw new AccessDeniedException("不能维护超级管理员账号");
         }
     }
 

@@ -22,8 +22,7 @@ export function usePost() {
     reload: reloadDepartments,
   } = useDeptOptions()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
-  const can = (permission: string) =>
-    user.permissionCode.includes('*') || user.permissionCode.includes(permission)
+  const can = (permission: string) => user.hasPermission(permission)
   const canView = computed(() => can('system:post:list'))
   const departmentPattern = ref('')
   const departmentRefreshing = ref(false)

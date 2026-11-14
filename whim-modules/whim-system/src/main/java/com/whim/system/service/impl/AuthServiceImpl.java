@@ -1,5 +1,6 @@
 package com.whim.system.service.impl;
 
+import com.baomidou.lock.annotation.Lock4j;
 import com.wf.captcha.GifCaptcha;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
@@ -9,6 +10,7 @@ import com.whim.core.auth.model.DepartmentInfo;
 import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
+import com.whim.core.exception.ServiceException;
 import com.whim.core.exception.TooManyRequestsException;
 import com.whim.core.exception.UserDisableException;
 import com.whim.core.exception.UserNotFoundException;
@@ -23,6 +25,8 @@ import com.whim.system.mapper.SysDeptMapper;
 import com.whim.system.mapper.SysPostMapper;
 import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
+import com.whim.system.model.dto.auth.AuthPasswordUpdateDTO;
+import com.whim.system.model.dto.auth.AuthProfileUpdateDTO;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.enums.SysUserStatus;
@@ -35,6 +39,8 @@ import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RateType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.LinkedHashSet;
@@ -101,6 +107,75 @@ public class AuthServiceImpl implements IAuthService {
         result.setDeptName(userInfo.getDepartmentInfo() == null ? null : userInfo.getDepartmentInfo().getDeptName());
         result.setPostNames(userInfo.getPostInfoList().stream().map(PostInfo::getPostName).toList());
         return result;
+    }
+
+    /**
+     * 修改当前登录用户的个人资料，并返回更新后的资料与当前会话信息。
+     *
+     * @param parameter 允许本人维护的个人资料
+     * @return 更新后的当前用户信息
+     */
+    @Override
+    @Lock4j(name = "system:organization")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public AuthUserVO updateUserProfile(AuthProfileUpdateDTO parameter) {
+        Long userId = authenticationContext.getUserId();
+        SysUser originalUser = sysUserService.getById(userId);
+        if (originalUser == null) {
+            throw new UserNotFoundException("当前登录用户不存在");
+        }
+        if (SysUserStatus.DISABLED.matches(originalUser.getStatus())) {
+            throw new UserDisableException("用户已被禁用");
+        }
+        SysUser user = BeanConvertUtils.convert(parameter, SysUser.class);
+        user.setId(userId);
+        user.setAvatar(parameter.getAvatar() == null ? null : parameter.getAvatar().replace("&#61;", "="));
+        // 部门和备注配置了ALWAYS更新策略，必须保留原值；共用组织锁避免覆盖管理员并发修改。
+        user.setDeptId(originalUser.getDeptId());
+        user.setRemark(originalUser.getRemark());
+        // 传入实体让元对象处理器自动填写修改人和修改时间，不接收或手动填写审计字段。
+        if (!sysUserService.updateById(user)) {
+            throw new ServiceException("保存个人资料失败");
+        }
+        // 单表更新已提交后才刷新当前令牌快照，避免事务回滚时会话保留未提交的姓名或头像。
+        return getUserInfo();
+    }
+
+    /**
+     * 校验原密码后修改本人密码，提交成功后使本人全部登录会话失效。
+     *
+     * @param parameter 原密码和新密码
+     */
+    @Override
+    @Lock4j(name = "system:organization")
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserPassword(AuthPasswordUpdateDTO parameter) {
+        Long userId = authenticationContext.getUserId();
+        // 按账号限制原密码验证频率，避免切换客户端地址后反复猜测密码。
+        if (RedisUtils.rateLimiter("auth:passwordUpdate:" + userId, RateType.OVERALL, 5, 60, 120) < 0) {
+            throw new TooManyRequestsException("密码修改操作过于频繁，请稍后重试");
+        }
+        SysUser user = sysUserService.getById(userId);
+        if (user == null) {
+            throw new UserNotFoundException("当前登录用户不存在");
+        }
+        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
+            throw new UserDisableException("用户已被禁用");
+        }
+        // 原密码输错属于本次提交错误，不使用会触发前端退出登录的认证异常。
+        if (!BCryptUtils.matches(parameter.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("原密码不正确");
+        }
+        if (parameter.getOldPassword().equals(parameter.getNewPassword())) {
+            throw new IllegalArgumentException("新密码不能与原密码相同");
+        }
+        // 身份校验已读取完整记录，只修改密码，保留所有允许清空的资料和组织字段。
+        user.setPassword(BCryptUtils.encode(parameter.getNewPassword()));
+        if (!sysUserService.updateById(user)) {
+            throw new ServiceException("修改密码失败");
+        }
+        // 密码修改与管理员重置保持一致：事务成功后失效全部旧会话，回滚不影响登录。
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(userId));
     }
 
     /**
@@ -183,7 +258,8 @@ public class AuthServiceImpl implements IAuthService {
     private UserInfo buildUserInfo(SysUser user) {
         UserInfo info = BeanConvertUtils.convert(user, UserInfo.class);
         info.setLoginType(AuthUserType.SYSTEM);
-        List<RoleInfo> roles = roleService.getRoleInfoListByUserId(user.getId());
+        // 超级管理员无需配置角色；其全部权限由可信账号身份统一放行。
+        List<RoleInfo> roles = info.isSuperAdministrator() ? List.of() : roleService.getRoleInfoListByUserId(user.getId());
         info.setRoleInfoList(roles);
         info.setRoleCodeSet(roles.stream().map(RoleInfo::getRoleCode)
                 .collect(Collectors.toCollection(LinkedHashSet::new)));

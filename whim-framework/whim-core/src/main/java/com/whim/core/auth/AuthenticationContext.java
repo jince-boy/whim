@@ -23,11 +23,13 @@ public interface AuthenticationContext {
     boolean isLogin();
 
     /**
-     * 判断当前登录用户是否为超级管理员。
+     * 判断当前账号是否具有独立的超级管理员身份。
      *
-     * @return true 表示当前用户是超级管理员
+     * @return 是否默认拥有全部功能和数据权限
      */
-    boolean isSuperAdministrator();
+    default boolean isSuperAdministrator() {
+        return getCurrentUserInfo().isSuperAdministrator();
+    }
 
     /**
      * 获取当前登录用户ID。

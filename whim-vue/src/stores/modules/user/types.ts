@@ -2,6 +2,7 @@
 export interface UserInfoResult {
   userId: string | number
   username: string
+  superAdministrator: boolean
   name: string | null
   avatar: string | null
   deptId: string | number | null

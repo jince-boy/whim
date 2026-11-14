@@ -122,9 +122,16 @@ export function useFormDialog() {
             typeof options.width === 'number' ? `${options.width}px` : (options.width ?? '600px'),
           maxWidth: 'calc(100vw - 32px)',
           maxHeight: 'calc(100dvh - 32px)',
-          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          // 下拉层由 Naive UI 挂载到弹窗外框，外框不能成为裁切它的滚动容器。
+          overflow: 'visible',
         },
         nativeProps.style,
+      ]),
+      contentStyle: normalizeStyle([
+        { flex: '1 1 auto', minHeight: 0, overflowY: 'auto' },
+        nativeProps.contentStyle,
       ]),
       /** 由统一入口关闭，阻止原生按钮再次自动关闭。 */
       onPositiveClick: async () => {

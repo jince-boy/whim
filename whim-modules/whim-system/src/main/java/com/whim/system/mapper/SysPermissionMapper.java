@@ -30,7 +30,7 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      * 查询受菜单权限变更影响的用户。
      *
      * @param permissionId 菜单权限id
-     * @return 关联用户和超级管理员的用户id集合
+     * @return 实际通过角色关联该菜单权限的用户id集合
      */
     @DataPermissionMetadata
     Set<Long> getUserIdsByPermissionId(@Param("permissionId") Long permissionId);

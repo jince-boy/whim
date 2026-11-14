@@ -1,8 +1,6 @@
 package com.whim.satoken.security;
 
-import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.stp.StpLogic;
-import com.whim.core.auth.constants.AuthUserType;
 import lombok.Getter;
 
 import java.util.List;
@@ -18,7 +16,7 @@ public class StpAuthManager {
     /**
      * System 会话对象，管理 System 表所有账号的登录、权限认证
      */
-    public static final StpLogic SYSTEM = new StpLogicJwtForSimple(AuthUserType.SYSTEM);
+    public static final StpLogic SYSTEM = new SystemStpLogic();
 
     /**
      * 获取项目中全部多账号 StpLogic，供 Spring 注册到 Sa-Token。

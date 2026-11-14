@@ -51,8 +51,7 @@ export function useDictType() {
   let editVersion = 0
 
   /** 类型和数据分别按对应的业务权限显示操作。 */
-  const can = (permission: string) =>
-    userStore.permissionCode.includes('*') || userStore.permissionCode.includes(permission)
+  const can = (permission: string) => userStore.hasPermission(permission)
   const canViewTypes = computed(() => can('system:dictType:page'))
   const canEdit = computed(() => can('system:dictType:update') && can('system:dictType:detail'))
   const canDelete = computed(() => can('system:dictType:delete'))
@@ -81,11 +80,7 @@ export function useDictType() {
         render: (row) =>
           h(NSpace, { size: 12, wrap: false }, () => [
             canViewData.value
-              ? h(
-                  NButton,
-                  { text: true, type: 'info', onClick: () => openData(row) },
-                  () => '查看',
-                )
+              ? h(NButton, { text: true, type: 'info', onClick: () => openData(row) }, () => '查看')
               : null,
             canEdit.value
               ? h(

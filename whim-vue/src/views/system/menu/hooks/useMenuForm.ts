@@ -2,13 +2,11 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst, TreeSelectOption } from 'naive-ui'
 import { MenuType, type MenuFormProps, type MenuSave, type MenuItem } from './types'
 import { pageComponentPaths } from '@/router/dynamicRoutes'
-import { useUserStore } from '@/stores/modules/user'
 import { createMenuRules } from './rule'
 
 /** 维护独立草稿，父级选择与类型联动遵循后端的层级和内置菜单约束。 */
 export function useMenuForm(props: MenuFormProps) {
   const formRef = useTemplateRef<FormInst>('formRef')
-  const user = useUserStore()
   const defaults: MenuSave = {
     parentId: '0',
     menuName: '',
@@ -29,12 +27,9 @@ export function useMenuForm(props: MenuFormProps) {
   const isPage = computed(() => formModel.value.menuType === MenuType.MENU)
   const isButton = computed(() => formModel.value.menuType === MenuType.BUTTON)
   const isExternal = computed(() => formModel.value.menuType === MenuType.EXTERNAL)
-  const semanticsLocked = computed(
-    () => props.initialModel?.builtIn === 1 || !user.roleCode.includes('superadmin'),
-  )
+  const semanticsLocked = computed(() => props.initialModel?.builtIn === 1)
   const typeLockReason = computed(() => {
     if (props.initialModel?.builtIn === 1) return '内置菜单的类型和权限标识不可修改'
-    if (!user.roleCode.includes('superadmin')) return '仅超级管理员可修改菜单类型和权限标识'
     return props.initialModel?.children?.length ? '存在子节点的菜单不可修改类型' : undefined
   })
   const statusLockReason = computed(() => {

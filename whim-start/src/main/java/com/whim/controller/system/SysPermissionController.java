@@ -2,9 +2,9 @@ package com.whim.controller.system;
 
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
-import com.whim.satoken.annotation.SystemCheckRole;
 import com.whim.system.model.dto.permission.SysMenuQueryDTO;
 import com.whim.system.model.dto.permission.SysMenuSaveDTO;
+import com.whim.system.model.dto.permission.SysMenuUpdateDTO;
 import com.whim.system.model.vo.permission.SysMenuTreeVO;
 import com.whim.system.model.vo.permission.SysMenuVO;
 import com.whim.system.model.vo.permission.SysRoleMenuTreeVO;
@@ -60,7 +60,7 @@ public class SysPermissionController {
     }
 
     /**
-     * 根据登录上下文中的菜单授权获取动态路由，不要求菜单配置权限标识。
+     * 获取动态路由，超级管理员拥有全部有效菜单，普通账号按登录菜单授权返回。
      *
      * @return 保留隐藏页面、排除按钮和停用分支的路由菜单树
      */
@@ -94,13 +94,12 @@ public class SysPermissionController {
     }
 
     /**
-     * 新增菜单权限，仅允许超级管理员操作。
+     * 按菜单新增权限创建菜单定义。
      *
      * @param parameter 菜单新增参数
      * @return 新增菜单id
      */
     @PostMapping
-    @SystemCheckRole("superadmin")
     @SystemCheckPermission("system:menu:create")
     public Result<Long> addMenu(@Valid @RequestBody SysMenuSaveDTO parameter) {
         return Result.success("菜单新增成功", permissionService.addMenu(parameter));
@@ -109,15 +108,13 @@ public class SysPermissionController {
     /**
      * 修改菜单权限。
      *
-     * @param id 菜单id
-     * @param parameter 菜单修改参数
+     * @param parameter 菜单ID及完整修改参数
      * @return 修改结果
      */
-    @PutMapping("/{id}")
+    @PutMapping("/update")
     @SystemCheckPermission("system:menu:update")
-    public Result<Void> updateMenu(@PathVariable Long id,
-                                 @Valid @RequestBody SysMenuSaveDTO parameter) {
-        permissionService.updateMenu(id, parameter);
+    public Result<Void> updateMenu(@Valid @RequestBody SysMenuUpdateDTO parameter) {
+        permissionService.updateMenu(parameter);
         return Result.success("菜单修改成功");
     }
 

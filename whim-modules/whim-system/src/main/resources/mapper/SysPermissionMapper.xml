@@ -13,15 +13,11 @@
     </select>
 
     <select id="getUserIdsByPermissionId" resultType="java.lang.Long">
+        <!-- 通过角色授权关联查找受影响用户，不能按角色编码追加特权账号。 -->
         SELECT ur.user_id
         FROM sys_role_permission rp
         INNER JOIN sys_user_role ur ON ur.role_id = rp.role_id
         WHERE rp.permission_id = #{permissionId}
-        UNION
-        SELECT ur.user_id
-        FROM sys_role r
-        INNER JOIN sys_user_role ur ON ur.role_id = r.id
-        WHERE r.role_code = 'superadmin' AND r.deleted = 0
     </select>
 </mapper>
 

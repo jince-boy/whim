@@ -1,6 +1,8 @@
 package com.whim.system.model.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.mybatisplus.model.entity.BaseEntity;
 import lombok.Data;
@@ -10,7 +12,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * @author jince
+ * @author Jince
  * @date 2026/07/02
  * @description 系统角色表实体类
  */
@@ -53,6 +55,7 @@ public class SysRole extends BaseEntity implements Serializable {
     /**
      * 备注
      */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String remark;
 
     /**

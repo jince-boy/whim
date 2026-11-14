@@ -26,6 +26,9 @@ export interface MenuItem extends MenuSave {
   createTime?: string
   children?: MenuItem[]
 }
+export interface MenuUpdate extends MenuSave {
+  id: MenuId
+}
 export interface MenuFormProps {
   initialModel?: MenuItem
   parentMenu?: MenuItem

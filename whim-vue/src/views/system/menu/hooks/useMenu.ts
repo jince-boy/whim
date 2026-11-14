@@ -41,13 +41,10 @@ export function useMenu() {
     return h(NTag, { bordered: false, type: item.listClass }, () => item.label)
   }
 
-  /** 按当前用户授权显示操作，新增同时要求超级管理员角色。 */
-  const can = (permission: string) =>
-    userStore.permissionCode.includes('*') || userStore.permissionCode.includes(permission)
+  /** 按当前用户实际获得的菜单操作权限显示入口。 */
+  const can = (permission: string) => userStore.hasPermission(permission)
   const canView = computed(() => can('system:menu:list'))
-  const canAdd = computed(
-    () => can('system:menu:create') && userStore.roleCode.includes('superadmin'),
-  )
+  const canAdd = computed(() => can('system:menu:create'))
   const canEdit = computed(() => can('system:menu:update') && can('system:menu:detail'))
   const canDelete = computed(() => can('system:menu:delete'))
 
@@ -186,13 +183,17 @@ export function useMenu() {
           key: 'menuType',
           label: '菜单类型',
           format: (query) =>
-            query.menuType === null ? '' : dictionary.getDictData('sys_menu_type', query.menuType).label,
+            query.menuType === null
+              ? ''
+              : dictionary.getDictData('sys_menu_type', query.menuType).label,
         },
         {
           key: 'status',
           label: '菜单状态',
           format: (query) =>
-            query.status === null ? '' : dictionary.getDictData('sys_common_status', query.status).label,
+            query.status === null
+              ? ''
+              : dictionary.getDictData('sys_common_status', query.status).label,
         },
       ],
     },
@@ -255,7 +256,8 @@ export function useMenu() {
       width: 760,
       formComponent: MenuForm,
       formProps: { initialModel, parentMenu, menus: table.data.value, dictionaryOptions },
-      onSubmit: (model) => (initialModel ? updateMenu(initialModel.id, model) : insertMenu(model)),
+      onSubmit: (model) =>
+        initialModel ? updateMenu({ ...model, id: initialModel.id }) : insertMenu(model),
       onSuccess: refreshNavigation,
     })
   }

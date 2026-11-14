@@ -30,7 +30,14 @@ import java.util.Set;
 public class DataPermissionAspect {
     private final AuthenticationContext authenticationContext;
 
-    /** 校验表映射并合并登录快照中的角色范围，全程不查询数据库。 */
+    /**
+     * 超级管理员使用全部数据范围，其他账号合并实际授予当前操作的角色范围。
+     *
+     * @param invocation 被保护的业务调用
+     * @param permission 当前操作的数据权限声明
+     * @return 业务方法返回结果
+     * @throws Throwable 业务调用或权限校验异常
+     */
     @Around("@annotation(permission)")
     public Object authorize(ProceedingJoinPoint invocation, DataPermission permission) throws Throwable {
         if (permission.permission().isBlank() || permission.tables().length == 0) {
@@ -46,9 +53,10 @@ public class DataPermissionAspect {
             }
         }
         UserInfo user = authenticationContext.getCurrentUserInfo();
-        boolean all = authenticationContext.isSuperAdministrator();
+        boolean all = user.isSuperAdministrator();
         boolean self = false;
         Set<Long> departmentIds = new LinkedHashSet<>();
+        // 超级管理员身份与角色无关；普通账号只有授予当前确切操作的角色才贡献数据范围。
         if (!all) {
             Set<Long> roleIds = user.getPermissionRoleIds().getOrDefault(permission.permission(), Set.of());
             List<RoleInfo> roles = user.getRoleInfoList().stream()
@@ -86,7 +94,12 @@ public class DataPermissionAspect {
         }
     }
 
-    /** 仅允许开发者声明普通表名、别名和列名，避免将表达式当作标识符。 */
+    /**
+     * 校验数据权限声明中的数据库标识符。
+     *
+     * @param identifier 表名、别名或列名
+     * @param optional 是否允许空标识符
+     */
     private void validateIdentifier(String identifier, boolean optional) {
         if ((optional && identifier.isEmpty()) || identifier.matches("[A-Za-z_][A-Za-z0-9_]*")) {
             return;

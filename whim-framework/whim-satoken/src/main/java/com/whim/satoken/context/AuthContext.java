@@ -4,6 +4,7 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpLogic;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.model.UserInfo;
+import com.whim.core.exception.UnauthenticatedException;
 import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -17,7 +18,6 @@ import java.util.Objects;
  * 通过 {@link StpAuthManager} 动态识别当前请求所属的账号体系，避免与具体体系常量耦合。
  */
 public class AuthContext implements AuthenticationContext {
-    private static final String SUPER_ADMINISTRATOR_ROLE_CODE = "superadmin";
 
     /**
      * 获取当前登录用户信息。
@@ -28,7 +28,7 @@ public class AuthContext implements AuthenticationContext {
     public UserInfo getCurrentUserInfo() {
         UserInfo userInfo = getCurrentUserInfoOrNull();
         if (Objects.isNull(userInfo)) {
-            throw new IllegalStateException("当前登录上下文缺少用户信息");
+            throw new UnauthenticatedException("登录授权信息已失效，请重新登录");
         }
         return userInfo;
     }
@@ -42,16 +42,6 @@ public class AuthContext implements AuthenticationContext {
     public boolean isLogin() {
         // 定时清理等后台任务也会触发审计填充，不应访问不存在的 Servlet 上下文。
         return RequestContextHolder.getRequestAttributes() != null && StpAuthManager.isLogin();
-    }
-
-    /**
-     * 判断当前登录用户是否为超级管理员。
-     *
-     * @return true 表示当前用户是超级管理员
-     */
-    @Override
-    public boolean isSuperAdministrator() {
-        return isLogin() && getRequiredCurrentStpLogic().hasRole(SUPER_ADMINISTRATOR_ROLE_CODE);
     }
 
     /**

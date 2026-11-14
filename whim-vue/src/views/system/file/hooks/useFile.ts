@@ -31,8 +31,7 @@ export function useFile() {
     tabTextColorHoverSegment: themeVars.value.primaryColor,
   }))
   const { openFormDialog, openDeleteDialog, openConfirmDialog } = useFormDialog()
-  const can = (code: string) =>
-    user.permissionCode.includes('*') || user.permissionCode.includes(`system:file:${code}`)
+  const can = (code: string) => user.hasPermission(`system:file:${code}`)
   const canView = computed(() => can('page'))
   const canStorage = computed(() => can('storageList'))
   const canUpload = computed(() => can('upload'))

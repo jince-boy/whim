@@ -31,6 +31,9 @@ public class UserInfo implements Serializable {
      */
     private String username;
 
+    /** 超级管理员账号身份，独立于角色和菜单授权。 */
+    private boolean superAdministrator;
+
     /**
      * 真实姓名
      */
@@ -62,7 +65,7 @@ public class UserInfo implements Serializable {
      */
     private Set<String> permissionCodeSet = new LinkedHashSet<>();
 
-    /** 角色直接授予的菜单ID，供导航使用；不通过父子关系扩大操作权限。 */
+    /** 普通账号由角色直接授予的菜单ID；超级管理员无需配置该集合。 */
     private Set<Long> menuIdSet = new LinkedHashSet<>();
 
     /** 精确权限码与授予该权限的角色ID集合，登录时构建。 */

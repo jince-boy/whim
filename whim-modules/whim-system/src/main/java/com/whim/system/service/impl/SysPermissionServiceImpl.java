@@ -8,16 +8,18 @@ import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
-import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.system.mapper.SysPermissionMapper;
 import com.whim.system.model.dto.permission.RolePermissionDTO;
 import com.whim.system.model.dto.permission.SysMenuQueryDTO;
 import com.whim.system.model.dto.permission.SysMenuSaveDTO;
+import com.whim.system.model.dto.permission.SysMenuUpdateDTO;
+import com.whim.system.model.dto.role.SysRolePermissionDTO;
 import com.whim.system.model.entity.SysPermission;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysRolePermission;
+import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.enums.SysMenuType;
 import com.whim.system.model.vo.permission.SysMenuTreeVO;
 import com.whim.system.model.vo.permission.SysMenuVO;
@@ -25,6 +27,7 @@ import com.whim.system.model.vo.permission.SysRoleMenuTreeVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
+import com.whim.system.service.ISysUserRoleService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -52,6 +55,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     private final AuthenticationSession authenticationSession;
     private final ISysRoleService roleService;
     private final ISysRolePermissionService rolePermissionService;
+    private final ISysUserRoleService userRoleService;
 
     /**
      * 根据id查询菜单详情。
@@ -83,14 +87,13 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     /**
-     * 根据登录上下文中的菜单授权获取动态路由，不要求菜单配置权限标识。
+     * 获取动态路由，超级管理员拥有全部有效菜单，普通账号按登录菜单授权返回。
      *
      * @return 保留隐藏页面、排除按钮和停用分支的路由菜单树
      */
     @Override
     public List<SysMenuVO> getUserMenus() {
         UserInfo userInfo = authenticationContext.getCurrentUserInfo();
-        boolean superAdministrator = authenticationContext.isSuperAdministrator();
         List<SysPermission> permissions = this.list(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getStatus, 0)
                 .ne(SysPermission::getMenuType, SysMenuType.BUTTON.getCode())
@@ -99,7 +102,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
                 .collect(Collectors.toMap(SysPermission::getId, permission -> permission));
         Set<Long> menuIds = new HashSet<>();
         for (SysPermission permission : permissions) {
-            if (!superAdministrator && !userInfo.getMenuIdSet().contains(permission.getId())) {
+            if (!userInfo.isSuperAdministrator() && !userInfo.getMenuIdSet().contains(permission.getId())) {
                 continue;
             }
             Set<Long> branchIds = new HashSet<>();
@@ -133,6 +136,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      * @return 完整菜单树和角色已授权的菜单id
      */
     @Override
+    @Transactional(readOnly = true)
     public SysRoleMenuTreeVO getRoleMenuTree(Long roleId) {
         SysRole role = roleService.getById(roleId);
         if (Objects.isNull(role)) {
@@ -140,9 +144,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         }
         List<SysPermission> permissions = this.list(new LambdaQueryWrapper<SysPermission>()
                 .orderByAsc(SysPermission::getSort, SysPermission::getId));
-        Set<Long> grantedIds = "superadmin".equals(role.getRoleCode())
-                ? permissions.stream().map(SysPermission::getId).collect(Collectors.toSet())
-                : getMenuIdsByRoleIds(Set.of(roleId));
+        Set<Long> grantedIds = getMenuIdsByRoleIds(Set.of(roleId));
         SysRoleMenuTreeVO tree = new SysRoleMenuTreeVO();
         tree.setMenus(getMenuSelectTree(permissions));
         tree.setCheckedKeys(permissions.stream().map(SysPermission::getId).filter(grantedIds::contains).toList());
@@ -192,23 +194,11 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             return Map.of();
         }
         Set<Long> roleIds = new HashSet<>();
-        Long superAdministratorRoleId = null;
         for (RoleInfo role : roles) {
             roleIds.add(role.getRoleId());
-            if ("superadmin".equals(role.getRoleCode())) {
-                superAdministratorRoleId = role.getRoleId();
-            }
         }
         Map<String, Set<Long>> permissionRoleIds = new LinkedHashMap<>();
-        if (superAdministratorRoleId != null) {
-            List<SysPermission> permissions = lambdaQuery().eq(SysPermission::getStatus, 0)
-                    .in(SysPermission::getMenuType, SysMenuType.PAGE.getCode(), SysMenuType.BUTTON.getCode())
-                    .isNotNull(SysPermission::getPerms).ne(SysPermission::getPerms, "").list();
-            for (SysPermission permission : permissions) {
-                permissionRoleIds.put(permission.getPerms(), Set.of(superAdministratorRoleId));
-            }
-            return permissionRoleIds;
-        }
+        // 每项功能仅来自真实角色授权关系，不按角色名称生成额外权限。
         for (RolePermissionDTO permission : baseMapper.getRolePermissionsByRoleIds(roleIds)) {
             permissionRoleIds.computeIfAbsent(permission.getPermissionCode(), key -> new LinkedHashSet<>())
                     .add(permission.getRoleId());
@@ -217,56 +207,93 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     /**
-     * 新增菜单权限，仅允许超级管理员操作。
+     * 按菜单新增操作权限创建菜单定义，不自动授予任何角色。
      *
      * @param parameter 菜单新增参数
      * @return 新增菜单id
      */
-    @Lock4j(name = "system:menu")
+    @Lock4j(name = "system:organization")
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long addMenu(SysMenuSaveDTO parameter) {
-        if (!authenticationContext.isSuperAdministrator()) {
-            throw new AccessDeniedException("只有超级管理员可以新增菜单权限");
-        }
         SysPermission permission = BeanConvertUtils.convert(parameter, SysPermission.class);
         permission.setBuiltIn(0);
         validateMenu(permission);
         if (!this.save(permission)) {
             throw new ServiceException("新增菜单失败");
         }
-        if (permission.getPerms() != null) {
-            authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM,
-                    baseMapper.getUserIdsByPermissionId(permission.getId()));
-        }
         return permission.getId();
+    }
+
+    /**
+     * 保存角色明确选择的菜单和按钮权限，不隐式授予祖先或后代。
+     *
+     * @param parameter 角色ID及完整菜单权限集合
+     */
+    @Override
+    // 与菜单定义及角色删除共用组织锁，避免校验后节点被删除或关联用户同时变化。
+    @Lock4j(name = "system:organization")
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRolePermissions(SysRolePermissionDTO parameter) {
+        SysRole role = roleService.getById(parameter.getId());
+        if (role == null) {
+            throw new ServiceException("角色不存在");
+        }
+        Set<Long> requested = new LinkedHashSet<>(parameter.getPermissionIds());
+        if (!requested.isEmpty() && this.lambdaQuery().in(SysPermission::getId, requested).count() != requested.size()) {
+            throw new ServiceException("部分菜单权限已被删除，请重新加载后选择");
+        }
+        Set<Long> current = getMenuIdsByRoleIds(Set.of(role.getId()));
+        Set<Long> added = new LinkedHashSet<>(requested);
+        added.removeAll(current);
+        Set<Long> removed = new LinkedHashSet<>(current);
+        removed.removeAll(requested);
+        if (added.isEmpty() && removed.isEmpty()) {
+            return;
+        }
+        // 独立勾选逐项保存，选择目录不隐式授予按钮，取消目录也不擅自删除已勾选子项。
+        if (!removed.isEmpty()) {
+            rolePermissionService.lambdaUpdate().eq(SysRolePermission::getRoleId, role.getId())
+                    .in(SysRolePermission::getPermissionId, removed).remove();
+        }
+        if (!added.isEmpty()) {
+            List<SysRolePermission> relations = added.stream().map(permissionId -> {
+                SysRolePermission relation = new SysRolePermission();
+                relation.setRoleId(role.getId());
+                relation.setPermissionId(permissionId);
+                return relation;
+            }).toList();
+            if (!rolePermissionService.saveBatch(relations)) {
+                throw new ServiceException("保存角色权限失败");
+            }
+        }
+        // 用户关联由组织锁保护，只有事务成功提交后才失效全部受影响的旧授权快照。
+        List<Long> userIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
+                .eq(SysUserRole::getRoleId, role.getId()).list().stream().map(SysUserRole::getUserId).toList();
+        authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, userIds);
     }
 
     /**
      * 修改菜单权限，授权变化在事务提交后使相关会话失效。
      *
-     * @param id 菜单id
-     * @param parameter 菜单修改参数
+     * @param parameter 菜单ID及完整修改参数
      */
-    @Lock4j(name = "system:menu")
+    @Lock4j(name = "system:organization")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void updateMenu(Long id, SysMenuSaveDTO parameter) {
+    public void updateMenu(SysMenuUpdateDTO parameter) {
+        Long id = parameter.getId();
         SysPermission oldPermission = this.getById(id);
         if (Objects.isNull(oldPermission)) {
             throw new ServiceException("菜单不存在");
         }
         SysPermission permission = BeanConvertUtils.convert(parameter, SysPermission.class);
-        permission.setId(id);
         permission.setBuiltIn(oldPermission.getBuiltIn());
         validateMenu(permission);
         boolean definitionChanged = !Objects.equals(oldPermission.getMenuType(), permission.getMenuType())
                 || !Objects.equals(oldPermission.getPerms(), permission.getPerms());
         if (definitionChanged && oldPermission.getBuiltIn() == 1) {
             throw new ServiceException("内置菜单的类型和权限标识不能修改");
-        }
-        if (definitionChanged && !authenticationContext.isSuperAdministrator()) {
-            throw new AccessDeniedException("只有超级管理员可以修改菜单类型和权限标识");
         }
         if (oldPermission.isProtectedNode() && permission.getStatus() != 0) {
             throw new ServiceException("核心菜单管理节点不能停用");
@@ -292,7 +319,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
      *
      * @param id 菜单id
      */
-    @Lock4j(name = "system:menu")
+    @Lock4j(name = "system:organization")
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteMenu(Long id) {

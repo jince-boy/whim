@@ -4,7 +4,10 @@ import { useUserStore } from '@/stores/modules/user.ts'
 /**
  * 处理权限验证
  */
-const handlePermission = (el: HTMLElement, binding: DirectiveBinding<string[] | undefined | null>): void => {
+const handlePermission = (
+  el: HTMLElement,
+  binding: DirectiveBinding<string[] | undefined | null>,
+): void => {
   const userStore = useUserStore()
   const { value } = binding
 
@@ -20,9 +23,7 @@ const handlePermission = (el: HTMLElement, binding: DirectiveBinding<string[] | 
     )
   }
 
-  const hasPermission = userStore.permissionCode.some((permission) => {
-    return permission === '*' || value.includes(permission)
-  })
+  const hasPermission = value.some((permission) => userStore.hasPermission(permission))
 
   if (!hasPermission) {
     removeElement(el)
@@ -32,7 +33,10 @@ const handlePermission = (el: HTMLElement, binding: DirectiveBinding<string[] | 
 /**
  * 处理角色验证
  */
-const handleRole = (el: HTMLElement, binding: DirectiveBinding<string[] | undefined | null>): void => {
+const handleRole = (
+  el: HTMLElement,
+  binding: DirectiveBinding<string[] | undefined | null>,
+): void => {
   const userStore = useUserStore()
   const { value } = binding
 
@@ -46,9 +50,8 @@ const handleRole = (el: HTMLElement, binding: DirectiveBinding<string[] | undefi
     throw new Error("v-role 指令需要指定角色值，例如 v-role=\"['admin','editor']\"")
   }
 
-  const hasRole = userStore.roleCode.some((role) => {
-    return role === '*' || value.includes(role)
-  })
+  const hasRole =
+    userStore.superAdministrator || userStore.roleCode.some((role) => value.includes(role))
 
   if (!hasRole) {
     removeElement(el)

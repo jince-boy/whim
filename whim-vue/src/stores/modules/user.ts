@@ -10,8 +10,14 @@ export const useUserStore = defineStore('user', () => {
   const hasUserInfo = computed(() => user.value !== null)
   const permissionCode = computed(() => user.value?.permissionCodeSet ?? [])
   const roleCode = computed(() => user.value?.roleCodeSet ?? [])
+  const superAdministrator = computed(() => user.value?.superAdministrator === true)
   let revision = 0
   let pending: Promise<void> | undefined
+
+  /** 超级管理员身份默认拥有全部功能，普通账号精确匹配实际角色权限。 */
+  function hasPermission(permission: string): boolean {
+    return superAdministrator.value || permissionCode.value.includes(permission)
+  }
 
   /** 获取用户资料；并发调用复用请求，旧会话的响应不能覆盖新账号。 */
   async function getUserInfo(): Promise<void> {
@@ -39,5 +45,23 @@ export const useUserStore = defineStore('user', () => {
     user.value = null
   }
 
-  return { user, hasUserInfo, permissionCode, roleCode, getUserInfo, clearUserInfo }
+  /** 应用本人资料保存结果，并使保存前尚未结束的旧查询失效。 */
+  function updateCurrentUserInfo(info: UserInfoResult): void {
+    if (!user.value || String(info.userId) !== String(user.value.userId)) return
+    revision++
+    pending = undefined
+    user.value = info
+  }
+
+  return {
+    user,
+    hasUserInfo,
+    superAdministrator,
+    permissionCode,
+    roleCode,
+    hasPermission,
+    getUserInfo,
+    clearUserInfo,
+    updateCurrentUserInfo,
+  }
 })
