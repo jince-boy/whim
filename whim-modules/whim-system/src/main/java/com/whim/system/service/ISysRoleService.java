@@ -8,8 +8,11 @@ import com.whim.system.model.dto.role.SysRoleDataScopeDTO;
 import com.whim.system.model.dto.role.SysRoleQueryDTO;
 import com.whim.system.model.dto.role.SysRoleStatusDTO;
 import com.whim.system.model.dto.role.SysRoleUpdateDTO;
+import com.whim.system.model.dto.role.SysRoleUserDTO;
+import com.whim.system.model.dto.role.SysRoleUserQueryDTO;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.vo.role.SysRoleDataScopeVO;
+import com.whim.system.model.vo.role.SysRoleUserVO;
 import com.whim.system.model.vo.role.SysRoleVO;
 
 import java.util.List;
@@ -27,6 +30,22 @@ public interface ISysRoleService extends IService<SysRole> {
      * @return 角色分页
      */
     PageDataVO<SysRoleVO> getRolePage(SysRoleQueryDTO query);
+
+    /**
+     * 分页查询角色下当前可见的普通用户。
+     *
+     * @param query 角色ID及用户分页筛选条件
+     * @return 已分配用户分页
+     */
+    PageDataVO<SysRoleUserVO> getRoleUserPage(SysRoleUserQueryDTO query);
+
+    /**
+     * 分页查询本次分配操作范围内尚未关联的正常用户。
+     *
+     * @param query 角色ID及用户分页筛选条件
+     * @return 可分配用户分页
+     */
+    PageDataVO<SysRoleUserVO> getAvailableRoleUserPage(SysRoleUserQueryDTO query);
 
     /**
      * 查询角色基础资料。
@@ -79,6 +98,20 @@ public interface ISysRoleService extends IService<SysRole> {
      * @param parameter 角色ID、数据范围及完整部门集合
      */
     void assignRoleDataScope(SysRoleDataScopeDTO parameter);
+
+    /**
+     * 批量添加角色用户关联，保留用户的其他角色。
+     *
+     * @param parameter 角色ID及本次加入的用户ID
+     */
+    void assignRoleUsers(SysRoleUserDTO parameter);
+
+    /**
+     * 批量移除指定角色的用户关联，保留用户的其他角色。
+     *
+     * @param parameter 角色ID及本次移除的用户ID
+     */
+    void unassignRoleUsers(SysRoleUserDTO parameter);
 
     /**
      * 删除没有用户关联的角色并清理授权关系。

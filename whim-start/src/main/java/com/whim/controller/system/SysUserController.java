@@ -1,20 +1,28 @@
 package com.whim.controller.system;
 
+import cn.dev33.satoken.annotation.SaMode;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.user.SysUserAddDTO;
+import com.whim.system.model.dto.user.SysUserAvatarQueryDTO;
+import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
 import com.whim.system.model.dto.user.SysUserQueryDTO;
+import com.whim.system.model.dto.user.SysUserRoleDTO;
 import com.whim.system.model.dto.user.SysUserUpdateDTO;
 import com.whim.system.model.vo.user.SysUserDetailVO;
+import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
 import com.whim.system.service.ISysUserService;
 import com.whim.web.model.Result;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,10 +30,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 /**
  * @author Jince
  * @date 2026/11/06
- * @description 系统用户管理接口。
+ * @description 用户资料、角色分配及头像接口。
  */
 @RestController
 @RequiredArgsConstructor
@@ -59,6 +69,31 @@ public class SysUserController {
     }
 
     /**
+     * 查询用户当前角色和可分配的角色。
+     *
+     * @param id 用户ID
+     * @return 当前角色及候选项
+     */
+    @GetMapping("/roles")
+    @SystemCheckPermission("system:userRole:list")
+    public Result<SysUserRolesVO> getUserRoles(@RequestParam Long id) {
+        return Result.success("用户角色查询成功", userService.getUserRoles(id));
+    }
+
+    /**
+     * 为已登录用户返回头像缩略图或未经缩放的头像原文件。
+     *
+     * @param query 头像文件及预览方式
+     * @param response 图片响应，原文件以附件返回
+     * @throws IOException 写入缩略图响应失败
+     */
+    @GetMapping("/avatar")
+    public void getUserAvatar(@Valid @ModelAttribute SysUserAvatarQueryDTO query,
+                              HttpServletResponse response) throws IOException {
+        userService.getUserAvatar(query, response);
+    }
+
+    /**
      * 新增用户并保存岗位任职关系。
      *
      * @param parameter 用户新增参数
@@ -69,6 +104,18 @@ public class SysUserController {
     public Result<Void> addUser(@Valid @RequestBody SysUserAddDTO parameter) {
         userService.addUser(parameter);
         return Result.success("新增用户成功");
+    }
+
+    /**
+     * 上传头像并返回地址，由新增或修改用户请求保存关联。
+     *
+     * @param parameter 本地头像图片
+     * @return 头像地址
+     */
+    @PostMapping(value = "/uploadAvatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @SystemCheckPermission(value = {"system:user:create", "system:user:update"}, mode = SaMode.OR)
+    public Result<String> addUserAvatar(@Valid @ModelAttribute SysUserAvatarUploadDTO parameter) {
+        return Result.success("头像上传成功", userService.addUserAvatar(parameter));
     }
 
     /**
@@ -95,6 +142,19 @@ public class SysUserController {
     public Result<Void> resetUserPassword(@Valid @RequestBody SysUserPasswordDTO parameter) {
         userService.resetUserPassword(parameter);
         return Result.success("修改密码成功");
+    }
+
+    /**
+     * 校验角色可授予范围后更新用户角色。
+     *
+     * @param parameter 用户ID及完整角色集合
+     * @return 分配角色成功响应
+     */
+    @PutMapping("/assignRoles")
+    @SystemCheckPermission("system:userRole:assign")
+    public Result<Void> assignUserRoles(@Valid @RequestBody SysUserRoleDTO parameter) {
+        userService.assignUserRoles(parameter);
+        return Result.success("分配角色成功");
     }
 
     /**

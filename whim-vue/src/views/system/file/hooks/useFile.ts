@@ -1,14 +1,13 @@
 import { computed, h, ref } from 'vue'
 import dayjs from 'dayjs'
 import {
-  NButton,
   NSpace,
   NTag,
   useThemeVars,
   type DataTableColumns,
   type GlobalThemeOverrides,
 } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
@@ -101,35 +100,25 @@ export function useFile() {
       width: 150,
       fixed: 'right',
       render: (row) =>
-        h(NSpace, { size: 12, align: 'center', wrap: false, wrapItem: false }, () => [
+        h(NSpace, { size: 6, align: 'center', wrap: false, wrapItem: false }, () => [
           can('download')
-            ? h(
-                NButton,
-                {
-                  text: true,
-                  size: 'small',
-                  type: 'info',
-                  'aria-label': '下载',
-                  'aria-busy': downloadingId.value === row.id,
-                  loading: downloadingId.value === row.id,
-                  disabled: !!downloadingId.value || deleting.value,
-                  onClick: () => download(row),
-                },
-                () => '下载',
-              )
+            ? h(TableAction, {
+                label: '下载',
+                icon: 'download',
+                type: 'info',
+                loading: downloadingId.value === row.id,
+                disabled: !!downloadingId.value || deleting.value,
+                onClick: () => download(row),
+              })
             : null,
           can('delete')
-            ? h(
-                NButton,
-                {
-                  text: true,
-                  size: 'small',
-                  type: 'error',
-                  disabled: deleting.value || !!downloadingId.value,
-                  onClick: () => removeFile(row),
-                },
-                () => '删除',
-              )
+            ? h(TableAction, {
+                label: '删除',
+                icon: 'trash-2',
+                type: 'error',
+                disabled: deleting.value || !!downloadingId.value,
+                onClick: () => removeFile(row),
+              })
             : null,
         ]),
     },
@@ -246,33 +235,31 @@ export function useFile() {
       fixed: 'right',
       width: 230,
       render: (row) =>
-        h(NSpace, { size: 12, wrap: false }, () => [
+        h(NSpace, { size: 6, wrap: false }, () => [
           can('updateStorage')
-            ? h(
-                NButton,
-                { text: true, size: 'small', type: 'warning', onClick: () => editStorage(row) },
-                () => '修改',
-              )
+            ? h(TableAction, {
+                label: '修改',
+                icon: 'pencil',
+                type: 'warning',
+                onClick: () => editStorage(row),
+              })
             : null,
           can('defaultStorage') && row.defaultFlag !== 1
-            ? h(
-                NButton,
-                { text: true, size: 'small', type: 'info', onClick: () => setDefault(row) },
-                () => '设为默认配置',
-              )
+            ? h(TableAction, {
+                label: '设为默认配置',
+                icon: 'circle-check',
+                type: 'info',
+                onClick: () => setDefault(row),
+              })
             : null,
           can('deleteStorage')
-            ? h(
-                NButton,
-                {
-                  text: true,
-                  size: 'small',
-                  type: 'error',
-                  disabled: row.defaultFlag === 1,
-                  onClick: () => removeStorage(row),
-                },
-                () => '删除',
-              )
+            ? h(TableAction, {
+                label: '删除',
+                icon: 'trash-2',
+                type: 'error',
+                disabled: row.defaultFlag === 1,
+                onClick: () => removeStorage(row),
+              })
             : null,
         ]),
     },

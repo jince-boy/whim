@@ -135,16 +135,16 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
     }
   }
 
-  /** 提交当前输入，搜索条件变化后回到第一页并清空选择。 */
+  /** 提交当前输入并回到第一页，按配置处理已有选择。 */
   function search() {
     form.commitValues()
     return applySearch()
   }
 
-  /** 使用表单已提交的快照查询第一页，保留其他尚未提交的输入。 */
+  /** 使用已提交条件查询第一页；关联选择表保留其他页和筛选外的勾选。 */
   function applySearch() {
     page.value = 1
-    checkedRowKeys.value = []
+    if (!options.value.preserveSelection) checkedRowKeys.value = []
     return reload()
   }
 
@@ -245,6 +245,8 @@ export function useWhimTable<Row extends object, Query extends object = Record<s
       bordered: bordered.value,
       singleLine: options.value.singleLine ?? !bordered.value,
       striped: striped.value,
+      allowCheckingNotLoaded:
+        options.value.allowCheckingNotLoaded ?? options.value.preserveSelection ?? false,
       checkedRowKeys: checkedRowKeys.value,
       expandedRowKeys: expandedRowKeys.value,
       onUpdatePage: changePage,

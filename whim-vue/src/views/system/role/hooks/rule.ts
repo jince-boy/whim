@@ -1,5 +1,12 @@
 import type { FormRules } from 'naive-ui'
 
+export const roleUserRules: FormRules = {
+  userIds: [
+    { type: 'array', required: true, min: 1, message: '请选择至少一个用户', trigger: 'change' },
+    { type: 'array', max: 100, message: '每次最多分配100个用户', trigger: 'change' },
+  ],
+}
+
 export const roleRules: FormRules = {
   roleName: [
     { required: true, whitespace: true, message: '请输入角色名称', trigger: 'blur' },

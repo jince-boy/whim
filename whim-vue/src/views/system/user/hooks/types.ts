@@ -87,6 +87,11 @@ export interface RoleFormProps {
   initialModel: UserRoles
 }
 
+export interface UserRoleQuery {
+  roleName: string
+  roleCode: string
+}
+
 export interface RoleFormModel {
   id: UserId
   roleIds: string[]

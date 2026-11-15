@@ -1,7 +1,7 @@
-import { useWhimTable } from '@/components/table'
+import { TableAction, useWhimTable } from '@/components/table'
 import type { LoginLog, LoginLogQuery } from '@/views/system/loginLog/hooks/types.ts'
 import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
-import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
+import { type DataTableColumn, NSpace, NTag } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog'
 import { computed, ref } from 'vue'
@@ -79,18 +79,15 @@ export function useLoginLog() {
       align: 'center',
       render(row: object) {
         const loginLog = row as LoginLog
-        return h(NSpace, { justify: 'center' }, () => [
-          h(
-            NButton,
-            {
-              text: true,
-              type: 'error',
-              onClick: () => {
-                removeLoginLog(loginLog)
-              },
+        return h(NSpace, { size: 6, justify: 'center' }, () => [
+          h(TableAction, {
+            label: '删除',
+            icon: 'trash-2',
+            type: 'error',
+            onClick: () => {
+              removeLoginLog(loginLog)
             },
-            { default: () => '删除' },
-          ),
+          }),
         ])
       },
     },
@@ -115,7 +112,8 @@ export function useLoginLog() {
         {
           key: 'status',
           label: '登录状态',
-          format: (values) => dictionary.getDictData('sys_result_status', String(values.status)).label,
+          format: (values) =>
+            dictionary.getDictData('sys_result_status', String(values.status)).label,
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {

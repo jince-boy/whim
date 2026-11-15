@@ -9,7 +9,10 @@ import com.whim.system.model.dto.role.SysRolePermissionDTO;
 import com.whim.system.model.dto.role.SysRoleQueryDTO;
 import com.whim.system.model.dto.role.SysRoleStatusDTO;
 import com.whim.system.model.dto.role.SysRoleUpdateDTO;
+import com.whim.system.model.dto.role.SysRoleUserDTO;
+import com.whim.system.model.dto.role.SysRoleUserQueryDTO;
 import com.whim.system.model.vo.role.SysRoleDataScopeVO;
+import com.whim.system.model.vo.role.SysRoleUserVO;
 import com.whim.system.model.vo.role.SysRoleVO;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
@@ -28,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jince
  * @date 2026/11/14
- * @description 角色管理接口，沿用菜单权限码控制各项操作。
+ * @description 角色资料、授权配置及成员管理接口。
  */
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +51,30 @@ public class SysRoleController {
     @SystemCheckPermission("system:role:list")
     public Result<PageDataVO<SysRoleVO>> getRolePage(@Valid SysRoleQueryDTO query) {
         return Result.success("角色查询成功", roleService.getRolePage(query));
+    }
+
+    /**
+     * 分页查询角色下可见的普通用户。
+     *
+     * @param query 角色ID及用户分页筛选条件
+     * @return 已分配用户分页
+     */
+    @GetMapping("/userPage")
+    @SystemCheckPermission("system:roleUser:list")
+    public Result<PageDataVO<SysRoleUserVO>> getRoleUserPage(@Valid SysRoleUserQueryDTO query) {
+        return Result.success("角色用户查询成功", roleService.getRoleUserPage(query));
+    }
+
+    /**
+     * 分页查询尚未关联且可分配的正常用户。
+     *
+     * @param query 角色ID及用户分页筛选条件
+     * @return 候选用户分页
+     */
+    @GetMapping("/availableUserPage")
+    @SystemCheckPermission("system:roleUser:assign")
+    public Result<PageDataVO<SysRoleUserVO>> getAvailableRoleUserPage(@Valid SysRoleUserQueryDTO query) {
+        return Result.success("可分配用户查询成功", roleService.getAvailableRoleUserPage(query));
     }
 
     /**
@@ -137,6 +164,32 @@ public class SysRoleController {
     public Result<Void> assignRolePermissions(@Valid @RequestBody SysRolePermissionDTO parameter) {
         permissionService.assignRolePermissions(parameter);
         return Result.success("角色权限保存成功");
+    }
+
+    /**
+     * 批量将用户加入角色，保留其其他角色。
+     *
+     * @param parameter 角色ID及本次加入的用户ID
+     * @return 分配结果
+     */
+    @PutMapping("/assignUsers")
+    @SystemCheckPermission("system:roleUser:assign")
+    public Result<Void> assignRoleUsers(@Valid @RequestBody SysRoleUserDTO parameter) {
+        roleService.assignRoleUsers(parameter);
+        return Result.success("分配用户成功");
+    }
+
+    /**
+     * 批量移除当前角色的用户关联，保留其其他角色。
+     *
+     * @param parameter 角色ID及本次移除的用户ID
+     * @return 移除结果
+     */
+    @PutMapping("/unassignUsers")
+    @SystemCheckPermission("system:roleUser:assign")
+    public Result<Void> unassignRoleUsers(@Valid @RequestBody SysRoleUserDTO parameter) {
+        roleService.unassignRoleUsers(parameter);
+        return Result.success("移除用户成功");
     }
 
     /**

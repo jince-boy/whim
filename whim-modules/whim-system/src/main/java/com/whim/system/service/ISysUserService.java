@@ -3,6 +3,8 @@ package com.whim.system.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.model.dto.user.SysUserAddDTO;
+import com.whim.system.model.dto.user.SysUserAvatarQueryDTO;
+import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
 import com.whim.system.model.dto.user.SysUserQueryDTO;
 import com.whim.system.model.dto.user.SysUserRoleDTO;
@@ -11,13 +13,15 @@ import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.vo.user.SysUserDetailVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 用户管理及账号信息查询。
+ * @description 用户资料、角色及头像管理。
  */
 public interface ISysUserService extends IService<SysUser> {
     /**
@@ -43,6 +47,15 @@ public interface ISysUserService extends IService<SysUser> {
      * @return 当前角色及候选项
      */
     SysUserRolesVO getUserRoles(Long id);
+
+    /**
+     * 读取头像缩略图或原文件，仅允许访问头像来源的图片。
+     *
+     * @param query 头像文件及预览方式
+     * @param response 图片响应，原文件以附件返回
+     * @throws IOException 写入缩略图响应失败
+     */
+    void getUserAvatar(SysUserAvatarQueryDTO query, HttpServletResponse response) throws IOException;
 
     /**
      * 通过id获取有效的用户信息
@@ -82,6 +95,14 @@ public interface ISysUserService extends IService<SysUser> {
      * @param parameter 用户新增参数
      */
     void addUser(SysUserAddDTO parameter);
+
+    /**
+     * 校验本地图片并通过默认存储上传头像。
+     *
+     * @param parameter 头像上传参数
+     * @return 用于保存用户资料的头像地址
+     */
+    String addUserAvatar(SysUserAvatarUploadDTO parameter);
 
     /**
      * 修改用户及岗位，提交后失效登录会话。

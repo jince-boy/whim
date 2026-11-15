@@ -1,4 +1,4 @@
-import { onScopeDispose, ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import type { FormInst } from 'naive-ui'
 import { createProfilePasswordRules } from './rule'
 import type { ProfilePasswordFormModel } from './types'
@@ -12,8 +12,5 @@ export function useProfilePasswordForm() {
     confirmPassword: '',
   })
   const rules = createProfilePasswordRules(() => formModel.value.password)
-  onScopeDispose(() => {
-    formModel.value = { oldPassword: '', password: '', confirmPassword: '' }
-  })
   return { formRef, formModel, rules }
 }

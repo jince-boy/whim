@@ -1,6 +1,6 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, watch } from 'vue'
-import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { message } from '@/plugins'
@@ -39,37 +39,32 @@ export function useDept() {
       key: 'action',
       fixed: 'right',
       render: (row) =>
-        h(NSpace, { size: 12, wrap: false }, () => [
+        h(NSpace, { size: 6, wrap: false }, () => [
           can('system:dept:create')
-            ? h(
-                NButton,
-                {
-                  text: true,
-                  type: 'primary',
-                  onClick: () => openAddDialog(row),
-                },
-                () => '新增',
-              )
+            ? h(TableAction, {
+                label: '新增',
+                icon: 'plus',
+                type: 'primary',
+                onClick: () => openAddDialog(row),
+              })
             : null,
           can('system:dept:update')
-            ? h(
-                NButton,
-                {
-                  text: true,
-                  type: 'warning',
-                  loading: editingId.value === row.id,
-                  disabled: editingId.value !== undefined,
-                  onClick: () => openEditDialog(row.id),
-                },
-                () => '修改',
-              )
+            ? h(TableAction, {
+                label: '修改',
+                icon: 'pencil',
+                type: 'warning',
+                loading: editingId.value === row.id,
+                disabled: editingId.value !== undefined,
+                onClick: () => openEditDialog(row.id),
+              })
             : null,
           can('system:dept:delete')
-            ? h(
-                NButton,
-                { text: true, type: 'error', onClick: () => removeDept(row) },
-                () => '删除',
-              )
+            ? h(TableAction, {
+                label: '删除',
+                icon: 'trash-2',
+                type: 'error',
+                onClick: () => removeDept(row),
+              })
             : null,
         ]),
     },

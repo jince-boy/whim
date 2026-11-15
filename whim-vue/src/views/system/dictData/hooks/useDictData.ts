@@ -1,6 +1,6 @@
 import { computed, h, onDeactivated, onScopeDispose, ref } from 'vue'
-import { NButton, NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
@@ -70,30 +70,24 @@ export function useDictData(props: DictDataProps) {
         key: 'action',
         fixed: 'right',
         render: (row) =>
-          h(NSpace, { size: 12 }, () => [
+          h(NSpace, { size: 6 }, () => [
             canEdit.value
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    loading: editingId.value === row.id,
-                    disabled: editingId.value !== undefined && editingId.value !== row.id,
-                    onClick: () => openEditDialog(row.id),
-                  },
-                  () => '修改',
-                )
+              ? h(TableAction, {
+                  label: '修改',
+                  icon: 'pencil',
+                  type: 'warning',
+                  loading: editingId.value === row.id,
+                  disabled: editingId.value !== undefined && editingId.value !== row.id,
+                  onClick: () => openEditDialog(row.id),
+                })
               : null,
             canDelete.value
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'error',
-                    onClick: () => removeDictData([row.id], row.label),
-                  },
-                  () => '删除',
-                )
+              ? h(TableAction, {
+                  label: '删除',
+                  icon: 'trash-2',
+                  type: 'error',
+                  onClick: () => removeDictData([row.id], row.label),
+                })
               : null,
           ]),
       })

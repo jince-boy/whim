@@ -23,45 +23,43 @@ export function usePermissionForm(props: PermissionFormProps) {
     },
     { immediate: true },
   )
-  function buildOptions(nodes: PermissionNode[]): PermissionTreeOption[] {
-    return nodes.map((node) => ({
-      key: String(node.id),
-      label:
-        node.label +
-        ' · ' +
-        dictionary.getDictData('sys_menu_type', node.menuType).label +
-        (node.status === 0
-          ? ''
-          : `（${dictionary.getDictData('sys_common_status', node.status).label}）`),
-      children: node.children.length ? buildOptions(node.children) : undefined,
-    }))
-  }
-  const options = computed(() => buildOptions(props.initialModel.menus))
-  const allKeys = computed(() => {
+  const tree = computed(() => {
     const keys: string[] = []
-    function collect(nodes: PermissionNode[]) {
-      for (const node of nodes) {
-        keys.push(String(node.id))
-        collect(node.children)
-      }
+    // 同一次遍历生成选项与全选主键，避免为全选再次递归整棵菜单树。
+    function buildOptions(nodes: PermissionNode[]): PermissionTreeOption[] {
+      return nodes.map((node) => {
+        const key = String(node.id)
+        keys.push(key)
+        return {
+          key,
+          label:
+            node.label +
+            ' · ' +
+            dictionary.getDictData('sys_menu_type', node.menuType).label +
+            (node.status === 0
+              ? ''
+              : `（${dictionary.getDictData('sys_common_status', node.status).label}）`),
+          children: node.children.length ? buildOptions(node.children) : undefined,
+        }
+      })
     }
-    collect(props.initialModel.menus)
-    return keys
+    return { options: buildOptions(props.initialModel.menus), keys }
   })
   const allSelected = computed(
-    () => allKeys.value.length > 0 && formModel.value.permissionIds.length === allKeys.value.length,
+    () =>
+      tree.value.keys.length > 0 && formModel.value.permissionIds.length === tree.value.keys.length,
   )
   const partlySelected = computed(
     () => formModel.value.permissionIds.length > 0 && !allSelected.value,
   )
   function selectAll(checked: boolean) {
-    if (!props.readonly) formModel.value.permissionIds = checked ? [...allKeys.value] : []
+    if (!props.readonly) formModel.value.permissionIds = checked ? [...tree.value.keys] : []
   }
   return {
     formRef,
     formModel,
     pattern,
-    options,
+    options: computed(() => tree.value.options),
     allSelected,
     partlySelected,
     selectAll,

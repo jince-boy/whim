@@ -1,6 +1,6 @@
 import { computed, h, onDeactivated, onScopeDispose, reactive, ref, watch } from 'vue'
-import { NButton, NEllipsis, NFlex, NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { NEllipsis, NFlex, NSpace, NTag, type DataTableColumns } from 'naive-ui'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useIcon } from '@/components/icon/useIcon'
 import { useUserStore } from '@/stores/modules/user'
@@ -126,39 +126,34 @@ export function useMenu() {
                 : node.children?.length
                   ? '请先删除所有子节点'
                   : undefined
-          return h(NSpace, { size: 12, wrap: false }, () => [
+          return h(NSpace, { size: 6, wrap: false }, () => [
             canAdd.value && (row.menuType === MenuType.DIRECTORY || row.menuType === MenuType.MENU)
-              ? h(
-                  NButton,
-                  { text: true, type: 'primary', onClick: () => openAddDialog(row) },
-                  () => '新增',
-                )
+              ? h(TableAction, {
+                  label: '新增',
+                  icon: 'plus',
+                  type: 'primary',
+                  onClick: () => openAddDialog(row),
+                })
               : null,
             canEdit.value
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    loading: editingId.value === row.id,
-                    disabled: editingId.value !== undefined,
-                    onClick: () => openEditDialog(row.id),
-                  },
-                  () => '修改',
-                )
+              ? h(TableAction, {
+                  label: '修改',
+                  icon: 'pencil',
+                  type: 'warning',
+                  loading: editingId.value === row.id,
+                  disabled: editingId.value !== undefined,
+                  onClick: () => openEditDialog(row.id),
+                })
               : null,
             canDelete.value
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'error',
-                    disabled: !!deleteReason,
-                    title: deleteReason,
-                    onClick: () => removeMenu(row),
-                  },
-                  () => '删除',
-                )
+              ? h(TableAction, {
+                  label: '删除',
+                  icon: 'trash-2',
+                  type: 'error',
+                  disabled: !!deleteReason,
+                  tooltip: deleteReason,
+                  onClick: () => removeMenu(row),
+                })
               : null,
           ])
         },

@@ -11,7 +11,7 @@ import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
-import com.whim.system.service.ISysUserAvatarService;
+import com.whim.system.service.ISysUserService;
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.validation.Valid;
@@ -40,8 +40,7 @@ public class AuthController {
      */
     private final IAuthService authService;
 
-    /** 当前账号头像上传服务。 */
-    private final ISysUserAvatarService userAvatarService;
+    private final ISysUserService userService;
 
     /**
      * 获取与客户端地址绑定的 GIF 验证码。
@@ -124,6 +123,6 @@ public class AuthController {
     @SystemCheckLogin
     @PostMapping(value = "/uploadAvatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<String> addUserAvatar(@Valid @ModelAttribute SysUserAvatarUploadDTO parameter) {
-        return Result.success("头像上传成功", userAvatarService.addUserAvatar(parameter));
+        return Result.success("头像上传成功", userService.addUserAvatar(parameter));
     }
 }

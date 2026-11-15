@@ -1,6 +1,6 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
-import { NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
@@ -73,26 +73,24 @@ export function usePost() {
         key: 'action',
         fixed: 'right',
         render: (row) =>
-          h(NSpace, { size: 12, wrap: false }, () => [
+          h(NSpace, { size: 6, wrap: false }, () => [
             can('system:post:detail') && can('system:post:update')
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    loading: editingId.value === row.id,
-                    disabled: editingId.value !== undefined,
-                    onClick: () => openEditDialog(row.id),
-                  },
-                  () => '修改',
-                )
+              ? h(TableAction, {
+                  label: '修改',
+                  icon: 'pencil',
+                  type: 'warning',
+                  loading: editingId.value === row.id,
+                  disabled: editingId.value !== undefined,
+                  onClick: () => openEditDialog(row.id),
+                })
               : null,
             can('system:post:delete')
-              ? h(
-                  NButton,
-                  { text: true, type: 'error', onClick: () => removePost(row) },
-                  () => '删除',
-                )
+              ? h(TableAction, {
+                  label: '删除',
+                  icon: 'trash-2',
+                  type: 'error',
+                  onClick: () => removePost(row),
+                })
               : null,
           ]),
       })

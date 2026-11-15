@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { WhimTable } from '@/components/table'
 import { useRole } from './hooks/useRole'
+import RoleAuthorizationDialog from './components/RoleAuthorizationDialog.vue'
+import RoleUsersDrawer from './components/RoleUsersDrawer.vue'
 
 defineOptions({ name: 'Role' })
-const { registerTable, form, canView, openAddDialog, statusOptions } = useRole()
+const { registerTable, form, canView, openAddDialog, statusOptions, authorizingRole, showAuthorization, usersRole, showUsers, reloadRoles } = useRole()
 </script>
 
 <template>
@@ -23,5 +25,7 @@ const { registerTable, form, canView, openAddDialog, statusOptions } = useRole()
       <template #empty><n-empty description="暂无角色，请新增或调整查询条件" /></template>
     </WhimTable>
     <n-card v-else :bordered="false"><n-empty description="暂无角色查询权限" /></n-card>
+    <RoleAuthorizationDialog v-if="authorizingRole" v-model:show="showAuthorization" :role="authorizingRole" @saved="reloadRoles" />
+    <RoleUsersDrawer v-if="usersRole" v-model:show="showUsers" :role="usersRole" />
   </div>
 </template>

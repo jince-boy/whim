@@ -1,6 +1,6 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
 import { NAvatar, NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
@@ -49,9 +49,11 @@ export function useUser() {
     { key: 'unassigned', label: '未分配部门' },
     ...selection.value.options,
   ])
-  const recordLoading = ref(false)
   const editingId = ref<UserId>()
   const assigningRolesId = ref<UserId>()
+  const recordLoading = computed(
+    () => editingId.value !== undefined || assigningRolesId.value !== undefined,
+  )
   let recordVersion = 0
   let active = true
 
@@ -141,59 +143,47 @@ export function useUser() {
         // 操作列与数据列均分宽度，空间不足时换行，编辑和删除优先排列。
         render: (row) => {
           const protectedAccount = row.superAdministrator && !currentUser.superAdministrator
-          return h(NSpace, { size: [12, 4], align: 'center' }, () => [
+          return h(NSpace, { size: 6, align: 'center' }, () => [
             canEdit
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    loading: editingId.value === row.id,
-                    disabled: recordLoading.value || protectedAccount,
-                    onClick: () => openEditDialog(row.id),
-                  },
-                  () => '编辑',
-                )
+              ? h(TableAction, {
+                  label: '编辑',
+                  icon: 'pencil',
+                  type: 'warning',
+                  loading: editingId.value === row.id,
+                  disabled: recordLoading.value || protectedAccount,
+                  onClick: () => openEditDialog(row.id),
+                })
               : null,
             canDelete
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'error',
-                    disabled: isSelf(row) || protectedAccount,
-                    onClick: () => removeUser(row),
-                  },
-                  () => '删除',
-                )
+              ? h(TableAction, {
+                  label: '删除',
+                  icon: 'trash-2',
+                  type: 'error',
+                  disabled: isSelf(row) || protectedAccount,
+                  onClick: () => removeUser(row),
+                })
               : null,
             canResetPassword
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    disabled: protectedAccount,
-                    onClick: () => openPasswordDialog(row),
-                  },
-                  () => '修改密码',
-                )
+              ? h(TableAction, {
+                  label: '修改密码',
+                  icon: 'key-round',
+                  type: 'warning',
+                  disabled: protectedAccount,
+                  onClick: () => openPasswordDialog(row),
+                })
               : null,
             canAssignRoles
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'primary',
-                    loading: assigningRolesId.value === row.id,
-                    disabled: recordLoading.value || isSelf(row) || row.superAdministrator,
-                    title: row.superAdministrator
-                      ? '超级管理员默认拥有全部权限，无需分配角色'
-                      : undefined,
-                    onClick: () => openRoleDialog(row),
-                  },
-                  () => '分配角色',
-                )
+              ? h(TableAction, {
+                  label: '分配角色',
+                  icon: 'users',
+                  type: 'primary',
+                  loading: assigningRolesId.value === row.id,
+                  disabled: recordLoading.value || isSelf(row) || row.superAdministrator,
+                  tooltip: row.superAdministrator
+                    ? '超级管理员默认拥有全部权限，无需分配角色'
+                    : undefined,
+                  onClick: () => openRoleDialog(row),
+                })
               : null,
           ])
         },
@@ -283,7 +273,6 @@ export function useUser() {
   async function openEditDialog(id: UserId) {
     if (recordLoading.value) return
     const version = ++recordVersion
-    recordLoading.value = true
     editingId.value = id
     try {
       const response = await fetchUserDetail(id)
@@ -304,7 +293,6 @@ export function useUser() {
       // 公共请求层统一提示错误。
     } finally {
       if (version === recordVersion) {
-        recordLoading.value = false
         editingId.value = undefined
       }
     }
@@ -325,7 +313,6 @@ export function useUser() {
   async function openRoleDialog(row: UserItem) {
     if (recordLoading.value) return
     const version = ++recordVersion
-    recordLoading.value = true
     assigningRolesId.value = row.id
     try {
       const response = await fetchUserRoles(row.id)
@@ -336,7 +323,7 @@ export function useUser() {
       }
       openFormDialog({
         title: `分配角色 · ${row.name}`,
-        width: 600,
+        width: 900,
         formComponent: RoleForm,
         formProps: { initialModel: response.data },
         onSubmit: assignUserRoles,
@@ -346,7 +333,6 @@ export function useUser() {
       // 公共请求层统一提示错误。
     } finally {
       if (version === recordVersion) {
-        recordLoading.value = false
         assigningRolesId.value = undefined
       }
     }
@@ -363,7 +349,6 @@ export function useUser() {
   onDeactivated(() => {
     active = false
     recordVersion++
-    recordLoading.value = false
     editingId.value = undefined
     assigningRolesId.value = undefined
     departmentRefreshing.value = false

@@ -7,23 +7,31 @@ import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
+import com.whim.core.constant.CacheKeys;
 import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BCryptUtils;
 import com.whim.core.utils.BeanConvertUtils;
+import com.whim.file.support.FileUploadSecurity;
+import com.whim.file.support.ImageThumbnailGenerator;
 import com.whim.mybatisplus.annotation.DataPermission;
 import com.whim.mybatisplus.annotation.DataPermissionTable;
 import com.whim.mybatisplus.model.enums.DataScopeType;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.mybatisplus.permission.DataPermissionContext;
+import com.whim.redis.utils.CacheUtils;
 import com.whim.system.mapper.SysDeptMapper;
 import com.whim.system.mapper.SysUserMapper;
+import com.whim.system.model.dto.file.SysFileUploadDTO;
 import com.whim.system.model.dto.user.SysUserAddDTO;
+import com.whim.system.model.dto.user.SysUserAvatarQueryDTO;
+import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
 import com.whim.system.model.dto.user.SysUserQueryDTO;
 import com.whim.system.model.dto.user.SysUserRoleDTO;
 import com.whim.system.model.dto.user.SysUserUpdateDTO;
 import com.whim.system.model.entity.SysDept;
+import com.whim.system.model.entity.SysFile;
 import com.whim.system.model.entity.SysPost;
 import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
@@ -35,16 +43,24 @@ import com.whim.system.model.vo.user.SysUserDetailVO;
 import com.whim.system.model.vo.user.SysUserRoleOptionVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
+import com.whim.system.service.ISysFileService;
 import com.whim.system.service.ISysPostService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserPostService;
 import com.whim.system.service.ISysUserRoleService;
 import com.whim.system.service.ISysUserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -56,11 +72,14 @@ import java.util.stream.Collectors;
 /**
  * @author Jince
  * @date 2026/09/30
- * @description 用户管理及账号信息查询。
+ * @description 用户资料、角色及头像管理。
  */
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService {
+    private static final String AVATAR_UPLOAD_SOURCE = "userAvatar";
+    private static final long MAXIMUM_AVATAR_BYTES = 5 * 1024 * 1024;
+    private static final Set<String> AVATAR_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/gif");
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
     private final ISysPostService postService;
@@ -68,6 +87,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysRoleService roleService;
     private final ISysUserRoleService userRoleService;
     private final SysDeptMapper deptMapper;
+    private final ISysFileService fileService;
 
     /**
      * 按部门分支和用户信息分页查询可见用户。
@@ -157,8 +177,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         result.setId(id);
         result.setRoleIds(userRoleService.lambdaQuery().select(SysUserRole::getRoleId)
                 .eq(SysUserRole::getUserId, id).list().stream().map(SysUserRole::getRoleId).toList());
-        // 候选项由角色查询操作权限控制；正常角色可分配，已停用的现有角色保留回显并允许移除。
-        for (SysRole role : roleService.lambdaQuery().and(wrapper -> {
+        boolean disabled = id.equals(authenticationContext.getUserId());
+        // 仅返回分配操作需要的角色字段；已停用的现有角色保留回显并允许移除。
+        for (SysRole role : roleService.lambdaQuery()
+                .select(SysRole::getId, SysRole::getRoleName, SysRole::getRoleCode, SysRole::getStatus)
+                .and(wrapper -> {
                     wrapper.eq(SysRole::getStatus, 0);
                     if (!result.getRoleIds().isEmpty()) {
                         wrapper.or().in(SysRole::getId, result.getRoleIds());
@@ -170,10 +193,46 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             option.setRoleName(role.getRoleName());
             option.setRoleCode(role.getRoleCode());
             option.setStatus(role.getStatus());
-            option.setDisabled(id.equals(authenticationContext.getUserId()));
+            option.setDisabled(disabled);
             result.getOptions().add(option);
         }
         return result;
+    }
+
+    /**
+     * 读取头像缩略图或原文件，仅允许访问头像来源的图片。
+     *
+     * @param query 头像文件及预览方式
+     * @param response 图片响应，原文件以附件返回
+     * @throws IOException 写入缩略图响应失败
+     */
+    @Override
+    public void getUserAvatar(SysUserAvatarQueryDTO query, HttpServletResponse response) throws IOException {
+        boolean preview = Boolean.TRUE.equals(query.getPreview());
+        // 头像读取不授予普通附件访问权限，原图同时遵守头像类型和大小限制。
+        if (!fileService.lambdaQuery().eq(SysFile::getId, query.getId())
+                .eq(SysFile::getUploadSource, AVATAR_UPLOAD_SOURCE)
+                .in(preview, SysFile::getContentType, AVATAR_CONTENT_TYPES)
+                .le(preview, SysFile::getFileSize, MAXIMUM_AVATAR_BYTES).exists()) {
+            response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
+        if (preview) {
+            fileService.downloadFile(query.getId(), response);
+            return;
+        }
+        byte[] avatar = fileService.getFileThumbnail(query.getId());
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        if (avatar.length == 0) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
+        response.setContentType(MediaType.IMAGE_PNG_VALUE);
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("Content-Security-Policy", FileUploadSecurity.CONTENT_SECURITY_POLICY);
+        response.setContentLength(avatar.length);
+        response.getOutputStream().write(avatar);
     }
 
     /**
@@ -273,6 +332,36 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 校验本地图片并通过默认存储上传头像。
+     *
+     * @param parameter 头像上传参数
+     * @return 用于保存用户资料的头像地址
+     */
+    @Override
+    public String addUserAvatar(SysUserAvatarUploadDTO parameter) {
+        MultipartFile file = parameter.getFile();
+        if (file.isEmpty() || file.getSize() > MAXIMUM_AVATAR_BYTES) {
+            throw new ServiceException("头像图片不能为空且不能超过5MB");
+        }
+        if (!AVATAR_CONTENT_TYPES.contains(Objects.requireNonNullElse(file.getContentType(), ""))) {
+            throw new ServiceException("头像仅支持JPG、PNG或GIF图片");
+        }
+        // 实际解码成功才接收头像，不能仅凭扩展名或客户端声明判断图片有效。
+        try {
+            if (ImageThumbnailGenerator.generateThumbnail(file.getInputStream(), 96, 96).length == 0) {
+                throw new ServiceException("头像图片无法识别、已损坏或像素过大，请更换图片");
+            }
+        } catch (IOException exception) {
+            throw new ServiceException("读取头像图片失败，请重新选择图片");
+        }
+        SysFileUploadDTO upload = new SysFileUploadDTO();
+        upload.setFile(file);
+        upload.setUploadSource(AVATAR_UPLOAD_SOURCE);
+        // 用户资料保存前只生成文件，取消或保存失败不会改变原头像。
+        return "/system/user/avatar?id=" + fileService.addFile(upload).getId();
+    }
+
+    /**
      * 修改用户及岗位，提交后失效登录会话。
      *
      * @param parameter 用户ID及完整修改字段
@@ -295,7 +384,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
             // 普通账号不能通过调整自身组织归属扩大范围；超级管理员本身已具有全部数据权限。
             if (!authenticationContext.isSuperAdministrator()) {
-                Set<Long> currentPostIds = userPostService.lambdaQuery().eq(SysUserPost::getUserId, user.getId())
+                Set<Long> currentPostIds = userPostService.lambdaQuery().select(SysUserPost::getPostId)
+                        .eq(SysUserPost::getUserId, user.getId())
                         .list().stream().map(SysUserPost::getPostId).collect(Collectors.toSet());
                 if (departmentChanged || !currentPostIds.equals(postIds)) {
                     throw new ServiceException("不能调整自己的部门、岗位");
@@ -356,7 +446,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new ServiceException("不能修改当前账号的角色");
         }
         Set<Long> requestedIds = new LinkedHashSet<>(parameter.getRoleIds());
-        Set<Long> currentIds = userRoleService.lambdaQuery().eq(SysUserRole::getUserId, parameter.getId())
+        Set<Long> currentIds = userRoleService.lambdaQuery().select(SysUserRole::getRoleId)
+                .eq(SysUserRole::getUserId, parameter.getId())
                 .list().stream().map(SysUserRole::getRoleId).collect(Collectors.toSet());
         Set<Long> addedIds = new LinkedHashSet<>(requestedIds);
         addedIds.removeAll(currentIds);
@@ -416,6 +507,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 应用迁移完成后失效上传途径字典缓存，使新增头像来源立即可用。
+     */
+    @EventListener(ApplicationStartedEvent.class)
+    public void refreshUserAvatarUploadSourceCache() {
+        // Flyway更新了已有字典，Redis中上次运行的旧选项不能阻止首次头像上传。
+        CacheUtils.evict(CacheKeys.SYS_DICT, "sys_file_upload_source");
+    }
+
+    /**
      * 校验目标账号存在性及超级管理员账号的维护边界。
      *
      * @param user 已按本次操作数据范围查询的用户
@@ -467,7 +567,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      * @param requestedIds 完整岗位ID集合
      */
     private void updateUserPosts(Long userId, Set<Long> requestedIds) {
-        Set<Long> currentIds = userPostService.lambdaQuery().eq(SysUserPost::getUserId, userId)
+        Set<Long> currentIds = userPostService.lambdaQuery().select(SysUserPost::getPostId)
+                .eq(SysUserPost::getUserId, userId)
                 .list().stream().map(SysUserPost::getPostId).collect(Collectors.toSet());
         Set<Long> addedIds = new LinkedHashSet<>(requestedIds);
         addedIds.removeAll(currentIds);

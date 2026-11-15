@@ -8,14 +8,14 @@ defineExpose({ formRef, formModel })
 </script>
 
 <template>
-  <n-form ref="formRef" :model="formModel" :rules="rules" :disabled="props.readonly" label-placement="top" @submit.prevent>
+  <n-form ref="formRef" :model="formModel" :rules="rules" :disabled="props.readonly || props.disabled" label-placement="top" @submit.prevent>
     <div class="permission-controls">
       <n-input v-model:value="pattern" :disabled="false" placeholder="搜索菜单或按钮" clearable />
-      <n-checkbox :checked="allSelected" :indeterminate="partlySelected" :disabled="props.readonly" @update:checked="selectAll">全选</n-checkbox>
+      <n-checkbox :checked="allSelected" :indeterminate="partlySelected" :disabled="props.readonly || props.disabled" @update:checked="selectAll">全选</n-checkbox>
     </div>
     <n-form-item path="permissionIds" :show-label="false">
       <div class="permission-tree">
-        <n-tree v-model:checked-keys="formModel.permissionIds" :data="options" :pattern="pattern" checkable :cascade="false" :selectable="false" :disabled="props.readonly" block-line default-expand-all />
+        <n-tree v-model:checked-keys="formModel.permissionIds" :data="options" :pattern="pattern" checkable :cascade="false" :selectable="false" :disabled="props.readonly || props.disabled" block-line default-expand-all />
         <n-empty v-if="!options.length" description="暂无菜单权限" />
       </div>
     </n-form-item>

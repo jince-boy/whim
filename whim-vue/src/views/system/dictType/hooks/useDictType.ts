@@ -10,14 +10,8 @@ import {
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
-import {
-  NButton,
-  NSpace,
-  useThemeVars,
-  type DataTableColumns,
-  type DataTableRowKey,
-} from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { NSpace, useThemeVars, type DataTableColumns, type DataTableRowKey } from 'naive-ui'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
@@ -78,29 +72,32 @@ export function useDictType() {
         key: 'action',
         fixed: 'right',
         render: (row) =>
-          h(NSpace, { size: 12, wrap: false }, () => [
+          h(NSpace, { size: 6, wrap: false }, () => [
             canViewData.value
-              ? h(NButton, { text: true, type: 'info', onClick: () => openData(row) }, () => '查看')
+              ? h(TableAction, {
+                  label: '查看',
+                  icon: 'eye',
+                  type: 'info',
+                  onClick: () => openData(row),
+                })
               : null,
             canEdit.value
-              ? h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'warning',
-                    loading: editingId.value === row.id,
-                    disabled: editingId.value !== undefined,
-                    onClick: () => openEditDialog(row.id),
-                  },
-                  () => '修改',
-                )
+              ? h(TableAction, {
+                  label: '修改',
+                  icon: 'pencil',
+                  type: 'warning',
+                  loading: editingId.value === row.id,
+                  disabled: editingId.value !== undefined,
+                  onClick: () => openEditDialog(row.id),
+                })
               : null,
             canDelete.value
-              ? h(
-                  NButton,
-                  { text: true, type: 'error', onClick: () => removeDictTypes([row.id]) },
-                  () => '删除',
-                )
+              ? h(TableAction, {
+                  label: '删除',
+                  icon: 'trash-2',
+                  type: 'error',
+                  onClick: () => removeDictTypes([row.id]),
+                })
               : null,
           ]),
       })

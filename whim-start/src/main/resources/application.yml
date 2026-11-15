@@ -1,13 +1,18 @@
 server:
   port: 8089
 
-# 文件存储：本地目录不自动映射为公开静态资源
+# 文件存储：由 whim-file 自动绑定和校验，业务模块直接使用
 file:
-  management:
+  storage:
+    enabled: true
+    default-storage: local
+    default-config-name: local
+    # 单文件总大小上限；HTTP 请求大小另由 servlet.multipart 配置。
+    max-file-size: 200MB
     # 配置云存储前提供独立随机密钥；必须持久保管，替换后旧凭据无法解密。
     secret-key: ${FILE_STORAGE_SECRET_KEY:}
-    # 文件总大小达到 min-file-size 时使用对应分片大小；从0B开始按下限递增配置。
-    # 单片支持5MB至64MB，末片按实际剩余大小上传；修改配置仅影响重启后创建的新任务。
+    # 文件达到 min-file-size 时采用对应分片大小；下限从0B开始严格递增。
+    # 单片支持5MB至64MB，末片按剩余大小上传；修改配置只影响重启后创建的新任务。
     upload-part-size-rules:
       - min-file-size: 0B
         part-size: 8MB
@@ -17,11 +22,7 @@ file:
         part-size: 32MB
       - min-file-size: 10GB
         part-size: 64MB
-  storage:
-    enabled: true
-    default-storage: local
-    default-config-name: local
-    max-file-size: 200MB
+    # 本地目录不自动映射为公开静态资源。
     local:
       - name: local
         base-path: ${FILE_STORAGE_PATH:./data/files}

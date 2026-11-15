@@ -9,7 +9,7 @@ export const fetchUserDetail = (id: UserId) =>
   request<UserDetail>('/system/user/detail', RequestMethod.GET, { params: { id } })
 
 export const fetchUserRoles = (id: UserId) =>
-  request<UserRoles>('/system/userRole/list', RequestMethod.GET, { params: { id } })
+  request<UserRoles>('/system/user/roles', RequestMethod.GET, { params: { id } })
 
 export const addUser = async (data: UserFormModel) => {
   await uploadSelectedAvatar(data)
@@ -54,7 +54,7 @@ export const resetUserPassword = (data: PasswordFormModel) =>
   })
 
 export const assignUserRoles = (data: RoleFormModel) =>
-  request('/system/userRole/assign', RequestMethod.PUT, {
+  request('/system/user/assignRoles', RequestMethod.PUT, {
     data: { id: data.id, roleIds: data.roleIds },
   })
 

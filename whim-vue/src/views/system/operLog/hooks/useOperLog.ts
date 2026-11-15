@@ -1,6 +1,6 @@
-import { useWhimTable } from '@/components/table'
+import { TableAction, useWhimTable } from '@/components/table'
 import dayjs from 'dayjs'
-import { type DataTableColumn, NButton, NSpace, NTag } from 'naive-ui'
+import { type DataTableColumn, NSpace, NTag } from 'naive-ui'
 import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
 import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
 import { useFormDialog } from '@/components/dialog'
@@ -94,29 +94,23 @@ export function useOperLog() {
       align: 'center',
       render(row: object) {
         const operLog = row as OperLog
-        return h(NSpace, { justify: 'center' }, () => [
-          h(
-            NButton,
-            {
-              text: true,
-              type: 'info',
-              onClick: () => {
-                showOperLogDetail(operLog)
-              },
+        return h(NSpace, { size: 6, justify: 'center' }, () => [
+          h(TableAction, {
+            label: '查看',
+            icon: 'eye',
+            type: 'info',
+            onClick: () => {
+              showOperLogDetail(operLog)
             },
-            { default: () => '查看' },
-          ),
-          h(
-            NButton,
-            {
-              text: true,
-              type: 'error',
-              onClick: () => {
-                removeOperLog(operLog)
-              },
+          }),
+          h(TableAction, {
+            label: '删除',
+            icon: 'trash-2',
+            type: 'error',
+            onClick: () => {
+              removeOperLog(operLog)
             },
-            { default: () => '删除' },
-          ),
+          }),
         ])
       },
     },
@@ -149,7 +143,8 @@ export function useOperLog() {
         {
           key: 'status',
           label: '操作状态',
-          format: (values) => dictionary.getDictData('sys_result_status', String(values.status)).label,
+          format: (values) =>
+            dictionary.getDictData('sys_result_status', String(values.status)).label,
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {
@@ -242,6 +237,7 @@ export function useOperLog() {
     showModal,
     currentOperLog,
     getDictOperTypeData: (value: string | number) => dictionary.getDictData('sys_oper_type', value),
-    getDictStatusData: (value: string | number) => dictionary.getDictData('sys_result_status', value),
+    getDictStatusData: (value: string | number) =>
+      dictionary.getDictData('sys_result_status', value),
   }
 }

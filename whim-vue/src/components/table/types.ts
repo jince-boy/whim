@@ -1,5 +1,6 @@
 import type { ComputedRef, MaybeRefOrGetter, Ref } from 'vue'
 import type {
+  ButtonProps,
   DataTableColumns,
   DataTableInst,
   DataTableProps,
@@ -10,6 +11,16 @@ import type { ApiResponse } from '@/api'
 import type { SearchFormOptions, SearchFormRegister } from '../form/types'
 
 export type TableButton = 'add' | 'edit' | 'delete' | 'export'
+
+/** 行内图标操作，文字用于悬停提示和无障碍名称。 */
+export interface TableActionProps {
+  label: string
+  icon: string
+  type?: ButtonProps['type']
+  loading?: boolean
+  disabled?: boolean
+  tooltip?: string
+}
 
 export interface TableToolbarOptions {
   buttons?: TableButton[]
@@ -65,7 +76,7 @@ export type WhimTableOptions<Row extends object, Query extends object> = Omit<
   search?: SearchFormOptions<Query>
   pagination?: false | Omit<PaginationProps, 'page' | 'pageCount' | 'itemCount'>
   toolbar?: TableToolbarOptions
-  /** 默认只保留当前数据中的选择；跨页选择需显式开启。 */
+  /** 保留跨页及筛选外的选择，搜索和重置条件时也不清空。 */
   preserveSelection?: boolean
 }
 

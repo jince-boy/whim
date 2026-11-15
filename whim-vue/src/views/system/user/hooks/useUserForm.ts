@@ -118,16 +118,16 @@ export function useUserForm(props: UserFormProps) {
   const postError = ref('')
   const posts = ref<PostItem[]>([])
   const knownPosts = ref(new Map<string, PostItem>())
-  const postPattern = ref('')
-  const postPage = ref(0)
-  const postTotal = ref(0)
+  let postPattern = ''
+  let postPage = 0
+  let postTotal = 0
   let postVersion = 0
 
   /** 岗位搜索使用真实分页，切换关键词时丢弃过期响应，保留已选项的回显。 */
   async function loadPosts(reset = false) {
     if (!canLoadPosts.value || organizationReadonly.value || (!reset && postLoading.value)) return
     const version = reset ? ++postVersion : postVersion
-    const pageNum = reset ? 1 : postPage.value + 1
+    const pageNum = reset ? 1 : postPage + 1
     if (reset) posts.value = []
     postLoading.value = true
     postError.value = ''
@@ -135,7 +135,7 @@ export function useUserForm(props: UserFormProps) {
       const response = await fetchPostPage({
         pageNum,
         pageSize: 20,
-        postName: postPattern.value.trim(),
+        postName: postPattern.trim(),
         postCode: '',
         deptId: null,
         organizationWide: null,
@@ -145,8 +145,8 @@ export function useUserForm(props: UserFormProps) {
       if (response.code !== 200) throw new Error(response.message || '岗位加载失败')
       posts.value = reset ? response.data.data : [...posts.value, ...response.data.data]
       for (const post of response.data.data) knownPosts.value.set(String(post.id), post)
-      postPage.value = pageNum
-      postTotal.value = response.data.total
+      postPage = pageNum
+      postTotal = response.data.total
     } catch {
       if (version === postVersion) postError.value = '岗位加载失败，请重新搜索或重试'
     } finally {
@@ -155,7 +155,7 @@ export function useUserForm(props: UserFormProps) {
   }
 
   function searchPosts(pattern: string) {
-    postPattern.value = pattern
+    postPattern = pattern
     void loadPosts(true)
   }
 
@@ -163,7 +163,7 @@ export function useUserForm(props: UserFormProps) {
     const element = event.target as HTMLElement
     if (
       element.scrollTop + element.clientHeight >= element.scrollHeight - 24 &&
-      posts.value.length < postTotal.value &&
+      posts.value.length < postTotal &&
       !postError.value
     )
       void loadPosts()

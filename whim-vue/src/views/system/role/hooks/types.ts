@@ -44,6 +44,7 @@ export interface RoleDataScope {
 export interface DataScopeFormProps {
   initialModel: RoleDataScope
   readonly: boolean
+  disabled?: boolean
 }
 
 export interface PermissionNode {
@@ -68,10 +69,37 @@ export interface PermissionFormProps {
   role: RoleItem
   initialModel: RolePermissions
   readonly: boolean
+  disabled?: boolean
 }
 
 export interface PermissionTreeOption extends TreeOption {
   key: string
   label: string
   children?: PermissionTreeOption[]
+}
+
+export interface RoleContextProps {
+  role: RoleItem
+}
+
+export type RoleAuthorizationTab = 'permissions' | 'dataScope'
+
+export interface RoleUserItem {
+  id: RoleId
+  username: string
+  name: string
+  deptName: string | null
+  phone: string | null
+  status: RoleStatus
+}
+
+export interface RoleUserQuery extends TablePageQuery {
+  roleId: RoleId
+  username: string
+  name: string
+}
+
+export interface RoleUserAssignment {
+  roleId: RoleId
+  userIds: RoleId[]
 }

@@ -21,6 +21,7 @@ import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.core.utils.RestClientUtils;
 import com.whim.file.config.properties.FileStorageProperties;
+import com.whim.file.config.properties.FileStorageProperties.UploadPartSizeRule;
 import com.whim.file.handler.DownloadHandler;
 import com.whim.file.model.FileSource;
 import com.whim.file.model.MetaData;
@@ -37,8 +38,6 @@ import com.whim.file.support.StoragePath;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.redis.executor.RedissonReadLockExecutor;
 import com.whim.redis.executor.RedissonWriteLockExecutor;
-import com.whim.system.config.properties.FileManagementProperties;
-import com.whim.system.config.properties.FileManagementProperties.UploadPartSizeRule;
 import com.whim.system.mapper.SysFileMapper;
 import com.whim.system.model.dto.file.SysFileQueryDTO;
 import com.whim.system.model.dto.file.SysFileStorageAddDTO;
@@ -102,7 +101,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     private final AuthenticationContext authenticationContext;
     private final ISysDictDataService dictDataService;
     private final FileStorageProperties storageProperties;
-    private final FileManagementProperties managementProperties;
     // 按需取得本服务的类代理，使内部阶段的锁和事务注解生效，也避免构造器循环依赖。
     private final ObjectProvider<SysFileServiceImpl> fileServiceProvider;
 
@@ -351,7 +349,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
             return fileServiceProvider.getObject().initializeFileUpload(task.getId());
         }
         // 规则在启动时校验为从0B开始递增，文件恰好达到下限时进入对应档位。
-        List<UploadPartSizeRule> partSizeRules = managementProperties.getUploadPartSizeRules();
+        List<UploadPartSizeRule> partSizeRules = storageProperties.getUploadPartSizeRules();
         int partSize = Math.toIntExact(partSizeRules.getFirst().getPartSize().toBytes());
         for (UploadPartSizeRule rule : partSizeRules) {
             if (parameter.getFileSize() < rule.getMinFileSize().toBytes()) break;
@@ -997,7 +995,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
      */
     private byte[] getSecretKey() {
         try {
-            byte[] key = Base64.getDecoder().decode(Objects.requireNonNullElse(managementProperties.getSecretKey(), ""));
+            byte[] key = Base64.getDecoder().decode(Objects.requireNonNullElse(storageProperties.getSecretKey(), ""));
             if (key.length == 32) {
                 return key;
             }

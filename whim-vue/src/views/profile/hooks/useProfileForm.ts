@@ -41,34 +41,26 @@ export function useProfileForm(props: ProfileFormProps, save: (model: ProfileFor
     return (
       !!model.avatarFile ||
       model.name !== (initial.name ?? '') ||
-      model.avatar !== (initial.avatar ?? null) ||
+      model.avatar !== initial.avatar ||
       (model.phone || null) !== (initial.phone || null) ||
       (model.email || null) !== (initial.email || null) ||
       model.gender !== (initial.gender ?? 0)
     )
   })
   const disabled = computed(() => props.saving || validating.value)
-  const roles = computed(() =>
-    props.initialModel.roleInfoList?.length
-      ? props.initialModel.roleInfoList.map((role) => ({
-          code: role.roleCode,
-          name: role.roleName,
-        }))
-      : props.initialModel.roleCodeSet.map((code) => ({ code, name: code })),
-  )
+  const roles = computed(() => props.initialModel.roleInfoList ?? [])
   const department = computed(
     () => props.initialModel.deptName || (props.initialModel.deptId == null ? '未分配部门' : '—'),
   )
-  const posts = computed(() => props.initialModel.postNames ?? [])
 
   /** 还原服务器中的资料，取消待保存头像并清理校验提示。 */
   function resetProfile() {
     const initial = props.initialModel
     formModel.value = {
       name: initial.name ?? '',
-      avatar: initial.avatar ?? null,
-      phone: initial.phone ?? null,
-      email: initial.email ?? null,
+      avatar: initial.avatar,
+      phone: initial.phone,
+      email: initial.email,
       gender: initial.gender ?? 0,
       avatarFile: null,
     }
@@ -124,23 +116,15 @@ export function useProfileForm(props: ProfileFormProps, save: (model: ProfileFor
     formModel.value.avatar = null
   }
 
-  /** 草稿头像预览直接使用裁剪结果，已保存头像读取原文件。 */
-  function previewAvatar() {
-    void openAvatarPreview(avatarSource.value)
-  }
-
   /** 校验后发送独立提交快照，接口失败时继续保留当前编辑内容。 */
   async function submitProfile() {
     if (disabled.value || !isDirty.value || avatarCropShown.value || !formRef.value) return
     validating.value = true
     try {
-      try {
-        await formRef.value.validate()
-      } catch (error) {
-        if (!Array.isArray(error)) message.error('资料校验失败，请重试')
-        return
-      }
+      await formRef.value.validate()
       save({ ...formModel.value })
+    } catch (error) {
+      if (!Array.isArray(error)) message.error('资料校验失败，请重试')
     } finally {
       validating.value = false
     }
@@ -152,7 +136,6 @@ export function useProfileForm(props: ProfileFormProps, save: (model: ProfileFor
     isDirty,
     roles,
     department,
-    posts,
     displayName,
     avatarText,
     avatarUrl,
@@ -166,7 +149,8 @@ export function useProfileForm(props: ProfileFormProps, save: (model: ProfileFor
     changeAvatar,
     confirmAvatarCrop,
     removeAvatar,
-    previewAvatar,
+    avatarSource,
+    openAvatarPreview,
     resetProfile,
     submitProfile,
   }

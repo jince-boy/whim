@@ -9,6 +9,9 @@ import type {
   RoleQuery,
   RoleSave,
   RoleStatus,
+  RoleUserItem,
+  RoleUserQuery,
+  RoleUserAssignment,
 } from './types'
 
 export const fetchRolePage = (params: RoleQuery) =>
@@ -46,6 +49,18 @@ export const assignRoleDataScope = (data: RoleDataScope) =>
 
 export const deleteRole = (id: RoleId) =>
   request('/system/role/delete', RequestMethod.DELETE, { params: { id } })
+
+export const fetchRoleUserPage = (params: RoleUserQuery) =>
+  request<TablePage<RoleUserItem>>('/system/role/userPage', RequestMethod.GET, { params })
+
+export const fetchAvailableRoleUserPage = (params: RoleUserQuery) =>
+  request<TablePage<RoleUserItem>>('/system/role/availableUserPage', RequestMethod.GET, { params })
+
+export const assignRoleUsers = (data: RoleUserAssignment) =>
+  request('/system/role/assignUsers', RequestMethod.PUT, { data })
+
+export const unassignRoleUsers = (data: RoleUserAssignment) =>
+  request('/system/role/unassignUsers', RequestMethod.PUT, { data })
 
 function getRoleFields(model: RoleSave) {
   return {

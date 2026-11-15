@@ -1,18 +1,5 @@
 import type { FormRules } from 'naive-ui'
-import { createPasswordRules, createUserRules } from '@/views/system/user/hooks/rule'
-
-const userRules = createUserRules(
-  () => true,
-  () => '',
-)
-
-/** 本人资料与用户管理使用同一套姓名、联系方式及性别约束。 */
-export const profileRules: FormRules = {
-  name: userRules.name!,
-  phone: userRules.phone!,
-  email: userRules.email!,
-  gender: userRules.gender!,
-}
+import { createPasswordRules } from '@/views/system/user/hooks/rule'
 
 /** 本人改密复用新密码和确认密码规则，原密码按原输入校验。 */
 export function createProfilePasswordRules(getPassword: () => string): FormRules {

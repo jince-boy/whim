@@ -2,16 +2,16 @@
 import Icon from '@/components/icon/Icon.vue'
 import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
 import type { ProfileFormModel, ProfileFormProps } from './hooks/types'
-import { profileRules } from './hooks/rule'
+import { profileRules } from '@/views/system/user/hooks/rule'
 import { useProfileForm } from './hooks/useProfileForm'
 
 defineOptions({ name: 'ProfileForm' })
 const props = defineProps<ProfileFormProps>()
 const emit = defineEmits<{ save: [model: ProfileFormModel]; changePassword: [] }>()
 const {
-  formModel, disabled, isDirty, roles, department, posts, displayName, avatarText, avatarUrl, genderOptions,
+  formModel, disabled, isDirty, roles, department, displayName, avatarText, avatarUrl, genderOptions,
   avatarCropFile, avatarCropShown, avatarPreviewUrl, avatarPreviewShown, avatarPreviewLoading,
-  selectAvatar, changeAvatar, confirmAvatarCrop, removeAvatar, previewAvatar, resetProfile, submitProfile,
+  selectAvatar, changeAvatar, confirmAvatarCrop, removeAvatar, avatarSource, openAvatarPreview, resetProfile, submitProfile,
 } = useProfileForm(props, (model) => emit('save', model))
 </script>
 
@@ -21,7 +21,7 @@ const {
       <n-card :bordered="false" content-style="padding: 28px 24px">
         <div class="profile-portrait">
           <n-button v-if="avatarUrl" text class="profile-avatar-button" :loading="avatarPreviewLoading"
-            :disabled="disabled || avatarPreviewLoading" aria-label="查看头像原图" title="查看头像原图" @click="previewAvatar">
+            :disabled="disabled || avatarPreviewLoading" aria-label="查看头像原图" title="查看头像原图" @click="openAvatarPreview(avatarSource)">
             <n-avatar :round="false" :size="96" :src="avatarUrl" :img-props="{ alt: displayName }" object-fit="cover">
               <template #fallback>{{ avatarText }}</template>
             </n-avatar>
@@ -49,7 +49,7 @@ const {
           <div class="profile-tags profile-role-tags">
             <n-tag v-if="props.initialModel.superAdministrator" size="small" :bordered="false" type="primary">超级管理员</n-tag>
             <template v-else>
-              <n-tag v-for="role in roles" :key="role.code" size="small" :bordered="false" type="primary">{{ role.name }}</n-tag>
+              <n-tag v-for="role in roles" :key="role.roleId" size="small" :bordered="false" type="primary">{{ role.roleName }}</n-tag>
               <n-text v-if="!roles.length" depth="3" class="profile-role-empty">暂未分配角色</n-text>
             </template>
           </div>
@@ -92,8 +92,8 @@ const {
           <dl class="profile-organization-fields">
             <div><dt>所属部门</dt><dd>{{ department }}</dd></div>
             <div><dt>任职岗位</dt><dd class="profile-tags">
-              <n-tag v-for="(post, index) in posts" :key="index" size="small" :bordered="false">{{ post }}</n-tag>
-              <span v-if="!posts.length" class="profile-value-empty">暂未分配岗位</span>
+              <n-tag v-for="(post, index) in props.initialModel.postNames" :key="index" size="small" :bordered="false">{{ post }}</n-tag>
+              <span v-if="!props.initialModel.postNames.length" class="profile-value-empty">暂未分配岗位</span>
             </dd></div>
           </dl>
         </n-card>

@@ -64,12 +64,12 @@ export function useDictTypeList() {
 - `request` 接收查询条件及 `pageNum`、`pageSize`，返回项目的 `ApiResponse<TablePage<Row>>`；也支持 `ApiResponse<Row[]>`。数组结果使用本地分页，树列表通常配置 `pagination: false`。
 - 无 `request` 时可以传入 `data` 数组、ref 或 getter，使用本地数据模式。
 - 配置可使用普通对象、ref 或 getter。动态权限和列配置使用 getter；示例见菜单页面。`search` 是否启用在创建 hook 时确定，分页的 `pageSize` 是初始值；修改页码和每页数量由表格交互管理。
-- 搜索、重置及移除条件标签均回到第一页并清空选择；刷新和翻页使用已提交的条件，输入框尚未提交的修改不会影响当前结果。移除标签只撤销对应条件，保留其他未提交输入。
+- 搜索、重置及移除条件标签均回到第一页，默认清空选择；开启 `preserveSelection` 时保留勾选。刷新和翻页使用已提交的条件，输入框尚未提交的修改不会影响当前结果。移除标签只撤销对应条件，保留其他未提交输入。
 - 只允许最新请求写回；失败保留旧数据并显示错误；删除末页数据后最多补查一次有效页。
 - `reload()` 返回 `Promise<boolean>`，便于业务操作等待刷新结果。默认注册后加载一次，`immediate: false` 可关闭自动加载。
 - `search()` 提交当前草稿；界面搜索按钮会先进行表单校验。程序化调用 `search()` 不执行界面校验。
 - `resetSearch()` 恢复默认查询条件并查询；`setSearchValues()` 只修改草稿，不发起请求。
-- 默认只保留当前数据中的选择，包括树子节点。跨页选择需显式设置 `preserveSelection: true`，并由业务通过 `setCheckedRowKeys()` 清理已删除记录。
+- 默认只保留当前数据中的选择，包括树子节点。跨页及筛选外选择需显式设置 `preserveSelection: true`，它同时默认开启原生 `allowCheckingNotLoaded`，并由业务通过 `setCheckedRowKeys()` 清理已删除记录。
 - 列设置记录主动隐藏的列，新增列默认显示；支持数字列 key。分组列按整组切换，`action` 列始终显示。
 - `transformData(rows, query)` 仅转换表格展示，必须是纯函数；`table.data` 仍提供原始数据。菜单页面借此保留完整的父节点候选目录。
 - `submittedQuery` 提供已提交的查询快照，可用于树表搜索后的自动展开；输入框草稿变化不会触发该联动。
@@ -79,6 +79,21 @@ export function useDictTypeList() {
 工具栏通过 `buttons` 显式启用业务按钮。`permissions`、`roles` 使用按钮名作为键，配置后会随当前用户授权响应式更新。右侧图标工具组依次为刷新、表格设置和全屏；表格设置集中提供当前表格的斑马线开关与列显隐。通过 `showRefresh`、`showStriped`、`showColumns`、`showFullscreen` 分别关闭对应功能，同时关闭斑马线与列显隐时隐藏设置按钮。全屏包含查询表单，支持 Esc 退出，离开页面时自动退出。新增、修改、删除、导出继续使用 `@add`、`@edit`、`@delete`、`@export` 事件；修改携带单个主键，删除和导出携带选中主键快照。
 
 工具栏和行内操作按钮统一使用 Naive UI 原生语义色：新增使用 `primary`、修改使用橙色 `warning`、删除使用红色 `error`、查看和导出统一使用蓝色 `info`。默认主题的新增按钮为绿色，行内按钮由页面列配置遵循相同约定。工具栏业务操作使用带图标的完整按钮；非新增操作采用原生 `secondary` 外观，不擅自替换为文字按钮。
+
+操作列统一使用 `TableAction` 图标按钮，采用原生 `tertiary` 中性背景，图标保留各操作的语义色，默认、悬停、按下及禁用状态均跟随 Naive UI 深浅主题。宽度跟随主题按钮高度形成正方形，圆角直接继承 Naive UI 主题，不单独覆盖。`label` 作为悬停提示和无障碍名称，`tooltip` 可补充禁用原因。组件保留小型按钮的点击区域和加载占位，提示挂在所属表格内以适配全屏。权限判断、禁用条件和确认流程仍由页面 hook 负责，按钮之间使用 6px 间距。
+
+```ts
+import { TableAction } from '@/components/table'
+
+h(TableAction, {
+  label: '修改',
+  icon: 'pencil',
+  type: 'warning',
+  loading: editingId.value === row.id,
+  disabled: editingId.value !== undefined,
+  onClick: () => openEditDialog(row.id),
+})
+```
 
 默认深浅主题、按钮文字以及悬停和按下状态均使用 Naive UI 原生配色，不单独覆盖。登录页与后台共享主题配置。
 
@@ -97,6 +112,8 @@ export function useDictTypeList() {
 分页、选择和展开事件由 hook 更新内部状态后，调用配置中的原生监听器。排序、筛选等其他原生事件直接交给表格；远程排序或筛选的参数转换与重新请求需要在对应监听器中按业务实现。
 
 `getCheckedRowKeys()`、`getExpandedRowKeys()` 返回独立数组；对应的 `setCheckedRowKeys()`、`setExpandedRowKeys()` 更新状态。`getTableInstance()` 返回原生 `DataTableInst`，可以调用 `scrollTo`、`downloadCsv`、`sort` 等方法，必须在挂载并注册完成后使用。
+
+关联分配的选择弹窗（分配角色、分配用户）统一通过 `useFormDialog` 打开，宽度为 900px，沿用公共弹窗的“取消 / 确定”按钮与提交锁。内部使用 `WhimTable`：小型表格、44px 选择列、320px 最大表体高度、每页默认10条，分页显示总数；工具栏左侧显示标题、`已选 n / 100` 和“搜索、翻页保留勾选”，关闭刷新、列设置、斑马线设置和全屏工具。查询条件、空状态和底部业务说明使用相同布局，选择集合由独立表单草稿维护，并开启 `preserveSelection`。
 
 ## 独立查询表单
 

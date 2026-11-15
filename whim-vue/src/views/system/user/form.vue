@@ -32,6 +32,7 @@ defineExpose({ formRef, formModel })
               <template v-if="!avatarUrl" #default>{{ avatarText }}</template>
               <template #fallback>{{ avatarText }}</template>
             </n-avatar>
+            <span v-if="avatarUrl" class="user-avatar__zoom"><Icon name="maximize" :size="14" /></span>
           </n-button>
           <div class="user-avatar__details">
             <n-flex align="center" :size="8">
@@ -104,10 +105,25 @@ defineExpose({ formRef, formModel })
 }
 
 .user-avatar__preview {
+  position: relative;
   display: flex;
   flex-shrink: 0;
   width: 80px;
   height: 80px;
+}
+
+.user-avatar__zoom {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  background: rgb(0 0 0 / 45%);
+  border-radius: 4px;
 }
 
 .user-avatar__details {
