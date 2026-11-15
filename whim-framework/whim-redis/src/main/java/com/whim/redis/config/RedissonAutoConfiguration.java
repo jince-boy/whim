@@ -19,7 +19,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Jince
@@ -34,7 +33,6 @@ public class RedissonAutoConfiguration {
 
     private final RedissonProperties redissonProperties;
     private final Environment environment;
-    private final JsonMapper jsonMapper;
 
     /**
      * 定制 Redisson 自动配置，统一设置编解码策略、Key 前缀和线程参数。
@@ -46,7 +44,8 @@ public class RedissonAutoConfiguration {
         return config -> {
             validateTopologyConfiguration();
             config.setUseScriptCache(true);
-            config.setCodec(createJsonCodec());
+            // 缓存需保留对象类型和数值类型，不能复用面向 HTTP 响应的 JsonMapper。
+            config.setCodec(new JsonJackson3Codec());
             config.setNameMapper(new KeyPrefixHandler(redissonProperties.getKeyPrefix()));
 
             if (redissonProperties.getThreads() != null) {
@@ -146,15 +145,6 @@ public class RedissonAutoConfiguration {
     @Order(201)
     public RedissonWriteLockExecutor redissonWriteLockExecutor(RedissonClient redissonClient) {
         return new RedissonWriteLockExecutor(redissonClient);
-    }
-
-    /**
-     * 创建 Redisson 使用的 Jackson 3 编解码器，复用 Spring Boot 统一管理的 JsonMapper。
-     *
-     * @return Redisson JSON 编解码器
-     */
-    private JsonJackson3Codec createJsonCodec() {
-        return new JsonJackson3Codec(jsonMapper);
     }
 
     /**

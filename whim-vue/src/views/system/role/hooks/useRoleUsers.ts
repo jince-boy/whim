@@ -120,6 +120,7 @@ export function useRoleUsers(props: RoleContextProps, show: Ref<boolean>) {
     const roleId = props.role.id
     removalDialog.value = openDeleteDialog({
       title: '移除角色用户',
+      successMessage: '移除用户成功',
       content: `确定从“${props.role.roleName}”中移除选中的${userIds.length}名用户？此操作不删除用户账号，也不影响其其他角色。`,
       modalProps: {
         positiveText: '移除',

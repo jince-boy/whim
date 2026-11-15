@@ -11,6 +11,7 @@ import org.owasp.html.PolicyFactory;
 import org.springframework.http.MediaType;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.HtmlUtils;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
@@ -178,7 +179,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         if (!StringUtils.hasText(value)) {
             return value;
         }
-        return PLAIN_TEXT_POLICY.sanitize(value);
+        // 策略剔除 HTML 标签后还会编码标点和 URL；DTO 保存纯文本，由输出组件按上下文转义。
+        return HtmlUtils.htmlUnescape(PLAIN_TEXT_POLICY.sanitize(value));
     }
 
     /**
