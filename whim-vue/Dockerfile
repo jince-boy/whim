@@ -15,19 +15,16 @@ COPY . .
 
 # 前端只接收公开配置；不复制任何本地 .env 或后端私钥。
 ARG VITE_API_BASE_URL=/api
-ARG VITE_REQUEST_ENCRYPTION_PUBLIC_KEY
 ARG VITE_APP_TITLE="Whim Vue"
 ARG VITE_APP_DESCRIPTION="Whim 后台管理系统"
 ARG VITE_APP_COPYRIGHT="Copyright © 2025–Present Whim. All Rights Reserved."
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
-    VITE_REQUEST_ENCRYPTION_PUBLIC_KEY=${VITE_REQUEST_ENCRYPTION_PUBLIC_KEY} \
     VITE_APP_TITLE=${VITE_APP_TITLE} \
     VITE_APP_DESCRIPTION=${VITE_APP_DESCRIPTION} \
     VITE_APP_COPYRIGHT=${VITE_APP_COPYRIGHT}
 
-# 公钥只在构建时校验，运行镜像使用编译进前端静态资源的公钥。
-RUN test -n "$VITE_REQUEST_ENCRYPTION_PUBLIC_KEY" \
-    && timeout 600 pnpm build
+# 请求加密公钥在运行时从后端获取，构建不依赖任何密钥。
+RUN timeout 600 pnpm build
 
 FROM ${NGINX_IMAGE} AS runtime
 COPY --from=build /app/dist /usr/share/nginx/html

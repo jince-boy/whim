@@ -16,6 +16,7 @@ services:
     command:
       - |
         install -d -m 0750 -o 10001 -g 10001 /app/data/files /app/logs
+        install -d -m 0700 -o 10001 -g 10001 /app/data/keys
         exec setpriv --reuid=10001 --regid=10001 --init-groups -- java -jar /app/app.jar
     environment:
       TZ: Asia/Shanghai
@@ -39,8 +40,9 @@ services:
       REDIS_DB: "0"
       SPRING_DATA_REDIS_SSL_ENABLED: "false"
 
-      # JWT 使用固定随机密钥；请求加密直接沿用镜像内已与前端配对的私钥。
-      # 不传入空的私钥环境变量，避免覆盖 application.yml 中的有效配置。
+      # 请求加密私钥首次启动自动生成，后续从挂载目录复用，不进入镜像。
+      WHIM_REQUESTENCRYPTION_PRIVATEKEYFILE: /app/data/keys/request-encryption-private.key
+      # JWT 使用固定随机密钥。
       SATOKEN_JWTSECRETKEY: "c66ccaf919c71f1548a55f8b75a4e9638d7efd3755559d034b9e48487ce3c6e66eb49d3f6728c9162c6f45362e091eed2692d7a35cab425bfbc339fe852a0eb9"
 
       FILE_STORAGE_PATH: /app/data/files
@@ -76,6 +78,11 @@ services:
       # 宿主机使用 9192；同网络的前端仍通过 whim-api:8089 访问后端。
       - "9192:8089"
     volumes:
+      - type: bind
+        source: /opt/whim/backend/keys
+        target: /app/data/keys
+        bind:
+          create_host_path: true
       - type: bind
         source: /opt/whim/backend/files
         target: /app/data/files

@@ -72,7 +72,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.set('Authorization', `${authStore.tokenType} ${token}`)
     }
-    await encryptRequest(config)
+    await encryptRequest(config, axiosInstance)
     return config
   },
   (error) => {

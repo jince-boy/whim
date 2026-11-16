@@ -1,20 +1,40 @@
-import axios, { AxiosError, CanceledError, type InternalAxiosRequestConfig } from 'axios'
+import axios, {
+  AxiosError,
+  CanceledError,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 import { calculateJwkThumbprint, CompactEncrypt, exportJWK } from 'jose'
+import type { ApiResponse } from './index'
 
 const bodyMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 let encryptionKey: Promise<{ publicKey: CryptoKey; keyId: string }> | undefined
+let publicKeyRequest: Promise<string> | undefined
 
-/** 读取并校验两种加密实现共用的固定公钥配置。 */
-const getPublicKeyBase64 = (): string => {
-  const publicKeyBase64 = import.meta.env.VITE_REQUEST_ENCRYPTION_PUBLIC_KEY?.trim()
-  if (!publicKeyBase64) throw new Error('请配置请求加密公钥 VITE_REQUEST_ENCRYPTION_PUBLIC_KEY')
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(publicKeyBase64)) {
-    throw new Error('请求加密公钥必须是无头尾标记和换行的单行 Base64 字符串')
+/** 从真实后端获取公钥，并发请求共用初始化结果，失败后允许重试。 */
+const getPublicKeyBase64 = (client: AxiosInstance): Promise<string> => {
+  if (!publicKeyRequest) {
+    publicKeyRequest = client
+      .get<ApiResponse<string>>('/system/auth/requestEncryptionKey')
+      .then(({ data }) => {
+        if (
+          data.code !== 200 ||
+          typeof data.data !== 'string' ||
+          !/^[A-Za-z0-9+/]+={0,2}$/.test(data.data)
+        ) {
+          throw new Error('后端返回的请求加密公钥无效')
+        }
+        return data.data
+      })
+      .catch(() => {
+        publicKeyRequest = undefined
+        throw new Error('获取请求加密公钥失败，请检查后端服务后重试')
+      })
   }
-  return publicKeyBase64
+  return publicKeyRequest
 }
 
-/** 使用浏览器原生能力导入固定公钥，同一页面只解析一次。 */
+/** 使用浏览器原生能力导入后端公钥，同一页面只解析一次。 */
 const getEncryptionKey = (
   publicKeyBase64: string,
 ): Promise<{ publicKey: CryptoKey; keyId: string }> => {
@@ -37,8 +57,11 @@ const getEncryptionKey = (
   return encryptionKey
 }
 
-/** 统一加密 JSON 对象和数组，业务接口无需加密标识，也不发送额外请求。 */
-export const encryptRequest = async (config: InternalAxiosRequestConfig): Promise<void> => {
+/** 统一加密 JSON 对象和数组，首次发送前自动获取公钥。 */
+export const encryptRequest = async (
+  config: InternalAxiosRequestConfig,
+  client: AxiosInstance,
+): Promise<void> => {
   const method = (config.method || 'GET').toUpperCase()
   if (!bodyMethods.has(method) || config.data == null) return
   const isJsonBody =
@@ -59,7 +82,8 @@ export const encryptRequest = async (config: InternalAxiosRequestConfig): Promis
       throw new Error('加密请求的业务参数必须放在 JSON 请求体中')
     }
     if (config.signal?.aborted) throw new CanceledError()
-    const publicKeyBase64 = getPublicKeyBase64()
+    // 公钥请求复用公共 HTTP 客户端；GET 没有请求体，不会再次进入加密初始化。
+    const publicKeyBase64 = await getPublicKeyBase64(client)
     const payload = JSON.stringify({ method, path: target.pathname, body: config.data })
     let encryptedData: string
     if (globalThis.crypto?.subtle) {
@@ -84,7 +108,7 @@ export const encryptRequest = async (config: InternalAxiosRequestConfig): Promis
   } catch (error) {
     if (axios.isCancel(error)) throw error
     // 原始请求可能含密码，不把 config 或第三方异常附加到错误对象。
-    const message = error instanceof Error ? error.message : '请求加密失败，请检查公钥配置'
+    const message = error instanceof Error ? error.message : '请求加密失败，请刷新页面后重试'
     throw new AxiosError(message, 'ERR_REQUEST_ENCRYPTION')
   }
 }

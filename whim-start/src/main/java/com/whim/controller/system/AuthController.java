@@ -2,6 +2,7 @@ package com.whim.controller.system;
 
 import com.whim.core.annotation.RequestDecrypt;
 import com.whim.core.auth.model.AuthenticationToken;
+import com.whim.core.crypto.RequestEncryptionCipher;
 import com.whim.core.utils.IPUtils;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
@@ -14,8 +15,10 @@ import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysUserService;
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -41,6 +44,21 @@ public class AuthController {
     private final IAuthService authService;
 
     private final ISysUserService userService;
+
+    private final RequestEncryptionCipher requestEncryptionCipher;
+
+    /**
+     * 获取当前请求加密公钥，供未登录客户端自动初始化加密能力。
+     *
+     * @param response HTTP 响应
+     * @return SPKI DER 单行 Base64 公钥
+     */
+    @GetMapping("/requestEncryptionKey")
+    public Result<String> getRequestEncryptionKey(HttpServletResponse response) {
+        // 公钥轮换后必须重新获取，避免浏览器或代理持久缓存旧公钥。
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        return Result.success("请求加密公钥获取成功", requestEncryptionCipher.getPublicKey());
+    }
 
     /**
      * 获取与客户端地址绑定的 GIF 验证码。

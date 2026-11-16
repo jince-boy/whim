@@ -27,7 +27,8 @@ RUN timeout 180 apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Ac
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 whim \
     && useradd --uid 10001 --gid whim --no-create-home --shell /usr/sbin/nologin whim \
-    && mkdir -p /app/data/files /app/logs \
+    && mkdir -p /app/data/files /app/data/keys /app/logs \
+    && chmod 0700 /app/data/keys \
     && chown -R whim:whim /app
 
 COPY --from=build --chown=whim:whim /output/app.jar /app/app.jar

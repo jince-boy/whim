@@ -20,6 +20,16 @@ import java.text.ParseException;
 public class RequestEncryptionCipher {
     private final RSAKey key;
     private final RSADecrypter decrypter;
+    private final String publicKey;
+
+    /**
+     * 获取当前私钥对应的公开加密公钥，不暴露私钥内容。
+     *
+     * @return SPKI DER 单行 Base64 公钥
+     */
+    public String getPublicKey() {
+        return publicKey;
+    }
 
     /**
      * 校验固定协议和当前密钥并解密 JWE，不泄露原始密码学异常。

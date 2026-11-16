@@ -9,8 +9,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
-        # 公钥由 Dockerfile 在构建时校验；启动已有镜像无需再次提供。
-        VITE_REQUEST_ENCRYPTION_PUBLIC_KEY: ${VITE_REQUEST_ENCRYPTION_PUBLIC_KEY:-}
         VITE_APP_TITLE: ${VITE_APP_TITLE:-Whim Vue}
         VITE_APP_DESCRIPTION: ${VITE_APP_DESCRIPTION:-Whim 后台管理系统}
         VITE_APP_COPYRIGHT: ${VITE_APP_COPYRIGHT:-Copyright © 2025–Present Whim. All Rights Reserved.}

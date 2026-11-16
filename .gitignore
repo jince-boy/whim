@@ -5,6 +5,7 @@ HELP.md
 !.env.example
 
 **/data/files/
+**/data/keys/
 target/
 node_modules/
 **/.vitepress/cache/
