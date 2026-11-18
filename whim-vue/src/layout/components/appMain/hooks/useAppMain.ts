@@ -18,8 +18,9 @@ export function useAppMain() {
 
   // 关闭全局缓存时清理旧实例；开启及路由变化时按菜单配置缓存当前页面。
   watch(
-    [() => themeStore.getCacheTabs, () => route.name, () => route.meta.keepAlive],
-    ([enabled, name, keepAlive]) => {
+    [() => themeStore.getCacheTabs, () => route.matched.at(-1), () => route.meta.keepAlive],
+    ([enabled, matched, keepAlive]) => {
+      const name = matched?.name
       if (!enabled) {
         keepAliveStore.clearKeepAlive()
       } else if (typeof name === 'string') {

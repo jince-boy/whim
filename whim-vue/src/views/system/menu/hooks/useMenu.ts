@@ -297,8 +297,9 @@ export function useMenu() {
     table.setExpandedRowKeys(allExpanded.value ? [] : expandableKeys.value)
   }
 
-  watch([table.data, table.submittedQuery], ([nodes, query], [previous]) => {
-    if (query.menuName.trim() || query.menuType !== null || query.status !== null) {
+  watch([table.data, table.submittedQuery], ([nodes, query], [previous, previousQuery]) => {
+    const filtering = query.menuName.trim() || query.menuType !== null || query.status !== null
+    if (filtering && (query !== previousQuery || !previous.length)) {
       table.setExpandedRowKeys(expandableKeys.value)
     } else if (!previous.length) {
       table.setExpandedRowKeys(nodes.filter((node) => node.children?.length).map((node) => node.id))

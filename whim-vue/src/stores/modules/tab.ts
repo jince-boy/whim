@@ -104,8 +104,8 @@ export const useTabStore = defineStore('tab', {
     closeAllTabsExceptHome() {
       return this.closeTabs(this.tabs.map((tab) => tab.name))
     },
-    /** 重新授权后剔除失效页面，更新标题、地址和固定标签，并销毁旧路由缓存。 */
-    syncRoutes() {
+    /** 重新授权后更新标签并清理失效页面的缓存。 */
+    syncRoutes(invalidatedCache: ReadonlySet<string>) {
       const navigation = usePermissionStore()
       const entry = router.resolve(navigation.homePath)
       const retained = this.tabs.flatMap((tab) => {
@@ -115,7 +115,9 @@ export const useTabStore = defineStore('tab', {
       })
       const home = entry.meta.isTab ? routeTab(entry) : undefined
       this.tabs = home ? [home, ...retained.filter((tab) => tab.name !== home.name)] : retained
-      useKeepAliveStore().clearKeepAlive()
+      useKeepAliveStore().retainKeepAlive(
+        this.tabs.filter((tab) => !invalidatedCache.has(tab.name)).map((tab) => tab.name),
+      )
     },
   },
 })

@@ -11,8 +11,36 @@ const pageLoaders = new Map(
     .map(([path, loader]) => [path.slice('/src/views/'.length, -4), loader]),
 )
 
+export type MenuRoute = RouteRecordRaw & {
+  name: string
+  menuId: string
+  signature: string
+  viewPath?: string
+}
+
 /** 可供菜单配置使用的页面组件标识。 */
 export const pageComponentPaths = [...pageLoaders.keys()]
+
+/** 同一菜单重新匹配时复用已加载的组件，保留正在使用的页面实例。 */
+function createPageComponent(
+  name: string,
+  loader: (() => Promise<{ default: Component }>) | undefined,
+) {
+  let page: Component | undefined
+  return async () => {
+    if (page) return page
+    const { default: view } = await (loader ? loader() : import('@/views/unavailable/index.vue'))
+    page ??= defineComponent({
+      name,
+      inheritAttrs: false,
+      setup:
+        (_, { attrs }) =>
+        () =>
+          h(view, attrs),
+    })
+    return page
+  }
+}
 
 /** 入口只从可见、组件已实现的内部页面中选择；以后独立首页配置也使用此授权范围。 */
 export function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw | undefined {
@@ -25,8 +53,9 @@ export function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw
 }
 
 /** 一次解析授权树，统一路由元数据、菜单目标和目录跳转，不在各组件重复解释后端字段。 */
-export function buildNavigation(menus: UserMenu[]) {
-  const routes: RouteRecordRaw[] = []
+export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] = []) {
+  const routes: MenuRoute[] = []
+  const previousByName = new Map(previousRoutes.map((route) => [route.name, route]))
   const names = new Set<string>()
   const paths = new Set<string>()
   const ids = new Set<string>()
@@ -100,10 +129,21 @@ export function buildNavigation(menus: UserMenu[]) {
           breadcrumbs,
           menuKey: visible ? key : visibleParentKey,
         }
-        if (directory) {
+        if (external) return [node]
+
+        // 路由定义没有变化时保留匹配记录，菜单排序及页面默认参数仍可独立更新。
+        const viewPath = loader ? (componentPath ?? undefined) : undefined
+        const signature = JSON.stringify([path, meta, directory, directory ? target : viewPath])
+        const previous = previousByName.get(key)
+        const sameMenu = previous?.menuId === id ? previous : undefined
+        if (sameMenu?.signature === signature) {
+          routes.push(sameMenu)
+        } else if (directory) {
           routes.push({
             path,
             name: key,
+            menuId: id,
+            signature,
             redirect: (to) => {
               if (!target) return { path: '/noAccess' }
               const location = target as { path: string; query?: LocationQueryRaw }
@@ -111,22 +151,18 @@ export function buildNavigation(menus: UserMenu[]) {
             },
             meta,
           })
-        } else if (!external) {
-          // 路由懒加载完成后再导航；包装名称用于按菜单独立控制 KeepAlive。
-          const component = async () => {
-            const { default: view } = await (loader
-              ? loader()
-              : import('@/views/unavailable/index.vue'))
-            return defineComponent({
-              name: key,
-              inheritAttrs: false,
-              setup:
-                (_, { attrs }) =>
-                () =>
-                  h(view, attrs),
-            })
-          }
-          routes.push({ path, name: key, component, props: true, meta })
+        } else {
+          const component = sameMenu?.viewPath === viewPath ? sameMenu?.component : undefined
+          routes.push({
+            path,
+            name: key,
+            menuId: id,
+            signature,
+            viewPath,
+            component: component ?? createPageComponent(key, loader),
+            props: true,
+            meta,
+          })
         }
         return [node]
       })
