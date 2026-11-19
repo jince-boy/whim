@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
 import com.whim.system.model.dto.permission.SysMenuQueryDTO;
@@ -99,6 +101,7 @@ public class SysPermissionController {
      * @param parameter 菜单新增参数
      * @return 新增菜单id
      */
+    @Log(title = "菜单管理", type = LogType.INSERT, requestFields = {"parentId", "menuName", "menuType", "perms"})
     @PostMapping
     @SystemCheckPermission("system:menu:create")
     public Result<Long> addMenu(@Valid @RequestBody SysMenuSaveDTO parameter) {
@@ -111,6 +114,7 @@ public class SysPermissionController {
      * @param parameter 菜单ID及完整修改参数
      * @return 修改结果
      */
+    @Log(title = "菜单管理", type = LogType.UPDATE, requestFields = {"id", "parentId", "menuName", "perms"})
     @PutMapping("/update")
     @SystemCheckPermission("system:menu:update")
     public Result<Void> updateMenu(@Valid @RequestBody SysMenuUpdateDTO parameter) {
@@ -124,6 +128,7 @@ public class SysPermissionController {
      * @param id 菜单id
      * @return 删除结果
      */
+    @Log(title = "菜单管理", type = LogType.DELETE, requestFields = "id")
     @DeleteMapping("/{id}")
     @SystemCheckPermission("system:menu:delete")
     public Result<Void> deleteMenu(@PathVariable Long id) {

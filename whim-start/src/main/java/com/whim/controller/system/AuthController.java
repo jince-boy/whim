@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.core.annotation.RequestDecrypt;
 import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.crypto.RequestEncryptionCipher;
@@ -89,6 +91,7 @@ public class AuthController {
      *
      * @return 注销结果
      */
+    @Log(title = "账户退出", type = LogType.OTHER)
     @PostMapping("/logout")
     public Result<Void> logout() {
         authService.logout();
@@ -112,6 +115,7 @@ public class AuthController {
      * @return 更新后的当前用户信息
      */
     @SystemCheckLogin
+    @Log(title = "个人中心", type = LogType.UPDATE)
     @PutMapping("/profile")
     public Result<AuthUserVO> updateUserProfile(@RequestBody @Valid AuthProfileUpdateDTO parameter) {
         return Result.success("个人资料保存成功", authService.updateUserProfile(parameter));
@@ -126,6 +130,7 @@ public class AuthController {
     @SystemCheckLogin
     @RequestDecrypt
     @XssIgnore
+    @Log(title = "修改本人密码", type = LogType.UPDATE)
     @PutMapping("/password")
     public Result<Void> updateUserPassword(@RequestBody @Valid AuthPasswordUpdateDTO parameter) {
         authService.updateUserPassword(parameter);
@@ -139,6 +144,7 @@ public class AuthController {
      * @return 头像地址
      */
     @SystemCheckLogin
+    @Log(title = "上传头像", type = LogType.UPDATE)
     @PostMapping(value = "/uploadAvatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<String> addUserAvatar(@Valid @ModelAttribute SysUserAvatarUploadDTO parameter) {
         return Result.success("头像上传成功", userService.addUserAvatar(parameter));

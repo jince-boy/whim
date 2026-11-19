@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.core.exception.ServiceException;
 import com.whim.excel.utils.ExcelBuilder;
 import com.whim.mybatisplus.model.vo.PageDataVO;
@@ -75,6 +77,7 @@ public class SysDictTypeController {
     /**
      * 新增字典类型。
      */
+    @Log(title = "字典类型", type = LogType.INSERT, requestFields = {"type", "name"})
     @PostMapping("/add")
     @SystemCheckPermission("system:dictType:add")
     public Result<Void> addDictType(@Valid @RequestBody SysDictTypeAddDTO parameter) {
@@ -85,6 +88,7 @@ public class SysDictTypeController {
     /**
      * 修改字典类型。
      */
+    @Log(title = "字典类型", type = LogType.UPDATE, requestFields = {"id", "type", "name"})
     @PutMapping("/update")
     @SystemCheckPermission("system:dictType:update")
     public Result<Void> updateDictType(@Valid @RequestBody SysDictTypeUpdateDTO parameter) {
@@ -98,6 +102,7 @@ public class SysDictTypeController {
      * @param dictTypeIds 字典类型id列表
      * @return 字典类型删除结果
      */
+    @Log(title = "字典类型", type = LogType.DELETE, requestFields = "dictTypeIds")
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:dictType:delete")
     public Result<Void> deleteDictTypes(@RequestParam("dictTypeIds") List<Long> dictTypeIds) {
@@ -108,6 +113,7 @@ public class SysDictTypeController {
     /**
      * 按筛选条件导出字典类型。
      */
+    @Log(title = "字典类型", type = LogType.EXPORT, requestFields = {"type", "name"})
     @PostMapping("/export")
     @SystemCheckPermission("system:dictType:export")
     public void exportDictType(@Valid @RequestBody SysDictTypeExportDTO query, HttpServletResponse response) {
@@ -118,6 +124,7 @@ public class SysDictTypeController {
     /**
      * 清除字典类型和字典数据缓存。
      */
+    @Log(title = "刷新字典缓存", type = LogType.CLEAN)
     @DeleteMapping("/reset")
     @SystemCheckPermission("system:dictType:reset")
     public Result<Void> resetDictCache() {

@@ -207,6 +207,11 @@
             <!-- 框架内部模块统一版本 -->
             <dependency>
                 <groupId>com.whim</groupId>
+                <artifactId>whim-log</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
                 <artifactId>whim-core</artifactId>
                 <version>${revision}</version>
             </dependency>

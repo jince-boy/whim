@@ -19,6 +19,8 @@ import com.whim.core.utils.BCryptUtils;
 import com.whim.core.utils.BeanConvertUtils;
 import com.whim.core.utils.IPUtils;
 import com.whim.core.utils.IdUtils;
+import com.whim.log.enums.LogStatus;
+import com.whim.log.publisher.LoginLogPublisher;
 import com.whim.mybatisplus.model.enums.DataScopeType;
 import com.whim.redis.utils.RedisUtils;
 import com.whim.system.mapper.SysDeptMapper;
@@ -82,6 +84,7 @@ public class AuthServiceImpl implements IAuthService {
      * 认证会话操作对象
      */
     private final AuthenticationSession authenticationSession;
+    private final LoginLogPublisher loginLogPublisher;
 
     /**
      * 查询当前账号资料，并刷新部门、岗位、角色及完整授权快照。
@@ -212,17 +215,31 @@ public class AuthServiceImpl implements IAuthService {
                 || RedisUtils.rateLimiter("auth:loginUser:" + loginDTO.getUsername(), RateType.OVERALL, 10, 60, 120) < 0) {
             throw new TooManyRequestsException("登录请求过于频繁，请稍后重试");
         }
-        // 验证验证码
-        validateCaptcha(loginDTO);
-        SysUser user = sysUserService.getByUsername(loginDTO.getUsername());
-        if (user == null || !BCryptUtils.matches(loginDTO.getPassword(), user.getPassword())) {
-            throw new UserPasswordNotMatchException("用户名不存在或密码错误");
+        // 通过限流的认证尝试只发布一次结果，异常详情及登录凭据不进入事件。
+        LogStatus status = LogStatus.FAILURE;
+        String remark = "认证服务异常";
+        try {
+            String captchaError = getCaptchaError(loginDTO, clientAddress);
+            if (captchaError != null) {
+                remark = captchaError;
+                throw new IllegalArgumentException(remark);
+            }
+            SysUser user = sysUserService.getByUsername(loginDTO.getUsername());
+            if (user == null || !BCryptUtils.matches(loginDTO.getPassword(), user.getPassword())) {
+                remark = "用户名不存在或密码错误";
+                throw new UserPasswordNotMatchException(remark);
+            }
+            if (SysUserStatus.DISABLED.matches(user.getStatus())) {
+                remark = "用户已被禁用";
+                throw new UserDisableException(remark);
+            }
+            AuthenticationToken token = authenticationSession.login(buildUserInfo(user));
+            status = LogStatus.SUCCESS;
+            remark = "登录成功";
+            return token;
+        } finally {
+            loginLogPublisher.publishLoginLog(loginDTO.getUsername(), clientAddress, status, remark);
         }
-        if (SysUserStatus.DISABLED.matches(user.getStatus())) {
-            throw new UserDisableException("用户已被禁用");
-        }
-
-        return authenticationSession.login(buildUserInfo(user));
     }
 
     /**
@@ -234,19 +251,19 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     /**
-     * 根据 UUID 和客户端地址一次性取出验证码，分别提示过期和答案错误。
+     * 根据 UUID 和客户端地址一次性核验验证码并返回失败原因。
      *
      * @param loginDTO 登录参数
+     * @param clientAddress 本次登录的客户端地址
+     * @return 校验失败原因，验证通过时为空
      */
-    private void validateCaptcha(AuthLoginDTO loginDTO) {
-        String captchaKey = CAPTCHA_KEY_PREFIX + loginDTO.getUuid() + ":" + IPUtils.getClientIpAddress();
+    private String getCaptchaError(AuthLoginDTO loginDTO, String clientAddress) {
+        String captchaKey = CAPTCHA_KEY_PREFIX + loginDTO.getUuid() + ":" + clientAddress;
         String expected = RedisUtils.takeCacheObject(captchaKey);
         if (expected == null) {
-            throw new IllegalArgumentException("验证码已过期，请刷新后重试");
+            return "验证码已过期，请刷新后重试";
         }
-        if (!expected.equalsIgnoreCase(loginDTO.getCaptchaCode())) {
-            throw new IllegalArgumentException("验证码不正确，请重新输入");
-        }
+        return expected.equalsIgnoreCase(loginDTO.getCaptchaCode()) ? null : "验证码不正确，请重新输入";
     }
 
     /**

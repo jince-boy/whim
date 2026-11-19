@@ -1,126 +1,97 @@
-import { TableAction, useWhimTable } from '@/components/table'
-import type { LoginLog, LoginLogQuery } from '@/views/system/loginLog/hooks/types.ts'
-import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
-import { type DataTableColumn, NSpace, NTag } from 'naive-ui'
+import { computed, h, ref } from 'vue'
+import { NTag, type DataTableColumns } from 'naive-ui'
 import dayjs from 'dayjs'
 import { useFormDialog } from '@/components/dialog'
-import { computed, ref } from 'vue'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useDictStore } from '@/stores/modules/dict'
-/** 配置注册式列表并处理登录日志业务操作。 */
+import { useUserStore } from '@/stores/modules/user'
+import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
+import type { LoginLog, LoginLogFilters, LoginLogQuery } from './types'
+
+/** 将已提交的表单条件转换成列表和导出共用的参数。 */
+function getLoginLogFilters(query: LoginLogQuery): LoginLogFilters {
+  return {
+    username: query.username.trim() || undefined,
+    ipAddress: query.ipAddress.trim() || undefined,
+    status: query.status ?? undefined,
+    startTime: query.dateRange
+      ? dayjs(query.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+      : undefined,
+    endTime: query.dateRange ? dayjs(query.dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : undefined,
+  }
+}
+
+/** 管理登录日志的查询、导出和删除。 */
 export function useLoginLog() {
+  const user = useUserStore()
   const dictionary = useDictStore()
   const exporting = ref(false)
-  const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
+  const canView = computed(() => user.hasPermission('system:loginLog:page'))
+  const canDelete = computed(() => user.hasPermission('system:loginLog:delete'))
+  const canClean = computed(() => user.hasPermission('system:loginLog:clean'))
+  const sysStatusOptions = computed(() => dictionary.getDictNumberOptions('sys_result_status'))
   const { openDeleteDialog } = useFormDialog()
-  const tableColumns: DataTableColumn<LoginLog>[] = [
-    {
-      type: 'selection',
-    },
-    {
-      title: '用户名',
-      key: 'username',
-      align: 'center',
-    },
-    {
-      title: '登录IP',
-      key: 'ipAddress',
-      align: 'center',
-    },
-    {
-      title: '登录地点',
-      key: 'loginLocation',
-      align: 'center',
-    },
-    {
-      title: '浏览器',
-      key: 'browser',
-      align: 'center',
-    },
-    {
-      title: '操作系统',
-      key: 'os',
-      align: 'center',
-    },
-    {
-      title: '设备类型',
-      key: 'deviceType',
-      align: 'center',
-    },
-    {
-      title: '登录状态',
-      key: 'status',
-      align: 'center',
-      render(row: object) {
-        const loginLog = row as LoginLog
-        const dictData = dictionary.getDictData('sys_result_status', loginLog.status)
-        return h(
-          NTag,
-          {
-            bordered: false,
-            type: dictData!.listClass,
-          },
-          { default: () => dictData!.label },
-        )
+  const columns = computed<DataTableColumns<LoginLog>>(() => {
+    const result: DataTableColumns<LoginLog> = [
+      { title: '用户名', key: 'username' },
+      { title: '登录 IP', key: 'ipAddress' },
+      { title: '登录地点', key: 'loginLocation' },
+      { title: '浏览器', key: 'browser' },
+      { title: '操作系统', key: 'os' },
+      { title: '设备类型', key: 'deviceType' },
+      {
+        title: '登录结果',
+        key: 'status',
+        render(row) {
+          const item = dictionary.getDictData('sys_result_status', row.status)
+          return h(NTag, { bordered: false, type: item.listClass }, () => item.label)
+        },
       },
-    },
-    {
-      title: '备注',
-      key: 'remark',
-      align: 'center',
-    },
-    {
-      title: '登录时间',
-      key: 'loginTime',
-      align: 'center',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      align: 'center',
-      render(row: object) {
-        const loginLog = row as LoginLog
-        return h(NSpace, { size: 6, justify: 'center' }, () => [
+      { title: '结果说明', key: 'remark' },
+      { title: '登录时间', key: 'loginTime' },
+    ]
+    if (canDelete.value) {
+      result.unshift({ type: 'selection' })
+      result.push({
+        title: '操作',
+        key: 'action',
+        fixed: 'right',
+        render: (row) =>
           h(TableAction, {
             label: '删除',
             icon: 'trash-2',
             type: 'error',
-            onClick: () => {
-              removeLoginLog(loginLog)
-            },
+            onClick: () => removeLoginLogs([row.id]),
           }),
-        ])
-      },
-    },
-  ]
+      })
+    }
+    return result
+  })
 
-  const [registerTable, { searchModel: form, reload: getLoginLogPage }] = useWhimTable<
-    LoginLog,
-    LoginLogQuery
-  >(() => ({
-    columns: tableColumns,
+  const [registerTable, table] = useWhimTable<LoginLog, LoginLogQuery>(() => ({
+    title: '登录日志',
+    columns,
+    scrollX: 1320,
+    immediate: canView.value,
     rowKey: (row) => row.id,
-    request: ({ dateRange, ...query }) =>
-      fetchLoginLogPage({
-        ...query,
-        startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-        endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-      }),
+    request: ({ pageNum, pageSize, ...query }) =>
+      fetchLoginLogPage({ ...getLoginLogFilters(query), pageNum, pageSize }),
     search: {
       defaultValues: { username: '', status: null, ipAddress: '', dateRange: null },
       fields: [
         { key: 'username', label: '用户名' },
         {
           key: 'status',
-          label: '登录状态',
-          format: (values) =>
-            dictionary.getDictData('sys_result_status', String(values.status)).label,
+          label: '登录结果',
+          format: (query) =>
+            dictionary.getDictData('sys_result_status', String(query.status)).label,
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {
           key: 'dateRange',
           label: '登录时间',
-          format: (values) =>
-            values.dateRange
+          format: (query) =>
+            query.dateRange
               ?.map((time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'))
               .join(' 至 ') ?? '',
         },
@@ -133,50 +104,41 @@ export function useLoginLog() {
     },
   }))
 
-  /**
-   * 删除登录日志
-   * @param row
-   */
-  const removeLoginLog = (row: LoginLog) => {
-    openDeleteDialog({
-      content: `确定要删除${row.username}这条登录日志吗？删除后无法恢复！`,
-      onSubmit: () => deleteLoginLog({ loginLogIds: [row.id] }),
-      onSuccess: getLoginLogPage,
-    })
+  /** 删除后清理已失效的选择并在当前页刷新。 */
+  async function refreshLoginLogs() {
+    table.setCheckedRowKeys([])
+    await table.reload()
   }
-  /**
-   * 批量删除登录日志
-   */
-  const removeLoginLogBatch = (ids: Array<string | number>) => {
+
+  /** 行内删除和批量删除使用相同的接口和确认流程。 */
+  function removeLoginLogs(ids: Array<string | number>) {
+    if (!ids.length) return
     openDeleteDialog({
-      content: `确定要删除选中的 ${ids.length} 个登录日志吗？删除后无法恢复！`,
-      onSubmit: () => deleteLoginLog({ loginLogIds: ids }),
-      onSuccess: getLoginLogPage,
+      content: `确定删除选中的 ${ids.length} 条登录日志吗？`,
+      onSubmit: () => deleteLoginLog({ loginLogIds: ids.join(',') }),
+      onSuccess: refreshLoginLogs,
     })
   }
 
-  /**
-   * 清理登录日志
-   */
-  const handleCleanLoginLog = () => {
+  /** 清空独立授权，确认文案明确操作范围。 */
+  function handleCleanLoginLog() {
     openDeleteDialog({
-      content: `确定要清空登录日志吗？删除后无法恢复！`,
-      title: '清空确认',
+      title: '清空全部登录日志',
+      content: '确定清空全部登录日志吗？此操作包含当前筛选范围以外的记录。',
       onSubmit: cleanLoginLog,
-      successMessage: '清理成功',
-      onSuccess: getLoginLogPage,
+      successMessage: '登录日志已清空',
+      onSuccess: refreshLoginLogs,
     })
   }
-  /**
-   * 导出登录日志，等待下载结束后恢复按钮。
-   */
-  const exportExcel = async () => {
+
+  /** 导出列表当前已提交条件下的全部记录。 */
+  async function exportExcel() {
     if (exporting.value) return
     exporting.value = true
     try {
-      await exportLoginLog()
+      await exportLoginLog(getLoginLogFilters(table.submittedQuery.value))
     } catch {
-      // 下载错误由公共请求层提示，失败后允许重试。
+      // 下载错误由公共请求层提示。
     } finally {
       exporting.value = false
     }
@@ -184,11 +146,12 @@ export function useLoginLog() {
 
   return {
     registerTable,
-    form,
+    form: table.searchModel,
+    canView,
+    canClean,
     sysStatusOptions,
-    getLoginLogPage,
     exportExcel,
-    removeLoginLogBatch,
+    removeLoginLogs,
     handleCleanLoginLog,
   }
 }

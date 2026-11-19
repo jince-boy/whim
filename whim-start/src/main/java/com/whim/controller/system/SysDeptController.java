@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
@@ -79,6 +81,7 @@ public class SysDeptController {
      * @param parameter 部门新增参数
      * @return 新增部门成功响应
      */
+    @Log(title = "部门管理", type = LogType.INSERT, requestFields = {"parentId", "deptName", "deptCode"})
     @PostMapping("/add")
     @SystemCheckPermission("system:dept:create")
     public Result<Void> addDept(@Valid @RequestBody SysDeptAddDTO parameter) {
@@ -92,6 +95,7 @@ public class SysDeptController {
      * @param parameter 部门修改参数
      * @return 修改部门成功响应
      */
+    @Log(title = "部门管理", type = LogType.UPDATE, requestFields = {"id", "parentId", "deptName", "leaderUserId"})
     @PutMapping("/update")
     @SystemCheckPermission("system:dept:update")
     public Result<Void> updateDept(@Valid @RequestBody SysDeptUpdateDTO parameter) {
@@ -105,6 +109,7 @@ public class SysDeptController {
      * @param id 部门ID
      * @return 删除部门成功响应
      */
+    @Log(title = "部门管理", type = LogType.DELETE, requestFields = "id")
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:dept:delete")
     public Result<Void> deleteDept(@RequestParam Long id) {

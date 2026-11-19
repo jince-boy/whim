@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
@@ -107,6 +109,7 @@ public class SysRoleController {
      * @param parameter 角色新增参数
      * @return 新增结果
      */
+    @Log(title = "角色管理", type = LogType.INSERT, requestFields = {"roleName", "roleCode"})
     @PostMapping("/add")
     @SystemCheckPermission("system:role:create")
     public Result<Void> addRole(@Valid @RequestBody SysRoleAddDTO parameter) {
@@ -120,6 +123,7 @@ public class SysRoleController {
      * @param parameter 角色ID及基础资料
      * @return 修改结果
      */
+    @Log(title = "角色管理", type = LogType.UPDATE, requestFields = {"id", "roleCode"})
     @PutMapping("/update")
     @SystemCheckPermission("system:role:update")
     public Result<Void> updateRole(@Valid @RequestBody SysRoleUpdateDTO parameter) {
@@ -133,6 +137,7 @@ public class SysRoleController {
      * @param parameter 角色ID及目标状态
      * @return 状态变更结果
      */
+    @Log(title = "角色管理", type = LogType.UPDATE, requestFields = {"id", "status"})
     @PutMapping("/updateStatus")
     @SystemCheckPermission("system:role:status")
     public Result<Void> updateRoleStatus(@Valid @RequestBody SysRoleStatusDTO parameter) {
@@ -146,6 +151,7 @@ public class SysRoleController {
      * @param parameter 角色ID、范围及自定义部门
      * @return 数据范围保存结果
      */
+    @Log(title = "角色数据范围", type = LogType.UPDATE, requestFields = {"id", "dataScope", "deptIds"})
     @PutMapping("/assignDataScope")
     @SystemCheckPermission("system:role:dataScope:assign")
     public Result<Void> assignRoleDataScope(@Valid @RequestBody SysRoleDataScopeDTO parameter) {
@@ -159,6 +165,7 @@ public class SysRoleController {
      * @param parameter 角色ID及完整菜单权限集合
      * @return 权限分配结果
      */
+    @Log(title = "角色权限", type = LogType.UPDATE, requestFields = {"id", "permissionIds"})
     @PutMapping("/assignPermissions")
     @SystemCheckPermission("system:rolePermission:assign")
     public Result<Void> assignRolePermissions(@Valid @RequestBody SysRolePermissionDTO parameter) {
@@ -172,6 +179,7 @@ public class SysRoleController {
      * @param parameter 角色ID及本次加入的用户ID
      * @return 分配结果
      */
+    @Log(title = "分配用户", type = LogType.UPDATE, requestFields = {"roleId", "userIds"})
     @PutMapping("/assignUsers")
     @SystemCheckPermission("system:roleUser:assign")
     public Result<Void> assignRoleUsers(@Valid @RequestBody SysRoleUserDTO parameter) {
@@ -185,6 +193,7 @@ public class SysRoleController {
      * @param parameter 角色ID及本次移除的用户ID
      * @return 移除结果
      */
+    @Log(title = "移除用户", type = LogType.UPDATE, requestFields = {"roleId", "userIds"})
     @PutMapping("/unassignUsers")
     @SystemCheckPermission("system:roleUser:assign")
     public Result<Void> unassignRoleUsers(@Valid @RequestBody SysRoleUserDTO parameter) {
@@ -198,6 +207,7 @@ public class SysRoleController {
      * @param id 角色ID
      * @return 删除结果
      */
+    @Log(title = "角色管理", type = LogType.DELETE, requestFields = "id")
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:role:delete")
     public Result<Void> deleteRole(@RequestParam Long id) {

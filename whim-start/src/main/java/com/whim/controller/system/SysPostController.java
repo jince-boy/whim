@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.satoken.annotation.SystemCheckPermission;
@@ -62,6 +64,7 @@ public class SysPostController {
      * @param parameter 岗位新增参数
      * @return 新增结果
      */
+    @Log(title = "岗位管理", type = LogType.INSERT, requestFields = {"deptId", "postCode", "postName"})
     @PostMapping("/add")
     @SystemCheckPermission("system:post:create")
     public Result<Void> addPost(@Valid @RequestBody SysPostAddDTO parameter) {
@@ -75,6 +78,7 @@ public class SysPostController {
      * @param parameter 岗位ID及修改字段
      * @return 修改结果
      */
+    @Log(title = "岗位管理", type = LogType.UPDATE, requestFields = {"id", "deptId", "postCode"})
     @PutMapping("/update")
     @SystemCheckPermission("system:post:update")
     public Result<Void> updatePost(@Valid @RequestBody SysPostUpdateDTO parameter) {
@@ -88,6 +92,7 @@ public class SysPostController {
      * @param id 岗位ID
      * @return 删除结果
      */
+    @Log(title = "岗位管理", type = LogType.DELETE, requestFields = "id")
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:post:delete")
     public Result<Void> deletePost(@RequestParam Long id) {

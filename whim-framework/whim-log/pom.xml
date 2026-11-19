@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.whim</groupId>
+        <artifactId>whim-framework</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <artifactId>whim-log</artifactId>
+    <description>登录与操作审计事件、操作日志切面及异步执行器</description>
+    <dependencies>
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

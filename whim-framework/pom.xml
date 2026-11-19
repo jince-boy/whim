@@ -19,6 +19,7 @@
         <module>whim-excel</module>
         <module>whim-file</module>
         <module>whim-web</module>
+        <module>whim-log</module>
         <module>whim-json</module>
         <module>whim-redis</module>
         <module>whim-satoken</module>

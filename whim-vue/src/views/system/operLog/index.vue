@@ -8,6 +8,8 @@ const { createIcon } = useIcon()
 const {
   registerTable,
   form,
+  canView,
+  canClean,
   sysStatusOptions,
   sysOperTypeOptions,
   exportExcel,
@@ -21,8 +23,8 @@ const {
 </script>
 
 <template>
-  <n-space vertical>
-    <WhimTable @register="registerTable" @delete="removeOperLogBatch" @export="exportExcel">
+  <div>
+    <WhimTable v-if="canView" @register="registerTable" @delete="removeOperLogBatch" @export="exportExcel">
       <template #search>
         <n-form-item-gi label="模块名称" path="title">
           <n-input v-model:value="form.title" placeholder="请输入模块名称" clearable />
@@ -30,7 +32,7 @@ const {
         <n-form-item-gi label="操作人" path="operName">
           <n-input v-model:value="form.operName" placeholder="请输入操作人" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="操作状态" path="status">
+        <n-form-item-gi label="操作结果" path="status">
           <n-select
             placeholder="全部状态"
             v-model:value="form.status"
@@ -62,22 +64,23 @@ const {
       <template #toolbarBefore>
         <n-button
           type="error"
-          v-permission="['system:operLog:clean']"
+          v-if="canClean"
           :render-icon="createIcon('trash-2')"
           @click="handleCleanOperLog"
           >清空</n-button
         >
       </template>
     </WhimTable>
+    <n-card v-else><n-empty description="暂无操作日志查询权限" /></n-card>
     <n-modal
       v-model:show="showModal"
       preset="card"
       title="操作日志详情"
       size="huge"
-      style="width: 800px"
+      style="width: min(800px, 94vw)"
       :bordered="false"
     >
-      <div>
+      <div v-if="currentOperLog">
         <n-descriptions
           size="small"
           label-placement="left"
@@ -87,62 +90,62 @@ const {
         >
           <!-- 基本信息 -->
           <n-descriptions-item label="模块名称">
-            <n-text strong>{{ currentOperLog!.title }}</n-text>
+            <n-text strong>{{ currentOperLog.title }}</n-text>
           </n-descriptions-item>
 
           <n-descriptions-item label="操作人信息">
             <n-space>
-              <n-tag size="small" type="info">{{ currentOperLog!.operName }}</n-tag>
-              <n-tag size="small">{{ currentOperLog!.operIp }}</n-tag>
-              <n-tag size="small" type="success">{{ currentOperLog!.operLocation }}</n-tag>
+              <n-tag size="small" type="info">{{ currentOperLog.operName }}</n-tag>
+              <n-tag size="small">{{ currentOperLog.operIp }}</n-tag>
+              <n-tag size="small" type="success">{{ currentOperLog.operLocation }}</n-tag>
             </n-space>
           </n-descriptions-item>
           <n-descriptions-item label="日志类型">
             <n-tag
-              :type="getDictOperTypeData(String(currentOperLog!.logType))?.listClass"
+              :type="getDictOperTypeData(currentOperLog.logType)?.listClass"
               size="small"
             >
-              {{ getDictOperTypeData(String(currentOperLog!.logType))?.label }}
+              {{ getDictOperTypeData(currentOperLog.logType)?.label }}
             </n-tag>
           </n-descriptions-item>
-          <n-descriptions-item label="操作状态">
+          <n-descriptions-item label="操作结果">
             <n-tag
-              :type="getDictStatusData(String(currentOperLog!.status))?.listClass"
+              :type="getDictStatusData(currentOperLog.status)?.listClass"
               size="small"
             >
-              {{ getDictStatusData(String(currentOperLog!.status))?.label }}
+              {{ getDictStatusData(currentOperLog.status)?.label }}
             </n-tag>
           </n-descriptions-item>
 
           <!-- 请求信息 -->
           <n-descriptions-item label="请求信息">
             <n-space vertical size="small">
-              <n-text>地址: {{ currentOperLog!.requestUrl }}</n-text>
-              <n-text>方式: {{ currentOperLog!.requestMethod }}</n-text>
-              <n-text>方法: {{ currentOperLog!.methodName }}</n-text>
+              <n-text>地址: {{ currentOperLog.requestUrl }}</n-text>
+              <n-text>方式: {{ currentOperLog.requestMethod }}</n-text>
+              <n-text>方法: {{ currentOperLog.methodName }}</n-text>
             </n-space>
           </n-descriptions-item>
 
           <!-- 时间信息 -->
           <n-descriptions-item label="时间信息">
             <n-space vertical size="small">
-              <n-text>操作时间: {{ currentOperLog!.operTime }}</n-text>
-              <n-text>耗时: {{ currentOperLog!.costTime }}ms</n-text>
+              <n-text>操作时间: {{ currentOperLog.operTime }}</n-text>
+              <n-text>耗时: {{ currentOperLog.costTime }}ms</n-text>
             </n-space>
           </n-descriptions-item>
 
           <!-- 错误信息 -->
-          <n-descriptions-item v-if="currentOperLog!.errorMessage" label="错误消息">
+          <n-descriptions-item v-if="currentOperLog.errorMessage" label="错误消息">
             <n-alert type="error" size="small" :bordered="false">
-              {{ currentOperLog!.errorMessage }}
+              {{ currentOperLog.errorMessage }}
             </n-alert>
           </n-descriptions-item>
 
           <!-- 请求参数 -->
-          <n-descriptions-item label="请求参数">
+          <n-descriptions-item label="请求摘要">
             <n-scrollbar style="max-height: 100px" trigger="none">
               <n-code
-                :code="JSON.stringify(JSON.parse(currentOperLog!.requestParam), null, 2)"
+                :code="currentOperLog.requestParam ?? '—'"
                 language="json"
                 show-line-numbers
               />
@@ -150,10 +153,10 @@ const {
           </n-descriptions-item>
 
           <!-- 响应数据 -->
-          <n-descriptions-item label="响应数据">
+          <n-descriptions-item label="响应摘要">
             <n-scrollbar style="max-height: 100px" trigger="none">
               <n-code
-                :code="JSON.stringify(JSON.parse(currentOperLog!.responseParam), null, 2)"
+                :code="currentOperLog.responseParam ?? '—'"
                 language="json"
                 show-line-numbers
               />
@@ -162,7 +165,5 @@ const {
         </n-descriptions>
       </div>
     </n-modal>
-  </n-space>
+  </div>
 </template>
-
-<style scoped lang="scss"></style>

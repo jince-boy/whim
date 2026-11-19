@@ -1,133 +1,113 @@
-import { TableAction, useWhimTable } from '@/components/table'
+import { computed, h, ref } from 'vue'
+import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import dayjs from 'dayjs'
-import { type DataTableColumn, NSpace, NTag } from 'naive-ui'
-import { cleanOperLog, deleteOperLog, exportOperLog, fetchOperLogPage } from './api'
-import type { OperLog, OperLogQuery, OperLogResult } from '@/views/system/operLog/hooks/types.ts'
+import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
-import { computed, ref } from 'vue'
 import { useDictStore } from '@/stores/modules/dict'
-/** 配置注册式列表并处理操作日志业务操作。 */
+import { useUserStore } from '@/stores/modules/user'
+import {
+  cleanOperLog,
+  deleteOperLog,
+  exportOperLog,
+  fetchOperLogDetail,
+  fetchOperLogPage,
+} from './api'
+import type { OperLog, OperLogDetail, OperLogFilters, OperLogQuery } from './types'
+
+/** 列表与导出共用已提交的筛选条件。 */
+function getFilters(query: OperLogQuery): OperLogFilters {
+  return {
+    title: query.title.trim() || undefined,
+    operName: query.operName.trim() || undefined,
+    ipAddress: query.ipAddress.trim() || undefined,
+    status: query.status ?? undefined,
+    logType: query.logType ?? undefined,
+    startTime: query.dateRange
+      ? dayjs(query.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+      : undefined,
+    endTime: query.dateRange ? dayjs(query.dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : undefined,
+  }
+}
+
+/** 管理操作日志及按权限加载的审计详情。 */
 export function useOperLog() {
   const dictionary = useDictStore()
+  const user = useUserStore()
   const exporting = ref(false)
-  const sysStatusOptions = computed(() => dictionary.getDictOptions('sys_result_status'))
-  const sysOperTypeOptions = computed(() => dictionary.getDictOptions('sys_oper_type'))
+  const canView = computed(() => user.hasPermission('system:operLog:page'))
+  const canDetail = computed(() => user.hasPermission('system:operLog:detail'))
+  const canDelete = computed(() => user.hasPermission('system:operLog:delete'))
+  const canClean = computed(() => user.hasPermission('system:operLog:clean'))
+  const sysStatusOptions = computed(() => dictionary.getDictNumberOptions('sys_result_status'))
+  const sysOperTypeOptions = computed(() => dictionary.getDictNumberOptions('sys_oper_type'))
+  const getDictOperTypeData = (value: number) => dictionary.getDictData('sys_oper_type', value)
+  const getDictStatusData = (value: number) => dictionary.getDictData('sys_result_status', value)
   const { openDeleteDialog } = useFormDialog()
   const showModal = ref(false)
-  const currentOperLog: Ref<OperLog | null> = ref(null)
+  const currentOperLog = ref<OperLogDetail | null>(null)
+  let detailVersion = 0
 
-  const tableColumns: DataTableColumn<OperLogResult>[] = [
-    {
-      type: 'selection',
-    },
-    {
-      title: '操作人',
-      key: 'operName',
-      align: 'center',
-    },
-    {
-      title: '模块名称',
-      key: 'title',
-      align: 'center',
-    },
-    {
-      title: '操作类型',
-      key: 'operType',
-      align: 'center',
-      render(row: object) {
-        const operLog = row as OperLog
-        const dictData = dictionary.getDictData('sys_oper_type', operLog.logType)
-        return h(
-          NTag,
-          {
-            bordered: false,
-            type: dictData!.listClass,
-          },
-          { default: () => dictData!.label },
-        )
+  const columns = computed<DataTableColumns<OperLog>>(() => {
+    const result: DataTableColumns<OperLog> = [
+      { title: '操作人', key: 'operName' },
+      { title: '模块名称', key: 'title' },
+      {
+        title: '操作类型',
+        key: 'logType',
+        render(row) {
+          const item = getDictOperTypeData(row.logType)
+          return h(NTag, { bordered: false, type: item.listClass }, () => item.label)
+        },
       },
-    },
-    {
-      title: '操作IP',
-      key: 'operIp',
-      align: 'center',
-    },
-    {
-      title: '操作地点',
-      key: 'operLocation',
-      align: 'center',
-    },
-    {
-      title: '登录状态',
-      key: 'status',
-      align: 'center',
-      render(row: object) {
-        const operLog = row as OperLog
-        const dictData = dictionary.getDictData('sys_result_status', operLog.status)
-        return h(
-          NTag,
-          {
-            bordered: false,
-            type: dictData!.listClass,
-          },
-          { default: () => dictData!.label },
-        )
+      { title: '操作 IP', key: 'operIp' },
+      { title: '操作地点', key: 'operLocation' },
+      {
+        title: '操作结果',
+        key: 'status',
+        render(row) {
+          const item = getDictStatusData(row.status)
+          return h(NTag, { bordered: false, type: item.listClass }, () => item.label)
+        },
       },
-    },
-    {
-      title: '操作时间',
-      key: 'operTime',
-      align: 'center',
-    },
-    {
-      title: '耗时',
-      key: 'costTime',
-      align: 'center',
-      render(row: object) {
-        const operLog = row as OperLog
-        return h('span', null, { default: () => operLog.costTime + 'ms' })
-      },
-    },
-    {
-      title: '操作',
-      key: 'action',
-      align: 'center',
-      render(row: object) {
-        const operLog = row as OperLog
-        return h(NSpace, { size: 6, justify: 'center' }, () => [
-          h(TableAction, {
-            label: '查看',
-            icon: 'eye',
-            type: 'info',
-            onClick: () => {
-              showOperLogDetail(operLog)
-            },
-          }),
-          h(TableAction, {
-            label: '删除',
-            icon: 'trash-2',
-            type: 'error',
-            onClick: () => {
-              removeOperLog(operLog)
-            },
-          }),
-        ])
-      },
-    },
-  ]
+      { title: '操作时间', key: 'operTime' },
+      { title: '耗时', key: 'costTime', render: (row) => `${row.costTime} ms` },
+    ]
+    if (canDelete.value) result.unshift({ type: 'selection' })
+    if (canDetail.value || canDelete.value) {
+      result.push({
+        title: '操作',
+        key: 'action',
+        fixed: 'right',
+        render: (row) =>
+          h(NSpace, { size: 6 }, () => [
+            canDetail.value &&
+              h(TableAction, {
+                label: '查看',
+                icon: 'eye',
+                type: 'info',
+                onClick: () => showDetail(row.id),
+              }),
+            canDelete.value &&
+              h(TableAction, {
+                label: '删除',
+                icon: 'trash-2',
+                type: 'error',
+                onClick: () => removeOperLogBatch([row.id]),
+              }),
+          ]),
+      })
+    }
+    return result
+  })
 
-  const [registerTable, { searchModel: form, reload: getOperLogPage }] = useWhimTable<
-    OperLogResult,
-    OperLogQuery
-  >(() => ({
-    columns: tableColumns,
+  const [registerTable, table] = useWhimTable<OperLog, OperLogQuery>(() => ({
+    title: '操作日志',
+    columns,
+    scrollX: 1180,
+    immediate: canView.value,
     rowKey: (row) => row.id,
-    request: ({ dateRange, ...query }) =>
-      fetchOperLogPage({
-        ...query,
-        startTime: dateRange ? dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-        endTime: dateRange ? dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-      }),
+    request: ({ pageNum, pageSize, ...query }) =>
+      fetchOperLogPage({ ...getFilters(query), pageNum, pageSize }),
     search: {
       defaultValues: {
         title: '',
@@ -142,23 +122,20 @@ export function useOperLog() {
         { key: 'operName', label: '操作人' },
         {
           key: 'status',
-          label: '操作状态',
-          format: (values) =>
-            dictionary.getDictData('sys_result_status', String(values.status)).label,
+          label: '操作结果',
+          format: (q) => (q.status == null ? '' : getDictStatusData(q.status).label),
         },
         { key: 'ipAddress', label: 'IP 地址' },
         {
           key: 'logType',
           label: '操作类型',
-          format: (values) => dictionary.getDictData('sys_oper_type', String(values.logType)).label,
+          format: (q) => (q.logType == null ? '' : getDictOperTypeData(q.logType).label),
         },
         {
           key: 'dateRange',
           label: '操作时间',
-          format: (values) =>
-            values.dateRange
-              ?.map((time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'))
-              .join(' 至 ') ?? '',
+          format: (q) =>
+            q.dateRange?.map((t) => dayjs(t).format('YYYY-MM-DD HH:mm:ss')).join(' 至 ') ?? '',
         },
       ],
     },
@@ -169,75 +146,70 @@ export function useOperLog() {
     },
   }))
 
-  /**
-   * 查看登录日志详情
-   * @param value
-   */
-  const showOperLogDetail = (value: OperLog) => {
-    showModal.value = true
-    currentOperLog.value = value
+  /** 多次点击不同记录时只展示最后选中的详情。 */
+  async function showDetail(id: string | number) {
+    const version = ++detailVersion
+    try {
+      const response = await fetchOperLogDetail(id)
+      if (version === detailVersion && canDetail.value && response.code === 200) {
+        currentOperLog.value = response.data
+        showModal.value = true
+      }
+    } catch {
+      // 公共请求层展示读取失败原因。
+    }
   }
-  /**
-   * 删除登录日志
-   * @param row
-   */
-  const removeOperLog = (row: OperLog) => {
-    openDeleteDialog({
-      content: `确定要删除这条操作日志吗？删除后无法恢复！`,
-      onSubmit: () => deleteOperLog({ operLogIds: [row.id] }),
-      onSuccess: getOperLogPage,
-    })
+
+  async function refreshLogs() {
+    table.setCheckedRowKeys([])
+    await table.reload()
   }
-  /**
-   * 批量删除登录日志
-   */
-  const removeOperLogBatch = (ids: Array<string | number>) => {
+
+  function removeOperLogBatch(ids: Array<string | number>) {
+    if (!ids.length) return
     openDeleteDialog({
-      content: `确定要删除选中的 ${ids.length} 个操作日志吗？删除后无法恢复！`,
-      onSubmit: () => deleteOperLog({ operLogIds: ids }),
-      onSuccess: getOperLogPage,
+      content: `确定删除选中的 ${ids.length} 条操作日志吗？`,
+      onSubmit: () => deleteOperLog(ids),
+      onSuccess: refreshLogs,
     })
   }
 
-  /**
-   * 清理登录日志
-   */
-  const handleCleanOperLog = () => {
+  function handleCleanOperLog() {
     openDeleteDialog({
-      content: `确定要清空操作日志吗？删除后无法恢复！`,
-      title: '清空确认',
+      title: '清空全部操作日志',
+      content:
+        '确定清空全部操作日志吗？此操作包含当前筛选范围以外的记录，本次清空也会留下审计记录。',
       onSubmit: cleanOperLog,
-      successMessage: '清理成功',
-      onSuccess: getOperLogPage,
+      successMessage: '操作日志已清空',
+      onSuccess: refreshLogs,
     })
   }
-  /**
-   * 导出操作日志，等待下载结束后恢复按钮。
-   */
-  const exportExcel = async () => {
+
+  async function exportExcel() {
     if (exporting.value) return
     exporting.value = true
     try {
-      await exportOperLog()
+      await exportOperLog(getFilters(table.submittedQuery.value))
     } catch {
-      // 下载错误由公共请求层提示，失败后允许重试。
+      /* 下载错误由公共请求层提示。 */
     } finally {
       exporting.value = false
     }
   }
+
   return {
     registerTable,
-    form,
-    sysOperTypeOptions,
+    form: table.searchModel,
+    canView,
+    canClean,
     sysStatusOptions,
-    getOperLogPage,
+    sysOperTypeOptions,
     exportExcel,
     removeOperLogBatch,
     handleCleanOperLog,
     showModal,
     currentOperLog,
-    getDictOperTypeData: (value: string | number) => dictionary.getDictData('sys_oper_type', value),
-    getDictStatusData: (value: string | number) =>
-      dictionary.getDictData('sys_result_status', value),
+    getDictOperTypeData,
+    getDictStatusData,
   }
 }

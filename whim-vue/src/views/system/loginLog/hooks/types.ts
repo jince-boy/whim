@@ -7,16 +7,24 @@ export interface LoginLogQuery {
 }
 
 export interface LoginLog {
-  id: string
+  id: string | number
   username: string
-  browser: string
-  os: string
-  deviceType: string
-  loginLocation: string
-  ipAddress: string
+  browser: string | null
+  os: string | null
+  deviceType: string | null
+  loginLocation: string | null
+  ipAddress: string | null
   status: number
   remark: string
   loginTime: string
+}
+
+export interface LoginLogFilters {
+  username?: string
+  status?: number
+  ipAddress?: string
+  startTime?: string
+  endTime?: string
 }
 
 export interface LoginLogPageResult {

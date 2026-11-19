@@ -22,6 +22,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-file</artifactId>
         </dependency>
+        <!-- 控制器操作审计注解 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-log</artifactId>
+        </dependency>
         <!-- whim-web -->
         <dependency>
             <groupId>com.whim</groupId>

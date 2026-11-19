@@ -1,22 +1,24 @@
 export interface OperLog {
-  id: string
+  id: string | number
   title: string
   logType: number
-  methodName: string
-  requestMethod: string
-  operName: string
-  operIp: string
-  operLocation: string
-  requestUrl: string
-  requestParam: string
-  responseParam: string
+  operName: string | null
+  operIp: string | null
+  operLocation: string | null
   status: number
-  errorMessage: string
   operTime: string
   costTime: number
 }
 
-/** 操作日志查询草稿，日期范围随表单整体重置。 */
+export interface OperLogDetail extends OperLog {
+  methodName: string | null
+  requestMethod: string | null
+  requestUrl: string | null
+  requestParam: string | null
+  responseParam: string | null
+  errorMessage: string | null
+}
+
 export interface OperLogQuery {
   title: string
   operName: string
@@ -26,26 +28,19 @@ export interface OperLogQuery {
   dateRange: [number, number] | null
 }
 
-export interface OperLogResult {
-  id: string
-  title: string
-  logType: number
-  methodName: string
-  requestMethod: string
-  operName: string
-  operIp: string
-  requestUrl: string
-  requestParam: string
-  responseParam: string
-  status: number
-  errorMessage: string
-  operTime: string
-  costTime: number
+export interface OperLogFilters {
+  title?: string
+  operName?: string
+  ipAddress?: string
+  logType?: number
+  status?: number
+  startTime?: string
+  endTime?: string
 }
 
 export interface OperLogPageResult {
   currentPage: number
-  data: OperLogResult[]
+  data: OperLog[]
   pages: number
   size: number
   total: number

@@ -1,5 +1,7 @@
 package com.whim.controller.system;
 
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.excel.utils.ExcelBuilder;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.satoken.annotation.SystemCheckLogin;
@@ -70,6 +72,7 @@ public class SysDictDataController {
     /**
      * 新增字典数据。
      */
+    @Log(title = "字典数据", type = LogType.INSERT, requestFields = {"type", "label"})
     @PostMapping("/add")
     @SystemCheckPermission("system:dictData:add")
     public Result<Void> addDictData(@Valid @RequestBody SysDictDataAddDTO parameter) {
@@ -80,6 +83,7 @@ public class SysDictDataController {
     /**
      * 修改字典数据。
      */
+    @Log(title = "字典数据", type = LogType.UPDATE, requestFields = {"id", "type", "label"})
     @PutMapping("/update")
     @SystemCheckPermission("system:dictData:update")
     public Result<Void> updateDictData(@Valid @RequestBody SysDictDataUpdateDTO parameter) {
@@ -90,6 +94,7 @@ public class SysDictDataController {
     /**
      * 批量删除字典数据，支持逗号分隔或重复查询参数。
      */
+    @Log(title = "字典数据", type = LogType.DELETE, requestFields = "dictDataIds")
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:dictData:delete")
     public Result<Void> deleteDictData(@RequestParam List<Long> dictDataIds) {
@@ -100,6 +105,7 @@ public class SysDictDataController {
     /**
      * 导出指定字典类型的数据。
      */
+    @Log(title = "字典数据", type = LogType.EXPORT, requestFields = {"type", "label"})
     @PostMapping("/export")
     @SystemCheckPermission("system:dictData:export")
     public void exportDictData(@Valid @RequestBody SysDictDataExportDTO query, HttpServletResponse response) {

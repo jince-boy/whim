@@ -8,21 +8,28 @@ const { createIcon } = useIcon()
 const {
   registerTable,
   form,
+  canView,
+  canClean,
   sysStatusOptions,
   exportExcel,
-  removeLoginLogBatch,
+  removeLoginLogs,
   handleCleanLoginLog,
 } = useLoginLog()
 </script>
 
 <template>
-  <n-space vertical>
-    <WhimTable @register="registerTable" @delete="removeLoginLogBatch" @export="exportExcel">
+  <div>
+    <WhimTable
+      v-if="canView"
+      @register="registerTable"
+      @delete="removeLoginLogs"
+      @export="exportExcel"
+    >
       <template #search>
         <n-form-item-gi label="用户名" path="username">
           <n-input v-model:value="form.username" placeholder="请输入用户名" clearable />
         </n-form-item-gi>
-        <n-form-item-gi label="登录状态" path="status">
+        <n-form-item-gi label="登录结果" path="status">
           <n-select
             placeholder="全部状态"
             v-model:value="form.status"
@@ -45,7 +52,8 @@ const {
       </template>
       <template #toolbarBefore>
         <n-button
-          v-permission="['system:loginLog:clean']"
+          v-if="canClean"
+          secondary
           type="error"
           :render-icon="createIcon('trash-2')"
           @click="handleCleanLoginLog"
@@ -53,7 +61,6 @@ const {
         >
       </template>
     </WhimTable>
-  </n-space>
+    <n-card v-else><n-empty description="暂无登录日志查询权限" /></n-card>
+  </div>
 </template>
-
-<style scoped lang="scss"></style>
