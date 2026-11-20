@@ -37,11 +37,3 @@ export interface OperLogFilters {
   startTime?: string
   endTime?: string
 }
-
-export interface OperLogPageResult {
-  currentPage: number
-  data: OperLog[]
-  pages: number
-  size: number
-  total: number
-}

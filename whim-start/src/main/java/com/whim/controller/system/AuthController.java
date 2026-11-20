@@ -63,9 +63,9 @@ public class AuthController {
     }
 
     /**
-     * 获取与客户端地址绑定的 GIF 验证码。
+     * 查询登录验证码开关，启用时获取与客户端地址绑定的 GIF 验证码。
      *
-     * @return 验证码 UUID、GIF 图片和有效期
+     * @return 验证码开关状态及已签发的挑战
      */
     @GetMapping("/captcha")
     public Result<LoginCaptchaVO> captcha() {

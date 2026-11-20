@@ -163,6 +163,7 @@ sa-token:
   exclude-paths:
     - /
     - /system/auth/captcha
+    - /system/config/site
     - /system/auth/requestEncryptionKey
     - /system/auth/login
     - /error

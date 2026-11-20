@@ -35,6 +35,7 @@ import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.service.IAuthService;
+import com.whim.system.service.ISysConfigService;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserService;
@@ -68,6 +69,7 @@ public class AuthServiceImpl implements IAuthService {
      * 系统用户服务对象
      */
     private final ISysUserService sysUserService;
+    private final ISysConfigService configService;
 
     private final ISysRoleService roleService;
     private final ISysPermissionService permissionService;
@@ -182,20 +184,25 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     /**
-     * 生成 GIF 验证码，并按 UUID 和客户端地址保存答案。
+     * 查询验证码开关，启用时签发与客户端地址绑定的 GIF 验证码。
      *
      * @param clientAddress 客户端地址
-     * @return GIF 验证码
+     * @return 验证码开关状态，启用时包含 GIF 图片及其有效期
      */
     @Override
     public LoginCaptchaVO createCaptcha(String clientAddress) {
         if (RedisUtils.rateLimiter("auth:captchaIssue:" + clientAddress, RateType.OVERALL, 60, 60, 120) < 0) {
             throw new TooManyRequestsException("验证码获取过于频繁，请稍后重试");
         }
+        LoginCaptchaVO result = new LoginCaptchaVO();
+        result.setEnabled(configService.isLoginCaptchaEnabled());
+        // 关闭时只告知页面当前状态，避免签发无用的挑战和 Redis 记录。
+        if (!result.isEnabled()) {
+            return result;
+        }
         GifCaptcha captcha = new GifCaptcha(160, 60, 4);
         String uuid = IdUtils.uuid();
         RedisUtils.setCacheObject(CAPTCHA_KEY_PREFIX + uuid + ":" + clientAddress, captcha.text(), CAPTCHA_LIFETIME);
-        LoginCaptchaVO result = new LoginCaptchaVO();
         result.setUuid(uuid);
         result.setImage(captcha.toBase64());
         result.setExpiresIn(CAPTCHA_LIFETIME.toSeconds());
@@ -258,6 +265,13 @@ public class AuthServiceImpl implements IAuthService {
      * @return 校验失败原因，验证通过时为空
      */
     private String getCaptchaError(AuthLoginDTO loginDTO, String clientAddress) {
+        // 提交时重新读取服务端开关，页面打开后重新启用验证码也必须校验。
+        if (!configService.isLoginCaptchaEnabled()) {
+            return null;
+        }
+        if (loginDTO.getUuid() == null || loginDTO.getCaptchaCode() == null) {
+            return "请输入登录验证码";
+        }
         String captchaKey = CAPTCHA_KEY_PREFIX + loginDTO.getUuid() + ":" + clientAddress;
         String expected = RedisUtils.takeCacheObject(captchaKey);
         if (expected == null) {

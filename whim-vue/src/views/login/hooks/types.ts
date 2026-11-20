@@ -1,11 +1,13 @@
 export interface LoginRequest {
   username: string
   password: string
-  uuid: string
-  captchaCode: string
+  uuid?: string
+  captchaCode?: string
 }
 
 export interface LoginForm extends LoginRequest {
+  uuid: string
+  captchaCode: string
   rememberMe: boolean
 }
 
@@ -15,7 +17,10 @@ export interface LoginResult {
   expiresIn: number
 }
 
-export interface CaptchaResult {
+export type CaptchaResult = {
+  enabled: false
+} | {
+  enabled: true
   uuid: string
   image: string
   expiresIn: number

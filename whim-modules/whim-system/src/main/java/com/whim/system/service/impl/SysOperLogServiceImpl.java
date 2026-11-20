@@ -68,16 +68,6 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
     }
 
     /**
-     * 逻辑删除所选操作日志。
-     *
-     * @param ids 操作日志主键集合
-     */
-    @Override
-    public void deleteOperLogs(List<Long> ids) {
-        removeByIds(ids);
-    }
-
-    /**
      * 清空本次操作可见的全部操作日志。
      */
     @Override

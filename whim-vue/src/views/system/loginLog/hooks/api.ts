@@ -1,11 +1,10 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { LoginLogFilters, LoginLogPageResult } from './types'
+import type { TablePage, TablePageQuery } from '@/components/table'
+import type { LoginLog, LoginLogFilters } from './types'
 
 /** 分页查询登录日志。 */
-export const fetchLoginLogPage = (
-  params: LoginLogFilters & { pageNum: number; pageSize: number },
-) => {
-  return request<LoginLogPageResult>('/system/loginLog/page', RequestMethod.GET, { params })
+export const fetchLoginLogPage = (params: LoginLogFilters & TablePageQuery) => {
+  return request<TablePage<LoginLog>>('/system/loginLog/page', RequestMethod.GET, { params })
 }
 
 /** 导出登录日志。 */

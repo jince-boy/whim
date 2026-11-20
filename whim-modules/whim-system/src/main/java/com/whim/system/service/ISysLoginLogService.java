@@ -7,8 +7,6 @@ import com.whim.system.model.entity.SysLoginLog;
 import com.whim.system.model.vo.loginlog.SysLoginLogVO;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.List;
-
 /**
  * @author Jince
  * @date 2026/11/19
@@ -22,13 +20,6 @@ public interface ISysLoginLogService extends IService<SysLoginLog> {
      * @return 登录日志分页数据
      */
     PageDataVO<SysLoginLogVO> getLoginLogPage(SysLoginLogQueryDTO query);
-
-    /**
-     * 逻辑删除所选登录日志。
-     *
-     * @param ids 登录日志主键集合
-     */
-    void deleteLoginLogs(List<Long> ids);
 
     /**
      * 清空本次操作可见的全部登录日志。

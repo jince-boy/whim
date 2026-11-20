@@ -123,7 +123,6 @@ export function useOperLog() {
     title: '操作日志',
     columns,
     scrollX: 1180,
-    immediate: canView.value,
     rowKey: (row) => row.id,
     request: ({ pageNum, pageSize, ...query }) =>
       fetchOperLogPage({ ...getFilters(query), pageNum, pageSize }),

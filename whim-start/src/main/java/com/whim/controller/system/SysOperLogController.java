@@ -71,7 +71,7 @@ public class SysOperLogController {
     public Result<Void> deleteOperLogs(
             @RequestParam("operLogIds") @NotEmpty(message = "请选择操作日志")
             List<@NotNull(message = "日志ID不能为空") Long> operLogIds) {
-        operLogService.deleteOperLogs(operLogIds);
+        operLogService.removeByIds(operLogIds);
         return Result.success("操作日志删除成功");
     }
 

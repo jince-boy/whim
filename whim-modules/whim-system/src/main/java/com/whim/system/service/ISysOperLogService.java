@@ -8,8 +8,6 @@ import com.whim.system.model.vo.operlog.SysOperLogDetailVO;
 import com.whim.system.model.vo.operlog.SysOperLogVO;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.List;
-
 /**
  * @author Jince
  * @date 2026/11/19
@@ -31,13 +29,6 @@ public interface ISysOperLogService extends IService<SysOperLog> {
      * @return 操作日志详情
      */
     SysOperLogDetailVO getOperLogDetail(Long id);
-
-    /**
-     * 逻辑删除所选操作日志。
-     *
-     * @param ids 操作日志主键集合
-     */
-    void deleteOperLogs(List<Long> ids);
 
     /**
      * 清空本次操作可见的全部操作日志。

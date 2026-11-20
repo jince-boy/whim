@@ -58,7 +58,7 @@ public class SysLoginLogController {
     public Result<Void> deleteLoginLogs(
             @RequestParam("loginLogIds") @NotEmpty(message = "请选择登录日志")
             List<@NotNull(message = "日志ID不能为空") Long> loginLogIds) {
-        loginLogService.deleteLoginLogs(loginLogIds);
+        loginLogService.removeByIds(loginLogIds);
         return Result.success("登录日志删除成功");
     }
 

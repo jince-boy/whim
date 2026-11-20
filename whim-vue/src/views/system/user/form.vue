@@ -56,7 +56,7 @@ defineExpose({ formRef, formModel })
       <n-form-item-gi label="姓名" path="name" span="2 560:1">
         <n-input v-model:value="formModel.name" :maxlength="24" :input-props="{ autocomplete: 'off', name: 'managedName' }" placeholder="请输入姓名" clearable />
       </n-form-item-gi>
-      <n-form-item-gi v-if="!isEdit" label="初始密码" path="password" span="2 560:1">
+      <n-form-item-gi v-if="!isEdit" label="密码" path="password" span="2 560:1">
         <WhimPassword v-model:value="formModel.password" :user-inputs="[formModel.username, formModel.name, formModel.email ?? '']" :input-props="{ name: 'managedPassword' }" :maxlength="72" placeholder="请输入8～72位密码" />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isEdit" label="确认密码" path="confirmPassword" span="2 560:1">

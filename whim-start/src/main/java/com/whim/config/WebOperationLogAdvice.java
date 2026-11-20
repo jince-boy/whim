@@ -1,6 +1,7 @@
 package com.whim.config;
 
 import com.whim.core.utils.IdUtils;
+import com.whim.core.utils.ServletUtils;
 import com.whim.json.utils.JsonUtils;
 import com.whim.log.enums.LogStatus;
 import com.whim.log.event.OperLogEvent;
@@ -17,7 +18,6 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
@@ -60,7 +60,8 @@ public class WebOperationLogAdvice implements OperationLogResponseHandler, Respo
      */
     @Override
     public boolean deferFailureResponse(Consumer<@Nullable Object> complete) {
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+        ServletRequestAttributes attributes = ServletUtils.getRequestAttributes();
+        if (attributes == null) {
             return false;
         }
         HttpServletRequest request = attributes.getRequest();

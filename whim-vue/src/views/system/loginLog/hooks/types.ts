@@ -26,11 +26,3 @@ export interface LoginLogFilters {
   startTime?: string
   endTime?: string
 }
-
-export interface LoginLogPageResult {
-  currentPage: number
-  data: LoginLog[]
-  pages: number
-  size: number
-  total: number
-}

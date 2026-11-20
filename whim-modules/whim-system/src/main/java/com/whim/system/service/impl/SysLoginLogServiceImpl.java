@@ -50,16 +50,6 @@ public class SysLoginLogServiceImpl extends ServiceImpl<SysLoginLogMapper, SysLo
     }
 
     /**
-     * 逻辑删除所选登录日志。
-     *
-     * @param ids 登录日志主键集合
-     */
-    @Override
-    public void deleteLoginLogs(List<Long> ids) {
-        removeByIds(ids);
-    }
-
-    /**
      * 清空本次操作可见的全部登录日志。
      */
     @Override
@@ -109,6 +99,10 @@ public class SysLoginLogServiceImpl extends ServiceImpl<SysLoginLogMapper, SysLo
      */
     private LambdaQueryWrapper<SysLoginLog> getLoginLogQuery(SysLoginLogQueryDTO query) {
         return new LambdaQueryWrapper<SysLoginLog>()
+                .select(SysLoginLog::getId, SysLoginLog::getUsername, SysLoginLog::getIpAddress,
+                        SysLoginLog::getLoginLocation, SysLoginLog::getBrowser, SysLoginLog::getOs,
+                        SysLoginLog::getDeviceType, SysLoginLog::getStatus, SysLoginLog::getRemark,
+                        SysLoginLog::getLoginTime)
                 .eq(StringUtils.isNotBlank(query.getUsername()), SysLoginLog::getUsername, query.getUsername())
                 .eq(StringUtils.isNotBlank(query.getIpAddress()), SysLoginLog::getIpAddress, query.getIpAddress())
                 .eq(query.getStatus() != null, SysLoginLog::getStatus, query.getStatus())

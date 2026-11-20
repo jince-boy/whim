@@ -36,10 +36,10 @@ public interface IAuthService {
     void updateUserPassword(AuthPasswordUpdateDTO parameter);
 
     /**
-     * 生成与当前客户端地址绑定的登录 GIF 验证码。
+     * 查询验证码开关，启用时签发与当前客户端地址绑定的 GIF 验证码。
      *
      * @param clientAddress 客户端地址
-     * @return GIF 验证码
+     * @return 验证码开关状态及已签发的挑战
      */
     LoginCaptchaVO createCaptcha(String clientAddress);
 

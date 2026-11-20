@@ -47,7 +47,7 @@ export function createPasswordRules(getPassword: () => string): FormRules {
   }
 }
 
-/** 编辑资料不校验密码，新增账号必须设置初始密码。 */
+/** 新增用户时校验密码和确认密码。 */
 export function createUserRules(isEdit: () => boolean, getPassword: () => string): FormRules {
   return {
     ...profileRules,

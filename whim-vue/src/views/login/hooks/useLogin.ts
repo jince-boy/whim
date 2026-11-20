@@ -26,6 +26,7 @@ export function useLogin() {
     rememberMe: false,
   })
   const captcha = ref('')
+  const captchaEnabled = ref(true)
   const captchaLoading = ref(false)
   const captchaController = new AbortController()
   let captchaExpiresAt = 0
@@ -33,7 +34,7 @@ export function useLogin() {
 
   /** 校验并提交登录，失败后更新已被后端消费的验证码。 */
   const handleLogin = async () => {
-    if (spinShow.value || captchaLoading.value || !form.uuid || !formRef.value) return
+    if (spinShow.value || captchaLoading.value || (captchaEnabled.value && !form.uuid) || !formRef.value) return
     spinShow.value = true
     try {
       await formRef.value.validate()
@@ -44,7 +45,7 @@ export function useLogin() {
     let loginToken: string | undefined
     try {
       // 后台标签页的定时器可能延迟，提交前按实际时间再次检查有效期。
-      if (Date.now() >= captchaExpiresAt) {
+      if (captchaEnabled.value && Date.now() >= captchaExpiresAt) {
         await getCaptcha()
         if (form.uuid) message.warning('验证码已自动刷新，请重新输入')
         return
@@ -52,8 +53,7 @@ export function useLogin() {
       const res = await login({
         username: form.username,
         password: form.password,
-        uuid: form.uuid,
-        captchaCode: form.captchaCode,
+        ...(captchaEnabled.value ? { uuid: form.uuid, captchaCode: form.captchaCode } : {}),
       })
       if (res.code !== 200) {
         message.error(res.message)
@@ -103,6 +103,7 @@ export function useLogin() {
     clearTimeout(captchaTimer)
     captchaExpiresAt = 0
     captchaLoading.value = true
+    captchaEnabled.value = true
     form.uuid = ''
     form.captchaCode = ''
     const requestedAt = Date.now()
@@ -112,6 +113,11 @@ export function useLogin() {
       if (res.code !== 200) {
         captcha.value = ''
         message.error(res.message)
+        return
+      }
+      if (res.data.enabled === false) {
+        captchaEnabled.value = false
+        captcha.value = ''
         return
       }
       const imageSource = res.data.image.startsWith('data:')
@@ -162,9 +168,9 @@ export function useLogin() {
     document.removeEventListener('visibilitychange', handleCaptchaVisibility)
   })
   return {
-    formRef,
     form,
     captcha,
+    captchaEnabled,
     userIcon,
     passwordIcon,
     captchaIcon,

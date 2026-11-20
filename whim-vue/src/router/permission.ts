@@ -6,7 +6,6 @@ import { useTabStore } from '@/stores/modules/tab'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useDictStore } from '@/stores/modules/dict'
 import { loadingBar, message } from '@/plugins'
-import systemSetting from '@/config/SystemSetting'
 
 /** 登录和页面刷新共用初始化流程，路由就绪后才进入业务页面。 */
 router.beforeEach(async (to) => {
@@ -61,11 +60,10 @@ router.beforeEach(async (to) => {
   return true
 })
 
-/** 标签激活、浏览器标题和进度条在导航真正完成后统一更新。 */
+/** 标签激活和进度条在导航真正完成后统一更新。 */
 router.afterEach((to, _from, failure) => {
   loadingBar.finish()
   if (failure) return
-  document.title = to.meta.title ? `${systemSetting.title}-${to.meta.title}` : systemSetting.title
   if (to.meta.isTab) useTabStore().visitRoute(to)
 })
 /** 懒加载或路由错误也必须结束进度提示。 */

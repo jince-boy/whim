@@ -1,9 +1,10 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { OperLogDetail, OperLogFilters, OperLogPageResult } from './types'
+import type { TablePage, TablePageQuery } from '@/components/table'
+import type { OperLog, OperLogDetail, OperLogFilters } from './types'
 
 /** 分页查询操作日志。 */
-export function fetchOperLogPage(params: OperLogFilters & { pageNum: number; pageSize: number }) {
-  return request<OperLogPageResult>('/system/operLog/page', RequestMethod.GET, { params })
+export function fetchOperLogPage(params: OperLogFilters & TablePageQuery) {
+  return request<TablePage<OperLog>>('/system/operLog/page', RequestMethod.GET, { params })
 }
 
 /** 按权限单独读取请求和响应摘要。 */

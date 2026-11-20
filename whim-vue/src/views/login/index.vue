@@ -12,9 +12,9 @@ defineOptions({
 const themeVars = useThemeVars()
 const themeStore = useThemeStore()
 const {
-  formRef,
   form,
   captcha,
+  captchaEnabled,
   userIcon,
   passwordIcon,
   captchaIcon,
@@ -60,7 +60,7 @@ const {
                   </template>
                 </n-input>
               </n-form-item>
-              <n-form-item label="验证码" path="captchaCode">
+              <n-form-item v-if="captchaEnabled" label="验证码" path="captchaCode">
                 <n-space class="captcha-row" :wrap="false" :wrap-item="false" :size="12" align="center">
                   <n-input class="captcha-input" v-model:value="form.captchaCode" placeholder="验证码" :maxlength="4" :input-props="{ autocomplete: 'off', 'aria-label': '验证码', spellcheck: false }">
                     <template #prefix>
@@ -88,7 +88,7 @@ const {
                 <n-checkbox v-model:checked="form.rememberMe">保持登录</n-checkbox>
               </n-form-item>
               <n-form-item :show-feedback="false">
-                <n-button type="primary" attr-type="submit" class="login-button" style="width: 100%" :loading="spinShow" :disabled="captchaLoading || !form.uuid">登录</n-button>
+                <n-button type="primary" attr-type="submit" class="login-button" style="width: 100%" :loading="spinShow" :disabled="captchaLoading || (captchaEnabled && !form.uuid)">登录</n-button>
               </n-form-item>
             </n-form>
           </n-card>

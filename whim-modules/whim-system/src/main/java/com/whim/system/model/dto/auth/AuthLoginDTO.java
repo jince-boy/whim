@@ -30,17 +30,15 @@ public class AuthLoginDTO {
     private String password;
 
     /**
-     * 验证码 UUID。
+     * 验证码 UUID，启用验证码时必填。
      */
-    @NotBlank(message = "验证码标识不能为空")
     @Pattern(regexp = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             message = "验证码标识格式错误")
     private String uuid;
 
     /**
-     * GIF 图片中的四位字符。
+     * GIF 图片中的四位字符，启用验证码时必填。
      */
-    @NotBlank(message = "验证码不能为空")
     @Pattern(regexp = "[A-Za-z0-9]{4}", message = "验证码格式错误")
     private String captchaCode;
 }

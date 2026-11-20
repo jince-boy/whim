@@ -9,11 +9,13 @@ import lombok.Data;
  */
 @Data
 public class LoginCaptchaVO {
+    /** 当前是否要求登录验证码。 */
+    private boolean enabled;
 
     /** 验证码唯一标识。 */
     private String uuid;
 
-    /** GIF 图片的纯 Base64 编码。 */
+    /** 启用时签发的 GIF 图片 Base64 数据。 */
     private String image;
 
     /** 验证码剩余有效期，单位为秒。 */

@@ -72,7 +72,6 @@ export function useLoginLog() {
     title: '登录日志',
     columns,
     scrollX: 1320,
-    immediate: canView.value,
     rowKey: (row) => row.id,
     request: ({ pageNum, pageSize, ...query }) =>
       fetchLoginLogPage({ ...getLoginLogFilters(query), pageNum, pageSize }),
