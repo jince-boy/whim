@@ -130,7 +130,7 @@ public class AuthController {
     @SystemCheckLogin
     @RequestDecrypt
     @XssIgnore
-    @Log(title = "修改本人密码", type = LogType.UPDATE)
+    @Log(title = "修改本人密码", type = LogType.UPDATE, excludeFields = {"oldPassword", "newPassword"})
     @PutMapping("/password")
     public Result<Void> updateUserPassword(@RequestBody @Valid AuthPasswordUpdateDTO parameter) {
         authService.updateUserPassword(parameter);
@@ -144,7 +144,7 @@ public class AuthController {
      * @return 头像地址
      */
     @SystemCheckLogin
-    @Log(title = "上传头像", type = LogType.UPDATE)
+    @Log(title = "上传头像", type = LogType.UPDATE, excludeFields = "file")
     @PostMapping(value = "/uploadAvatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<String> addUserAvatar(@Valid @ModelAttribute SysUserAvatarUploadDTO parameter) {
         return Result.success("头像上传成功", userService.addUserAvatar(parameter));

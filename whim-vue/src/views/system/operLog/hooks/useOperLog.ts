@@ -14,6 +14,16 @@ import {
 } from './api'
 import type { OperLog, OperLogDetail, OperLogFilters, OperLogQuery } from './types'
 
+/** 按两空格缩进展示 JSON，历史纯文本摘要按原文展示。 */
+function formatSummary(value: string | null | undefined): string {
+  if (!value?.trim()) return ''
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2)
+  } catch {
+    return value
+  }
+}
+
 /** 列表与导出共用已提交的筛选条件。 */
 function getFilters(query: OperLogQuery): OperLogFilters {
   return {
@@ -45,6 +55,15 @@ export function useOperLog() {
   const { openDeleteDialog } = useFormDialog()
   const showModal = ref(false)
   const currentOperLog = ref<OperLogDetail | null>(null)
+  const requestSummary = computed(() => formatSummary(currentOperLog.value?.requestParam))
+  const responseSummary = computed(() => formatSummary(currentOperLog.value?.responseParam))
+  const failureReason = computed(() => {
+    const message = currentOperLog.value?.errorMessage
+    // 旧版只保存了异常类名，无法从该条审计记录还原业务原因。
+    return message && /^操作失败（[\w.$]*(?:Exception|Error)）$/.test(message)
+      ? '此条历史日志未记录具体失败原因'
+      : message
+  })
   let detailVersion = 0
 
   const columns = computed<DataTableColumns<OperLog>>(() => {
@@ -209,6 +228,9 @@ export function useOperLog() {
     handleCleanOperLog,
     showModal,
     currentOperLog,
+    requestSummary,
+    responseSummary,
+    failureReason,
     getDictOperTypeData,
     getDictStatusData,
   }

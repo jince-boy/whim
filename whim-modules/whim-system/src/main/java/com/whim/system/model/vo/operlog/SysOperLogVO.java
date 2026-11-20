@@ -1,6 +1,7 @@
 package com.whim.system.model.vo.operlog;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.whim.core.utils.IPUtils;
 import com.whim.system.model.entity.SysOperLog;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -42,4 +43,13 @@ public class SysOperLogVO {
     private LocalDateTime operTime;
     @ExcelProperty(value = "耗时（毫秒）", index = 8)
     private Long costTime;
+
+    /**
+     * 获取操作日志中可读的 IP 归属地。
+     *
+     * @return 操作地点
+     */
+    public String getOperLocation() {
+        return IPUtils.formatRecordedLocation(operIp, operLocation);
+    }
 }

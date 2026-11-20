@@ -1,6 +1,7 @@
 package com.whim.system.model.vo.loginlog;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.whim.core.utils.IPUtils;
 import com.whim.system.model.entity.SysLoginLog;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -42,4 +43,13 @@ public class SysLoginLogVO {
     @JsonIgnore
     @ExcelProperty(value = "登录结果", index = 7)
     private String statusLabel;
+
+    /**
+     * 获取登录日志中可读的 IP 归属地。
+     *
+     * @return 登录地点
+     */
+    public String getLoginLocation() {
+        return IPUtils.formatRecordedLocation(ipAddress, loginLocation);
+    }
 }

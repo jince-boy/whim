@@ -6,13 +6,10 @@ import com.whim.core.exception.DataAccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.IPUtils;
 import com.whim.core.utils.ServletUtils;
-import com.whim.json.utils.JsonUtils;
 import com.whim.log.annotation.Log;
 import com.whim.log.enums.LogStatus;
 import com.whim.log.event.OperLogEvent;
-import com.whim.web.model.Result;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import com.whim.log.response.OperationLogResponseHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,16 +18,11 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 /**
  * @author Jince
@@ -41,13 +33,9 @@ import java.util.regex.Pattern;
 @Slf4j
 @RequiredArgsConstructor
 public class LogAspect {
-    private static final Pattern FIELD_NAME = Pattern.compile("[a-zA-Z][a-zA-Z0-9]*");
-    private static final Pattern SENSITIVE_FIELD = Pattern.compile(
-            "password|passwd|token|secret|credential|privatekey|accesskey|authorization|cookie|captcha",
-            Pattern.CASE_INSENSITIVE);
-
-    private final AuthenticationContext authenticationContext;
+    private final @Nullable AuthenticationContext authenticationContext;
     private final ApplicationEventPublisher eventPublisher;
+    private final @Nullable OperationLogResponseHandler responseHandler;
 
     /**
      * 在请求线程采集操作者和结果，业务方法只执行一次。
@@ -63,7 +51,7 @@ public class LogAspect {
                 .logType(operation.type()).operTime(LocalDateTime.now().withNano(0));
         try {
             // 密码变更或退出可能使当前会话失效，必须先保存操作者身份。
-            if (authenticationContext.isLogin()) {
+            if (authenticationContext != null && authenticationContext.isLogin()) {
                 event.operName(authenticationContext.getCurrentUserInfo().getUsername());
             }
             HttpServletRequest request = ServletUtils.getRequest();
@@ -73,7 +61,8 @@ public class LogAspect {
             }
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
             event.methodName(signature.getDeclaringTypeName() + "." + signature.getName());
-            event.requestParam(getRequestParameters(signature, joinPoint.getArgs(), operation.requestFields()));
+            event.requestParam(new OperationLogRequestSnapshot(operation.excludeFields())
+                    .capture(signature.getMethod(), joinPoint.getArgs()));
         } catch (RuntimeException exception) {
             log.warn("操作日志来源信息采集失败，模块={}", operation.title(), exception);
         }
@@ -88,28 +77,49 @@ public class LogAspect {
             failure = exception;
             throw exception;
         } finally {
-            try {
-                event.costTime(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
-                boolean success = failure == null;
-                if (failure != null) {
-                    event.errorMessage(getFailureReason(failure));
-                } else if (response instanceof Result<?> result) {
-                    success = result.isSuccess();
-                    // 响应仅保留状态摘要，避免将用户资料、文件或令牌复制到审计表。
-                    event.responseParam(JsonUtils.toJson(Map.of("code", result.getCode(), "success", success)));
-                    if (!success) {
-                        event.errorMessage("操作失败，业务状态码为" + result.getCode());
-                    }
+            event.costTime(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start))
+                    .status(failure == null ? LogStatus.SUCCESS : LogStatus.FAILURE);
+            boolean deferred = false;
+            if (failure != null) {
+                event.errorMessage(getFailureReason(failure));
+                try {
+                    // 控制器抛出异常时，MVC 尚未生成用户实际看到的错误响应。
+                    deferred = responseHandler != null && responseHandler.deferFailureResponse(
+                            result -> publishOperation(event, result));
+                } catch (RuntimeException exception) {
+                    log.warn("操作日志等待错误响应失败，模块={}", operation.title(), exception);
                 }
-                eventPublisher.publishEvent(event.status(success ? LogStatus.SUCCESS : LogStatus.FAILURE).build());
-            } catch (RuntimeException exception) {
-                log.error("操作日志事件投递失败，模块={}", operation.title(), exception);
+            }
+            if (!deferred) {
+                publishOperation(event, response);
             }
         }
     }
 
     /**
-     * 保存项目定义的业务拒绝原因，底层异常只保留类别以免泄露技术细节。
+     * 补充应用的公开响应并投递审计事件。
+     *
+     * @param event 已采集的操作信息
+     * @param response 应用返回的响应，无响应时为空
+     */
+    private void publishOperation(OperLogEvent.OperLogEventBuilder event, @Nullable Object response) {
+        try {
+            if (response != null && responseHandler != null) {
+                responseHandler.recordResponse(response, event);
+            }
+        } catch (RuntimeException exception) {
+            log.warn("操作日志响应信息采集失败", exception);
+        }
+        OperLogEvent operation = event.build();
+        try {
+            eventPublisher.publishEvent(operation);
+        } catch (RuntimeException exception) {
+            log.error("操作日志事件投递失败，模块={}", operation.getTitle(), exception);
+        }
+    }
+
+    /**
+     * 在应用未提供错误响应时保留已知业务原因，其他失败使用通用说明。
      *
      * @param failure 操作抛出的异常
      * @return 可写入审计详情的失败原因
@@ -120,47 +130,6 @@ public class LogAspect {
                 && StringUtils.isNotBlank(failure.getMessage())) {
             return StringUtils.left(failure.getMessage(), 512);
         }
-        return "操作失败（" + failure.getClass().getSimpleName() + "）";
-    }
-
-    /**
-     * 按注解声明的字段采集简单值，批量标识仅保留有限条数及总数。
-     *
-     * @param signature 控制器方法签名
-     * @param arguments 已绑定的请求参数
-     * @param fields 允许写入日志的字段
-     * @return 请求摘要的 JSON，无匹配字段时为空
-     */
-    private String getRequestParameters(MethodSignature signature, Object[] arguments, String[] fields) {
-        Map<String, Object> snapshot = new LinkedHashMap<>();
-        String[] names = signature.getParameterNames();
-        for (int index = 0; fields.length > 0 && index < arguments.length; index++) {
-            Object argument = arguments[index];
-            if (argument == null || argument instanceof ServletRequest || argument instanceof ServletResponse) {
-                continue;
-            }
-            BeanWrapper properties = PropertyAccessorFactory.forBeanPropertyAccess(argument);
-            for (String field : fields) {
-                // 即使误配了注解，也禁止展开嵌套对象或读取凭据字段。
-                if (!FIELD_NAME.matcher(field).matches() || SENSITIVE_FIELD.matcher(field).find()) {
-                    continue;
-                }
-                Object value = null;
-                if (names != null && field.equals(names[index])) {
-                    value = argument;
-                } else if (properties.isReadableProperty(field)) {
-                    value = properties.getPropertyValue(field);
-                }
-                if (value instanceof String string) {
-                    snapshot.put(field, StringUtils.left(string, 128));
-                } else if (value instanceof Number || value instanceof Boolean) {
-                    snapshot.put(field, value);
-                } else if (value instanceof Collection<?> items) {
-                    snapshot.put(field, items.stream().limit(50).filter(Number.class::isInstance).toList());
-                    snapshot.put(field + "Count", items.size());
-                }
-            }
-        }
-        return snapshot.isEmpty() ? null : JsonUtils.toJson(snapshot);
+        return "操作失败，未获取到具体原因";
     }
 }

@@ -52,7 +52,7 @@ public class SysLoginLogController {
      * @param loginLogIds 所选登录日志主键
      * @return 删除结果
      */
-    @Log(title = "登录日志", type = LogType.DELETE, requestFields = "loginLogIds")
+    @Log(title = "登录日志", type = LogType.DELETE)
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:loginLog:delete")
     public Result<Void> deleteLoginLogs(
@@ -81,7 +81,7 @@ public class SysLoginLogController {
      * @param query 登录日志筛选条件
      * @param response 下载响应
      */
-    @Log(title = "登录日志", type = LogType.EXPORT, requestFields = {"username", "status"})
+    @Log(title = "登录日志", type = LogType.EXPORT)
     @GetMapping("/export")
     @SystemCheckPermission("system:loginLog:export")
     public void exportLoginLogs(@Valid SysLoginLogQueryDTO query, HttpServletResponse response) {

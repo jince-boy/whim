@@ -64,7 +64,7 @@ public class SysPostController {
      * @param parameter 岗位新增参数
      * @return 新增结果
      */
-    @Log(title = "岗位管理", type = LogType.INSERT, requestFields = {"deptId", "postCode", "postName"})
+    @Log(title = "岗位管理", type = LogType.INSERT)
     @PostMapping("/add")
     @SystemCheckPermission("system:post:create")
     public Result<Void> addPost(@Valid @RequestBody SysPostAddDTO parameter) {
@@ -78,7 +78,7 @@ public class SysPostController {
      * @param parameter 岗位ID及修改字段
      * @return 修改结果
      */
-    @Log(title = "岗位管理", type = LogType.UPDATE, requestFields = {"id", "deptId", "postCode"})
+    @Log(title = "岗位管理", type = LogType.UPDATE)
     @PutMapping("/update")
     @SystemCheckPermission("system:post:update")
     public Result<Void> updatePost(@Valid @RequestBody SysPostUpdateDTO parameter) {
@@ -92,7 +92,7 @@ public class SysPostController {
      * @param id 岗位ID
      * @return 删除结果
      */
-    @Log(title = "岗位管理", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "岗位管理", type = LogType.DELETE)
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:post:delete")
     public Result<Void> deletePost(@RequestParam Long id) {

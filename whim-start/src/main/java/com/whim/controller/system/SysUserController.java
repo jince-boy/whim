@@ -101,7 +101,7 @@ public class SysUserController {
      * @param parameter 用户新增参数
      * @return 新增用户成功响应
      */
-    @Log(title = "用户管理", type = LogType.INSERT, requestFields = {"username", "deptId"})
+    @Log(title = "用户管理", type = LogType.INSERT, excludeFields = "password")
     @PostMapping("/add")
     @SystemCheckPermission("system:user:create")
     public Result<Void> addUser(@Valid @RequestBody SysUserAddDTO parameter) {
@@ -115,7 +115,7 @@ public class SysUserController {
      * @param parameter 本地头像图片
      * @return 头像地址
      */
-    @Log(title = "上传头像", type = LogType.UPDATE)
+    @Log(title = "上传头像", type = LogType.UPDATE, excludeFields = "file")
     @PostMapping(value = "/uploadAvatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SystemCheckPermission(value = {"system:user:create", "system:user:update"}, mode = SaMode.OR)
     public Result<String> addUserAvatar(@Valid @ModelAttribute SysUserAvatarUploadDTO parameter) {
@@ -128,7 +128,7 @@ public class SysUserController {
      * @param parameter 用户ID及完整修改字段
      * @return 修改用户成功响应
      */
-    @Log(title = "用户管理", type = LogType.UPDATE, requestFields = {"id", "deptId", "status"})
+    @Log(title = "用户管理", type = LogType.UPDATE)
     @PutMapping("/update")
     @SystemCheckPermission("system:user:update")
     public Result<Void> updateUser(@Valid @RequestBody SysUserUpdateDTO parameter) {
@@ -142,7 +142,7 @@ public class SysUserController {
      * @param parameter 用户ID及新密码
      * @return 修改密码成功响应
      */
-    @Log(title = "重置用户密码", type = LogType.UPDATE, requestFields = "id")
+    @Log(title = "重置用户密码", type = LogType.UPDATE, excludeFields = "password")
     @PutMapping("/resetPassword")
     @SystemCheckPermission("system:user:resetPassword")
     public Result<Void> resetUserPassword(@Valid @RequestBody SysUserPasswordDTO parameter) {
@@ -156,7 +156,7 @@ public class SysUserController {
      * @param parameter 用户ID及完整角色集合
      * @return 分配角色成功响应
      */
-    @Log(title = "分配角色", type = LogType.UPDATE, requestFields = {"id", "roleIds"})
+    @Log(title = "分配角色", type = LogType.UPDATE)
     @PutMapping("/assignRoles")
     @SystemCheckPermission("system:userRole:assign")
     public Result<Void> assignUserRoles(@Valid @RequestBody SysUserRoleDTO parameter) {
@@ -170,7 +170,7 @@ public class SysUserController {
      * @param id 用户ID
      * @return 删除用户成功响应
      */
-    @Log(title = "用户管理", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "用户管理", type = LogType.DELETE)
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:user:delete")
     public Result<Void> deleteUser(@RequestParam Long id) {

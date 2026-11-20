@@ -65,7 +65,7 @@ public class SysOperLogController {
      * @param operLogIds 所选操作日志主键
      * @return 删除结果
      */
-    @Log(title = "操作日志", type = LogType.DELETE, requestFields = "operLogIds")
+    @Log(title = "操作日志", type = LogType.DELETE)
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:operLog:delete")
     public Result<Void> deleteOperLogs(
@@ -94,7 +94,7 @@ public class SysOperLogController {
      * @param query 操作日志筛选条件
      * @param response 下载响应
      */
-    @Log(title = "操作日志", type = LogType.EXPORT, requestFields = {"title", "status", "logType", "operName"})
+    @Log(title = "操作日志", type = LogType.EXPORT)
     @GetMapping("/export")
     @SystemCheckPermission("system:operLog:export")
     public void exportOperLogs(@Valid SysOperLogQueryDTO query, HttpServletResponse response) {

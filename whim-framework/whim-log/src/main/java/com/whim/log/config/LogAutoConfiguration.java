@@ -3,8 +3,9 @@ package com.whim.log.config;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.log.aspect.LogAspect;
 import com.whim.log.publisher.LoginLogPublisher;
+import com.whim.log.response.OperationLogResponseHandler;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -36,15 +37,17 @@ public class LogAutoConfiguration {
     /**
      * 注册控制器操作审计切面。
      *
-     * @param authenticationContext 操作者认证上下文
+     * @param authenticationContext 应用提供的操作者认证上下文，可空
      * @param eventPublisher Spring 事件发布器
+     * @param responseHandler 应用提供的响应处理器，可空
      * @return 操作日志切面
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnClass(name = "com.whim.web.model.Result")
-    public LogAspect logAspect(AuthenticationContext authenticationContext, ApplicationEventPublisher eventPublisher) {
-        return new LogAspect(authenticationContext, eventPublisher);
+    public LogAspect logAspect(@Nullable AuthenticationContext authenticationContext,
+                               ApplicationEventPublisher eventPublisher,
+                               @Nullable OperationLogResponseHandler responseHandler) {
+        return new LogAspect(authenticationContext, eventPublisher, responseHandler);
     }
 
     /**

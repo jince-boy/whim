@@ -124,7 +124,7 @@ public class SysFileController {
      * @param parameter 文件信息及幂等请求标识
      * @return 上传任务
      */
-    @Log(title = "创建上传任务", type = LogType.INSERT, requestFields = {"uploadSource", "fileSize"})
+    @Log(title = "创建上传任务", type = LogType.INSERT)
     @PostMapping("/uploadTask")
     @SystemCheckPermission("system:file:upload")
     public Result<SysFileUploadTaskVO> addFileUploadTask(@Valid @RequestBody SysFileUploadTaskAddDTO parameter) {
@@ -150,7 +150,7 @@ public class SysFileController {
      * @param id 上传任务ID
      * @return 已完成的上传任务
      */
-    @Log(title = "完成分片上传", type = LogType.INSERT, requestFields = "id")
+    @Log(title = "完成分片上传", type = LogType.INSERT)
     @PostMapping("/completeUpload")
     @SystemCheckPermission("system:file:upload")
     public Result<SysFileUploadTaskVO> completeFileUpload(@RequestParam Long id) {
@@ -163,7 +163,7 @@ public class SysFileController {
      * @param id 上传任务ID
      * @return 取消结果，已完成任务仍返回完成状态
      */
-    @Log(title = "取消上传任务", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "取消上传任务", type = LogType.DELETE)
     @DeleteMapping("/cancelUpload")
     @SystemCheckPermission("system:file:upload")
     public Result<SysFileUploadTaskVO> cancelFileUpload(@RequestParam Long id) {
@@ -176,7 +176,7 @@ public class SysFileController {
      * @param parameter 上传参数
      * @return 上传文件结果
      */
-    @Log(title = "文件管理", type = LogType.INSERT, requestFields = "uploadSource")
+    @Log(title = "文件管理", type = LogType.INSERT, excludeFields = "file")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     @SystemCheckPermission("system:file:upload")
     public Result<SysFileVO> addFile(@Valid @ModelAttribute SysFileUploadDTO parameter) {
@@ -189,7 +189,7 @@ public class SysFileController {
      * @param parameter 配置参数
      * @return 操作结果
      */
-    @Log(title = "存储配置", type = LogType.INSERT, requestFields = {"name", "platform"})
+    @Log(title = "存储配置", type = LogType.INSERT, excludeFields = {"accessKey", "secretKey"})
     @PostMapping("/addStorage")
     @SystemCheckPermission("system:file:addStorage")
     public Result<Void> addStorage(@Valid @RequestBody SysFileStorageAddDTO parameter) {
@@ -203,7 +203,7 @@ public class SysFileController {
      * @param parameter 配置参数
      * @return 操作结果
      */
-    @Log(title = "存储配置", type = LogType.UPDATE, requestFields = {"id", "name", "platform"})
+    @Log(title = "存储配置", type = LogType.UPDATE, excludeFields = {"accessKey", "secretKey"})
     @PutMapping("/updateStorage")
     @SystemCheckPermission("system:file:updateStorage")
     public Result<Void> updateStorage(@Valid @RequestBody SysFileStorageUpdateDTO parameter) {
@@ -217,7 +217,7 @@ public class SysFileController {
      * @param id 配置ID
      * @return 操作结果
      */
-    @Log(title = "默认存储", type = LogType.UPDATE, requestFields = "id")
+    @Log(title = "默认存储", type = LogType.UPDATE)
     @PutMapping("/defaultStorage")
     @SystemCheckPermission("system:file:defaultStorage")
     public Result<Void> updateDefaultStorage(@RequestParam Long id) {
@@ -231,7 +231,7 @@ public class SysFileController {
      * @param id 文件ID
      * @return 操作结果
      */
-    @Log(title = "文件管理", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "文件管理", type = LogType.DELETE)
     @DeleteMapping("/delete")
     @SystemCheckPermission("system:file:delete")
     public Result<Void> deleteFile(@RequestParam Long id) {
@@ -245,7 +245,7 @@ public class SysFileController {
      * @param id 配置ID
      * @return 操作结果
      */
-    @Log(title = "存储配置", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "存储配置", type = LogType.DELETE)
     @DeleteMapping("/deleteStorage")
     @SystemCheckPermission("system:file:deleteStorage")
     public Result<Void> deleteStorage(@RequestParam Long id) {
@@ -259,7 +259,7 @@ public class SysFileController {
      * @param id 文件ID
      * @param response 下载响应
      */
-    @Log(title = "下载文件", type = LogType.EXPORT, requestFields = "id")
+    @Log(title = "下载文件", type = LogType.EXPORT)
     @GetMapping("/download")
     @SystemCheckPermission("system:file:download")
     public void downloadFile(@RequestParam Long id, HttpServletResponse response) {

@@ -32,9 +32,10 @@ public @interface Log {
     LogType type();
 
     /**
-     * 指定可以保存的请求字段，仅支持直接参数或请求对象的顶层属性。
+     * 指定本次操作不记录的请求字段，在各层对象和集合元素中按完整字段名区分大小写匹配。
+     * 默认为空，涉及密码、密钥等业务字段时由接口显式声明。
      *
-     * @return 可记录的业务字段名称
+     * @return 不写入请求摘要的字段名称
      */
-    String[] requestFields() default {};
+    String[] excludeFields() default {};
 }

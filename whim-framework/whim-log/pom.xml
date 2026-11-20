@@ -19,10 +19,5 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-json</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.whim</groupId>
-            <artifactId>whim-web</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 </project>

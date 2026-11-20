@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +45,7 @@ public final class IPUtils {
     private static final String UNKNOWN = "unknown";
     private static final String FORWARDED_HEADER = "Forwarded";
     private static final String LOCALHOST_IPV4 = "127.0.0.1";
+    private static final Pattern RESERVED_REGION = Pattern.compile("Reserved(?:\\|Reserved)*", Pattern.CASE_INSENSITIVE);
     private static final List<String> CLIENT_IP_HEADERS = List.of(
             "X-Forwarded-For",
             "X-Real-IP",
@@ -141,17 +143,50 @@ public final class IPUtils {
      * @return 归属地信息
      */
     private static String searchCityInfo(InetAddress address) {
-        InetAddress lookupAddress = address.isLoopbackAddress()
-                ? parseIpAddress(LOCALHOST_IPV4).orElse(address)
-                : address;
-        String ip = lookupAddress.getHostAddress();
+        String localLocation = getLocalLocation(address);
+        if (localLocation != null) {
+            return localLocation;
+        }
+        String ip = address.getHostAddress();
         try {
-            String region = selectSearcher(lookupAddress).search(ip);
+            String region = selectSearcher(address).search(ip);
             return normalizeRegion(region).orElse(null);
         } catch (Exception exception) {
             log.error("IP 离线归属地查询失败，ip={}", ip, exception);
             throw new ServiceException("IP地址离线归属地查询失败: " + ip, exception);
         }
+    }
+
+    /**
+     * 展示已保存的归属地，按原始 IP 解释旧版离线库的保留地址占位符。
+     *
+     * @param ip 记录中的 IP 地址
+     * @param location 保存时的归属地
+     * @return 用于展示的归属地
+     */
+    public static String formatRecordedLocation(String ip, String location) {
+        if (location != null && RESERVED_REGION.matcher(location).matches()) {
+            return parseIpAddress(ip).map(IPUtils::getLocalLocation).orElse("保留地址");
+        }
+        return location;
+    }
+
+    /**
+     * 判断不能映射到公共地理位置的本机和内网地址。
+     *
+     * @param address 已解析的 IP 地址
+     * @return 本机或内网说明，其他地址返回空值
+     */
+    private static String getLocalLocation(InetAddress address) {
+        if (address.isLoopbackAddress()) {
+            return "本机地址";
+        }
+        // InetAddress 的站点本地判断不包含 IPv6 唯一本地地址 fc00::/7。
+        if (address.isSiteLocalAddress() || address.isLinkLocalAddress()
+                || (address instanceof Inet6Address && (address.getAddress()[0] & 0xfe) == 0xfc)) {
+            return "内网地址";
+        }
+        return null;
     }
 
     /**
@@ -371,6 +406,9 @@ public final class IPUtils {
                 .filter(segment -> !segment.isEmpty())
                 .filter(segment -> !"0".equals(segment))
                 .collect(Collectors.joining("|"));
+        if (RESERVED_REGION.matcher(normalized).matches()) {
+            return Optional.of("保留地址");
+        }
         return normalized.isEmpty() ? Optional.empty() : Optional.of(normalized);
     }
 

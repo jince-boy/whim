@@ -101,7 +101,7 @@ public class SysPermissionController {
      * @param parameter 菜单新增参数
      * @return 新增菜单id
      */
-    @Log(title = "菜单管理", type = LogType.INSERT, requestFields = {"parentId", "menuName", "menuType", "perms"})
+    @Log(title = "菜单管理", type = LogType.INSERT)
     @PostMapping
     @SystemCheckPermission("system:menu:create")
     public Result<Long> addMenu(@Valid @RequestBody SysMenuSaveDTO parameter) {
@@ -114,7 +114,7 @@ public class SysPermissionController {
      * @param parameter 菜单ID及完整修改参数
      * @return 修改结果
      */
-    @Log(title = "菜单管理", type = LogType.UPDATE, requestFields = {"id", "parentId", "menuName", "perms"})
+    @Log(title = "菜单管理", type = LogType.UPDATE)
     @PutMapping("/update")
     @SystemCheckPermission("system:menu:update")
     public Result<Void> updateMenu(@Valid @RequestBody SysMenuUpdateDTO parameter) {
@@ -128,7 +128,7 @@ public class SysPermissionController {
      * @param id 菜单id
      * @return 删除结果
      */
-    @Log(title = "菜单管理", type = LogType.DELETE, requestFields = "id")
+    @Log(title = "菜单管理", type = LogType.DELETE)
     @DeleteMapping("/{id}")
     @SystemCheckPermission("system:menu:delete")
     public Result<Void> deleteMenu(@PathVariable Long id) {
