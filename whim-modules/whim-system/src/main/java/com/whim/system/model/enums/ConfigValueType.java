@@ -8,5 +8,6 @@ package com.whim.system.model.enums;
 public enum ConfigValueType {
     TEXT,
     RADIO,
-    JSON
+    JSON,
+    IMAGE
 }

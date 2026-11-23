@@ -12,4 +12,5 @@ public class SiteSettingsVO {
     private String title;
     private String description;
     private String copyright;
+    private String logoFileId;
 }

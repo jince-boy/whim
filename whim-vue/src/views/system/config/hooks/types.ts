@@ -1,16 +1,10 @@
 export type ConfigId = string | number
 
-export type ValueType = 'TEXT' | 'RADIO' | 'JSON'
+export type ValueType = 'TEXT' | 'RADIO' | 'JSON' | 'IMAGE'
 
 export interface ConfigOption {
   label: string
   value: string
-}
-
-export const valueTypeLabels: Record<ValueType, string> = {
-  TEXT: '文本',
-  RADIO: '单选',
-  JSON: 'JSON',
 }
 
 export interface ConfigQuery {
@@ -31,6 +25,7 @@ export interface ConfigItem {
 }
 
 export interface ConfigFormModel {
+  imageFile: File | null
   configName: string
   configKey: string
   configValue: string
@@ -43,7 +38,16 @@ export interface ConfigFormProps {
   initialModel?: ConfigItem
 }
 
+export interface ConfigImageProps {
+  configId?: ConfigId
+  fileId?: string | null
+  file?: File | null
+  siteLogo?: boolean
+  size?: number
+}
+
 export interface SiteSettings {
+  logoFileId: string | null
   title: string | null
   description: string | null
   copyright: string | null

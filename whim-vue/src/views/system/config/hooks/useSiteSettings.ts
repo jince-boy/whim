@@ -3,6 +3,7 @@ import { fetchSiteSettings } from './api'
 import type { ConfigItem, SiteSettings } from './types'
 
 const siteSettingFields = new Map<string, keyof SiteSettings>([
+  ['system.site.logo', 'logoFileId'],
   ['system.site.title', 'title'],
   ['system.site.description', 'description'],
   ['system.site.copyright', 'copyright'],

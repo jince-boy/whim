@@ -5,9 +5,11 @@ import type { SearchFormField } from '@/components/form'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import ConfigForm from '../form.vue'
-import { addConfig, deleteConfig, fetchConfigPage, updateConfig } from './api'
+import ConfigImage from '../components/ConfigImage.vue'
+import ConfigValueTypeTag from '../components/ConfigValueTypeTag.vue'
+import { addConfig, deleteConfig, fetchConfigPage, updateConfig, uploadConfigImage } from './api'
 import { getEffectiveConfigValue, getSiteSettingField, refreshSiteSettings } from './useSiteSettings'
-import { valueTypeLabels, type ConfigItem, type ConfigQuery } from './types'
+import type { ConfigItem, ConfigQuery } from './types'
 
 const searchFields: (SearchFormField<ConfigQuery> & { maxLength: number })[] = [
   { key: 'configName', label: '配置名称', maxLength: 128 },
@@ -25,11 +27,17 @@ export function useConfig(builtIn: boolean) {
     const items: DataTableColumns<ConfigItem> = [
       { title: '配置名称', key: 'configName', minWidth: 135, ellipsis: { tooltip: true } },
       { title: '配置键', key: 'configKey', minWidth: 190, ellipsis: { tooltip: true } },
-      { title: '值类型', key: 'valueType', width: 78, render: (row) => valueTypeLabels[row.valueType] },
+      {
+        title: '值类型', key: 'valueType', minWidth: 88,
+        render: (row) => h(ConfigValueTypeTag, { value: row.valueType }),
+      },
       {
         title: '配置值', key: 'configValue', minWidth: 130, ellipsis: { tooltip: true },
         render: (row) => {
           const value = getEffectiveConfigValue(row)
+          if (row.valueType === 'IMAGE') {
+            return h(ConfigImage, { configId: row.id, fileId: value, siteLogo: getSiteSettingField(row) === 'logoFileId' })
+          }
           if (row.valueType === 'JSON') return h(NCode, { language: 'json', code: value, inline: true, trim: false })
           if (row.valueType === 'RADIO') {
             return row.valueOptions?.find(option => option.value === value)?.label ?? value
@@ -66,7 +74,11 @@ export function useConfig(builtIn: boolean) {
   function openAddDialog() {
     openFormDialog({
       title: '新增自定义配置', formComponent: ConfigForm,
-      onSubmit: addConfig, onSuccess: table.reload,
+      onSubmit: async ({ imageFile, ...data }) => {
+        if (imageFile) data.configValue = await uploadConfigImage(imageFile)
+        return addConfig(data)
+      },
+      onSuccess: table.reload,
     })
   }
 
@@ -75,12 +87,13 @@ export function useConfig(builtIn: boolean) {
     openFormDialog({
       title: row.builtIn ? '修改系统配置' : '修改自定义配置',
       formComponent: ConfigForm, formProps: { initialModel: row },
-      onSubmit: (model) => {
+      onSubmit: async (model) => {
         // 原先继承部署设置时，直接保存不能把当前部署值固化成数据库覆盖值。
         const inherited = siteField && !row.configValue?.trim()
+        const configValue = model.imageFile ? await uploadConfigImage(model.imageFile) : model.configValue
         return updateConfig({
           id: row.id,
-          configValue: inherited && model.configValue === getEffectiveConfigValue(row) ? '' : model.configValue,
+          configValue: inherited && configValue === getEffectiveConfigValue(row) ? '' : configValue,
           ...(row.builtIn ? {} : {
             configName: model.configName, remark: model.remark, valueType: model.valueType, valueOptions: model.valueOptions,
           }),

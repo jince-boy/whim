@@ -8,6 +8,7 @@ import com.whim.system.model.dto.config.SysConfigUpdateDTO;
 import com.whim.system.model.entity.SysConfig;
 import com.whim.system.model.vo.config.SiteSettingsVO;
 import com.whim.system.model.vo.config.SysConfigVO;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Jince
@@ -33,9 +34,33 @@ public interface ISysConfigService extends IService<SysConfig> {
     /**
      * 查询可在登录前展示的网站信息。
      *
-     * @return 网站标题、介绍和版权信息
+     * @return 网站标题、介绍、版权和当前 Logo 文件标识
      */
     SiteSettingsVO getSiteSettings();
+
+    /**
+     * 获取正在使用的公开系统 Logo 缩略图。
+     *
+     * @param id 网站配置返回的 Logo 文件ID
+     * @return PNG 图片，不可用时为空数组
+     */
+    byte[] getSiteLogo(Long id);
+
+    /**
+     * 根据配置记录读取其保存的图片预览。
+     *
+     * @param id 配置记录ID
+     * @return PNG 图片，不可用时为空数组
+     */
+    byte[] getConfigImage(Long id);
+
+    /**
+     * 将配置图片保存到默认文件存储。
+     *
+     * @param file 本地图片
+     * @return 可写入配置值的文件ID
+     */
+    Long addConfigImage(MultipartFile file);
 
     /**
      * 新增自定义配置。

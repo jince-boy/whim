@@ -164,6 +164,7 @@ sa-token:
     - /
     - /system/auth/captcha
     - /system/config/site
+    - /system/config/siteLogo
     - /system/auth/requestEncryptionKey
     - /system/auth/login
     - /system/auth/verifyLogin

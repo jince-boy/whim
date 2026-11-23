@@ -7,7 +7,7 @@ import LayoutHeader from '@/layout/components/header/index.vue'
 import LayoutFooter from '@/layout/components/footer/index.vue'
 import LayoutUserMenu from '@/layout/components/userMenu/index.vue'
 import systemSetting from '@/config/SystemSetting'
-import logoUrl from '@/assets/images/logo.png'
+import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
 import { useLayout } from './hooks/useLayout'
 defineOptions({ name: 'LayoutIndex' })
 const {
@@ -69,7 +69,6 @@ const {
       </n-layout-sider>
       <n-layout-header
         class="layout-header"
-        :class="{ 'layout-header--inverted': layoutMode !== 'side' && themeStore.getMenuInverted }"
         bordered
         :inverted="layoutMode !== 'side' && themeStore.getMenuInverted"
       >
@@ -81,14 +80,7 @@ const {
         >
           <template v-if="layoutMode !== 'side' && themeStore.getShowLogo" #brand>
             <RouterLink :to="homePath" class="layout-brand" :title="systemSetting.title">
-              <n-image
-                :src="logoUrl"
-                :width="28"
-                :height="28"
-                :img-props="{ alt: systemSetting.title }"
-                object-fit="contain"
-                preview-disabled
-              />
+              <SystemLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
               <n-text v-if="layoutMode !== 'mixed' || !collapsed" strong class="layout-title">{{
                 systemSetting.title
               }}</n-text>
@@ -217,14 +209,6 @@ const {
   width: 100%;
   min-width: 0;
   padding: 0 12px;
-}
-
-.layout-brand :deep(.n-image) {
-  flex-shrink: 0;
-}
-
-.layout-header--inverted .layout-brand :deep(img) {
-  filter: brightness(0) invert(1);
 }
 
 @media (max-width: 900px) {

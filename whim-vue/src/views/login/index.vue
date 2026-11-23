@@ -2,6 +2,7 @@
 import { useLogin } from '@/views/login/hooks/useLogin.ts'
 import { loginRules } from '@/views/login/hooks/rule.ts'
 import systemSetting from '@/config/SystemSetting.ts'
+import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
 import { useThemeVars } from 'naive-ui'
 import { useThemeStore } from '@/stores/modules/theme'
 
@@ -31,7 +32,7 @@ const {
     <div class="login-container">
       <header class="login-header">
         <div class="login-brand">
-          <img src="@/assets/images/logo.png" alt="logo" />
+          <SystemLogo :inverted="themeStore.getTheme.name === 'dark'" />
           <span>{{ systemSetting.title }}</span>
         </div>
         <span class="login-header-caption">工作，从这里开始</span>
@@ -203,7 +204,6 @@ const {
   img {
     width: 36px;
     height: 36px;
-    filter: v-bind("themeStore.getTheme.name === 'dark' ? 'brightness(0) invert(1)' : 'none'");
   }
 }
 

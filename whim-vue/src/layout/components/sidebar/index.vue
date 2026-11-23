@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import systemSetting from '@/config/SystemSetting.ts'
-import logoUrl from '@/assets/images/logo.png'
+import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
 import {computed, useTemplateRef, watch} from 'vue'
 import {RouterLink, useRoute} from 'vue-router'
 import {darkTheme, type MenuInst} from 'naive-ui'
@@ -51,12 +51,11 @@ watch(
 <template>
   <n-layout class="sidebar" :class="{
       'sidebar--with-logo': props.showLogo && themeStore.getShowLogo,
-      'sidebar--inverted': themeStore.getMenuInverted,
     }">
     <n-layout-header v-if="props.showLogo && themeStore.getShowLogo" bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
       <RouterLink :to="navigation.homePath">
         <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
-          <n-image class="sidebar-logo" :src="logoUrl" :width="28" :height="28" :img-props="{ alt: systemSetting.title }" object-fit="contain" preview-disabled/>
+          <SystemLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
           <n-text v-if="!props.collapsed" strong class="sidebar-title">
             {{ systemSetting.title }}
           </n-text>
@@ -103,7 +102,4 @@ watch(
   color: inherit;
 }
 
-.sidebar--inverted .sidebar-logo :deep(img) {
-  filter: brightness(0) invert(1);
-}
 </style>

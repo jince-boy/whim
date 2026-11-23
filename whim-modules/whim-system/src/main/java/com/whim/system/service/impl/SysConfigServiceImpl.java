@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.ServiceException;
 import com.whim.core.utils.BeanConvertUtils;
+import com.whim.file.support.FileUploadSecurity;
+import com.whim.file.support.ImageThumbnailGenerator;
 import com.whim.json.utils.JsonUtils;
 import com.whim.mybatisplus.model.vo.PageDataVO;
 import com.whim.system.mapper.SysConfigMapper;
@@ -12,17 +14,25 @@ import com.whim.system.model.config.ConfigOption;
 import com.whim.system.model.dto.config.SysConfigAddDTO;
 import com.whim.system.model.dto.config.SysConfigQueryDTO;
 import com.whim.system.model.dto.config.SysConfigUpdateDTO;
+import com.whim.system.model.dto.file.SysFileUploadDTO;
 import com.whim.system.model.entity.SysConfig;
+import com.whim.system.model.entity.SysFile;
 import com.whim.system.model.enums.ConfigValueType;
 import com.whim.system.model.vo.config.SiteSettingsVO;
 import com.whim.system.model.vo.config.SysConfigVO;
 import com.whim.system.service.ISysConfigService;
+import com.whim.system.service.ISysFileService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,11 +43,16 @@ import java.util.Set;
  * @description 业务配置读写与内置项保护。
  */
 @Service
+@RequiredArgsConstructor
 public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig> implements ISysConfigService {
     private static final String LOGIN_CAPTCHA_KEY = "system.captcha.enabled";
     private static final String SITE_TITLE = "system.site.title";
     private static final String SITE_DESCRIPTION = "system.site.description";
     private static final String SITE_COPYRIGHT = "system.site.copyright";
+    private static final String SITE_LOGO = "system.site.logo";
+    private static final String CONFIG_IMAGE_SOURCE = "configImage";
+    private static final Set<String> IMAGE_TYPES = Set.of("image/png", "image/jpeg", "image/gif");
+    private final ISysFileService fileService;
 
     /**
      * 分页查询指定分类的配置。
@@ -73,22 +88,81 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     /**
      * 获取允许在登录前展示的网站信息。
      *
-     * @return 网站标题、介绍和版权信息
+     * @return 网站标题、介绍、版权和当前 Logo 文件标识
      */
     @Override
     public SiteSettingsVO getSiteSettings() {
         // 公共接口只读取明确列举的内置键，新配置和自定义值不会被自动公开。
         List<SysConfig> settings = lambdaQuery().select(SysConfig::getConfigKey, SysConfig::getConfigValue)
-                .eq(SysConfig::getBuiltIn, true).in(SysConfig::getConfigKey, SITE_TITLE, SITE_DESCRIPTION, SITE_COPYRIGHT).list();
+                .eq(SysConfig::getBuiltIn, true).in(SysConfig::getConfigKey, SITE_TITLE, SITE_DESCRIPTION, SITE_COPYRIGHT, SITE_LOGO).list();
         SiteSettingsVO settingsView = new SiteSettingsVO();
         for (SysConfig setting : settings) {
             switch (setting.getConfigKey()) {
                 case SITE_TITLE -> settingsView.setTitle(setting.getConfigValue());
                 case SITE_DESCRIPTION -> settingsView.setDescription(setting.getConfigValue());
                 case SITE_COPYRIGHT -> settingsView.setCopyright(setting.getConfigValue());
+                case SITE_LOGO -> settingsView.setLogoFileId(StringUtils.trimToNull(setting.getConfigValue()));
             }
         }
         return settingsView;
+    }
+
+    /**
+     * 获取登录前可见的当前系统 Logo。
+     *
+     * @param id 网站配置返回的 Logo 文件ID
+     * @return PNG 缩略图，不可用时为空数组
+     */
+    @Override
+    public byte[] getSiteLogo(Long id) {
+        // 公开读取仅匹配当前内置 Logo，旧 Logo 和自定义配置图片不能凭文件ID匿名访问。
+        if (!lambdaQuery().eq(SysConfig::getConfigKey, SITE_LOGO).eq(SysConfig::getBuiltIn, true)
+                .eq(SysConfig::getConfigValue, id.toString()).exists()) {
+            return new byte[0];
+        }
+        return fileService.getFileImageByUploadSource(id, CONFIG_IMAGE_SOURCE, 96);
+    }
+
+    /**
+     * 读取指定配置已保存的图片。
+     *
+     * @param id 配置记录ID
+     * @return PNG 预览，不可用时为空数组
+     */
+    @Override
+    public byte[] getConfigImage(Long id) {
+        SysConfig config = lambdaQuery().select(SysConfig::getConfigValue).eq(SysConfig::getId, id)
+                .eq(SysConfig::getValueType, ConfigValueType.IMAGE).one();
+        if (config == null || StringUtils.isBlank(config.getConfigValue())) {
+            return new byte[0];
+        }
+        return fileService.getFileImageByUploadSource(Long.valueOf(config.getConfigValue()), CONFIG_IMAGE_SOURCE, 96);
+    }
+
+    /**
+     * 校验本地图片并通过默认文件存储上传。
+     *
+     * @param file 待保存的图片
+     * @return 可写入配置值的文件ID
+     */
+    @Override
+    public Long addConfigImage(MultipartFile file) {
+        if (file.isEmpty() || file.getSize() > ImageThumbnailGenerator.MAXIMUM_SOURCE_BYTES) {
+            throw new IllegalArgumentException("请选择不超过20 MiB的图片");
+        }
+        // 公开 Logo 只展示可安全解码的位图，文件名和浏览器声明的类型均不能代替内容检查。
+        try (InputStream header = file.getInputStream()) {
+            if (!IMAGE_TYPES.contains(FileUploadSecurity.getContentType(header))
+                    || ImageThumbnailGenerator.generateThumbnail(file.getInputStream(), 96, 96).length == 0) {
+                throw new IllegalArgumentException("请选择可正常解码的 PNG、JPG 或 GIF 图片");
+            }
+        } catch (IOException exception) {
+            throw new ServiceException("读取配置图片失败", exception);
+        }
+        SysFileUploadDTO upload = new SysFileUploadDTO();
+        upload.setFile(file);
+        upload.setUploadSource(CONFIG_IMAGE_SOURCE);
+        return fileService.addFile(upload).getId();
     }
 
     /**
@@ -195,6 +269,16 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         }
         // 转换为其他类型时，必须同时清除旧选项。
         config.setValueOptions(List.of());
+        if (config.getValueType() == ConfigValueType.IMAGE && !config.getConfigValue().isEmpty()) {
+            String value = config.getConfigValue();
+            long fileId = NumberUtils.toLong(value);
+            // 配置只能引用配置图片；拒绝任意地址和其他业务的文件，空字符串用于清空。
+            if (fileId <= 0 || !Long.toString(fileId).equals(value)
+                    || !fileService.lambdaQuery().eq(SysFile::getId, fileId)
+                    .eq(SysFile::getUploadSource, CONFIG_IMAGE_SOURCE).in(SysFile::getContentType, IMAGE_TYPES).exists()) {
+                throw new IllegalArgumentException("请选择有效的配置图片");
+            }
+        }
         if (config.getValueType() == ConfigValueType.JSON) {
             try {
                 JsonNode value = JsonUtils.getJsonMapper().readerFor(JsonNode.class)
