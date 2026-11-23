@@ -180,9 +180,7 @@ export function useUser() {
                   type: 'primary',
                   loading: assigningRolesId.value === row.id,
                   disabled: recordLoading.value || isSelf(row) || row.superAdministrator,
-                  tooltip: row.superAdministrator
-                    ? '超级管理员默认拥有全部权限，无需分配角色'
-                    : undefined,
+                  tooltip: row.superAdministrator ? '超级管理员默认拥有全部权限，无需分配角色' : undefined,
                   onClick: () => openRoleDialog(row),
                 })
               : null,

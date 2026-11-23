@@ -9,6 +9,12 @@ export const fontThemeOverrides = {
   fontFamilyMono: 'var(--app-font-family-mono)',
 }
 
+export const pageTabThemeOverrides = {
+  tabBorderRadius: '6px',
+  tabTextColorActiveSegment: 'var(--primary-color)',
+  tabTextColorHoverSegment: 'var(--primary-color)',
+} satisfies NonNullable<GlobalThemeOverrides['Tabs']>
+
 // 提取公共配置
 const commonThemeOverrides: GlobalThemeOverrides = {
   common: {

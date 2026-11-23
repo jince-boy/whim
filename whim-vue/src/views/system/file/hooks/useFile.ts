@@ -1,12 +1,6 @@
 import { computed, h, ref } from 'vue'
 import dayjs from 'dayjs'
-import {
-  NSpace,
-  NTag,
-  useThemeVars,
-  type DataTableColumns,
-  type GlobalThemeOverrides,
-} from 'naive-ui'
+import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
@@ -23,12 +17,6 @@ import type { FileItem, FileQuery, StorageItem } from './types'
 export function useFile() {
   const user = useUserStore()
   const dictionary = useDictStore()
-  const themeVars = useThemeVars()
-  const tabThemeOverrides = computed<GlobalThemeOverrides['Tabs']>(() => ({
-    tabBorderRadius: '6px',
-    tabTextColorActiveSegment: themeVars.value.primaryColor,
-    tabTextColorHoverSegment: themeVars.value.primaryColor,
-  }))
   const { openFormDialog, openDeleteDialog, openConfirmDialog } = useFormDialog()
   const can = (code: string) => user.hasPermission(`system:file:${code}`)
   const canView = computed(() => can('page'))
@@ -394,8 +382,6 @@ export function useFile() {
 
   const uploads = useFileUpload(canUpload, () => files.reload())
   return {
-    themeVars,
-    tabThemeOverrides,
     canView,
     canStorage,
     canUpload,

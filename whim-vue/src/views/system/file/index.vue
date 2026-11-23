@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { WhimTable } from '@/components/table'
 import Icon from '@/components/icon/Icon.vue'
+import { pageTabThemeOverrides } from '@/config/NaiveTheme'
 import FileUploadProgress from './components/FileUploadProgress.vue'
 import { useFile } from './hooks/useFile'
 defineOptions({ name: 'SysFile' })
-const { themeVars, tabThemeOverrides, canView, canStorage, canUpload, canDelete, activeTab, registerFiles, registerStorage,
+const { canView, canStorage, canUpload, canDelete, activeTab, registerFiles, registerStorage,
   form, storageOptions, platformOptions, uploadSourceOptions, deleting, downloadingId, selectedFiles,
   uploads, uploadSummary, selectUploadFiles, addUploadFiles, pauseUpload, resumeUpload, cancelUpload,
   pauseAllUploads, resumeAllUploads, clearFinishedUploads,
@@ -14,11 +15,11 @@ const { themeVars, tabThemeOverrides, canView, canStorage, canUpload, canDelete,
 <template>
   <div>
     <input ref="uploadInput" type="file" multiple hidden @change="addUploadFiles" />
-    <n-tabs v-model:value="activeTab" class="file-tabs" type="segment" size="small" animated :theme-overrides="tabThemeOverrides"
-      :style="{ '--file-tabs-background': themeVars.cardColor, '--file-tabs-border-color': themeVars.dividerColor }">
+    <n-tabs v-model:value="activeTab" class="whim-page-tabs" type="segment" size="small" animated
+      :theme-overrides="pageTabThemeOverrides">
       <n-tab-pane v-if="canView" name="files" tab="文件列表" display-directive="show">
         <template #tab>
-          <span class="file-tab-label"><Icon name="folder-open" />文件列表</span>
+          <Icon name="folder-open" />文件列表
         </template>
         <WhimTable @register="registerFiles">
           <template #search>
@@ -68,7 +69,7 @@ const { themeVars, tabThemeOverrides, canView, canStorage, canUpload, canDelete,
       </n-tab-pane>
       <n-tab-pane v-if="canStorage" name="storage" tab="存储配置" display-directive="show">
         <template #tab>
-          <span class="file-tab-label"><Icon name="database" />存储配置</span>
+          <Icon name="database" />存储配置
         </template>
         <WhimTable @register="registerStorage" @add="addStorage">
           <template #empty><n-empty description="尚未配置存储，请新增本地或对象存储配置" /></template>
@@ -78,27 +79,3 @@ const { themeVars, tabThemeOverrides, canView, canStorage, canUpload, canDelete,
     <n-empty v-if="!canView && !canStorage" description="暂无文件管理权限" />
   </div>
 </template>
-
-<style scoped>
-.file-tabs :deep(> .n-tabs-nav) {
-  padding: 8px;
-  background-color: var(--file-tabs-background);
-  border: 1px solid var(--file-tabs-border-color);
-  border-radius: 8px;
-  transition: background-color 0.3s, border-color 0.3s;
-}
-
-.file-tabs :deep(> .n-tabs-nav > .n-tabs-rail) {
-  width: 288px;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.file-tab-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-</style>

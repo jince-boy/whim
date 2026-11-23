@@ -71,6 +71,25 @@ samp {
   font-size: 11px;
 }
 
+/* 页面标签栏直接继承布局的主题色，首次渲染即可使用正确的边框颜色。 */
+.whim-page-tabs > .n-tabs-nav {
+  padding: 8px;
+  background-color: var(--card-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.whim-page-tabs > .n-tabs-nav > .n-tabs-rail {
+  box-sizing: border-box;
+  width: 288px;
+  max-width: 100%;
+}
+
+.whim-page-tabs > .n-tabs-nav .n-tabs-tab__label {
+  gap: 8px;
+}
+
 /* 侧栏、顶部及混合布局共用菜单对齐，避免图标和链接文字使用不同的行内基线。 */
 .n-menu .n-menu-item-content-header {
   line-height: 1;
