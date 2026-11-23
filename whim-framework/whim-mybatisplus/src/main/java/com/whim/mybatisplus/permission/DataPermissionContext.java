@@ -46,8 +46,28 @@ public final class DataPermissionContext {
         }
     }
 
-    /** 按表映射校验新增或新归属，同时遵守所有嵌套调用的范围。 */
+    /**
+     * 按表映射校验新增或变更后的归属。
+     *
+     * @param tableName 业务表名
+     * @param ownerUserId 归属用户ID
+     * @param departmentId 归属部门ID
+     */
     public static void checkOwnership(String tableName, Long ownerUserId, Long departmentId) {
+        if (!allowsOwnership(tableName, ownerUserId, departmentId)) {
+            throw new DataAccessDeniedException("新增或变更归属超出本次操作的授权范围");
+        }
+    }
+
+    /**
+     * 对缓存中的业务记录应用与数据库相同的用户及部门范围。
+     *
+     * @param tableName 业务表名
+     * @param ownerUserId 归属用户ID
+     * @param departmentId 归属部门ID
+     * @return 是否满足所有适用的数据权限范围
+     */
+    public static boolean allowsOwnership(String tableName, Long ownerUserId, Long departmentId) {
         if (!active()) {
             throw new DataAccessDeniedException("当前操作缺少数据权限上下文");
         }
@@ -63,13 +83,14 @@ public final class DataPermissionContext {
                         || (!table.userColumn().isEmpty() && frame.isSelf()
                         && Objects.equals(frame.getUserId(), ownerUserId));
                 if (!allowed) {
-                    throw new DataAccessDeniedException("新增或变更归属超出本次操作的授权范围");
+                    return false;
                 }
             }
         }
         if (!mapped) {
             throw new DataAccessDeniedException("当前数据权限注解未声明目标业务表");
         }
+        return true;
     }
 
     /** 判断当前线程是否存在受保护业务操作。 */

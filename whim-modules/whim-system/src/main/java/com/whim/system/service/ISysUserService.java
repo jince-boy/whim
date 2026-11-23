@@ -41,6 +41,14 @@ public interface ISysUserService extends IService<SysUser> {
     SysUserDetailVO getUserDetail(Long id);
 
     /**
+     * 查询指定账号中允许执行单会话强退的账号。
+     *
+     * @param userIds 本次待检查的用户ID集合
+     * @return 在强退授权范围内并允许维护的用户ID集合
+     */
+    Set<Long> getKickoutUserIds(Set<Long> userIds);
+
+    /**
      * 查询用户当前角色和可分配的角色。
      *
      * @param id 用户ID

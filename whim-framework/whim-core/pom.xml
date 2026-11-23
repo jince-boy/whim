@@ -58,6 +58,11 @@
            <groupId>commons-io</groupId>
            <artifactId>commons-io</artifactId>
        </dependency>
+       <!-- 通用编解码和摘要计算 -->
+       <dependency>
+           <groupId>commons-codec</groupId>
+           <artifactId>commons-codec</artifactId>
+       </dependency>
        <!-- Spring Security crypto -->
        <dependency>
            <groupId>org.springframework.security</groupId>

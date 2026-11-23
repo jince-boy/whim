@@ -174,6 +174,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 批量查询强退权限范围内的账号，并保护超级管理员身份。
+     *
+     * @param userIds 本次待检查的用户ID集合
+     * @return 允许执行强退的用户ID集合
+     */
+    @Override
+    @DataPermission(permission = "monitor:onlineUser:kickout", tables = @DataPermissionTable(name = "sys_user", userColumn = "id"))
+    public Set<Long> getKickoutUserIds(Set<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return Set.of();
+        }
+        // 普通管理员即使拥有全部数据范围，也不能管理超级管理员会话。
+        return lambdaQuery().select(SysUser::getId).in(SysUser::getId, userIds)
+                .eq(!authenticationContext.isSuperAdministrator(), SysUser::getSuperAdministrator, false)
+                .list().stream().map(SysUser::getId).collect(Collectors.toSet());
+    }
+
+    /**
      * 查询普通用户当前角色和可分配角色，超级管理员无需进行角色分配。
      *
      * @param id 用户ID

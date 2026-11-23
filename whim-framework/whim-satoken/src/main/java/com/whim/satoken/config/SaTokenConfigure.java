@@ -20,6 +20,7 @@ import com.whim.core.exception.UnauthenticatedException;
 import com.whim.satoken.context.AuthContext;
 import com.whim.satoken.constants.AuthSessionKeys;
 import com.whim.satoken.security.StpAuthManager;
+import com.whim.satoken.session.OnlineSessionIndex;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
 import com.whim.satoken.service.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
@@ -27,6 +28,7 @@ import jakarta.servlet.DispatcherType;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -146,14 +148,26 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     }
 
     /**
-     * 注册认证会话 Bean，对外暴露登录、退出和令牌创建能力。
+     * 注册账号登录、在线会话查询及下线的统一入口。
      *
+     * @param sessionIndex 在线会话索引
      * @return Sa-Token 认证会话实现
      */
     @Bean
     @ConditionalOnMissingBean(AuthenticationSession.class)
-    public AuthenticationSession authenticationSession() {
-        return new SaTokenAuthenticationSession();
+    public AuthenticationSession authenticationSession(OnlineSessionIndex sessionIndex) {
+        return new SaTokenAuthenticationSession(sessionIndex);
+    }
+
+    /**
+     * 注册 Sa-Token 生命周期监听器，维护可按批次遍历的在线会话索引。
+     *
+     * @param redisson Redis 客户端
+     * @return 在线会话索引
+     */
+    @Bean
+    public OnlineSessionIndex onlineSessionIndex(RedissonClient redisson) {
+        return new OnlineSessionIndex(redisson);
     }
 
     /** 仅转换明确的认证和授权失败，兼容包装异常，其余异常保持原样。 */

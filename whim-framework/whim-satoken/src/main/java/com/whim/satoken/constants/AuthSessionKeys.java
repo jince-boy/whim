@@ -15,4 +15,9 @@ public final class AuthSessionKeys {
      * 包含独立管理员身份的登录上下文键；旧版角色授权快照需要重新登录后更新。
      */
     public static final String LOGIN_USER = "userInfo:administratorIdentity:v1";
+    public static final String LOGIN_CLIENT_TYPE = "loginClientType";
+    public static final String LOGIN_DEVICE_TYPE = "loginDeviceType";
+    public static final String LOGIN_IP = "loginIp";
+    public static final String LOGIN_BROWSER = "loginBrowser";
+    public static final String LOGIN_OS = "loginOs";
 }

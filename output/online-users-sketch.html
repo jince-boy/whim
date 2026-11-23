@@ -9,17 +9,17 @@
     <div class="wo-path">系统监控 <span>／</span> 在线用户</div>
     <div class="wo-body">
       <form class="wo-search" aria-label="筛选会话">
-        <label>用户<input name="user" placeholder="用户名或姓名" autocomplete="off"></label>
-        <label>登录 IP<input name="ip" placeholder="输入 IP 地址" autocomplete="off"></label>
+        <label>用户名<input name="username" placeholder="请输入用户名" maxlength="64" autocomplete="off"></label>
+        <label>主机 IP<input name="ip" placeholder="请输入主机 IP" autocomplete="off"></label>
         <div class="wo-actions"><button class="wo-primary" type="submit">查询</button><button type="reset">重置</button></div>
       </form>
       <section class="wo-list" aria-label="在线会话">
         <div class="wo-tools">
-          <div><h2>在线用户</h2><p class="wo-count" aria-live="polite"></p></div>
+          <div class="wo-summary"><h2>在线用户</h2><span class="wo-count" aria-live="polite"></span></div>
           <button type="button" data-refresh><i data-lucide="refresh-cw" aria-hidden="true"></i>刷新</button>
         </div>
-        <div class="wo-scroll"><table aria-label="按最近活跃时间倒序排列的在线会话">
-          <thead><tr><th>用户 / 部门</th><th>登录终端</th><th>登录 IP / 地点</th><th>最近活跃 / 登录时间</th><th>操作</th></tr></thead>
+        <div class="wo-scroll"><table aria-label="按最后活动时间倒序排列的在线会话">
+          <thead><tr><th>用户名</th><th>客户端</th><th>设备类型</th><th>所属部门</th><th>主机 IP</th><th>登录地点</th><th>操作系统</th><th>浏览器</th><th>登录时间</th><th>最后活动时间</th><th>操作</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="wo-footer"><span class="wo-feedback" role="status"></span><div class="wo-pages">
@@ -53,7 +53,7 @@
   #whim-online-sketch .wo-main{min-width:0}
   #whim-online-sketch .wo-path{padding:14px 20px;border-bottom:1px solid var(--wo-edge);background:var(--wo-paper)}
   #whim-online-sketch .wo-path span{color:var(--wo-muted);margin:0 7px}
-  #whim-online-sketch .wo-body{display:grid;gap:13px;padding:16px}
+  #whim-online-sketch .wo-body{display:grid;grid-template-columns:minmax(0,1fr);gap:13px;padding:16px}
   #whim-online-sketch .wo-search,#whim-online-sketch .wo-list{border:1px solid var(--wo-edge);border-radius:7px;background:var(--wo-paper)}
   #whim-online-sketch .wo-search{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:14px 16px}
   #whim-online-sketch label{display:grid;flex:1 1 125px;gap:5px;font-size:13px}
@@ -66,15 +66,15 @@
   #whim-online-sketch .wo-tools,#whim-online-sketch .wo-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;gap:10px}
   #whim-online-sketch h2{margin:0;font-size:18px;font-weight:600}
   #whim-online-sketch .wo-count,#whim-online-sketch .wo-footer{color:var(--wo-muted);font-size:13px}
-  #whim-online-sketch .wo-count{margin:1px 0 0}
+  #whim-online-sketch .wo-summary{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   #whim-online-sketch .wo-scroll{overflow-x:auto}
   #whim-online-sketch table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:13px}
-  #whim-online-sketch th,#whim-online-sketch td{padding:11px 8px;text-align:left;border-bottom:1px solid var(--wo-edge);vertical-align:middle}
+  #whim-online-sketch th,#whim-online-sketch td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--wo-edge);vertical-align:middle}
   #whim-online-sketch th{background:var(--wo-canvas);font-weight:500;color:var(--wo-muted)}
   #whim-online-sketch th:first-child,#whim-online-sketch td:first-child{padding-left:16px}
-  #whim-online-sketch th:last-child,#whim-online-sketch td:last-child{padding-right:16px}
-  #whim-online-sketch .wo-sub{display:block;margin-top:2px;color:var(--wo-muted);font-size:12px}
-  #whim-online-sketch td:nth-child(3),#whim-online-sketch td:nth-child(4){font-variant-numeric:tabular-nums}
+  #whim-online-sketch th:last-child,#whim-online-sketch td:last-child{position:sticky;right:0;padding:7px 14px;background:var(--wo-paper);box-shadow:inset 1px 0 var(--wo-edge)}
+  #whim-online-sketch th:last-child{background:var(--wo-canvas)}
+  #whim-online-sketch td:nth-child(5),#whim-online-sketch time{font-variant-numeric:tabular-nums}
   #whim-online-sketch .wo-end{color:var(--wo-risk);border:0;background:transparent;padding:0}
   #whim-online-sketch .wo-current{color:var(--wo-green);background:var(--wo-wash);border-radius:4px;padding:3px 5px;font-size:12px}
   #whim-online-sketch .wo-pages button{padding:0;width:32px}
@@ -83,7 +83,7 @@
   #whim-online-sketch dialog p{margin:8px 0 0}
   #whim-online-sketch .wo-dialog-actions{justify-content:flex-end;margin-top:18px}
   #whim-online-sketch .wo-danger{color:var(--wo-paper);background:var(--wo-risk);border-color:var(--wo-risk)}
-  @media(max-width:850px){#whim-online-sketch{grid-template-columns:minmax(0,1fr)}#whim-online-sketch .wo-rail{display:none}}
+  @media(max-width:1100px){#whim-online-sketch{grid-template-columns:minmax(0,1fr)}#whim-online-sketch .wo-rail{display:none}}
   @media(max-width:540px){#whim-online-sketch .wo-body{padding:8px}#whim-online-sketch .wo-search{padding:10px}#whim-online-sketch .wo-tools,#whim-online-sketch .wo-footer{padding:10px}}
   @media(pointer:coarse){#whim-online-sketch button,#whim-online-sketch input{min-height:44px}#whim-online-sketch input{font-size:16px}}
 </style>
@@ -94,17 +94,17 @@
   const fields = find('form').elements;
   const dialog = find('dialog');
   const rows = [
-    {id:1, user:'linche', name:'林澈', dept:'技术部', browser:'Chrome', os:'Windows 11', ip:'192.0.2.18', city:'杭州', active:'14:36', login:'09:08', current:true},
-    {id:2, user:'shenning', name:'沈宁', dept:'运营部', browser:'Edge', os:'Windows 11', ip:'198.51.100.7', city:'上海', active:'14:32', login:'13:12'},
-    {id:3, user:'linche', name:'林澈', dept:'技术部', browser:'Safari', os:'iOS', ip:'203.0.113.29', city:'杭州', active:'14:27', login:'12:46'},
-    {id:4, user:'xumu', name:'许牧', dept:'财务部', browser:'Chrome', os:'macOS', ip:'192.0.2.35', city:'宁波', active:'14:18', login:'10:15'},
-    {id:5, user:'zhouhe', name:'周禾', dept:'运营部', browser:'Firefox', os:'Windows 11', ip:'198.51.100.33', city:'南京', active:'13:58', login:'08:55'}
+    {id:1, user:'linche', name:'林澈', client:'Browser', device:'Desktop', dept:'技术部', browser:'Chrome', os:'Windows 11', ip:'192.0.2.18', city:'杭州', active:'14:36', login:'09:08', current:true},
+    {id:2, user:'shenning', name:'沈宁', client:'Browser', device:'Desktop', dept:'运营部', browser:'Edge', os:'Windows 11', ip:'198.51.100.7', city:'上海', active:'14:32', login:'13:12'},
+    {id:3, user:'linche', name:'林澈', client:'Browser', device:'Phone', dept:'技术部', browser:'Safari', os:'iOS', ip:'203.0.113.29', city:'杭州', active:'14:27', login:'12:46'},
+    {id:4, user:'xumu', name:'许牧', client:'Browser', device:'Desktop', dept:'财务部', browser:'Chrome', os:'macOS', ip:'192.0.2.35', city:'宁波', active:'14:18', login:'10:15'},
+    {id:5, user:'zhouhe', name:'周禾', client:'Browser', device:'Desktop', dept:'运营部', browser:'Firefox', os:'Windows 11', ip:'198.51.100.33', city:'南京', active:'13:58', login:'08:55'}
   ];
   const size = 4;
   let user = '', ip = '', page = 1, selected = null, ended = new Set();
   const save = () => window.openai?.setWidgetState?.({privateContent:{user,ip,page,ended:[...ended]}})?.catch(() => {});
   function render() {
-    const list = rows.filter(row => !ended.has(row.id) && (row.user.includes(user) || row.name.includes(user)) && row.ip.includes(ip));
+    const list = rows.filter(row => !ended.has(row.id) && row.user.toLowerCase().includes(user) && row.ip.includes(ip));
     const pages = Math.max(1,Math.ceil(list.length / size));
     page = Math.max(1,Math.min(page,pages));
     find('.wo-count').textContent = new Set(list.map(row => row.user)).size + ' 个账号 · ' + list.length + ' 个有效会话';
@@ -112,11 +112,10 @@
     find('[data-prev]').disabled = page === 1;
     find('[data-next]').disabled = page === pages;
     find('tbody').innerHTML = list.slice((page-1)*size,page*size).map(row =>
-      '<tr><td>' + row.name + '<span class="wo-sub">' + row.user + ' · ' + row.dept + '</span></td><td>' + row.browser +
-      '<span class="wo-sub">' + row.os + '</span></td><td>' + row.ip + '<span class="wo-sub">' + row.city +
-      '</span></td><td>今天 ' + row.active + '<span class="wo-sub">今天 ' + row.login + '</span></td><td>' +
+      '<tr>' + [row.user,row.client,row.device,row.dept,row.ip,row.city,row.os,row.browser].map(value => '<td>' + value + '</td>').join('') +
+      '<td><time>11-23 ' + row.login + '</time></td><td><time>11-23 ' + row.active + '</time></td><td>' +
       (row.current ? '<span class="wo-current">当前会话</span>' : '<button type="button" class="wo-end" data-end="' + row.id + '">强制下线</button>') + '</td></tr>'
-    ).join('') || '<tr><td colspan="5">未找到符合条件的在线会话</td></tr>';
+    ).join('') || '<tr><td colspan="11">未找到符合条件的在线会话</td></tr>';
   }
   function restore(state) {
     const value = state?.privateContent || {};
@@ -124,12 +123,12 @@
     ip = typeof value.ip === 'string' ? value.ip : '';
     ended = new Set(Array.isArray(value.ended) ? value.ended.filter(id => rows.some(row => row.id === id && !row.current)) : []);
     page = Number.isInteger(value.page) ? value.page : 1;
-    fields.user.value = user;
+    fields.username.value = user;
     fields.ip.value = ip;
     render();
   }
   find('form').onsubmit = event => {
-    event.preventDefault(); user = fields.user.value.trim().toLowerCase(); ip = fields.ip.value.trim(); page = 1;
+    event.preventDefault(); user = fields.username.value.trim().toLowerCase(); ip = fields.ip.value.trim(); page = 1;
     find('.wo-feedback').textContent = ''; render(); save();
   };
   find('form').onreset = () => { user = ''; ip = ''; page = 1; find('.wo-feedback').textContent = ''; render(); save(); };
