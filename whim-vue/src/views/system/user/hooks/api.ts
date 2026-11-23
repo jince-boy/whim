@@ -1,6 +1,6 @@
 import axiosInstance, { request, RequestMethod } from '@/api'
 import type { TablePage, TablePageQuery } from '@/components/table'
-import type { PasswordFormModel, RoleFormModel, UserAvatarQuery, UserDetail, UserFormModel, UserId, UserItem, UserQuery, UserRoles } from './types'
+import type { PasswordFormModel, TwoFactorResetRequest, RoleFormModel, UserAvatarQuery, UserDetail, UserFormModel, UserId, UserItem, UserQuery, UserRoles } from './types'
 
 export const fetchUserPage = (params: UserQuery & TablePageQuery) =>
   request<TablePage<UserItem>>('/system/user/page', RequestMethod.GET, { params })
@@ -52,6 +52,10 @@ export const resetUserPassword = (data: PasswordFormModel) =>
   request('/system/user/resetPassword', RequestMethod.PUT, {
     data: { id: data.id, password: data.password },
   })
+
+/** 由超级管理员解除用户当前的验证器绑定。 */
+export const resetUserTwoFactor = (data: TwoFactorResetRequest) =>
+  request<void>('/system/user/resetTwoFactor', RequestMethod.PUT, { data })
 
 export const assignUserRoles = (data: RoleFormModel) =>
   request('/system/user/assignRoles', RequestMethod.PUT, {

@@ -25,3 +25,18 @@ export type CaptchaResult = {
   image: string
   expiresIn: number
 }
+
+/** 密码通过后可能需要提交验证器动态码。 */
+export interface LoginChallenge {
+  challengeId: string
+}
+
+export interface VerifyLoginRequest {
+  challengeId: string
+  code: string
+}
+
+/** 使用恢复码会解除旧绑定，并要求重新密码登录。 */
+export interface LoginRecovery {
+  recovered: true
+}

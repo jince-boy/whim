@@ -1,20 +1,26 @@
 package com.whim.controller.system;
 
-import com.whim.log.annotation.Log;
-import com.whim.log.enums.LogType;
 import com.whim.core.annotation.RequestDecrypt;
-import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.crypto.RequestEncryptionCipher;
 import com.whim.core.utils.IPUtils;
+import com.whim.log.annotation.Log;
+import com.whim.log.enums.LogType;
 import com.whim.satoken.annotation.SystemCheckLogin;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
 import com.whim.system.model.dto.auth.AuthPasswordUpdateDTO;
 import com.whim.system.model.dto.auth.AuthProfileUpdateDTO;
+import com.whim.system.model.dto.auth.TwoFactorConfirmDTO;
+import com.whim.system.model.dto.auth.TwoFactorDisableDTO;
+import com.whim.system.model.dto.auth.TwoFactorLoginDTO;
+import com.whim.system.model.dto.auth.TwoFactorSetupDTO;
 import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
+import com.whim.system.model.vo.auth.LoginResultVO;
+import com.whim.system.model.vo.auth.TwoFactorSetupVO;
 import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysUserService;
+import com.whim.system.service.ITwoFactorService;
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,6 +50,7 @@ public class AuthController {
      * 认证服务对象
      */
     private final IAuthService authService;
+    private final ITwoFactorService twoFactorService;
 
     private final ISysUserService userService;
 
@@ -82,8 +89,80 @@ public class AuthController {
     @PostMapping("/login")
     @RequestDecrypt
     @XssIgnore
-    public Result<AuthenticationToken> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
-        return Result.success("登录成功", authService.login(loginDTO));
+    public Result<LoginResultVO> login(@RequestBody @Valid AuthLoginDTO loginDTO) {
+        LoginResultVO result = authService.login(loginDTO);
+        return Result.success(result.getChallengeId() == null ? "登录成功" : "请完成两步验证", result);
+    }
+
+    /**
+     * 核验短时登录凭证及第二因素，恢复码仅用于解除丢失的验证器。
+     *
+     * @param parameter 密码挑战凭证和动态码或恢复码
+     * @return 正式登录结果或恢复完成状态
+     */
+    @PostMapping("/verifyLogin")
+    @RequestDecrypt
+    public Result<LoginResultVO> verifyLogin(@RequestBody @Valid TwoFactorLoginDTO parameter) {
+        LoginResultVO result = authService.verifyLogin(parameter);
+        return Result.success(Boolean.TRUE.equals(result.getRecovered()) ? "已解除旧绑定，请重新登录" : "登录成功", result);
+    }
+
+    /**
+     * 获取本人的两步验证状态。
+     *
+     * @return 是否已开启
+     */
+    @SystemCheckLogin
+    @GetMapping("/twoFactorStatus")
+    public Result<Boolean> getTwoFactorStatus() {
+        return Result.success("查询成功", twoFactorService.isTwoFactorEnabled());
+    }
+
+    /**
+     * 校验本人密码并准备验证器绑定资料。
+     *
+     * @param parameter 当前密码
+     * @param response 禁止缓存含密钥的响应
+     * @return 待确认的绑定资料
+     */
+    @SystemCheckLogin
+    @RequestDecrypt
+    @XssIgnore
+    @PostMapping("/twoFactorSetup")
+    public Result<TwoFactorSetupVO> startTwoFactorSetup(@RequestBody @Valid TwoFactorSetupDTO parameter, HttpServletResponse response) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        return Result.success("请绑定验证器", twoFactorService.startTwoFactorSetup(parameter));
+    }
+
+    /**
+     * 验证首次动态码并开启两步验证。
+     *
+     * @param parameter 绑定凭证和首次动态码
+     * @return 绑定结果
+     */
+    @SystemCheckLogin
+    @RequestDecrypt
+    @Log(title = "开启两步验证", type = LogType.UPDATE, excludeFields = {"setupId", "code"})
+    @PostMapping("/twoFactorEnable")
+    public Result<Void> enableTwoFactor(@RequestBody @Valid TwoFactorConfirmDTO parameter) {
+        twoFactorService.enableTwoFactor(parameter);
+        return Result.success("两步验证已开启，请使用下一枚动态码重新登录");
+    }
+
+    /**
+     * 校验本人密码和第二因素后关闭两步验证。
+     *
+     * @param parameter 当前密码及动态码或恢复码
+     * @return 解除绑定结果
+     */
+    @SystemCheckLogin
+    @RequestDecrypt
+    @XssIgnore
+    @Log(title = "关闭两步验证", type = LogType.UPDATE, excludeFields = {"password", "code"})
+    @PostMapping("/twoFactorDisable")
+    public Result<Void> disableTwoFactor(@RequestBody @Valid TwoFactorDisableDTO parameter) {
+        twoFactorService.disableTwoFactor(parameter);
+        return Result.success("两步验证已关闭，请重新登录");
     }
 
     /**

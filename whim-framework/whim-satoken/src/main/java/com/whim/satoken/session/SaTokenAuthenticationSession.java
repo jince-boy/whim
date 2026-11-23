@@ -32,10 +32,28 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
     public AuthenticationToken login(UserInfo userInfo) {
         StpLogic stpLogic = StpAuthManager.getStpLogic(userInfo.getLoginType());
         stpLogic.login(userInfo.getUserId());
+        String tokenValue = stpLogic.getTokenValue();
+        // 动态码消费与登录可能处于同一数据库事务；回滚时精准撤销这次新签发的独立令牌。
+        if (!stpLogic.isSupportShareToken() && TransactionSynchronizationManager.isSynchronizationActive()
+                && TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                /**
+                 * 撤销未成功提交的登录会话。
+                 *
+                 * @param status 数据库事务完成状态
+                 */
+                @Override
+                public void afterCompletion(int status) {
+                    if (status != STATUS_COMMITTED) {
+                        stpLogic.logoutByTokenValue(tokenValue);
+                    }
+                }
+            });
+        }
         stpLogic.getTokenSession().set(AuthSessionKeys.LOGIN_USER, userInfo);
         AuthenticationToken authenticationToken = new AuthenticationToken();
         authenticationToken.setTokenType(stpLogic.getConfigOrGlobal().getTokenPrefix());
-        authenticationToken.setAccessToken(stpLogic.getTokenValue());
+        authenticationToken.setAccessToken(tokenValue);
         authenticationToken.setExpiresIn(stpLogic.getTokenTimeout());
         return authenticationToken;
     }

@@ -1,5 +1,6 @@
 package com.whim.system.model.vo.user;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.whim.system.model.entity.SysUser;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -20,6 +21,9 @@ public class SysUserVO {
     private String username;
     /** 超级管理员账号身份，不通过角色授予。 */
     private boolean superAdministrator;
+    /** 仅向超级管理员返回本页可重置的绑定版本，供提交时校验。 */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long twoFactorBindingId;
     /** 姓名。 */
     private String name;
     /** 头像地址，未设置时为null。 */

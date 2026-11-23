@@ -72,6 +72,10 @@ export function createUserRules(isEdit: () => boolean, getPassword: () => string
   }
 }
 
+export const twoFactorResetRules: FormRules = {
+  currentPassword: { required: true, whitespace: true, message: '请输入你的当前密码', trigger: 'blur' },
+}
+
 export const roleRules: FormRules = {
   roleIds: { type: 'array', max: 100, message: '最多选择100个角色', trigger: 'change' },
 }

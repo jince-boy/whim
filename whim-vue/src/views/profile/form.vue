@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ProfileSecuritySettings from './ProfileSecuritySettings.vue'
 import Icon from '@/components/icon/Icon.vue'
 import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
 import type { ProfileFormModel, ProfileFormProps } from './hooks/types'
@@ -99,15 +100,7 @@ const {
         </n-card>
         <n-card :bordered="false" content-style="padding: 24px">
           <div class="profile-section-heading"><Icon name="shield-check" :size="20" /><h2>账号安全</h2></div>
-          <div class="profile-password-entry">
-            <div class="profile-password-description">
-              <h3>登录密码</h3>
-              <n-text depth="3">验证原密码后修改，修改成功需重新登录</n-text>
-            </div>
-            <n-button secondary type="warning" :disabled="disabled" @click="emit('changePassword')">
-              <template #icon><Icon name="key-round" /></template>修改密码
-            </n-button>
-          </div>
+          <ProfileSecuritySettings :username="props.initialModel.username" :disabled="disabled" @change-password="emit('changePassword')" />
         </n-card>
       </div>
     </div>
@@ -268,23 +261,6 @@ const {
 }
 .profile-value-empty {
   color: var(--text-color-3);
-}
-.profile-password-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding-top: 20px;
-}
-.profile-password-description h3 {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 500;
-}
-.profile-password-description .n-text {
-  font-size: 12px;
-  line-height: 20px;
 }
 @container (max-width: 760px) {
   .profile-editor-grid {

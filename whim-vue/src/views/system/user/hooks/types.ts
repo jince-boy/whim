@@ -12,6 +12,7 @@ export interface UserItem {
   id: UserId
   username: string
   superAdministrator: boolean
+  twoFactorBindingId?: UserId
   name: string
   avatar: string | null
   deptId: UserId | null
@@ -65,8 +66,17 @@ export interface PasswordFormModel {
   confirmPassword: string
 }
 
-export interface PasswordFormProps {
+export interface TwoFactorResetRequest {
+  id: UserId
+  bindingId: UserId
+  currentPassword: string
+}
+
+export interface AccountSecurityFormProps {
   user: UserItem
+  self: boolean
+  showTwoFactor: boolean
+  submitting: boolean
 }
 
 export interface UserRoleOption {

@@ -1,7 +1,7 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
 import { NAvatar, NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
 import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { useFormDialog, type DialogController } from '@/components/dialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { useAvatarImages } from '@/hooks/useAvatarImages'
@@ -15,11 +15,12 @@ import {
   fetchUserPage,
   fetchUserRoles,
   resetUserPassword,
+  resetUserTwoFactor,
   updateUser,
 } from './api'
 import type { UserId, UserItem, UserQuery } from './types'
 import UserForm from '../form.vue'
-import PasswordForm from '../PasswordForm.vue'
+import AccountSecurityForm from '../AccountSecurityForm.vue'
 import RoleForm from '../RoleForm.vue'
 
 /** 部门分支筛选用户，并管理资料、密码与角色弹窗。 */
@@ -165,11 +166,11 @@ export function useUser() {
               : null,
             canResetPassword
               ? h(TableAction, {
-                  label: '修改密码',
+                  label: '账号安全',
                   icon: 'key-round',
                   type: 'warning',
                   disabled: protectedAccount,
-                  onClick: () => openPasswordDialog(row),
+                  onClick: () => openAccountSecurityDialog(row),
                 })
               : null,
             canAssignRoles
@@ -298,13 +299,34 @@ export function useUser() {
     }
   }
 
-  function openPasswordDialog(row: UserItem) {
-    openFormDialog({
-      title: '修改密码',
+  function openAccountSecurityDialog(row: UserItem) {
+    const operatorId = currentUser.user?.userId
+    const bindingId = row.twoFactorBindingId
+    const sameOperator = () => operatorId != null && currentUser.user?.userId === operatorId
+    const dialog: DialogController = openFormDialog({
+      title: `账号安全 · ${row.username}`,
       width: 540,
-      formComponent: PasswordForm,
-      formProps: { user: row },
-      onSubmit: resetUserPassword,
+      formComponent: AccountSecurityForm,
+      // 每个页签提供自己的操作，密码提交仍由公共弹窗校验并锁定所有关闭入口。
+      modalProps: { positiveText: undefined, negativeText: undefined },
+      formProps: {
+        user: row,
+        self: isSelf(row),
+        get showTwoFactor() { return sameOperator() && currentUser.superAdministrator },
+        get submitting() { return dialog.submitting.value },
+        onClose: () => dialog.close(),
+        onSave: () => dialog.submit(),
+      },
+      onSubmit: (model) => {
+        if (!sameOperator()) return false
+        if ('currentPassword' in model) {
+          // 使用打开弹窗时的绑定编号，避免重置用户随后重新绑定的验证器。
+          if (!currentUser.superAdministrator || isSelf(row) || bindingId == null) return false
+          return resetUserTwoFactor({ id: row.id, bindingId, currentPassword: model.currentPassword })
+        }
+        if (!can('system:user:resetPassword') || (row.superAdministrator && !currentUser.superAdministrator)) return false
+        return resetUserPassword(model)
+      },
       onSuccess: table.reload,
     })
   }

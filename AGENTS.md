@@ -34,6 +34,7 @@
 - `whim-json`：Jackson 定制配置。
 - `whim-web`：类型转换、全局异常处理、XSS 过滤等 MVC 与 Web 公共能力。
 - `whim-redis`：基于 Redisson 的 Redis 集成与缓存管理器配置。
+- `whim-authenticator`：提供手机验证器（TOTP）的密钥配置、绑定申请、动态码校验和恢复码。系统账号的登录流程、绑定持久化和管理员重置由 `whim-system` 负责。其他认证方式按需使用独立模块。
 - `whim-satoken`：基于 Sa-Token 的认证与授权集成。
 - `whim-mybatisplus`：MyBatis-Plus 配置、分页拦截器、乐观锁拦截器、防全表更新与删除拦截器，以及实体字段自动填充支持。
 - 根 POM 通过 `dependencyManagement` 统一管理内部模块的版本。
@@ -124,7 +125,7 @@ Apifox 操作使用 MCP；未经用户明确要求，不读取屏幕或操作 Ap
 
 ### 业务模块
 
-`whim-modules/whim-system` 是当前的系统模块，依赖 `whim-core`、`whim-mybatisplus` 和 `whim-redis`，不依赖具体的 `whim-satoken` 实现。系统领域的服务、Mapper、实体、DTO 和 VO 均放在此模块；系统控制器放在 `whim-start` 的 `controller/system` 下。后续可在 `whim-modules` 中新增其他业务模块，例如 `whim-business`，不要默认所有业务领域都归属于 `whim-system`。
+`whim-modules/whim-system` 是当前的系统模块，依赖 `whim-core`、`whim-mybatisplus`、`whim-redis` 和 `whim-authenticator`，不依赖具体的 `whim-satoken` 实现。系统领域的服务、Mapper、实体、DTO 和 VO 均放在此模块；系统控制器放在 `whim-start` 的 `controller/system` 下。后续可在 `whim-modules` 中新增其他业务模块，例如 `whim-business`，不要默认所有业务领域都归属于 `whim-system`。
 
 ## 配置与业务约束
 

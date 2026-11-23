@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
+import com.whim.core.auth.model.UserInfo;
 import com.whim.core.constant.CacheKeys;
 import com.whim.core.exception.AccessDeniedException;
 import com.whim.core.exception.ServiceException;
@@ -37,6 +38,7 @@ import com.whim.system.model.entity.SysRole;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.entity.SysUserPost;
 import com.whim.system.model.entity.SysUserRole;
+import com.whim.system.model.entity.SysUserTwoFactor;
 import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.post.SysPostVO;
 import com.whim.system.model.vo.user.SysUserDetailVO;
@@ -123,9 +125,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 : Db.lambdaQuery(SysDept.class).select(SysDept::getId, SysDept::getDeptName)
                 .in(SysDept::getId, visibleDepartmentIds).list().stream()
                 .collect(Collectors.toMap(SysDept::getId, SysDept::getDeptName));
+        // 仅超级管理员可恢复他人账号；按本页用户批量查询绑定标识，不读取密钥、恢复码或本人绑定。
+        UserInfo operator = authenticationContext.getCurrentUserInfo();
+        List<Long> recoveryTargets = operator.isSuperAdministrator()
+                ? users.getRecords().stream().map(SysUser::getId)
+                        .filter(id -> !id.equals(operator.getUserId())).toList()
+                : List.of();
+        Map<Long, Long> visibleBindings = recoveryTargets.isEmpty() ? Map.of()
+                : Db.lambdaQuery(SysUserTwoFactor.class).select(SysUserTwoFactor::getUserId, SysUserTwoFactor::getId)
+                .in(SysUserTwoFactor::getUserId, recoveryTargets).list().stream()
+                .collect(Collectors.toMap(SysUserTwoFactor::getUserId, SysUserTwoFactor::getId));
         return new PageDataVO<>(users.convert(user -> {
             SysUserVO result = BeanConvertUtils.convert(user, SysUserVO.class);
             result.setDeptName(user.getDeptId() == null ? null : departmentNames.get(user.getDeptId()));
+            result.setTwoFactorBindingId(visibleBindings.get(user.getId()));
             return result;
         }));
     }

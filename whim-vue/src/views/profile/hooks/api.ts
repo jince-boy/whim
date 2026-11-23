@@ -1,6 +1,6 @@
 import { request, RequestMethod } from '@/api'
 import type { UserInfoResult } from '@/stores/modules/user/types'
-import type { ProfilePasswordUpdate, ProfileUpdate } from './types'
+import type { ProfilePasswordUpdate, ProfileUpdate, TwoFactorSetup, TwoFactorConfirm, TwoFactorDisable } from './types'
 
 /** 上传本人的头像文件，不要求用户管理权限。 */
 export function uploadProfileAvatar(file: File) {
@@ -17,4 +17,24 @@ export function updateUserProfile(data: ProfileUpdate) {
 /** 原密码和新密码由公共请求层加密后提交，不包含目标用户ID。 */
 export function updateUserPassword(data: ProfilePasswordUpdate) {
   return request<void>('/system/auth/password', RequestMethod.PUT, { data })
+}
+
+/** 获取本人的实际绑定状态。 */
+export function getTwoFactorStatus(signal: AbortSignal) {
+  return request<boolean>('/system/auth/twoFactorStatus', RequestMethod.GET, { signal })
+}
+
+/** 验证密码，申请仅在本次绑定中展示的密钥和恢复码。 */
+export function startTwoFactorSetup(data: { password: string }) {
+  return request<TwoFactorSetup>('/system/auth/twoFactorSetup', RequestMethod.POST, { data })
+}
+
+/** 确认第一个动态码后正式开启。 */
+export function enableTwoFactor(data: TwoFactorConfirm) {
+  return request<void>('/system/auth/twoFactorEnable', RequestMethod.POST, { data })
+}
+
+/** 核验当前密码及第二因素后解除绑定。 */
+export function disableTwoFactor(data: TwoFactorDisable) {
+  return request<void>('/system/auth/twoFactorDisable', RequestMethod.POST, { data })
 }

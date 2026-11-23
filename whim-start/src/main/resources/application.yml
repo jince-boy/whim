@@ -166,6 +166,7 @@ sa-token:
     - /system/config/site
     - /system/auth/requestEncryptionKey
     - /system/auth/login
+    - /system/auth/verifyLogin
     - /error
 
 # 请求加密：首次启动自动生成私钥并持久保存，前端运行时自动获取公钥。
@@ -178,6 +179,9 @@ whim:
     heartbeat-seconds: 25
     max-connections-per-user: 12
     queue-capacity: 64
+  two-factor:
+    # 与数据库一同备份；所有应用实例共用同一份独立密钥。
+    key-file: ./data/keys/two-factor.key
   request-encryption:
     # 私钥目录不得作为公开文件存储；Docker Compose 已将该目录持久挂载。
     private-key-file: ./data/keys/request-encryption-private.key

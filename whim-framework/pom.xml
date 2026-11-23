@@ -22,6 +22,7 @@
         <module>whim-log</module>
         <module>whim-json</module>
         <module>whim-redis</module>
+        <module>whim-authenticator</module>
         <module>whim-satoken</module>
         <module>whim-sse</module>
         <module>whim-mybatisplus</module>

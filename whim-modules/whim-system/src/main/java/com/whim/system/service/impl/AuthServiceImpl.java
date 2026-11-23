@@ -5,7 +5,6 @@ import com.wf.captcha.GifCaptcha;
 import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
-import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.auth.model.DepartmentInfo;
 import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
@@ -29,21 +28,28 @@ import com.whim.system.mapper.SysUserMapper;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
 import com.whim.system.model.dto.auth.AuthPasswordUpdateDTO;
 import com.whim.system.model.dto.auth.AuthProfileUpdateDTO;
+import com.whim.system.model.dto.auth.TwoFactorLoginDTO;
 import com.whim.system.model.entity.SysRoleDept;
 import com.whim.system.model.entity.SysUser;
 import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
+import com.whim.system.model.vo.auth.LoginResultVO;
 import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysConfigService;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserService;
+import com.whim.system.service.impl.TwoFactorChallengeService.LoginChallenge;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RateType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.util.LinkedHashSet;
@@ -58,6 +64,7 @@ import java.util.stream.Collectors;
  * @description 登录认证及用户授权快照构建。
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
 
@@ -87,6 +94,8 @@ public class AuthServiceImpl implements IAuthService {
      */
     private final AuthenticationSession authenticationSession;
     private final LoginLogPublisher loginLogPublisher;
+    private final TwoFactorServiceImpl twoFactorService;
+    private final TwoFactorChallengeService twoFactorChallenges;
 
     /**
      * 查询当前账号资料，并刷新部门、岗位、角色及完整授权快照。
@@ -216,7 +225,8 @@ public class AuthServiceImpl implements IAuthService {
      * @return 登录结果
      */
     @Override
-    public AuthenticationToken login(AuthLoginDTO loginDTO) {
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public LoginResultVO login(AuthLoginDTO loginDTO) {
         String clientAddress = IPUtils.getClientIpAddress();
         if (RedisUtils.rateLimiter("auth:loginIp:" + clientAddress, RateType.OVERALL, 60, 60, 120) < 0
                 || RedisUtils.rateLimiter("auth:loginUser:" + loginDTO.getUsername(), RateType.OVERALL, 10, 60, 120) < 0) {
@@ -240,12 +250,63 @@ public class AuthServiceImpl implements IAuthService {
                 remark = "用户已被禁用";
                 throw new UserDisableException(remark);
             }
-            AuthenticationToken token = authenticationSession.login(buildUserInfo(user));
+            // 密码验证期间可能发生改密、启停或首次绑定，签发前在同一账号行锁下读取最新状态。
+            SysUser current = twoFactorService.lockAccount(user.getId());
+            if (!current.getPassword().equals(user.getPassword())) {
+                throw new IllegalArgumentException("密码已变更，请重新登录");
+            }
+            Long bindingId = twoFactorService.getBindingId(current.getId());
+            if (bindingId != null) {
+                LoginResultVO pending = new LoginResultVO();
+                pending.setChallengeId(twoFactorChallenges.issueLoginChallenge(current, bindingId, clientAddress));
+                // 密码通过只进入待验证状态，成功日志与正式令牌一起在第二步产生。
+                remark = null;
+                return pending;
+            }
+            LoginResultVO token = BeanConvertUtils.convert(authenticationSession.login(buildUserInfo(current)), LoginResultVO.class);
             status = LogStatus.SUCCESS;
             remark = "登录成功";
             return token;
         } finally {
-            loginLogPublisher.publishLoginLog(loginDTO.getUsername(), clientAddress, status, remark);
+            if (remark != null) {
+                publishLoginResult(loginDTO.getUsername(), clientAddress, status, remark);
+            }
+        }
+    }
+
+    /**
+     * 核验短时登录凭证及第二因素，恢复码仅用于解除丢失的验证器。
+     *
+     * @param parameter 密码挑战凭证和动态码或恢复码
+     * @return 正式登录结果或恢复完成状态
+     */
+    @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public LoginResultVO verifyLogin(TwoFactorLoginDTO parameter) {
+        String address = IPUtils.getClientIpAddress();
+        LoginChallenge challenge = twoFactorChallenges.getLoginChallenge(parameter.getChallengeId(), address);
+        Long userId = challenge.getUserId();
+        twoFactorChallenges.limitAttempts(userId);
+        SysUser user = twoFactorService.lockAccount(userId);
+        LogStatus status = LogStatus.FAILURE;
+        String remark = "两步验证失败";
+        try {
+            if (twoFactorService.completeLoginChallenge(user, challenge, parameter.getCode())) {
+                LoginResultVO result = new LoginResultVO();
+                result.setRecovered(true);
+                // 成功找回不会签发令牌，不计入登录成功或失败；审计只记录账号标识。
+                log.info("已通过恢复码验证本人身份，用户ID={}", userId);
+                remark = null;
+                return result;
+            }
+            LoginResultVO result = BeanConvertUtils.convert(authenticationSession.login(buildUserInfo(user)), LoginResultVO.class);
+            status = LogStatus.SUCCESS;
+            remark = "两步验证登录成功";
+            return result;
+        } finally {
+            if (remark != null) {
+                publishLoginResult(user.getUsername(), address, status, remark);
+            }
         }
     }
 
@@ -255,6 +316,31 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void logout() {
         authenticationSession.logout();
+    }
+
+    /**
+     * 在认证结果最终确定后记录日志，失败尝试独立于业务事务记录。
+     *
+     * @param username 登录用户名
+     * @param address 客户端地址
+     * @param status 认证结果
+     * @param remark 认证结果说明
+     */
+    private void publishLoginResult(String username, String address, LogStatus status, String remark) {
+        if (status == LogStatus.FAILURE) {
+            loginLogPublisher.publishLoginLog(username, address, status, remark);
+            return;
+        }
+        // 只有动态码使用记录和登录事务确实提交后，才发布成功事件。
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            /**
+             * 提交成功后发布登录成功事件。
+             */
+            @Override
+            public void afterCommit() {
+                loginLogPublisher.publishLoginLog(username, address, status, remark);
+            }
+        });
     }
 
     /**

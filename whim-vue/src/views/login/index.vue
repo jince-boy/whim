@@ -13,6 +13,7 @@ const themeVars = useThemeVars()
 const themeStore = useThemeStore()
 const {
   form,
+  challengeId, secondCode, recovering, validSecondCode, restartLogin, changeVerificationMode,
   captcha,
   captchaEnabled,
   userIcon,
@@ -45,7 +46,22 @@ const {
         <div class="login-panel">
           <n-card class="login-box" hoverable>
             <h2>{{ systemSetting.title }}</h2>
-            <n-form ref="formRef" :label-width="80" :model="form" :rules="loginRules" size="medium" :show-label="false" :disabled="spinShow" @submit.prevent="handleLogin">
+            <n-form v-if="challengeId" :disabled="spinShow" @submit.prevent="handleLogin">
+              <n-form-item :label="recovering ? '一次性恢复码' : '验证器动态码'">
+                <n-input v-model:value="secondCode" :key="recovering ? 'recovery' : 'otp'" autofocus
+                  :maxlength="recovering ? 32 : 6" :placeholder="recovering ? '输入绑定时保存的32位恢复码' : '输入手机验证器中的6位数字'"
+                  :input-props="{ autocomplete: 'one-time-code', inputmode: recovering ? 'text' : 'numeric' }" />
+              </n-form-item>
+              <n-p v-if="recovering">使用恢复码可解除旧验证器并退出所有设备。如果恢复码也已遗失，请联系超级管理员重置两步验证。</n-p>
+              <n-button block attr-type="submit" :type="recovering ? 'warning' : 'primary'" :disabled="!validSecondCode" :loading="spinShow">
+                {{ recovering ? '使用恢复码解除绑定' : '验证并登录' }}
+              </n-button>
+              <n-space justify="space-between" class="verification-actions">
+                <n-button text :disabled="spinShow" @click="restartLogin">返回密码登录</n-button>
+                <n-button text :disabled="spinShow" @click="changeVerificationMode">{{ recovering ? '使用动态码' : '手机丢失？' }}</n-button>
+              </n-space>
+            </n-form>
+            <n-form v-else ref="formRef" :label-width="80" :model="form" :rules="loginRules" size="medium" :show-label="false" :disabled="spinShow" @submit.prevent="handleLogin">
               <n-form-item path="username">
                 <n-input v-model:value="form.username" placeholder="用户名" :maxlength="32" :input-props="{ autocomplete: 'username', 'aria-label': '用户名' }">
                   <template #prefix>
@@ -380,6 +396,10 @@ const {
     color: var(--login-text-muted);
     font-size: 12px;
   }
+}
+
+.verification-actions {
+  margin-top: 16px;
 }
 
 .login-button {

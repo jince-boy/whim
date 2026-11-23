@@ -46,6 +46,14 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-redis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-authenticator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
         <!-- 登录 GIF 验证码 -->
         <dependency>
             <groupId>com.github.whvcse</groupId>

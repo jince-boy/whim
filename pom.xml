@@ -50,11 +50,17 @@
         <commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
         <tika.version>4.2.0</tika.version>
         <fesod.version>2.1.0-incubating</fesod.version>
+        <java-otp.version>1.0.0</java-otp.version>
         <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.eatthepath</groupId>
+                <artifactId>java-otp</artifactId>
+                <version>${java-otp.version}</version>
+            </dependency>
             <!-- 标准 JWE 请求加密协议 -->
             <dependency>
                 <groupId>com.nimbusds</groupId>
@@ -230,6 +236,11 @@
             <dependency>
                 <groupId>com.whim</groupId>
                 <artifactId>whim-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.whim</groupId>
+                <artifactId>whim-authenticator</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

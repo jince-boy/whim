@@ -1,5 +1,6 @@
 package com.whim.controller.system;
 
+import com.whim.core.annotation.RequestDecrypt;
 import com.whim.log.annotation.Log;
 import com.whim.log.enums.LogType;
 import cn.dev33.satoken.annotation.SaMode;
@@ -12,11 +13,14 @@ import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.dto.user.SysUserPasswordDTO;
 import com.whim.system.model.dto.user.SysUserQueryDTO;
 import com.whim.system.model.dto.user.SysUserRoleDTO;
+import com.whim.system.model.dto.user.SysUserTwoFactorResetDTO;
 import com.whim.system.model.dto.user.SysUserUpdateDTO;
 import com.whim.system.model.vo.user.SysUserDetailVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
 import com.whim.system.service.ISysUserService;
+import com.whim.system.service.ITwoFactorService;
+import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -45,6 +49,7 @@ import java.io.IOException;
 @RequestMapping("/system/user")
 public class SysUserController {
     private final ISysUserService userService;
+    private final ITwoFactorService twoFactorService;
 
     /**
      * 按部门分支和用户信息分页查询可见用户。
@@ -148,6 +153,21 @@ public class SysUserController {
     public Result<Void> resetUserPassword(@Valid @RequestBody SysUserPasswordDTO parameter) {
         userService.resetUserPassword(parameter);
         return Result.success("修改密码成功");
+    }
+
+    /**
+     * 由超级管理员解除目标用户丢失的两步验证绑定。
+     *
+     * @param parameter 目标用户、预期绑定及操作者当前密码
+     * @return 重置结果
+     */
+    @Log(title = "重置用户两步验证", type = LogType.UPDATE, excludeFields = "currentPassword")
+    @RequestDecrypt
+    @XssIgnore
+    @PutMapping("/resetTwoFactor")
+    public Result<Void> resetUserTwoFactor(@Valid @RequestBody SysUserTwoFactorResetDTO parameter) {
+        twoFactorService.resetUserTwoFactor(parameter);
+        return Result.success("两步验证已重置，该用户需重新登录");
     }
 
     /**

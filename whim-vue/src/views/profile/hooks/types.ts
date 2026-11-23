@@ -31,3 +31,29 @@ export interface ProfilePasswordFormModel {
 export interface ProfilePasswordFormProps {
   user: UserInfoResult
 }
+
+export interface TwoFactorSetup {
+  setupId: string
+  secret: string
+  recoveryCode: string
+}
+
+export interface TwoFactorConfirm {
+  setupId: string
+  code: string
+}
+
+export interface TwoFactorDisable {
+  password: string
+  code: string
+}
+
+/** 只在本次验证器弹窗内使用，关闭时整份丢弃。 */
+export interface TwoFactorSettingsDraft {
+  disabling: boolean
+  password: string
+  code: string
+  savedRecovery: boolean
+  submitting: boolean
+  setup?: TwoFactorSetup
+}

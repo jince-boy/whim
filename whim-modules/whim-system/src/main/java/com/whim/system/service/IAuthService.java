@@ -1,11 +1,12 @@
 package com.whim.system.service;
 
-import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.system.model.dto.auth.AuthLoginDTO;
 import com.whim.system.model.dto.auth.AuthPasswordUpdateDTO;
 import com.whim.system.model.dto.auth.AuthProfileUpdateDTO;
+import com.whim.system.model.dto.auth.TwoFactorLoginDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
+import com.whim.system.model.vo.auth.LoginResultVO;
 
 /**
  * @author Jince
@@ -49,7 +50,15 @@ public interface IAuthService {
      * @param loginDTO 登录参数
      * @return 登录结果
      */
-    AuthenticationToken login(AuthLoginDTO loginDTO);
+    LoginResultVO login(AuthLoginDTO loginDTO);
+
+    /**
+     * 核验短时登录凭证及第二因素，恢复码仅用于解除丢失的验证器。
+     *
+     * @param parameter 密码挑战凭证和动态码或恢复码
+     * @return 正式登录结果或恢复完成状态
+     */
+    LoginResultVO verifyLogin(TwoFactorLoginDTO parameter);
 
     /**
      * 注销当前登录会话。
