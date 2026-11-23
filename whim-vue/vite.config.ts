@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
   // 转义路径中的正则字符，并限制边界，避免 /api 意外匹配 /apiExtra。
   const apiProxyPattern = `^${apiBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=/|\\?|$)`
   return {
+    optimizeDeps: {
+      include: ['@wangeditor-next/editor-for-vue'],
+    },
     plugins: [
       vue(),
       vueJsx(),

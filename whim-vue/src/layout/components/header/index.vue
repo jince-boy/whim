@@ -2,6 +2,7 @@
 import {darkTheme} from 'naive-ui'
 import SearchComponent from '@/components/search/index.vue'
 import ThemeComponent from '@/components/theme/index.vue'
+import NoticeBell from '@/views/system/notice/components/NoticeBell.vue'
 import {useHeader} from './hooks/useHeader'
 
 defineOptions({name: 'LayoutHeader'})
@@ -70,19 +71,7 @@ const {
             </template>
             <span>主题配置</span>
           </n-tooltip>
-          <n-popover trigger="click" placement="bottom-end" :show-arrow="false" :width="240">
-            <template #trigger>
-              <n-button quaternary native-focus-behavior size="small" class="header-action" aria-label="通知" @mousedown.prevent>
-                <template #icon>
-                  <n-icon :component="createIcon('bell', 18)"/>
-                </template>
-              </n-button>
-            </template>
-            <template #header>
-              <n-text strong>通知</n-text>
-            </template>
-            <n-empty description="暂无通知" size="small"/>
-          </n-popover>
+          <NoticeBell />
           <slot name="user"/>
         </n-flex>
       </n-flex>

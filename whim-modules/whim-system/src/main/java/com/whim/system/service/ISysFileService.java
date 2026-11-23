@@ -31,6 +31,16 @@ public interface ISysFileService extends IService<SysFile> {
     byte[] getFileThumbnail(Long id);
 
     /**
+     * 按业务上传来源和指定尺寸读取 PNG 图片。
+     *
+     * @param id 文件ID
+     * @param uploadSource 允许读取的上传途径
+     * @param size 图片最长边像素数
+     * @return PNG 图片，文件不存在、来源不符或无法预览时为空数组
+     */
+    byte[] getFileImageByUploadSource(Long id, String uploadSource, int size);
+
+    /**
      * 查询经过重新编码的安全图片预览，不返回原始上传内容。
      *
      * @param id 文件ID

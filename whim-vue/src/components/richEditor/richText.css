@@ -1,0 +1,54 @@
+.whim-rich-text {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.whim-rich-text p {
+  margin: 0.35em 0;
+  min-height: 1em;
+}
+.whim-rich-text h2 {
+  margin: 0.7em 0 0.3em;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+.whim-rich-text ul,
+.whim-rich-text ol {
+  padding-inline-start: 1.8em;
+}
+.whim-rich-text ul {
+  list-style: disc;
+}
+.whim-rich-text ol {
+  list-style: decimal;
+}
+.whim-rich-text a {
+  text-decoration: underline;
+  color: inherit;
+}
+.whim-rich-text table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.whim-rich-text td,
+.whim-rich-text th {
+  border: 1px solid #8888;
+  padding: 4px 8px;
+  vertical-align: top;
+  position: relative;
+}
+.whim-rich-text th {
+  background: #8882;
+  text-align: start;
+}
+.whim-rich-text img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+.whim-rich-text :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0.7em 0 0.3em;
+  font-weight: 600;
+  line-height: 1.35;
+}

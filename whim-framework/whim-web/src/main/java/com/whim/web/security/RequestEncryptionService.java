@@ -43,8 +43,10 @@ public class RequestEncryptionService {
                 || request.getHeader("Content-Encoding") != null) {
             throw new IllegalArgumentException("请求解密仅支持无内容编码的 POST、PUT、PATCH、DELETE JSON 请求体");
         }
-        byte[] requestBytes = request.getInputStream().readNBytes(properties.getMaxBodyBytes() + 1);
-        if (requestBytes.length > properties.getMaxBodyBytes()) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        int maxBytes = properties.getPathMaxBodyBytes().getOrDefault(path, properties.getMaxBodyBytes());
+        byte[] requestBytes = request.getInputStream().readNBytes(maxBytes + 1);
+        if (requestBytes.length > maxBytes) {
             throw new IllegalArgumentException("JSON 请求体超过允许的大小");
         }
         JsonNode envelope;
@@ -74,7 +76,6 @@ public class RequestEncryptionService {
             // 不向日志或客户端传播包含请求明文、密文或密码学细节的原始异常。
             throw new IllegalArgumentException("请求解密失败，请检查请求格式和加密公钥");
         }
-        String path = request.getRequestURI().substring(request.getContextPath().length());
         if (payload == null || !payload.isObject() || payload.size() != 3
                 || !payload.path("method").isString() || !request.getMethod().equals(payload.get("method").stringValue())
                 || !payload.path("path").isString() || !path.equals(payload.get("path").stringValue())

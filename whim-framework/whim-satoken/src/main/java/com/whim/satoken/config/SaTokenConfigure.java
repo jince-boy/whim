@@ -23,6 +23,7 @@ import com.whim.satoken.security.StpAuthManager;
 import com.whim.satoken.session.SaTokenAuthenticationSession;
 import com.whim.satoken.service.StpInterfaceImpl;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.DispatcherType;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
@@ -33,6 +34,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -78,11 +80,22 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 .excludePathPatterns(excludePaths);
     }
 
-    /** 将拦截器、权限注解及业务调用的认证异常转换后交给原有 MVC 处理链，保留解析顺序。 */
+    /**
+     * 将认证异常映射到项目异常体系，保留原有 MVC 异常解析顺序。
+     *
+     * @param resolvers MVC 异常解析器列表
+     */
     @Override
     public void extendHandlerExceptionResolvers(@NonNull List<HandlerExceptionResolver> resolvers) {
-        resolvers.replaceAll(resolver -> (request, response, handler, exception) ->
-                resolver.resolveException(request, response, handler, translateAuthenticationException(exception)));
+        resolvers.replaceAll(resolver -> (request, response, handler, exception) -> {
+            Exception translated = translateAuthenticationException(exception);
+            // 长连接因会话失效结束时，MVC 会再次分派；已提交的响应只能结束，不能追加 401 正文。
+            if (request.getDispatcherType() == DispatcherType.ASYNC && response.isCommitted()
+                    && translated instanceof UnauthenticatedException) {
+                return new ModelAndView();
+            }
+            return resolver.resolveException(request, response, handler, translated);
+        });
     }
 
     /**

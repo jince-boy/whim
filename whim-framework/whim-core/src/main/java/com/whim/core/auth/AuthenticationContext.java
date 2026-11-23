@@ -2,6 +2,8 @@ package com.whim.core.auth;
 
 import com.whim.core.auth.model.UserInfo;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * @author Jince
  * @date 2026/04/12
@@ -21,6 +23,13 @@ public interface AuthenticationContext {
      * @return true 表示当前请求已登录
      */
     boolean isLogin();
+
+    /**
+     * 获取当前会话的有效性检查器，供长连接在请求线程之外验证原登录身份。
+     *
+     * @return 只验证原会话且不延长其活跃期的检查器
+     */
+    BooleanSupplier getSessionValidityCheck();
 
     /**
      * 判断当前账号是否具有独立的超级管理员身份。

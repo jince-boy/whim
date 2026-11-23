@@ -156,7 +156,24 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public byte[] getFileThumbnail(Long id) {
-        return getFileImage(id, 96);
+        return getFileImage(getFile(id), 96);
+    }
+
+    /**
+     * 在文件读锁内核对上传来源并生成指定尺寸的业务图片。
+     *
+     * @param id 文件ID
+     * @param uploadSource 允许读取的上传途径
+     * @param size 图片最长边像素数
+     * @return PNG 图片，已删除、来源不符或无法预览时为空数组
+     */
+    @Lock4j(name = FILE_LOCK, keys = "#p0", executor = RedissonReadLockExecutor.class, acquireTimeout = 5000)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public byte[] getFileImageByUploadSource(Long id, String uploadSource, int size) {
+        // 文件管理可以独立删除图片，来源检查与读取须与删除操作互斥。
+        SysFile file = lambdaQuery().eq(SysFile::getId, id).eq(SysFile::getUploadSource, uploadSource).one();
+        return file == null ? new byte[0] : getFileImage(file, size);
     }
 
     /**
@@ -169,18 +186,17 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public byte[] getFilePreview(Long id) {
-        return getFileImage(id, 2048);
+        return getFileImage(getFile(id), 2048);
     }
 
     /**
      * 在调用方持有文件读锁时读取原文件并生成安全位图。
      *
-     * @param id 文件ID
+     * @param file 已取得读锁的文件记录
      * @param size 图片最长边
      * @return PNG图片内容，不可预览时为空数组
      */
-    private byte[] getFileImage(Long id, int size) {
-        SysFile file = getFile(id);
+    private byte[] getFileImage(SysFile file, int size) {
         if (!Strings.CI.startsWith(file.getContentType(), "image/")
                 || file.getFileSize() > ImageThumbnailGenerator.MAXIMUM_SOURCE_BYTES) {
             return new byte[0];

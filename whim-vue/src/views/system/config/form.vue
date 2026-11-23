@@ -18,7 +18,9 @@ defineExpose({ formRef, formModel })
     </n-form-item>
     <n-form-item label="值类型" path="valueType">
       <n-radio-group :value="formModel.valueType" :disabled="props.initialModel?.builtIn" aria-label="值类型" @update:value="changeType">
-        <n-radio-button v-for="(label, type) in valueTypeLabels" :key="type" :value="type" :label="label" />
+        <n-space>
+          <n-radio v-for="(label, type) in valueTypeLabels" :key="type" :value="type" :label="label" />
+        </n-space>
       </n-radio-group>
     </n-form-item>
     <n-form-item v-if="formModel.valueType === 'RADIO' && !props.initialModel?.builtIn" label="单选选项" path="valueOptions">

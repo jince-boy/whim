@@ -170,11 +170,23 @@ sa-token:
 
 # 请求加密：首次启动自动生成私钥并持久保存，前端运行时自动获取公钥。
 whim:
+  sse:
+    enabled: true
+    # 多实例共享 Redis 时启用，所有实例须配置相同的主题命名空间。
+    cluster-enabled: false
+    cluster-topic: ${spring.application.name}:${spring.profiles.active}:sse:system:events
+    heartbeat-seconds: 25
+    max-connections-per-user: 12
+    queue-capacity: 64
   request-encryption:
     # 私钥目录不得作为公开文件存储；Docker Compose 已将该目录持久挂载。
     private-key-file: ./data/keys/request-encryption-private.key
     # JSON 请求体上限，密文按整个 encryptedData 包装体的字节数计算。
     max-body-bytes: 65536
+    # 富文本公告的 HTML 可达 256 KiB，额外空间用于 JSON 转义及 JWE 信封。
+    path-max-body-bytes:
+      "[/system/notice/add]": 524288
+      "[/system/notice/update]": 524288
     requests-per-minute: 120
 
 # Mybatis plus

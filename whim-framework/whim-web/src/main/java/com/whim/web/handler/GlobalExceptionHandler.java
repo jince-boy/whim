@@ -21,6 +21,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
@@ -34,6 +35,16 @@ import java.util.Optional;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    /**
+     * 在异步响应已不可写时结束异常处理，避免向断开的连接再次发送错误正文。
+     *
+     * @param request 已断开的异步请求
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleDisconnectedRequest(HttpServletRequest request) {
+        log.debug("异步响应已结束，请求路径={}", request.getRequestURI());
+    }
+
     /**
      * 将未认证或会话失效统一映射为 HTTP 401。
      */

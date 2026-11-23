@@ -26,8 +26,10 @@ defineExpose({ formRef, formModel })
     </n-form-item>
     <n-form-item label="菜单类型" path="menuType">
       <n-flex vertical :size="8">
-        <n-radio-group :value="formModel.menuType" :disabled="!!typeLockReason" @update:value="changeType">
-          <n-radio-button v-for="item in props.dictionaryOptions.menuTypes" :key="item.value" :value="item.value" :label="item.label" />
+        <n-radio-group :value="formModel.menuType" :disabled="!!typeLockReason" aria-label="菜单类型" @update:value="changeType">
+          <n-space>
+            <n-radio v-for="item in props.dictionaryOptions.menuTypes" :key="item.value" :value="item.value" :label="item.label" />
+          </n-space>
         </n-radio-group>
         <n-text v-if="typeLockReason" depth="3">{{ typeLockReason }}</n-text>
       </n-flex>

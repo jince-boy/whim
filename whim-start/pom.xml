@@ -41,6 +41,11 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-satoken</artifactId>
         </dependency>
+        <!-- SSE 订阅及在线事件推送 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-sse</artifactId>
+        </dependency>
         <!-- 系统业务模块 -->
         <dependency>
             <groupId>com.whim</groupId>

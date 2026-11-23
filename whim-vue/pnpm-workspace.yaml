@@ -1,5 +1,6 @@
 allowBuilds:
   '@parcel/watcher': false
   esbuild: false
+  es5-ext: false
 minimumReleaseAgeExclude:
   - sass@1.105.1

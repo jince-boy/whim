@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { saveAs } from 'file-saver'
 import router from '@/router'
 import { useAuthStore } from '@/stores/modules/auth.ts'
@@ -140,6 +141,57 @@ export enum RequestMethod {
   PUT = 'PUT',
   DELETE = 'DELETE',
   PATCH = 'PATCH',
+}
+
+/** 通过认证请求头订阅系统事件，重连后由调用方重新同步业务状态。 */
+export async function subscribeSystemEvents(
+  signal: AbortSignal,
+  onConnected: () => void,
+  onEvent: (name: string) => void,
+): Promise<void> {
+  const auth = useAuthStore()
+  if (!auth.getToken || signal.aborted) return
+  const authorization = `${auth.tokenType} ${auth.getToken}`
+  let delay = 1000
+  let stop = false
+  try {
+    await fetchEventSource(
+      `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/system/sse/subscribe`,
+      {
+        signal,
+        headers: { Authorization: authorization, Accept: 'text/event-stream, application/json' },
+        async onopen(response) {
+          if (
+            response.ok &&
+            response.headers.get('content-type')?.startsWith('text/event-stream')
+          ) {
+            delay = 1000
+            onConnected()
+            return
+          }
+          // 模块可由部署关闭；登录失效仍走公共请求层的账号切换保护。
+          stop = [401, 403, 404].includes(response.status) || response.ok
+          if (response.status === 401)
+            await handleUnauthorized('登录状态已失效，请重新登录', authorization)
+          throw new Error('实时连接未建立')
+        },
+        onmessage(event) {
+          if (event.event && !signal.aborted) onEvent(event.event)
+        },
+        onclose() {
+          throw new Error('实时连接已结束')
+        },
+        onerror(error) {
+          if (stop || signal.aborted) throw error
+          const retry = delay
+          delay = Math.min(delay * 2, 30000)
+          return retry
+        },
+      },
+    )
+  } catch {
+    // 无法订阅时，用户仍能通过打开铃铛和列表查询最新公告。
+  }
 }
 
 /** 发送 JSON 接口请求并返回统一响应，其他业务状态码交由调用方处理。 */

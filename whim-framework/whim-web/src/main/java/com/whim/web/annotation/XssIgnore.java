@@ -15,4 +15,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface XssIgnore {
+    /**
+     * 指定由业务单独清洗的顶层 JSON 字符串字段，留空时沿用整接口豁免。
+     *
+     * @return 单独处理的字段名
+     */
+    String[] bodyFields() default {};
 }

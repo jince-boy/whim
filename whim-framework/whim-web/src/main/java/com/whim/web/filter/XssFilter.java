@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -39,8 +40,7 @@ public class XssFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         // 文件流不能作为HTML字符串清洗；上传内容校验及附件响应约束由whim-file负责。
         return request instanceof XssHttpServletRequestWrapper
-                || isMultipartRequest(request)
-                || isIgnoredRequest(request);
+                || isMultipartRequest(request);
     }
 
     /**
@@ -58,7 +58,13 @@ public class XssFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        filterChain.doFilter(new XssHttpServletRequestWrapper(request), response);
+        XssIgnore policy = getXssIgnore(request);
+        if (policy != null && policy.bodyFields().length == 0) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        Set<String> bodyFields = policy == null ? Set.of() : Set.of(policy.bodyFields());
+        filterChain.doFilter(new XssHttpServletRequestWrapper(request, bodyFields), response);
     }
 
     /**
@@ -76,22 +82,22 @@ public class XssFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 判断当前请求是否标记了 XSS 排除注解。
+     * 获取当前处理方法或控制器的 XSS 排除配置。
      *
      * @param request 当前请求
-     * @return true 表示跳过 XSS 过滤
+     * @return 排除配置，未标注时为空
      */
-    private boolean isIgnoredRequest(HttpServletRequest request) {
+    private XssIgnore getXssIgnore(HttpServletRequest request) {
         HandlerExecutionChain handlerExecutionChain = resolveHandlerExecutionChain(request);
         if (handlerExecutionChain == null) {
-            return false;
+            return null;
         }
         Object handler = handlerExecutionChain.getHandler();
         if (!(handler instanceof HandlerMethod handlerMethod)) {
-            return false;
+            return null;
         }
-        return AnnotatedElementUtils.hasAnnotation(handlerMethod.getBeanType(), XssIgnore.class)
-                || AnnotatedElementUtils.hasAnnotation(handlerMethod.getMethod(), XssIgnore.class);
+        XssIgnore policy = handlerMethod.getMethodAnnotation(XssIgnore.class);
+        return policy != null ? policy : AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), XssIgnore.class);
     }
 
     /**

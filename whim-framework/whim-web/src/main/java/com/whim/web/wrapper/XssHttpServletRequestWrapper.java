@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jince
@@ -39,6 +40,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private final Charset requestCharset;
     private final byte[] sanitizedBody;
+    private final Set<String> businessBodyFields;
 
     /**
      * 创建 XSS 请求包装器。
@@ -46,7 +48,18 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      * @param request 原始请求
      */
     public XssHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
+        this(request, Set.of());
+    }
+
+    /**
+     * 对指定业务正文保留原始字符串，其余参数沿用纯文本过滤。
+     *
+     * @param request 原始请求
+     * @param businessBodyFields 由业务校验的顶层 JSON 字符串字段
+     */
+    public XssHttpServletRequestWrapper(HttpServletRequest request, Set<String> businessBodyFields) throws IOException {
         super(request);
+        this.businessBodyFields = Set.copyOf(businessBodyFields);
         this.requestCharset = resolveCharset(request.getCharacterEncoding());
         this.sanitizedBody = resolveRequestBody();
     }
@@ -198,7 +211,10 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             if (rootNode == null) {
                 return requestBody;
             }
-            String sanitizedJson = JSON_MAPPER.writeValueAsString(cleanJsonNode(rootNode));
+            // 仅顶层显式声明的字符串使用业务白名单，嵌套对象及同名查询参数继续清洗。
+            JsonNode cleaned = rootNode instanceof ObjectNode objectNode
+                    ? cleanObjectNode(objectNode, businessBodyFields) : cleanJsonNode(rootNode);
+            String sanitizedJson = JSON_MAPPER.writeValueAsString(cleaned);
             return sanitizedJson.getBytes(this.requestCharset);
         } catch (Exception exception) {
             log.warn("XSS JSON 请求体清洗失败，已回退为原始请求体，uri={}", super.getRequestURI(), exception);
@@ -220,7 +236,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             return JsonNodeFactory.instance.stringNode(clean(jsonNode.stringValue()));
         }
         if (jsonNode.isObject()) {
-            return cleanObjectNode((ObjectNode) jsonNode);
+            return cleanObjectNode((ObjectNode) jsonNode, Set.of());
         }
         if (jsonNode.isArray()) {
             return cleanArrayNode((ArrayNode) jsonNode);
@@ -232,11 +248,14 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      * 清洗 JSON 对象节点中的所有字段。
      *
      * @param objectNode JSON 对象节点
+     * @param excludedFields 本层由业务清洗的字符串字段
      * @return 清洗后的对象节点
      */
-    private ObjectNode cleanObjectNode(ObjectNode objectNode) {
+    private ObjectNode cleanObjectNode(ObjectNode objectNode, Set<String> excludedFields) {
         for (Map.Entry<String, JsonNode> property : objectNode.properties()) {
-            objectNode.set(property.getKey(), cleanJsonNode(property.getValue()));
+            if (!excludedFields.contains(property.getKey()) || !property.getValue().isString()) {
+                objectNode.set(property.getKey(), cleanJsonNode(property.getValue()));
+            }
         }
         return objectNode;
     }

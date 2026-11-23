@@ -10,6 +10,7 @@ import com.whim.satoken.security.StpAuthManager;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 /**
  * @author Jince
@@ -45,6 +46,27 @@ public class AuthContext implements AuthenticationContext {
     }
 
     /**
+     * 捕获已认证的令牌，在后台线程校验原会话是否仍然有效。
+     *
+     * @return 不依赖 Servlet 请求上下文的会话检查器
+     */
+    @Override
+    public BooleanSupplier getSessionValidityCheck() {
+        StpLogic logic = getRequiredCurrentStpLogic();
+        String token = logic.getTokenValue();
+        String loginId = logic.getLoginIdAsString();
+        // 指定令牌查询不会把后台心跳计为用户活动，也不会为已注销的令牌重建会话。
+        return () -> {
+            if (!loginId.equals(Objects.toString(logic.getLoginIdByToken(token), null))) {
+                return false;
+            }
+            SaSession session = logic.getTokenSessionByToken(token, false);
+            return session != null && session.get(AuthSessionKeys.LOGIN_USER) instanceof UserInfo userInfo
+                    && loginId.equals(String.valueOf(userInfo.getUserId()));
+        };
+    }
+
+    /**
      * 获取当前请求所属的 Sa-Token 账号体系。
      *
      * @return 当前请求所属的 Sa-Token 账号体系
@@ -52,7 +74,7 @@ public class AuthContext implements AuthenticationContext {
     private StpLogic getRequiredCurrentStpLogic() {
         StpLogic stpLogic = StpAuthManager.getCurrentStpLogic();
         if (Objects.isNull(stpLogic)) {
-            throw new IllegalStateException("当前请求未登录，无法获取认证上下文");
+            throw new UnauthenticatedException("登录授权信息已失效，请重新登录");
         }
         return stpLogic;
     }
