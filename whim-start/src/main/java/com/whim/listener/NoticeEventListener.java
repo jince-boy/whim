@@ -28,16 +28,22 @@ public class NoticeEventListener {
      */
     @TransactionalEventListener
     public void notifyNoticeChanged(NoticeChangedEvent event) {
-        try {
-            // 阅读状态只属于当前用户；公告变更可唤醒全部在线账号。
-            if (event.getUserId() == null) {
-                publisher.broadcast("noticeChanged", Map.of());
-            } else {
-                publisher.sendToUser(event.getUserId(), "noticeRead", Map.of());
+        // 仅公开通知公告可以广播；所有推送都只携带刷新信号。
+        if (event.getRecipientIds() == null) {
+            try {
+                publisher.broadcast(event.getEventName(), Map.of());
+            } catch (RuntimeException exception) {
+                log.warn("公告已提交，实时提醒广播失败", exception);
             }
-        } catch (RuntimeException exception) {
-            // 推送失败无法回滚已提交的数据，客户端打开铃铛或重连时会重新查询。
-            log.warn("公告已提交，实时提醒发送失败", exception);
+            return;
+        }
+        for (Long userId : event.getRecipientIds()) {
+            try {
+                publisher.sendToUser(userId, event.getEventName(), Map.of());
+            } catch (RuntimeException exception) {
+                // 单个账号推送失败不影响其他收件人，重连或打开铃铛时可重新读取已提交的消息。
+                log.warn("消息已提交，定向提醒发送失败，用户ID={}", userId, exception);
+            }
         }
     }
 }

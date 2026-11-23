@@ -28,9 +28,22 @@ public class LoginLogPublisher {
      * @param remark 本次认证的结果说明
      */
     public void publishLoginLog(String username, String clientAddress, LogStatus status, String remark) {
+        publishLoginLog(username, clientAddress, status, remark, null);
+    }
+
+    /**
+     * 记录认证结果，并为已知账号的凭据错误提供安全提醒所需的收件人标识。
+     *
+     * @param username 本次认证的用户名
+     * @param clientAddress 认证来源地址
+     * @param status 登录结果
+     * @param remark 认证结果说明
+     * @param credentialFailureUserId 凭据错误对应的账号，其他情况为空
+     */
+    public void publishLoginLog(String username, String clientAddress, LogStatus status, String remark, Long credentialFailureUserId) {
         try {
             eventPublisher.publishEvent(new LoginLogEvent(username, clientAddress,
-                    ServletUtils.getUserAgentHeader().orElse(null), LocalDateTime.now().withNano(0), status, remark));
+                    ServletUtils.getUserAgentHeader().orElse(null), LocalDateTime.now().withNano(0), status, remark, credentialFailureUserId));
         } catch (RuntimeException exception) {
             log.error("登录日志事件投递失败，客户端地址={}", clientAddress, exception);
         }

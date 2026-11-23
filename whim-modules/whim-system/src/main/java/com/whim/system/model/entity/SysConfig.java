@@ -6,10 +6,13 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import com.whim.mybatisplus.model.entity.BaseEntity;
-import com.whim.system.model.config.ConfigOption;
 import com.whim.system.model.enums.ConfigValueType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.deser.jdk.StringDeserializer;
 
 import java.io.Serial;
 import java.util.List;
@@ -41,4 +44,21 @@ public class SysConfig extends BaseEntity {
     private Boolean builtIn;
     @TableLogic
     private Long deleted;
+
+    /**
+     * @author Jince
+     * @date 2026/11/20
+     * @description 单选配置的选项名称和实际存储值。
+     */
+    @Data
+    public static class ConfigOption {
+        @NotBlank(message = "选项名称不能为空")
+        @Size(max = 128, message = "选项名称不能超过128个字符")
+        private String label;
+
+        @NotBlank(message = "选项值不能为空")
+        @Size(max = 128, message = "选项值不能超过128个字符")
+        @JsonDeserialize(using = StringDeserializer.class)
+        private String value;
+    }
 }

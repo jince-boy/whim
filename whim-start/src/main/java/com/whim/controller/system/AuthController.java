@@ -20,7 +20,6 @@ import com.whim.system.model.vo.auth.LoginResultVO;
 import com.whim.system.model.vo.auth.TwoFactorSetupVO;
 import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysUserService;
-import com.whim.system.service.ITwoFactorService;
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,7 +49,6 @@ public class AuthController {
      * 认证服务对象
      */
     private final IAuthService authService;
-    private final ITwoFactorService twoFactorService;
 
     private final ISysUserService userService;
 
@@ -115,7 +113,7 @@ public class AuthController {
     @SystemCheckLogin
     @GetMapping("/twoFactorStatus")
     public Result<Boolean> getTwoFactorStatus() {
-        return Result.success("查询成功", twoFactorService.isTwoFactorEnabled());
+        return Result.success("查询成功", authService.isTwoFactorEnabled());
     }
 
     /**
@@ -131,7 +129,7 @@ public class AuthController {
     @PostMapping("/twoFactorSetup")
     public Result<TwoFactorSetupVO> startTwoFactorSetup(@RequestBody @Valid TwoFactorSetupDTO parameter, HttpServletResponse response) {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        return Result.success("请绑定验证器", twoFactorService.startTwoFactorSetup(parameter));
+        return Result.success("请绑定验证器", authService.startTwoFactorSetup(parameter));
     }
 
     /**
@@ -145,7 +143,7 @@ public class AuthController {
     @Log(title = "开启两步验证", type = LogType.UPDATE, excludeFields = {"setupId", "code"})
     @PostMapping("/twoFactorEnable")
     public Result<Void> enableTwoFactor(@RequestBody @Valid TwoFactorConfirmDTO parameter) {
-        twoFactorService.enableTwoFactor(parameter);
+        authService.enableTwoFactor(parameter);
         return Result.success("两步验证已开启，请使用下一枚动态码重新登录");
     }
 
@@ -161,7 +159,7 @@ public class AuthController {
     @Log(title = "关闭两步验证", type = LogType.UPDATE, excludeFields = {"password", "code"})
     @PostMapping("/twoFactorDisable")
     public Result<Void> disableTwoFactor(@RequestBody @Valid TwoFactorDisableDTO parameter) {
-        twoFactorService.disableTwoFactor(parameter);
+        authService.disableTwoFactor(parameter);
         return Result.success("两步验证已关闭，请重新登录");
     }
 

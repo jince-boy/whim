@@ -94,10 +94,10 @@ public class SysNoticeController {
     }
 
     /**
-     * 分页查询当前用户可以阅读的公告。
+     * 分页查询已发布的公共消息和当前账号收到的系统消息。
      *
      * @param query 分页条件
-     * @return 含已读状态的公告分页
+     * @return 含本人已读状态的消息分页
      */
     @GetMapping("/inbox")
     public Result<PageDataVO<SysNoticeInboxItemVO>> getInboxPage(@Valid SysNoticeInboxQueryDTO query) {
@@ -118,15 +118,15 @@ public class SysNoticeController {
     }
 
     /**
-     * 查询当前用户未读数与最近公告。
+     * 查询当前账号的总未读数与最近消息。
      *
      * @param noticeType 最近消息的类型，为空时查询全部
-     * @return 公告消息盒子
+     * @return 消息中心摘要
      */
     @GetMapping("/box")
     public Result<SysNoticeBoxVO> getNoticeBox(@RequestParam(required = false)
                                                @Min(value = 1, message = "消息类型无效")
-                                               @Max(value = 2, message = "消息类型无效") Integer noticeType) {
+                                               @Max(value = 3, message = "消息类型无效") Integer noticeType) {
         return Result.success(notices.getNoticeBox(noticeType));
     }
 
@@ -174,10 +174,23 @@ public class SysNoticeController {
     }
 
     /**
-     * 读取可见公告并记录当前用户首次阅读。
+     * 清空当前登录账号截至指定消息的系统消息。
      *
-     * @param id 公告ID
-     * @return 公告详情
+     * @param throughId 确认清空时的最新系统消息ID
+     * @return 清空结果
+     */
+    @DeleteMapping("/clearSystemMessages")
+    @Log(title = "个人系统消息", type = LogType.CLEAN)
+    public Result<Void> clearSystemMessages(@RequestParam Long throughId) {
+        notices.clearSystemMessages(throughId);
+        return Result.success("系统消息已清空");
+    }
+
+    /**
+     * 读取本人可见的消息并记录首次阅读。
+     *
+     * @param id 消息ID
+     * @return 可见消息详情
      */
     @PostMapping("/read")
     public Result<SysNoticeDetailVO> readNotice(@RequestParam Long id) {

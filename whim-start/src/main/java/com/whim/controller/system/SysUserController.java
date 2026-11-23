@@ -18,8 +18,8 @@ import com.whim.system.model.dto.user.SysUserUpdateDTO;
 import com.whim.system.model.vo.user.SysUserDetailVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
+import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysUserService;
-import com.whim.system.service.ITwoFactorService;
 import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,7 +49,7 @@ import java.io.IOException;
 @RequestMapping("/system/user")
 public class SysUserController {
     private final ISysUserService userService;
-    private final ITwoFactorService twoFactorService;
+    private final IAuthService authService;
 
     /**
      * 按部门分支和用户信息分页查询可见用户。
@@ -166,7 +166,7 @@ public class SysUserController {
     @XssIgnore
     @PutMapping("/resetTwoFactor")
     public Result<Void> resetUserTwoFactor(@Valid @RequestBody SysUserTwoFactorResetDTO parameter) {
-        twoFactorService.resetUserTwoFactor(parameter);
+        authService.resetUserTwoFactor(parameter);
         return Result.success("两步验证已重置，该用户需重新登录");
     }
 

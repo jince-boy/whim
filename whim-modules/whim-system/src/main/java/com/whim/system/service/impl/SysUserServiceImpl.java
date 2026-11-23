@@ -46,6 +46,7 @@ import com.whim.system.model.vo.user.SysUserRoleOptionVO;
 import com.whim.system.model.vo.user.SysUserRolesVO;
 import com.whim.system.model.vo.user.SysUserVO;
 import com.whim.system.service.ISysFileService;
+import com.whim.system.service.ISysNoticeService;
 import com.whim.system.service.ISysPostService;
 import com.whim.system.service.ISysRoleService;
 import com.whim.system.service.ISysUserPostService;
@@ -84,6 +85,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private static final Set<String> AVATAR_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/gif");
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
+    private final ISysNoticeService noticeService;
     private final ISysPostService postService;
     private final ISysUserPostService userPostService;
     private final ISysRoleService roleService;
@@ -413,6 +415,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!this.updateById(user)) {
             throw new ServiceException("修改用户失败");
         }
+        if (departmentChanged) {
+            String content = "你的主部门归属已解除。";
+            if (user.getDeptId() != null) {
+                SysDept department = Db.lambdaQuery(SysDept.class).select(SysDept::getDeptName)
+                        .eq(SysDept::getId, user.getDeptId()).one();
+                content = "你的主部门已调整为「" + department.getDeptName() + "」。";
+            }
+            noticeService.addSystemMessages(Set.of(user.getId()), "主部门已调整", content);
+        }
         updateUserPosts(user.getId(), postIds);
         // 头像、姓名、部门、岗位及状态都进入登录快照；提交后统一失效，回滚不影响登录。
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(user.getId()));
@@ -436,6 +447,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!this.updateById(user)) {
             throw new ServiceException("修改密码失败");
         }
+        noticeService.addSystemMessages(Set.of(user.getId()), "登录密码已被管理员重置", "管理员已重置你的登录密码。如有疑问，请联系管理员确认。");
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(user.getId()));
     }
 
@@ -491,6 +503,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new ServiceException("分配角色失败");
             }
         }
+        noticeService.addSystemMessages(Set.of(user.getId()), "账号角色已调整", "管理员已调整你的角色，重新登录后可查看当前可用菜单。");
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, Set.of(parameter.getId()));
     }
 
@@ -587,12 +600,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         addedIds.removeAll(currentIds);
         Set<Long> removedIds = new LinkedHashSet<>(currentIds);
         removedIds.removeAll(requestedIds);
+        if (addedIds.isEmpty() && removedIds.isEmpty()) {
+            return;
+        }
+        String content = "你的部分岗位任职已解除，请在个人信息页查看当前岗位。";
         if (!addedIds.isEmpty()) {
             List<SysPost> posts = postService.lambdaQuery().in(SysPost::getId, addedIds)
                     .eq(SysPost::getStatus, 0).list();
             if (posts.size() != addedIds.size()) {
                 throw new ServiceException("新增岗位不存在、已停用或超出授权范围");
             }
+            content = "你已被分配到以下岗位：" + posts.stream().map(SysPost::getPostName).collect(Collectors.joining("、"))
+                    + "。完整任职情况可在个人信息页查看。";
             Set<Long> departmentIds = posts.stream().map(SysPost::getDeptId)
                     .filter(Objects::nonNull).collect(Collectors.toSet());
             if (!departmentIds.isEmpty()
@@ -615,5 +634,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new ServiceException("保存用户岗位失败");
             }
         }
+        noticeService.addSystemMessages(Set.of(userId), "岗位任职已调整", content);
     }
 }

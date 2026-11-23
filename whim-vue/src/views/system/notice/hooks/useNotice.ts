@@ -21,7 +21,8 @@ export function useNotice() {
   })
   const can = (action: string) => user.hasPermission('system:notice:' + action)
   const canView = computed(() => can('page'))
-  const types = computed(() => dictionary.getDictNumberOptions('sys_notice_type'))
+  const types = computed(() => dictionary.getDictNumberOptions('sys_notice_type')
+    .filter(option => option.value === 1 || option.value === 2))
   const statuses = computed(() => dictionary.getDictNumberOptions('sys_notice_status'))
 
   function tag(type: string, value: number) {
@@ -31,33 +32,30 @@ export function useNotice() {
 
   const columns = computed<DataTableColumns<NoticeSummary>>(() => {
     const result: DataTableColumns<NoticeSummary> = [
-      { title: '标题', key: 'title', minWidth: 200, ellipsis: { tooltip: true } },
+      { title: '标题', key: 'title', ellipsis: { tooltip: true } },
       {
         title: '类型',
         key: 'noticeType',
-        width: 84,
         render: (row) => tag('sys_notice_type', row.noticeType),
       },
       {
         title: '状态',
         key: 'status',
-        width: 84,
         render: (row) => tag('sys_notice_status', row.status),
       },
       {
         title: '发布时间',
         key: 'publishTime',
-        width: 172,
+        ellipsis: { tooltip: true },
         render: (row) => row.publishTime ?? '—',
       },
-      { title: '创建时间', key: 'createTime', width: 172 },
+      { title: '创建时间', key: 'createTime', ellipsis: { tooltip: true } },
     ]
     if (can('detail') || can('delete'))
       result.push({
         title: '操作',
         key: 'actions',
         fixed: 'right',
-        width: 180,
         render: (row) =>
           h(NSpace, { size: 6, wrap: false }, () => [
             can('detail') &&
@@ -90,7 +88,8 @@ export function useNotice() {
     title: '通知公告',
     columns,
     rowKey: (row) => row.id,
-    scrollX: 920,
+    // 均分后仍为完整日期时间留出空间，缺少操作权限时相应缩短滚动宽度。
+    scrollX: columns.value.length * 180,
     immediate: canView.value,
     request: ({ title, noticeType, status, pageNum, pageSize }) =>
       fetchNoticePage({

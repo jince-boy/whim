@@ -9,8 +9,13 @@ defineProps<{ category: number; label: string; items: NoticeItem[]; loading: boo
 defineEmits<{ select: [category: number]; open: [id: NoticeId]; retry: [] }>()
 const theme = useThemeVars()
 const dictionary = useDictStore()
-const categories = computed(() => dictionary.getDictNumberOptions('sys_notice_type')
-  .filter(option => option.value === 1 || option.value === 2))
+const categories = computed(() => {
+  const options = dictionary.getDictNumberOptions('sys_notice_type')
+  return [
+    ...options.filter(option => option.value === 3),
+    ...options.filter(option => option.value === 1 || option.value === 2),
+  ]
+})
 </script>
 
 <template>
@@ -28,7 +33,7 @@ const categories = computed(() => dictionary.getDictNumberOptions('sys_notice_ty
         <li v-for="item in items" :key="item.id">
           <button type="button" class="message" :class="{ unread: !item.readFlag }" @click="$emit('open', item.id)">
             <span class="mark" :class="{ announcement: item.noticeType === 2 }">
-              <Icon :name="item.noticeType === 2 ? 'megaphone' : 'mail'" :size="18" />
+              <Icon :name="item.noticeType === 3 ? 'shield-check' : item.noticeType === 2 ? 'megaphone' : 'mail'" :size="18" />
             </span>
             <span class="summary">
               <span class="title">{{ item.title }}</span>
@@ -40,7 +45,7 @@ const categories = computed(() => dictionary.getDictNumberOptions('sys_notice_ty
         </li>
       </ul>
       <div v-else class="empty" role="status">
-        <Icon :name="category === 1 ? 'mail-open' : 'megaphone'" :size="26" />
+        <Icon :name="category === 3 ? 'shield-check' : category === 2 ? 'megaphone' : 'mail-open'" :size="26" />
         <span>暂无{{ label }}</span>
       </div>
     </div>
@@ -49,7 +54,7 @@ const categories = computed(() => dictionary.getDictNumberOptions('sys_notice_ty
 
 <style scoped>
 .inbox-list { display: flex; flex-direction: column; min-height: 0; }
-.categories { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; margin: 0 0 10px;
+.categories { flex: none; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; margin-bottom: 10px;
   border-radius: 9px; background: v-bind('theme.actionColor'); border: 1px solid v-bind('theme.dividerColor'); }
 .categories button, .message { font: inherit; border: 0; background: transparent; cursor: pointer; color: v-bind('theme.textColor2'); }
 .categories button { padding: 5px 0; border-radius: 6px; }

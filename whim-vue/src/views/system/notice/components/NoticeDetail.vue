@@ -31,7 +31,7 @@ const { safeHtml, imageError, attempt } = useNoticeDetailImages(show, () => prop
             <span class="tool-separator" aria-hidden="true"></span>
           </template>
           <n-tag v-if="notice && category" :type="category.listClass" :bordered="false" size="small">
-            <template #icon><Icon :name="notice.noticeType === 2 ? 'megaphone' : 'mail'" :size="14" /></template>
+            <template #icon><Icon :name="notice.noticeType === 3 ? 'shield-check' : notice.noticeType === 2 ? 'megaphone' : 'mail'" :size="14" /></template>
             {{ category.label }}
           </n-tag>
           <n-text v-else depth="2">消息详情</n-text>

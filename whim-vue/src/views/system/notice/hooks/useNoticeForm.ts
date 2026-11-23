@@ -30,7 +30,8 @@ export function useNoticeForm(props: { initialModel?: NoticeDetail }) {
     if (!props.initialModel) throw new Error('公告尚未保存')
     return fetchNoticeImage({ noticeId: props.initialModel.id, fileId }, signal)
   }
-  const types = computed(() => dictionary.getDictNumberOptions('sys_notice_type'))
+  const types = computed(() => dictionary.getDictNumberOptions('sys_notice_type')
+    .filter(option => option.value === 1 || option.value === 2))
   const statuses = computed(() => dictionary.getDictNumberOptions('sys_notice_status'))
   return { formRef, formModel, types, statuses, busy, noticeRules, loadImage, uploadNoticeImage }
 }

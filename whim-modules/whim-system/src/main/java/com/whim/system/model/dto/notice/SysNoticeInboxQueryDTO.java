@@ -16,6 +16,6 @@ import lombok.EqualsAndHashCode;
 public class SysNoticeInboxQueryDTO extends PageQueryDTO {
 
     @Min(value = 1, message = "消息类型无效")
-    @Max(value = 2, message = "消息类型无效")
+    @Max(value = 3, message = "消息类型无效")
     private Integer noticeType;
 }

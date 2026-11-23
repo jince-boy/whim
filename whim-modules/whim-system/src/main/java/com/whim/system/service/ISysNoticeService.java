@@ -14,6 +14,8 @@ import com.whim.system.model.vo.notice.SysNoticeInboxItemVO;
 import com.whim.system.model.vo.notice.SysNoticeVO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
+
 /**
  * @author Jince
  * @date 2026/11/21
@@ -29,10 +31,10 @@ public interface ISysNoticeService extends IService<SysNotice> {
     PageDataVO<SysNoticeVO> getNoticePage(SysNoticeQueryDTO query);
 
     /**
-     * 分页查询当前用户可以阅读的公告。
+     * 分页查询已发布的公共消息和当前账号收到的系统消息。
      *
      * @param query 分页条件
-     * @return 含已读状态的公告分页
+     * @return 含本人已读状态的消息分页
      */
     PageDataVO<SysNoticeInboxItemVO> getInboxPage(SysNoticeInboxQueryDTO query);
 
@@ -53,10 +55,10 @@ public interface ISysNoticeService extends IService<SysNotice> {
     byte[] getNoticeImage(SysNoticeImageQueryDTO query);
 
     /**
-     * 查询当前用户未读数与最近公告。
+     * 查询当前账号的总未读数与最近消息。
      *
      * @param noticeType 最近消息的类型，为空时查询全部
-     * @return 公告消息盒子
+     * @return 消息中心摘要
      */
     SysNoticeBoxVO getNoticeBox(Integer noticeType);
 
@@ -66,6 +68,15 @@ public interface ISysNoticeService extends IService<SysNotice> {
      * @param parameter 标题、类型、正文与状态
      */
     void addNotice(SysNoticeAddDTO parameter);
+
+    /**
+     * 为本次业务变更涉及的账号保存个人系统消息。
+     *
+     * @param recipientIds 实际受影响的账号ID
+     * @param title 消息标题
+     * @param content 纯文本正文
+     */
+    void addSystemMessages(Set<Long> recipientIds, String title, String content);
 
     /**
      * 将公告图片保存至系统默认文件存储。
@@ -92,10 +103,17 @@ public interface ISysNoticeService extends IService<SysNotice> {
     boolean deleteNotice(Long id);
 
     /**
-     * 读取可见公告并记录当前用户首次阅读。
+     * 清空当前账号截至指定消息的已读和未读系统消息。
+     *
+     * @param throughId 打开确认框时看到的最新系统消息ID
+     */
+    void clearSystemMessages(Long throughId);
+
+    /**
+     * 读取本人可见的消息并记录首次阅读。
      *
      * @param id 公告ID
-     * @return 公告详情，已关闭或不存在时为空
+     * @return 消息详情，不可见或不存在时为空
      */
     SysNoticeDetailVO readNotice(Long id);
 }

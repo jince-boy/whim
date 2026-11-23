@@ -32,6 +32,7 @@ import com.whim.system.model.entity.SysUserRole;
 import com.whim.system.model.vo.role.SysRoleDataScopeVO;
 import com.whim.system.model.vo.role.SysRoleUserVO;
 import com.whim.system.model.vo.role.SysRoleVO;
+import com.whim.system.service.ISysNoticeService;
 import com.whim.system.service.ISysRoleDeptService;
 import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
@@ -58,6 +59,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     private final ISysRolePermissionService rolePermissionService;
     private final ISysUserRoleService userRoleService;
     private final AuthenticationSession authenticationSession;
+    private final ISysNoticeService noticeService;
     private final SysDeptMapper deptMapper;
     private final AuthenticationContext authenticationContext;
 
@@ -185,7 +187,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         }
         // 名称和编码进入登录快照，排序与备注变化不需要用户重新登录。
         if (!original.getRoleName().equals(role.getRoleName()) || !original.getRoleCode().equals(role.getRoleCode())) {
-            invalidateRoleSessions(role.getId());
+            notifyRoleMembers(role.getId(), "你的角色资料已更新，当前角色名称为「" + role.getRoleName() + "」。");
         }
     }
 
@@ -207,7 +209,8 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (!this.updateById(role)) {
             throw new ServiceException("修改角色状态失败");
         }
-        invalidateRoleSessions(role.getId());
+        String state = role.getStatus() == 0 ? "启用" : "停用";
+        notifyRoleMembers(role.getId(), "你的「" + role.getRoleName() + "」角色已被" + state + "。");
     }
 
     /**
@@ -255,7 +258,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 throw new ServiceException("保存角色自定义部门失败");
             }
         }
-        invalidateRoleSessions(role.getId());
+        notifyRoleMembers(role.getId(), "你的「" + role.getRoleName() + "」角色的数据范围已调整。");
     }
 
     /**
@@ -299,6 +302,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (!userRoleService.saveBatch(relations)) {
             throw new ServiceException("分配用户失败");
         }
+        noticeService.addSystemMessages(userIds, "账号角色已调整", "管理员已为你分配「" + role.getRoleName() + "」角色。");
         // 只在事务提交后失效实际新增成员的会话，失败回滚不会改变登录授权。
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, userIds);
     }
@@ -314,7 +318,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @DataPermission(permission = "system:roleUser:assign", tables =
             @DataPermissionTable(name = "sys_user", userColumn = "id"))
     public void unassignRoleUsers(SysRoleUserDTO parameter) {
-        getManagedRole(parameter.getRoleId());
+        SysRole role = getManagedRole(parameter.getRoleId());
         Set<Long> requestedIds = new LinkedHashSet<>(parameter.getUserIds());
         getManagedUsers(requestedIds);
         Set<Long> affectedIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
@@ -329,6 +333,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 .in(SysUserRole::getUserId, affectedIds).remove()) {
             throw new ServiceException("移除用户失败");
         }
+        noticeService.addSystemMessages(affectedIds, "账号角色已调整", "管理员已移除你的「" + role.getRoleName() + "」角色。");
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, affectedIds);
     }
 
@@ -404,13 +409,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     /**
-     * 在事务提交后失效所有关联用户的授权快照，不按用户可见范围裁剪。
+     * 为受角色变更影响的成员保存个人消息，并在事务提交后失效授权快照。
      *
      * @param roleId 已变更角色ID
+     * @param content 告知成员的变更内容
      */
-    private void invalidateRoleSessions(Long roleId) {
-        List<Long> userIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
-                .eq(SysUserRole::getRoleId, roleId).list().stream().map(SysUserRole::getUserId).toList();
+    private void notifyRoleMembers(Long roleId, String content) {
+        Set<Long> userIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
+                .eq(SysUserRole::getRoleId, roleId).list().stream().map(SysUserRole::getUserId).collect(Collectors.toSet());
+        noticeService.addSystemMessages(userIds, "账号角色已调整", content);
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, userIds);
     }
 }

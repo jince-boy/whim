@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.whim.system.mapper.SysNoticeMapper">
+    <!-- 分类已知时可直接定位公开记录或本人记录，未指定分类时合并两种可见范围。 -->
+    <sql id="visibleRecipient">
+        <choose>
+            <when test="noticeType == 3">n.recipient_user_id = #{userId}</when>
+            <when test="noticeType != null">n.recipient_user_id IS NULL</when>
+            <otherwise>(n.recipient_user_id IS NULL OR n.recipient_user_id = #{userId})</otherwise>
+        </choose>
+    </sql>
     <!-- 一次分页关联阅读标记，避免列表逐条查询。当前用户与公告的阅读记录具有唯一约束。 -->
     <select id="getInboxPage" resultType="com.whim.system.model.vo.notice.SysNoticeInboxItemVO">
         SELECT n.id, n.title, n.notice_type, n.publish_time, (r.id IS NOT NULL) AS read_flag
         FROM sys_notice n
         LEFT JOIN sys_notice_read r ON r.user_id = #{userId} AND r.notice_id = n.id AND r.deleted = 0
         WHERE n.deleted = 0 AND n.status = 0 AND n.publish_time &lt;= #{now}
+          AND <include refid="visibleRecipient"/>
         <if test="noticeType != null">
             AND n.notice_type = #{noticeType}
         </if>
@@ -17,7 +26,18 @@
     <select id="getUnreadCount" resultType="long">
         SELECT COUNT(*) FROM sys_notice n
         WHERE n.deleted = 0 AND n.status = 0 AND n.publish_time &lt;= #{now}
+          AND (n.recipient_user_id IS NULL OR n.recipient_user_id = #{userId})
           AND NOT EXISTS (SELECT 1 FROM sys_notice_read r
                           WHERE r.user_id = #{userId} AND r.notice_id = n.id AND r.deleted = 0)
     </select>
+
+    <!-- 按收件箱排序关联确认时的边界，并在一次条件删除中写入每行主键和删除审计字段。 -->
+    <update id="clearSystemMessages">
+        UPDATE sys_notice n
+        INNER JOIN sys_notice cutoff ON cutoff.id = #{throughId} AND cutoff.recipient_user_id = n.recipient_user_id
+        SET n.deleted = n.id, n.delete_by = #{userId}, n.delete_time = #{now}
+        WHERE n.recipient_user_id = #{userId} AND n.notice_type = 3 AND n.status = 0 AND n.deleted = 0
+          AND cutoff.notice_type = 3 AND cutoff.status = 0 AND cutoff.deleted = 0 AND cutoff.publish_time &lt;= #{now}
+          AND (n.publish_time &lt; cutoff.publish_time OR (n.publish_time = cutoff.publish_time AND n.id &lt;= cutoff.id))
+    </update>
 </mapper>

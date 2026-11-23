@@ -25,6 +25,7 @@ import com.whim.system.model.vo.dept.SysDeptDetailVO;
 import com.whim.system.model.vo.dept.SysDeptLeaderVO;
 import com.whim.system.model.vo.dept.SysDeptVO;
 import com.whim.system.service.ISysDeptService;
+import com.whim.system.service.ISysNoticeService;
 import com.whim.system.service.ISysPostService;
 import com.whim.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
     private final AuthenticationSession authenticationSession;
+    private final ISysNoticeService noticeService;
     private final ISysUserService userService;
     private final ISysPostService postService;
 
@@ -220,6 +222,19 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         if (parentChanged && affectedDepartmentIds.size() > 1
                 && baseMapper.updateDeptDescendantAncestors(department, originalPath) != affectedDepartmentIds.size() - 1) {
             throw new ServiceException("下级部门路径更新失败");
+        }
+        // 仅在交接时分别告知新旧负责人，编辑其他部门资料不会重复发送。
+        Long previousLeader = originalDepartment.getLeaderUserId();
+        Long newLeader = department.getLeaderUserId();
+        if (!Objects.equals(previousLeader, newLeader)) {
+            if (previousLeader != null) {
+                noticeService.addSystemMessages(Set.of(previousLeader), "部门负责人任职已解除",
+                        "你已不再担任「" + originalDepartment.getDeptName() + "」负责人。");
+            }
+            if (newLeader != null) {
+                noticeService.addSystemMessages(Set.of(newLeader), "已被设为部门负责人",
+                        "你已被设为「" + department.getDeptName() + "」负责人。");
+            }
         }
         invalidateDeptSessions(originalDepartment, department, affectedDepartmentIds);
     }

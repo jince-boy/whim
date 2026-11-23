@@ -7,7 +7,7 @@ import NoticeDetail from './NoticeDetail.vue'
 const {
   box, history, detail, showBell, showHistory, showDetail, boxLoading, historyLoading, detailLoading,
   boxError, historyError, page, pageCount, category, categoryLabel, fromHistory,
-  selectCategory, loadBox, loadHistory, openDetail, openHistory, toggleBell,
+  selectCategory, canClearSystemMessages, confirmClearSystemMessages, loadBox, loadHistory, openDetail, openHistory, toggleBell,
 } = useNoticeInbox()
 </script>
 
@@ -17,7 +17,7 @@ const {
     @update:show="toggleBell">
     <template #trigger>
       <n-button quaternary native-focus-behavior size="small" style="width: 32px; height: 32px"
-        :aria-label="box.unreadCount ? '通知，' + box.unreadCount + '条未读' : '通知'" @mousedown.prevent>
+        :aria-label="box.unreadCount ? '消息中心，' + box.unreadCount + '条未读' : '消息中心'" @mousedown.prevent>
         <n-badge :value="box.unreadCount" :max="99"><Icon name="bell" :size="18" /></n-badge>
       </n-button>
     </template>
@@ -32,11 +32,19 @@ const {
   </n-popover>
 
   <n-modal v-model:show="showHistory" preset="card" title="全部消息" :bordered="false"
+    :segmented="{ footer: true }" :footer-style="{ paddingBlock: '10px' }"
     style="width: min(660px, calc(100vw - 24px)); border-radius: 14px">
     <NoticeInboxList class="history" :category="category" :label="categoryLabel" :items="history" :loading="historyLoading" :error="historyError"
       @select="selectCategory" @open="openDetail" @retry="loadHistory(page)" />
-    <template v-if="pageCount > 1" #footer>
-      <n-flex justify="end"><n-pagination :page="page" :page-count="pageCount" :page-slot="5" size="small" @update:page="loadHistory" /></n-flex>
+    <template v-if="canClearSystemMessages || pageCount > 1" #footer>
+      <n-flex align="center" :size="8">
+        <n-button v-if="canClearSystemMessages" quaternary size="small" :disabled="historyLoading" @click="confirmClearSystemMessages">
+          <template #icon><Icon name="trash-2" :size="14" /></template>
+          清空系统消息
+        </n-button>
+        <n-pagination v-if="pageCount > 1" class="history-pages" :page="page" :page-count="pageCount"
+          :page-slot="5" size="small" @update:page="loadHistory" />
+      </n-flex>
     </template>
   </n-modal>
   <NoticeDetail v-model:show="showDetail" :notice="detail" :loading="detailLoading" :back-label="fromHistory ? '返回列表' : undefined" />
@@ -48,5 +56,6 @@ const {
 .box-heading > :last-child { font-size: 12px; }
 .recent { max-height: min(440px, 60dvh); }
 .history { max-height: min(620px, 65dvh); }
+.history-pages { margin-inline-start: auto; }
 .more { margin-inline-start: 6px; }
 </style>

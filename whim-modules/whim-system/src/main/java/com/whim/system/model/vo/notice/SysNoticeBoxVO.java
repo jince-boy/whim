@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/11/21
- * @description 顶部铃铛中的未读总数与最近五条公告。
+ * @description 当前账号的未读总数、最近五条可见消息及下次刷新时间。
  */
 @Data
 public class SysNoticeBoxVO {

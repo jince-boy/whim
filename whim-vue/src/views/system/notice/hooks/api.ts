@@ -65,5 +65,9 @@ export const fetchNoticeInbox = (
   signal: AbortSignal,
 ) => request<TablePage<NoticeItem>>(`${base}/inbox`, RequestMethod.GET, { params, signal })
 
+/** 按确认时的消息边界清空当前账号的系统消息。 */
+export const clearSystemMessages = (params: { throughId: NoticeId }, signal: AbortSignal) =>
+  request<void>(`${base}/clearSystemMessages`, RequestMethod.DELETE, { params, signal })
+
 export const readNotice = (params: { id: NoticeId }, signal: AbortSignal) =>
   request<NoticeDetail>(`${base}/read`, RequestMethod.POST, { params, signal })

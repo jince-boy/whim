@@ -24,6 +24,7 @@ import com.whim.system.model.enums.SysMenuType;
 import com.whim.system.model.vo.permission.SysMenuTreeVO;
 import com.whim.system.model.vo.permission.SysMenuVO;
 import com.whim.system.model.vo.permission.SysRoleMenuTreeVO;
+import com.whim.system.service.ISysNoticeService;
 import com.whim.system.service.ISysPermissionService;
 import com.whim.system.service.ISysRolePermissionService;
 import com.whim.system.service.ISysRoleService;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements ISysPermissionService {
     private final AuthenticationContext authenticationContext;
     private final AuthenticationSession authenticationSession;
+    private final ISysNoticeService noticeService;
     private final ISysRoleService roleService;
     private final ISysRolePermissionService rolePermissionService;
     private final ISysUserRoleService userRoleService;
@@ -268,8 +270,11 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             }
         }
         // 用户关联由组织锁保护，只有事务成功提交后才失效全部受影响的旧授权快照。
-        List<Long> userIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
-                .eq(SysUserRole::getRoleId, role.getId()).list().stream().map(SysUserRole::getUserId).toList();
+        Set<Long> userIds = userRoleService.lambdaQuery().select(SysUserRole::getUserId)
+                .eq(SysUserRole::getRoleId, role.getId()).list().stream().map(SysUserRole::getUserId).collect(Collectors.toSet());
+        if (role.getStatus() == 0) {
+            noticeService.addSystemMessages(userIds, "角色权限已调整", "你的「" + role.getRoleName() + "」角色的菜单或操作权限已调整。");
+        }
         authenticationSession.kickoutAfterCommit(AuthUserType.SYSTEM, userIds);
     }
 

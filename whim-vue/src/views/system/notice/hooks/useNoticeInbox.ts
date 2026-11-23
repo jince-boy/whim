@@ -1,16 +1,21 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { subscribeSystemEvents } from '@/api'
+import { useFormDialog } from '@/components/dialog'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useDictStore } from '@/stores/modules/dict'
-import { fetchNoticeBox, fetchNoticeInbox, readNotice } from './api'
+import { clearSystemMessages, fetchNoticeBox, fetchNoticeInbox, readNotice } from './api'
 import type { NoticeBox, NoticeDetail, NoticeId, NoticeItem } from './types'
 
 /** 管理当前标签页的铃铛、历史列表和阅读详情，切换账号时丢弃旧请求。 */
 export function useNoticeInbox() {
   const auth = useAuthStore()
+  const { openDeleteDialog } = useFormDialog()
   const dictionary = useDictStore()
-  const category = ref(1)
-  const categoryLabel = computed(() => dictionary.getDictData('sys_notice_type', category.value).label)
+  const category = ref(3)
+  const categoryLabel = computed(() => {
+    const label = dictionary.getDictData('sys_notice_type', category.value).label
+    return category.value === 3 ? label + '消息' : label
+  })
   const fromHistory = ref(false)
   const box = shallowRef<NoticeBox>({ unreadCount: 0, items: [] })
   const history = shallowRef<NoticeItem[]>([])
@@ -25,6 +30,12 @@ export function useNoticeInbox() {
   const historyError = ref(false)
   const page = ref(1)
   const pageCount = ref(1)
+  const clearThroughId = computed(() => {
+    if (!showHistory.value || category.value !== 3 || historyError.value || !history.value.length) return undefined
+    // 历史页翻到后面时仍以最近消息为界，清空范围包含前面各页。
+    return (page.value === 1 ? history.value[0] : box.value.items[0])?.id
+  })
+  const canClearSystemMessages = computed(() => clearThroughId.value !== undefined)
   let active: AbortController | undefined
   let boxRequest = 0
   let historyRequest = 0
@@ -142,6 +153,30 @@ export function useNoticeInbox() {
     }
   }
 
+  function confirmClearSystemMessages() {
+    const throughId = clearThroughId.value
+    if (!active || throughId === undefined) return
+    const signal = active.signal
+    // 打开弹窗时固定账号与清空边界，重试同一请求也会保留后来收到的消息。
+    const { close } = openDeleteDialog({
+      title: '清空系统消息',
+      content: '将清空你已收到的所有系统消息，包括已读和未读消息。',
+      modalProps: {
+        type: 'error',
+        positiveText: '确认清空',
+        onAfterLeave: () => signal.removeEventListener('abort', close),
+      },
+      onSubmit: () => clearSystemMessages({ throughId }, signal),
+      successMessage: '系统消息已清空',
+      onSuccess: () => {
+        if (signal.aborted) return
+        if (category.value === 3) page.value = 1
+        refreshInbox()
+      },
+    })
+    signal.addEventListener('abort', close, { once: true })
+  }
+
   function openHistory() {
     showBell.value = false
     showHistory.value = true
@@ -163,7 +198,7 @@ export function useNoticeInbox() {
   watch(
     () => auth.token,
     (token, _, onCleanup) => {
-      category.value = 1
+      category.value = 3
       fromHistory.value = false
       box.value = { unreadCount: 0, items: [] }
       history.value = []
@@ -181,7 +216,12 @@ export function useNoticeInbox() {
         controller.signal,
         () => { if (!controller.signal.aborted) scheduleRefresh(true) },
         (name) => {
-          if (name === 'noticeChanged' || name === 'noticeRead')
+          if (name === 'systemMessagesCleared') {
+            if (category.value === 3) page.value = 1
+            scheduleRefresh(category.value === 3)
+            return
+          }
+          if (name === 'noticeChanged' || name === 'noticeRead' || name === 'systemMessage')
             scheduleRefresh(name === 'noticeChanged')
         },
       )
@@ -202,6 +242,8 @@ export function useNoticeInbox() {
     categoryLabel,
     fromHistory,
     selectCategory,
+    canClearSystemMessages,
+    confirmClearSystemMessages,
     box,
     history,
     detail,

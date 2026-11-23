@@ -1,7 +1,7 @@
 package com.whim.system.model.dto.config;
 
-import com.whim.system.model.config.ConfigOption;
 import com.whim.system.model.entity.SysConfig;
+import com.whim.system.model.entity.SysConfig.ConfigOption;
 import com.whim.system.model.enums.ConfigValueType;
 import io.github.linpeilie.annotations.AutoMapper;
 import jakarta.validation.Valid;

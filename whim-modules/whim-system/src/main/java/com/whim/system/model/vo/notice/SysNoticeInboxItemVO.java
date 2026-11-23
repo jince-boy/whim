@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @author Jince
  * @date 2026/11/21
- * @description 当前账号可见的公告摘要与阅读状态。
+ * @description 当前账号可见的消息摘要与本人阅读状态。
  */
 @Data
 public class SysNoticeInboxItemVO {
