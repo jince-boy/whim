@@ -27,7 +27,7 @@ function appendSample<T extends MonitorSample>(samples: T[], sample: T, limit: n
 export function useMonitorSampling<T extends MonitorSample, H extends MonitorSample = T>(
   permission: string,
   request: (signal: AbortSignal) => Promise<ApiResponse<T>>,
-  toHistory?: (sample: T) => H,
+  toHistory?: ((sample: T) => H) | false,
 ) {
   const user = useUserStore()
   const canView = computed(() => user.hasPermission(permission))
@@ -66,13 +66,18 @@ export function useMonitorSampling<T extends MonitorSample, H extends MonitorSam
         if (controller.signal.aborted) return
         failed.value = code !== 200
         if (failed.value) return
-        // 切换后端实例时从新时间线开始，避免把不同机器的指标连成趋势。
-        const sameInstance = samples.value.at(-1)?.instanceId === data.instanceId
-        if (toHistory) {
-          history.value = appendSample(sameInstance ? history.value : [], toHistory(data), maxSamples)
+        if (toHistory === false) {
+          // 后端已返回完整时间窗口，直接替换可避免重复保存趋势和明细。
+          samples.value = [data]
+        } else {
+          // 切换后端实例时从新时间线开始，避免把不同机器的指标连成趋势。
+          const sameInstance = samples.value.at(-1)?.instanceId === data.instanceId
+          if (toHistory) {
+            history.value = appendSample(sameInstance ? history.value : [], toHistory(data), maxSamples)
+          }
+          // 趋势有独立读数时，只留相邻两份完整快照用于计算速率。
+          samples.value = appendSample(sameInstance ? samples.value : [], data, toHistory ? 2 : maxSamples)
         }
-        // 趋势有独立读数时，只留相邻两份完整快照用于计算速率。
-        samples.value = appendSample(sameInstance ? samples.value : [], data, toHistory ? 2 : maxSamples)
         timer = window.setTimeout(refresh, monitorSampleInterval)
       } catch {
         // 采集失败时保留上次成功读数，等待手动重试。

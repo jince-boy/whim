@@ -13,6 +13,11 @@
     <description>系统业务模块</description>
 
     <dependencies>
+        <!-- 接口监控直接读取 Actuator 已注册的请求计时器 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
         <!-- 服务器监控使用 JDK 25 外部函数与内存 API 读取本地设备指标 -->
         <dependency>
             <groupId>com.github.oshi</groupId>

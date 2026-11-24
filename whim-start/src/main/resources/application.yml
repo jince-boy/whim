@@ -29,6 +29,11 @@ file:
 
 # Actuator 监控端点配置
 management:
+  metrics:
+    web:
+      server:
+        # 现有业务路由已超过默认的 100 个 URI 模板，保留有界的指标容量。
+        max-uri-tags: 256
   endpoints:
     web:
       exposure:
