@@ -13,6 +13,11 @@
     <description>系统业务模块</description>
 
     <dependencies>
+        <!-- 服务器监控使用 JDK 25 外部函数与内存 API 读取本地设备指标 -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core-ffm</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>

@@ -2,8 +2,9 @@ package com.whim.system.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.whim.mybatisplus.model.entity.BaseEntity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -12,8 +13,8 @@ import java.time.LocalDateTime;
  * @date 2026/11/19
  * @description 系统操作日志。
  */
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class SysOperLog extends BaseEntity {
     private Long id;
     private String title;
@@ -24,9 +25,12 @@ public class SysOperLog extends BaseEntity {
     private String operIp;
     private String operLocation;
     private String requestUrl;
+    @ToString.Exclude
     private String requestParam;
+    @ToString.Exclude
     private String responseParam;
     private Integer status;
+    @ToString.Exclude
     private String errorMessage;
     private LocalDateTime operTime;
     private Long costTime;

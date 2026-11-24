@@ -1,7 +1,6 @@
 package com.whim.system.service.impl;
 
 import com.whim.core.exception.ServiceException;
-import com.whim.core.utils.ValueParserUtils;
 import com.whim.system.model.vo.cachemonitor.CacheMonitorSnapshotVO;
 import com.whim.system.service.ISysCacheMonitorService;
 import lombok.RequiredArgsConstructor;
@@ -43,46 +42,49 @@ public class SysCacheMonitorServiceImpl implements ISysCacheMonitorService {
             throw new ServiceException("未发现可采集的 Redis 主节点");
         }
 
-        List<Map<String, String>> reports;
+        CacheMonitorSnapshotVO snapshot = new CacheMonitorSnapshotVO();
         try {
             // 并发读取每个主节点一次；缺少任一节点时不返回低估的集群总量。
             List<CompletableFuture<Map<String, String>>> requests = nodes.stream()
                     .map(node -> node.infoAsync(InfoSection.DEFAULT).toCompletableFuture())
                     .toList();
-            reports = requests.stream().map(CompletableFuture::join).toList();
+            for (CompletableFuture<Map<String, String>> request : requests) {
+                Map<String, String> report = request.join();
+                snapshot.setUsedMemoryBytes(addMetric(snapshot.getUsedMemoryBytes(), report, "used_memory"));
+                snapshot.setConnectedClients(addMetric(snapshot.getConnectedClients(), report, "connected_clients"));
+                snapshot.setCommandsPerSecond(addMetric(snapshot.getCommandsPerSecond(), report, "instantaneous_ops_per_sec"));
+                snapshot.setKeyspaceHits(addMetric(snapshot.getKeyspaceHits(), report, "keyspace_hits"));
+                snapshot.setKeyspaceMisses(addMetric(snapshot.getKeyspaceMisses(), report, "keyspace_misses"));
+                snapshot.setExpiredKeys(addMetric(snapshot.getExpiredKeys(), report, "expired_keys"));
+                snapshot.setEvictedKeys(addMetric(snapshot.getEvictedKeys(), report, "evicted_keys"));
+            }
         } catch (CompletionException exception) {
             throw new ServiceException("缓存指标采集失败，请检查 Redis 连接及 INFO 命令权限", exception);
         }
-        return CacheMonitorSnapshotVO.builder()
-                .sampledAt(System.currentTimeMillis())
-                .cluster(cluster)
-                .primaryNodeCount(reports.size())
-                .usedMemoryBytes(sumMetric(reports, "used_memory"))
-                .connectedClients(sumMetric(reports, "connected_clients"))
-                .commandsPerSecond(sumMetric(reports, "instantaneous_ops_per_sec"))
-                .keyspaceHits(sumMetric(reports, "keyspace_hits"))
-                .keyspaceMisses(sumMetric(reports, "keyspace_misses"))
-                .expiredKeys(sumMetric(reports, "expired_keys"))
-                .evictedKeys(sumMetric(reports, "evicted_keys"))
-                .build();
+        snapshot.setSampledAt(System.currentTimeMillis());
+        snapshot.setCluster(cluster);
+        snapshot.setPrimaryNodeCount(nodes.size());
+        return snapshot;
     }
 
     /**
-     * 汇总各主节点的指定指标，缺失的统计值不能视作零。
+     * 将主节点的非负整数指标累加至快照总量。
      *
-     * @param reports 各主节点返回的指标
+     * @param total 已采集节点的指标总量
+     * @param report 当前主节点返回的指标
      * @param field Redis 指标名称
-     * @return 指标总量
+     * @return 累加后的指标总量
      */
-    private long sumMetric(List<Map<String, String>> reports, String field) {
-        long total = 0;
-        for (Map<String, String> report : reports) {
-            Long value = ValueParserUtils.toLong(report.get(field));
-            if (value == null) {
-                throw new ServiceException("Redis 未返回有效的监控指标：" + field);
+    private long addMetric(long total, Map<String, String> report, String field) {
+        try {
+            // INFO 计数必须是整数，不能截断小数或让溢出后的负数进入图表。
+            long value = Long.parseLong(report.get(field));
+            if (value < 0) {
+                throw new ServiceException("Redis 监控指标不能为负数：" + field);
             }
-            total += value;
+            return Math.addExact(total, value);
+        } catch (NumberFormatException | ArithmeticException exception) {
+            throw new ServiceException("Redis 未返回有效的监控指标：" + field, exception);
         }
-        return total;
     }
 }

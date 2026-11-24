@@ -181,6 +181,7 @@ Apifox 操作使用 MCP；未经用户明确要求，不读取屏幕或操作 Ap
 - 严格遵循 **Spring Boot 4.x** 推荐的最佳实践。
 - 使用 `@RequiredArgsConstructor` 进行 Bean 注入。
 - 在适用场景使用 **Lombok** 消除冗余代码。
+- 数据库实体需要在类级别同时生成 getter 和 setter 时，统一使用 `@Data`，不得并列使用 `@Getter` 和 `@Setter`。
 - 使用 `jakarta.*` 包，禁止使用 `javax.*` 包。
 - 优先使用 `@ConfigurationProperties`，而不是 `@Value`。
 - 避免不必要的 `@Component` 注解，优先显式配置 Bean。
