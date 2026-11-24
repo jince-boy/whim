@@ -45,7 +45,7 @@ Apply the same order to service interfaces and service implementations. Keep rel
 
 Prefer speed, performance, and safety when choosing an implementation.
 
-For SQL, performance is the highest priority:
+All SQL must follow the repository's [SQL compatibility rules](../../../AGENTS.md#sql-兼容性). Optimize performance within the syntax and behavior shared by the supported database versions.
 
 - Start from the most selective condition, usually IDs such as `user_id`, `role_id`, or tenant-scoped keys.
 - Use the minimum required joins for the requested data.

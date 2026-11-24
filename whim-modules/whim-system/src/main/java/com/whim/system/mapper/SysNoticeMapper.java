@@ -3,11 +3,14 @@ package com.whim.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.whim.system.model.entity.SysNotice;
+import com.whim.system.model.entity.SysNoticeRead;
 import com.whim.system.model.vo.notice.SysNoticeInboxItemVO;
+import com.whim.system.model.vo.notice.SysNoticeUnreadCountVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Jince
@@ -29,13 +32,25 @@ public interface SysNoticeMapper extends BaseMapper<SysNotice> {
                                             @Param("noticeType") Integer noticeType, @Param("now") LocalDateTime now);
 
     /**
-     * 统计当前账号可见且尚未阅读的消息数。
+     * 按分类统计当前账号可见且尚未阅读的消息数。
      *
      * @param userId 当前用户ID
      * @param now 本次查询的可见时间上限
-     * @return 未读总数
+     * @return 有未读消息的分类及其条数
      */
-    long getUnreadCount(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+    List<SysNoticeUnreadCountVO> getUnreadCountsByNoticeType(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+
+    /**
+     * 按消息ID顺序查询当前账号尚需写入的阅读记录。
+     *
+     * @param userId 当前登录账号ID
+     * @param now 本次操作的可见时间上限
+     * @param afterNoticeId 上一批的最后一条消息ID，首批为零
+     * @param batchSize 单批最多返回的记录数
+     * @return 当前批次的待写入阅读记录
+     */
+    List<SysNoticeRead> getPendingReadReceipts(@Param("userId") Long userId, @Param("now") LocalDateTime now,
+                                              @Param("afterNoticeId") long afterNoticeId, @Param("batchSize") int batchSize);
 
     /**
      * 按本人可见的最新消息划定范围，批量逻辑删除个人系统消息并填写删除审计字段。

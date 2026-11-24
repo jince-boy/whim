@@ -47,6 +47,14 @@ public interface ISysNoticeService extends IService<SysNotice> {
     SysNoticeDetailVO getNoticeDetail(Long id);
 
     /**
+     * 查询本人收件箱中消息的当前版本，供已打开的详情检查变更。
+     *
+     * @param id 消息ID
+     * @return 当前可见的版本，不可见时为空
+     */
+    Integer getInboxNoticeVersion(Long id);
+
+    /**
      * 获取可访问公告中关联图片的 PNG 预览。
      *
      * @param query 公告和图片文件ID
@@ -55,7 +63,7 @@ public interface ISysNoticeService extends IService<SysNotice> {
     byte[] getNoticeImage(SysNoticeImageQueryDTO query);
 
     /**
-     * 查询当前账号的总未读数与最近消息。
+     * 查询当前账号各分类的未读数、未读总数与所选分类的最近消息。
      *
      * @param noticeType 最近消息的类型，为空时查询全部
      * @return 消息中心摘要
@@ -110,10 +118,15 @@ public interface ISysNoticeService extends IService<SysNotice> {
     void clearSystemMessages(Long throughId);
 
     /**
-     * 读取本人可见的消息并记录首次阅读。
+     * 读取本人可见的消息并记录本次返回的版本。
      *
      * @param id 公告ID
      * @return 消息详情，不可见或不存在时为空
      */
     SysNoticeDetailVO readNotice(Long id);
+
+    /**
+     * 将当前账号各分类中已发布且可见的未读消息全部标为已读。
+     */
+    void markAllNoticesRead();
 }

@@ -9,6 +9,7 @@ import type {
   NoticeItem,
   NoticeQuery,
   NoticeSummary,
+  NoticeUpdate,
 } from './types'
 
 const base = '/system/notice'
@@ -51,7 +52,7 @@ export const fetchNoticeDetail = (params: { id: NoticeId }) =>
 
 export const addNotice = (data: NoticeForm) => request(`${base}/add`, RequestMethod.POST, { data })
 
-export const updateNotice = (data: NoticeForm & { id: NoticeId; version: number }) =>
+export const updateNotice = (data: NoticeUpdate) =>
   request(`${base}/update`, RequestMethod.PUT, { data })
 
 export const deleteNotice = (params: { id: NoticeId }) =>
@@ -71,3 +72,13 @@ export const clearSystemMessages = (params: { throughId: NoticeId }, signal: Abo
 
 export const readNotice = (params: { id: NoticeId }, signal: AbortSignal) =>
   request<NoticeDetail>(`${base}/read`, RequestMethod.POST, { params, signal })
+
+/** 后台只核对可见版本，撤回或删除的消息由详情弹窗显示不可用。 */
+export const fetchInboxNoticeVersion = (params: { id: NoticeId }, signal: AbortSignal) =>
+  request<number>(`${base}/inboxVersion`, RequestMethod.GET, {
+    params, signal, validateStatus: (status) => status === 200 || status === 404,
+  })
+
+/** 将当前账号各分类的可见消息全部标为已读。 */
+export const markAllNoticesRead = (signal: AbortSignal) =>
+  request<void>(`${base}/markAllRead`, RequestMethod.POST, { signal })

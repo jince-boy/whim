@@ -105,6 +105,18 @@ public class SysNoticeController {
     }
 
     /**
+     * 只读检查当前账号可见的消息版本。
+     *
+     * @param id 消息ID
+     * @return 消息当前版本
+     */
+    @GetMapping("/inboxVersion")
+    public Result<Integer> getInboxNoticeVersion(@RequestParam Long id) {
+        Integer version = notices.getInboxNoticeVersion(id);
+        return version == null ? Result.error(HttpStatus.NOT_FOUND, "消息当前不可见或不存在", null) : Result.success(version);
+    }
+
+    /**
      * 查询管理端公告详情。
      *
      * @param id 公告ID
@@ -118,7 +130,7 @@ public class SysNoticeController {
     }
 
     /**
-     * 查询当前账号的总未读数与最近消息。
+     * 查询当前账号各分类的未读数、未读总数与所选分类的最近消息。
      *
      * @param noticeType 最近消息的类型，为空时查询全部
      * @return 消息中心摘要
@@ -187,7 +199,7 @@ public class SysNoticeController {
     }
 
     /**
-     * 读取本人可见的消息并记录首次阅读。
+     * 读取本人可见的消息并记录本次返回的版本。
      *
      * @param id 消息ID
      * @return 可见消息详情
@@ -196,5 +208,16 @@ public class SysNoticeController {
     public Result<SysNoticeDetailVO> readNotice(@RequestParam Long id) {
         SysNoticeDetailVO detail = notices.readNotice(id);
         return detail == null ? Result.error(HttpStatus.NOT_FOUND, "消息当前不可见或不存在", null) : Result.success(detail);
+    }
+
+    /**
+     * 将当前登录账号所有分类中的可见未读消息标为已读。
+     *
+     * @return 标记结果
+     */
+    @PostMapping("/markAllRead")
+    public Result<Void> markAllNoticesRead() {
+        notices.markAllNoticesRead();
+        return Result.success("消息已全部标为已读");
     }
 }

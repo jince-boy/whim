@@ -41,6 +41,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,6 +65,7 @@ import java.util.Set;
 public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice> implements ISysNoticeService {
 
     private static final int SYSTEM_MESSAGE = 3;
+    private static final int READ_RECEIPT_BATCH_SIZE = 500;
     private static final int VISIBLE = 0;
     private static final String NOTICE_IMAGE_SOURCE = "noticeImage";
     private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/gif");
@@ -126,6 +128,18 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
     }
 
     /**
+     * 查询本人收件箱中消息的当前版本，供已打开的详情检查变更。
+     *
+     * @param id 消息ID
+     * @return 当前可见的版本，不可见时为空
+     */
+    @Override
+    public Integer getInboxNoticeVersion(Long id) {
+        return getOneOpt(getVisibleNoticeCriteria(id, authentication.getUserId()).select(SysNotice::getVersion))
+                .map(SysNotice::getVersion).orElse(null);
+    }
+
+    /**
      * 按公告可见性和已保存的图片关联读取安全预览。
      *
      * @param query 公告和图片文件ID
@@ -148,7 +162,7 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
     }
 
     /**
-     * 查询当前账号的总未读数与最近消息。
+     * 查询当前账号各分类的未读数、未读总数与所选分类的最近消息。
      *
      * @param noticeType 最近消息的类型，为空时查询全部
      * @return 消息中心摘要
@@ -164,7 +178,7 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
                 .isNull(SysNotice::getRecipientUserId).gt(SysNotice::getPublishTime, now).orderByAsc(SysNotice::getPublishTime).page(new Page<>(1, 1, false));
         Long refreshAfterMillis = upcoming.getRecords().isEmpty() ? null
                 : Math.max(1L, Duration.between(now, upcoming.getRecords().getFirst().getPublishTime()).toMillis());
-        return new SysNoticeBoxVO(baseMapper.getUnreadCount(userId, now), recent.getRecords(), refreshAfterMillis);
+        return new SysNoticeBoxVO(baseMapper.getUnreadCountsByNoticeType(userId, now), recent.getRecords(), refreshAfterMillis);
     }
 
     /**
@@ -266,7 +280,8 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
     @Transactional(rollbackFor = Exception.class)
     public boolean updateNotice(SysNoticeUpdateDTO parameter) {
         SysNotice original = lambdaQuery()
-                .select(SysNotice::getVersion, SysNotice::getStatus, SysNotice::getPublishTime, SysNotice::getContentHtml)
+                .select(SysNotice::getVersion, SysNotice::getStatus, SysNotice::getPublishTime, SysNotice::getTitle,
+                        SysNotice::getNoticeType, SysNotice::getContent, SysNotice::getContentHtml)
                 .isNull(SysNotice::getRecipientUserId).eq(SysNotice::getId, parameter.getId()).one();
         if (original == null || !Objects.equals(original.getVersion(), parameter.getVersion())) {
             return false;
@@ -285,6 +300,15 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
         }
         if (notice.getStatus() == VISIBLE && notice.getPublishTime() == null) {
             notice.setPublishTime(now);
+        }
+        // 对比清洗后的正文和最终发布时间，原样保存时保留编辑版本和所有读者的已读状态。
+        if (Objects.equals(original.getTitle(), notice.getTitle())
+                && Objects.equals(original.getContent(), notice.getContent())
+                && Objects.equals(original.getContentHtml(), notice.getContentHtml())
+                && Objects.equals(original.getNoticeType(), notice.getNoticeType())
+                && Objects.equals(original.getStatus(), notice.getStatus())
+                && Objects.equals(original.getPublishTime(), notice.getPublishTime())) {
+            return true;
         }
         if (!updateById(notice)) {
             return false;
@@ -329,7 +353,7 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
     }
 
     /**
-     * 读取本人可见的消息并记录首次阅读。
+     * 读取本人可见的消息并记录本次返回的版本。
      *
      * @param id 公告ID
      * @return 消息详情，不可见或不存在时为空
@@ -338,19 +362,58 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
     @Transactional(rollbackFor = Exception.class)
     public SysNoticeDetailVO readNotice(Long id) {
         Long userId = authentication.getUserId();
-        // 阅读标记和正文使用同一可见条件，直接打开详情也只能读取公开消息或本人消息。
-        SysNotice notice = lambdaQuery().eq(SysNotice::getId, id).eq(SysNotice::getStatus, VISIBLE)
-                .and(scope -> scope.isNull(SysNotice::getRecipientUserId).or().eq(SysNotice::getRecipientUserId, userId))
-                .le(SysNotice::getPublishTime, LocalDateTime.now()).one();
+        SysNotice notice = getOne(getVisibleNoticeCriteria(id, userId));
         if (notice == null) {
             return null;
         }
         SysNoticeRead receipt = new SysNoticeRead();
         receipt.setNoticeId(id);
         receipt.setUserId(userId);
-        readMapper.addFirstRead(receipt);
+        // 并发编辑时只确认本次查询实际返回的正文版本。
+        receipt.setReadVersion(notice.getVersion());
+        readMapper.updateReadReceipts(List.of(receipt));
         events.publishEvent(new NoticeChangedEvent(Set.of(userId), NoticeChangedEvent.NOTICE_READ));
         return BeanConvertUtils.convert(notice, SysNoticeDetailVO.class);
+    }
+
+    /**
+     * 将当前账号各分类中已发布且可见的未读消息全部标为已读。
+     */
+    @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
+    public void markAllNoticesRead() {
+        Long userId = authentication.getUserId();
+        LocalDateTime now = LocalDateTime.now();
+        long afterNoticeId = 0;
+        // 固定发布时间和事务快照，分批写入期间新收到的消息仍保留未读。
+        List<SysNoticeRead> receipts;
+        do {
+            receipts = baseMapper.getPendingReadReceipts(userId, now, afterNoticeId, READ_RECEIPT_BATCH_SIZE);
+            if (receipts.isEmpty()) {
+                break;
+            }
+            readMapper.updateReadReceipts(receipts);
+            afterNoticeId = receipts.getLast().getNoticeId();
+        } while (receipts.size() == READ_RECEIPT_BATCH_SIZE);
+
+        // 只在整个事务提交后通知本人在线会话刷新一次。
+        if (afterNoticeId > 0) {
+            events.publishEvent(new NoticeChangedEvent(Set.of(userId), NoticeChangedEvent.NOTICE_READ));
+        }
+    }
+
+    /**
+     * 构建本人收件箱中指定消息的可见条件。
+     *
+     * @param id 消息ID
+     * @param userId 当前账号ID
+     * @return 详情阅读与版本检查共用的查询条件
+     */
+    private LambdaQueryWrapper<SysNotice> getVisibleNoticeCriteria(Long id, Long userId) {
+        // 版本检查同样受发布时间和收件人限制，不能暴露未发布消息或他人的系统消息。
+        return new LambdaQueryWrapper<SysNotice>().eq(SysNotice::getId, id).eq(SysNotice::getStatus, VISIBLE)
+                .and(scope -> scope.isNull(SysNotice::getRecipientUserId).or().eq(SysNotice::getRecipientUserId, userId))
+                .le(SysNotice::getPublishTime, LocalDateTime.now());
     }
 
     /**

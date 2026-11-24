@@ -15,6 +15,10 @@ export interface NoticeSummary extends Omit<NoticeForm, 'contentHtml'> {
   createTime: string
 }
 
+export type NoticeUpdate = Omit<NoticeForm, 'contentHtml'> & { id: NoticeId; version: number } & (
+  { contentHtml: string } | { content: string }
+)
+
 export interface NoticeDetail extends NoticeSummary {
   content: string
   contentHtml?: string | null
@@ -38,7 +42,8 @@ export interface NoticeItem {
 }
 
 export interface NoticeBox {
-  unreadCount: number
+  unreadCount: number | string
+  unreadCounts: { noticeType: number; unreadCount: number | string }[]
   items: NoticeItem[]
   refreshAfterMillis?: number | null
 }

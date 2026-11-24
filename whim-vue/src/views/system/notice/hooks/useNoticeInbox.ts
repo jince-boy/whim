@@ -1,9 +1,10 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { subscribeSystemEvents } from '@/api'
 import { useFormDialog } from '@/components/dialog'
+import { message } from '@/plugins'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useDictStore } from '@/stores/modules/dict'
-import { clearSystemMessages, fetchNoticeBox, fetchNoticeInbox, readNotice } from './api'
+import { clearSystemMessages, fetchInboxNoticeVersion, fetchNoticeBox, fetchNoticeInbox, markAllNoticesRead, readNotice } from './api'
 import type { NoticeBox, NoticeDetail, NoticeId, NoticeItem } from './types'
 
 /** 管理当前标签页的铃铛、历史列表和阅读详情，切换账号时丢弃旧请求。 */
@@ -17,13 +18,16 @@ export function useNoticeInbox() {
     return category.value === 3 ? label + '消息' : label
   })
   const fromHistory = ref(false)
-  const box = shallowRef<NoticeBox>({ unreadCount: 0, items: [] })
+  const box = shallowRef<NoticeBox>({ unreadCount: 0, unreadCounts: [], items: [] })
+  const hasUnread = computed(() => Number(box.value.unreadCount) > 0)
   const history = shallowRef<NoticeItem[]>([])
   const detail = shallowRef<NoticeDetail | null>(null)
+  const updatedDetailId = ref<NoticeId>()
   const showBell = ref(false)
   const showHistory = ref(false)
   const showDetail = ref(false)
   const boxLoading = ref(false)
+  const markingAllRead = ref(false)
   const historyLoading = ref(false)
   const detailLoading = ref(false)
   const boxError = ref(false)
@@ -75,8 +79,7 @@ export function useNoticeInbox() {
   }
 
   function refreshInbox() {
-    void loadBox()
-    if (showHistory.value) void loadHistory(page.value)
+    return Promise.all([loadBox(), showHistory.value ? loadHistory(page.value) : undefined])
   }
 
   // 阅读响应与当前账号的已读推送常在同一时间到达，合并刷新保留未启用推送时的更新能力。
@@ -85,9 +88,12 @@ export function useNoticeInbox() {
     if (refreshTimer !== undefined) return
     refreshTimer = setTimeout(() => {
       refreshTimer = undefined
-      if (detailChanged && showDetail.value && selectedId !== undefined) void openDetail(selectedId)
-      else refreshInbox()
-      detailChanged = false
+      void refreshInbox()
+      // 正文请求尚未完成时保留变更信号，在拿到读者实际打开的版本后再比对。
+      if (detailChanged && !detailLoading.value) {
+        detailChanged = false
+        if (showDetail.value && selectedId !== undefined) void checkDetailVersion(selectedId)
+      }
     }, 100)
   }
 
@@ -128,6 +134,25 @@ export function useNoticeInbox() {
     }
   }
 
+  async function checkDetailVersion(id: NoticeId) {
+    if (!active) return
+    const signal = active.signal
+    const current = ++detailRequest
+    try {
+      const { code, data } = await fetchInboxNoticeVersion({ id }, signal)
+      if (signal.aborted || current !== detailRequest || !showDetail.value) return
+      if (code === 200 && data === detail.value?.version) return
+      // 推送和重连只提示新版，读者点击后才将对应版本记为已读。
+      detail.value = null
+      updatedDetailId.value = code === 200 ? id : undefined
+    } catch {
+      if (!signal.aborted && current === detailRequest) {
+        detail.value = null
+        updatedDetailId.value = undefined
+      }
+    }
+  }
+
   async function openDetail(id: NoticeId) {
     if (!active) return
     const signal = active.signal
@@ -139,6 +164,7 @@ export function useNoticeInbox() {
     showDetail.value = true
     detailLoading.value = true
     detail.value = null
+    updatedDetailId.value = undefined
     try {
       const { data } = await readNotice({ id }, signal)
       if (signal.aborted || current !== detailRequest || !showDetail.value) return
@@ -149,6 +175,25 @@ export function useNoticeInbox() {
       if (!signal.aborted && current === detailRequest) {
         detailLoading.value = false
         scheduleRefresh(false)
+      }
+    }
+  }
+
+  async function markAllRead() {
+    if (!active || markingAllRead.value || !hasUnread.value) return
+    const signal = active.signal
+    markingAllRead.value = true
+    try {
+      const result = await markAllNoticesRead(signal)
+      if (signal.aborted) return
+      if (result.code === 200) message.success(result.message)
+      else message.error(result.message || '标记全部已读失败')
+    } catch {
+      // 请求层已提示错误；响应丢失时仍需从服务端核实阅读状态。
+    } finally {
+      if (!signal.aborted) {
+        await refreshInbox()
+        if (!signal.aborted) markingAllRead.value = false
       }
     }
   }
@@ -200,13 +245,15 @@ export function useNoticeInbox() {
     (token, _, onCleanup) => {
       category.value = 3
       fromHistory.value = false
-      box.value = { unreadCount: 0, items: [] }
+      box.value = { unreadCount: 0, unreadCounts: [], items: [] }
       history.value = []
       page.value = pageCount.value = 1
       detail.value = null
       selectedId = undefined
+      updatedDetailId.value = undefined
       showBell.value = showHistory.value = showDetail.value = false
       boxLoading.value = historyLoading.value = detailLoading.value = false
+      markingAllRead.value = false
       boxError.value = historyError.value = false
       if (!token) return
       const controller = new AbortController()
@@ -242,11 +289,15 @@ export function useNoticeInbox() {
     categoryLabel,
     fromHistory,
     selectCategory,
+    markingAllRead,
+    markAllRead,
+    hasUnread,
     canClearSystemMessages,
     confirmClearSystemMessages,
     box,
     history,
     detail,
+    updatedDetailId,
     showBell,
     showHistory,
     showDetail,

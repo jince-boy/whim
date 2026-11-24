@@ -2,6 +2,7 @@ import { computed, defineAsyncComponent, h, onScopeDispose, ref, shallowRef } fr
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { TableAction, useWhimTable } from '@/components/table'
 import { useFormDialog } from '@/components/dialog'
+import { plainTextToHtml } from '@/components/richEditor/richText'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { addNotice, deleteNotice, fetchNoticeDetail, fetchNoticePage, updateNotice } from './api'
@@ -126,9 +127,14 @@ export function useNotice() {
       width: 960,
       formComponent: NoticeForm,
       formProps: { initialModel },
-      onSubmit: (model) => initialModel
-        ? updateNotice({ ...model, id: initialModel.id, version: initialModel.version })
-        : addNotice(model),
+      onSubmit: (model) => {
+        if (!initialModel) return addNotice(model)
+        const { contentHtml, ...fields } = model
+        // 老公告以纯文本保存，编辑器用于展示的段落包装本身不构成正文更新。
+        const body = initialModel.contentHtml == null && contentHtml === plainTextToHtml(initialModel.content)
+          ? { content: initialModel.content } : { contentHtml }
+        return updateNotice({ ...fields, ...body, id: initialModel.id, version: initialModel.version })
+      },
       onSuccess: table.reload,
     })
   }

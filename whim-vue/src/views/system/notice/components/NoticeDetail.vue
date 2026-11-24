@@ -4,9 +4,10 @@ import Icon from '@/components/icon/Icon.vue'
 import { useDictStore } from '@/stores/modules/dict'
 import { useNoticeDetailImages } from '../hooks/useNoticeDetailImages'
 import '@/components/richEditor/richText.css'
-import type { NoticeDetail } from '../hooks/types'
+import type { NoticeDetail, NoticeId } from '../hooks/types'
 
-const props = defineProps<{ notice: NoticeDetail | null; loading?: boolean; backLabel?: string }>()
+const props = defineProps<{ notice: NoticeDetail | null; loading?: boolean; backLabel?: string; updatedId?: NoticeId }>()
+defineEmits<{ open: [id: NoticeId] }>()
 const show = defineModel<boolean>('show', { required: true })
 const dictionary = useDictStore()
 const titleId = useId()
@@ -59,6 +60,11 @@ const { safeHtml, imageError, attempt } = useNoticeDetailImages(show, () => prop
       </article>
       <div v-else class="reader-state" role="status">
         <n-spin v-if="loading" size="small" aria-label="正在读取正文" />
+        <n-empty v-else-if="updatedId !== undefined" description="这条消息已有新版本">
+          <template #extra>
+            <n-button size="small" type="info" secondary @click="$emit('open', updatedId)">查看新版</n-button>
+          </template>
+        </n-empty>
         <n-empty v-else description="这条消息已不可用" />
       </div>
     </n-card>

@@ -13,7 +13,7 @@
     <select id="getInboxPage" resultType="com.whim.system.model.vo.notice.SysNoticeInboxItemVO">
         SELECT n.id, n.title, n.notice_type, n.publish_time, (r.id IS NOT NULL) AS read_flag
         FROM sys_notice n
-        LEFT JOIN sys_notice_read r ON r.user_id = #{userId} AND r.notice_id = n.id AND r.deleted = 0
+        LEFT JOIN sys_notice_read r ON <include refid="currentReadReceipt"/>
         WHERE n.deleted = 0 AND n.status = 0 AND n.publish_time &lt;= #{now}
           AND <include refid="visibleRecipient"/>
         <if test="noticeType != null">
@@ -22,13 +22,31 @@
         ORDER BY n.publish_time DESC, n.id DESC
     </select>
 
-    <!-- 未读数须跨表排除当前用户已读的行，同时排除已关闭或已删除的公告。 -->
-    <select id="getUnreadCount" resultType="long">
-        SELECT COUNT(*) FROM sys_notice n
+    <!-- 列表、角标和全部已读都只认可读者实际看过的当前版本。 -->
+    <sql id="currentReadReceipt">
+        r.user_id = #{userId} AND r.notice_id = n.id AND r.deleted = 0 AND r.read_version = n.version
+    </sql>
+    <sql id="unreadInbox">
+        FROM sys_notice n
         WHERE n.deleted = 0 AND n.status = 0 AND n.publish_time &lt;= #{now}
           AND (n.recipient_user_id IS NULL OR n.recipient_user_id = #{userId})
           AND NOT EXISTS (SELECT 1 FROM sys_notice_read r
-                          WHERE r.user_id = #{userId} AND r.notice_id = n.id AND r.deleted = 0)
+                          WHERE <include refid="currentReadReceipt"/>)
+    </sql>
+
+    <select id="getUnreadCountsByNoticeType" resultType="com.whim.system.model.vo.notice.SysNoticeUnreadCountVO">
+        SELECT n.notice_type, COUNT(*) AS unread_count
+        <include refid="unreadInbox"/>
+        GROUP BY n.notice_type
+    </select>
+
+    <!-- 按主键向后取一批待写入的阅读记录，已处理的行不会占用下一批的位置。 -->
+    <select id="getPendingReadReceipts" resultType="com.whim.system.model.entity.SysNoticeRead">
+        SELECT n.id AS notice_id, #{userId} AS user_id, n.version AS read_version
+        <include refid="unreadInbox"/>
+          AND n.id &gt; #{afterNoticeId}
+        ORDER BY n.id
+        LIMIT #{batchSize}
     </select>
 
     <!-- 按收件箱排序关联确认时的边界，并在一次条件删除中写入每行主键和删除审计字段。 -->

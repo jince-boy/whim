@@ -3,6 +3,9 @@ package com.whim.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.whim.system.model.entity.SysNoticeRead;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author Jince
@@ -12,9 +15,9 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface SysNoticeReadMapper extends BaseMapper<SysNoticeRead> {
     /**
-     * 并发打开同一公告时保留最早的阅读记录。
+     * 创建阅读记录或推进已有记录的已读版本。
      *
-     * @param receipt 首次阅读记录
+     * @param receipts 包含本次所读消息版本的阅读记录
      */
-    void addFirstRead(SysNoticeRead receipt);
+    void updateReadReceipts(@Param("receipts") List<SysNoticeRead> receipts);
 }

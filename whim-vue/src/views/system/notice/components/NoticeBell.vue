@@ -6,7 +6,8 @@ import NoticeDetail from './NoticeDetail.vue'
 
 const {
   box, history, detail, showBell, showHistory, showDetail, boxLoading, historyLoading, detailLoading,
-  boxError, historyError, page, pageCount, category, categoryLabel, fromHistory,
+  boxError, historyError, page, pageCount, category, categoryLabel, fromHistory, updatedDetailId,
+  hasUnread, markingAllRead, markAllRead,
   selectCategory, canClearSystemMessages, confirmClearSystemMessages, loadBox, loadHistory, openDetail, openHistory, toggleBell,
 } = useNoticeInbox()
 </script>
@@ -14,20 +15,34 @@ const {
 <template>
   <n-popover :show="showBell" trigger="click" placement="bottom-end" :show-arrow="false"
     style="width: min(380px, calc(100vw - 24px)); box-sizing: border-box; border-radius: 12px"
+    :footer-style="{ padding: '4px 16px' }"
     @update:show="toggleBell">
     <template #trigger>
       <n-button quaternary native-focus-behavior size="small" style="width: 32px; height: 32px"
-        :aria-label="box.unreadCount ? '消息中心，' + box.unreadCount + '条未读' : '消息中心'" @mousedown.prevent>
-        <n-badge :value="box.unreadCount" :max="99"><Icon name="bell" :size="18" /></n-badge>
+        :aria-label="hasUnread ? '消息中心，' + box.unreadCount + '条未读' : '消息中心'" @mousedown.prevent>
+        <n-badge :value="Number(box.unreadCount)" :max="99"><Icon name="bell" :size="18" /></n-badge>
       </n-button>
     </template>
     <div class="box-heading">
-      <h2>消息中心</h2><n-text depth="3">{{ box.unreadCount ? '共 ' + box.unreadCount + ' 条未读' : '全部已读' }}</n-text>
+      <h2>消息中心</h2>
+      <n-text v-if="hasUnread" class="unread-summary" depth="3">{{ box.unreadCount }} 条未读</n-text>
     </div>
     <NoticeInboxList class="recent" :category="category" :label="categoryLabel" :items="box.items" :loading="boxLoading" :error="boxError"
+      :unread-counts="box.unreadCounts"
       @select="selectCategory" @open="openDetail" @retry="loadBox" />
     <template #footer>
-      <n-button quaternary block size="small" @click="openHistory">查看全部{{ categoryLabel }} <Icon name="arrow-right" :size="15" class="more" /></n-button>
+      <n-flex class="box-footer" justify="space-between" align="center" :wrap="false">
+        <n-button text type="info" size="tiny" class="footer-action" icon-placement="right" @click="openHistory">
+          查看列表
+          <template #icon><Icon name="chevron-right" :size="12" /></template>
+        </n-button>
+        <n-button v-if="hasUnread || markingAllRead" text size="tiny" class="footer-action"
+          :loading="markingAllRead" :disabled="markingAllRead"
+          title="将系统、通知和公告全部标为已读" @click="markAllRead">
+          <template #icon><Icon name="check" :size="13" /></template>
+          全部已读
+        </n-button>
+      </n-flex>
     </template>
   </n-popover>
 
@@ -35,6 +50,7 @@ const {
     :segmented="{ footer: true }" :footer-style="{ paddingBlock: '10px' }"
     style="width: min(660px, calc(100vw - 24px)); border-radius: 14px">
     <NoticeInboxList class="history" :category="category" :label="categoryLabel" :items="history" :loading="historyLoading" :error="historyError"
+      :unread-counts="box.unreadCounts"
       @select="selectCategory" @open="openDetail" @retry="loadHistory(page)" />
     <template v-if="canClearSystemMessages || pageCount > 1" #footer>
       <n-flex align="center" :size="8">
@@ -47,15 +63,17 @@ const {
       </n-flex>
     </template>
   </n-modal>
-  <NoticeDetail v-model:show="showDetail" :notice="detail" :loading="detailLoading" :back-label="fromHistory ? '返回列表' : undefined" />
+  <NoticeDetail v-model:show="showDetail" :notice="detail" :loading="detailLoading" :updated-id="updatedDetailId"
+    :back-label="fromHistory ? '返回列表' : undefined" @open="openDetail" />
 </template>
 
 <style scoped>
 .box-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 2px 14px; }
 .box-heading h2 { margin: 0; font-size: 18px; line-height: 1.4; }
-.box-heading > :last-child { font-size: 12px; }
+.unread-summary { font-size: 12px; font-variant-numeric: tabular-nums; }
+.box-footer { font-size: 12px; }
+.footer-action { min-height: 30px; }
 .recent { max-height: min(440px, 60dvh); }
 .history { max-height: min(620px, 65dvh); }
 .history-pages { margin-inline-start: auto; }
-.more { margin-inline-start: 6px; }
 </style>

@@ -3,9 +3,16 @@ import { useThemeVars } from 'naive-ui'
 import { computed } from 'vue'
 import Icon from '@/components/icon/Icon.vue'
 import { useDictStore } from '@/stores/modules/dict'
-import type { NoticeId, NoticeItem } from '../hooks/types'
+import type { NoticeBox, NoticeId, NoticeItem } from '../hooks/types'
 
-defineProps<{ category: number; label: string; items: NoticeItem[]; loading: boolean; error: boolean }>()
+const props = defineProps<{
+  category: number
+  label: string
+  items: NoticeItem[]
+  loading: boolean
+  error: boolean
+  unreadCounts: NoticeBox['unreadCounts']
+}>()
 defineEmits<{ select: [category: number]; open: [id: NoticeId]; retry: [] }>()
 const theme = useThemeVars()
 const dictionary = useDictStore()
@@ -14,7 +21,10 @@ const categories = computed(() => {
   return [
     ...options.filter(option => option.value === 3),
     ...options.filter(option => option.value === 1 || option.value === 2),
-  ]
+  ].map(option => ({
+    ...option,
+    unreadCount: props.unreadCounts?.find(count => count.noticeType === option.value)?.unreadCount ?? 0,
+  }))
 })
 </script>
 
@@ -22,7 +32,11 @@ const categories = computed(() => {
   <div class="inbox-list">
     <div class="categories" role="group" aria-label="消息分类">
       <button v-for="option in categories" :key="option.value" type="button" :aria-pressed="category === option.value"
-        @click="$emit('select', option.value)">{{ option.label }}</button>
+        :aria-label="option.unreadCount ? option.label + '，' + option.unreadCount + ' 条未读' : option.label"
+        @click="$emit('select', option.value)">
+        {{ option.label }}
+        <n-badge v-if="option.unreadCount" :value="Number(option.unreadCount)" :max="99" />
+      </button>
     </div>
     <div class="messages" :aria-busy="loading">
       <div v-if="error" class="empty" role="status">
@@ -57,7 +71,7 @@ const categories = computed(() => {
 .categories { flex: none; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; margin-bottom: 10px;
   border-radius: 9px; background: v-bind('theme.actionColor'); border: 1px solid v-bind('theme.dividerColor'); }
 .categories button, .message { font: inherit; border: 0; background: transparent; cursor: pointer; color: v-bind('theme.textColor2'); }
-.categories button { padding: 5px 0; border-radius: 6px; }
+.categories button { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 0; border-radius: 6px; }
 .categories button[aria-pressed="true"] { color: v-bind('theme.primaryColor'); background: v-bind('theme.cardColor');
   font-weight: 650; box-shadow: 0 1px 4px #0002; }
 button:focus-visible { outline: 2px solid v-bind('theme.primaryColor'); outline-offset: -2px; }
