@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import MonitorTrend from '@/components/monitorTrend/MonitorTrend.vue'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useCacheMonitor } from './hooks/useCacheMonitor'
@@ -9,9 +10,9 @@ const { canView, loading, failed, overview, trends, refresh } = useCacheMonitor(
 
 <template>
   <div class="cache-monitor">
-    <n-card v-if="!canView"><n-empty description="暂无缓存监控查询权限" /></n-card>
+    <n-card :theme-overrides="pageCardThemeOverrides" v-if="!canView"><n-empty description="暂无缓存监控查询权限" /></n-card>
     <template v-else>
-      <n-card title="Redis 运行概况">
+      <n-card :theme-overrides="pageCardThemeOverrides" title="Redis 运行概况">
         <template #header-extra>
           <n-button secondary type="info" :loading="loading" @click="refresh">
             <template #icon><AppIcon name="refresh-cw" /></template>刷新
@@ -48,7 +49,7 @@ const { canView, loading, failed, overview, trends, refresh } = useCacheMonitor(
           <MonitorTrend title="内存趋势" unit="MiB" :points="trends.memory" scale />
           <MonitorTrend title="命令吞吐趋势" unit="次/秒" :points="trends.commands" :min-interval="1" secondary />
         </div>
-        <n-card title="键空间累计统计" size="small">
+        <n-card :theme-overrides="pageCardThemeOverrides" title="键空间累计统计" size="small">
           <div class="metrics">
             <n-statistic label="键查找命中" :value="overview.hits" tabular-nums />
             <n-statistic label="键查找未命中" :value="overview.misses" tabular-nums />

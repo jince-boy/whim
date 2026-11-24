@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import { computed } from 'vue'
 import { useThemeVars } from 'naive-ui'
 import VChart from 'vue-echarts'
@@ -56,7 +57,7 @@ const option = computed<EChartsOption>(() => {
 </script>
 
 <template>
-  <n-card :title="props.title" size="small">
+  <n-card :theme-overrides="pageCardThemeOverrides" :title="props.title" size="small">
     <template #header-extra><n-text depth="3">{{ props.unit }}</n-text></template>
     <VChart class="trend" :option="option" autoresize role="img" :aria-label="props.title" />
   </n-card>

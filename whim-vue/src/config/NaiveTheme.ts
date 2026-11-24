@@ -9,6 +9,10 @@ export const fontThemeOverrides = {
   fontFamilyMono: 'var(--app-font-family-mono)',
 }
 
+export const pageCardThemeOverrides = {
+  borderRadius: '8px',
+} satisfies NonNullable<GlobalThemeOverrides['Card']>
+
 export const pageTabThemeOverrides = {
   tabBorderRadius: '6px',
   tabTextColorActiveSegment: 'var(--primary-color)',

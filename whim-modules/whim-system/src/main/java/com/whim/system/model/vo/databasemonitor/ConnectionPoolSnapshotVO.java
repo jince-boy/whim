@@ -32,6 +32,7 @@ public class ConnectionPoolSnapshotVO {
         private Integer idle;
         private Integer maximum;
         private Integer pending;
+        private Long acquireCount;
         private Long timeoutCount;
     }
 }

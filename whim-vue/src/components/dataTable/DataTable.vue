@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import type { VNode } from 'vue'
 import { SearchForm } from '../searchForm'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
@@ -60,7 +61,7 @@ defineExpose({ reload, getTableInstance })
       class="whim-table__search-card"
       size="medium"
       content-style="padding: 10px"
-      :theme-overrides="{ borderRadius: '8px' }"
+      :theme-overrides="pageCardThemeOverrides"
     >
       <SearchForm
         :loading="searchAction === 'submit'"
@@ -80,7 +81,7 @@ defineExpose({ reload, getTableInstance })
       class="whim-table__card"
       size="medium"
       content-style="padding: 10px"
-      :theme-overrides="{ borderRadius: '8px' }"
+      :theme-overrides="pageCardThemeOverrides"
     >
       <n-flex
         v-if="buttons.length || $slots.toolbarBefore || $slots.toolbarExtra || (binding && showTools)"

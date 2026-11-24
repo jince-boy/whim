@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
-import { pageTabThemeOverrides } from '@/config/NaiveTheme'
+import { pageCardThemeOverrides, pageTabThemeOverrides } from '@/config/NaiveTheme'
 import { useUserStore } from '@/stores/modules/user'
 import ConnectionPools from './components/ConnectionPools.vue'
 import SlowSql from './components/SlowSql.vue'
@@ -24,7 +24,7 @@ const tab = ref<'slowSql' | 'connectionPool'>('slowSql')
         <ConnectionPools v-else />
       </KeepAlive>
     </template>
-    <n-card v-else><n-empty description="暂无数据库监控查询权限" /></n-card>
+    <n-card :theme-overrides="pageCardThemeOverrides" v-else><n-empty description="暂无数据库监控查询权限" /></n-card>
   </div>
 </template>
 

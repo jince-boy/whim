@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
 import MonitorTrend from '@/components/monitorTrend/MonitorTrend.vue'
 import { useApiMonitor } from './hooks/useApiMonitor'
@@ -9,9 +10,9 @@ const { canView, loading, failed, monitor, columns, rowKey, refresh } = useApiMo
 
 <template>
   <div class="api-monitor">
-    <n-card v-if="!canView"><n-empty description="暂无接口监控查询权限" /></n-card>
+    <n-card :theme-overrides="pageCardThemeOverrides" v-if="!canView"><n-empty description="暂无接口监控查询权限" /></n-card>
     <template v-else>
-      <n-card title="接口运行概况">
+      <n-card :theme-overrides="pageCardThemeOverrides" title="接口运行概况">
         <template #header-extra>
           <n-button secondary type="info" :loading="loading" @click="refresh">
             <template #icon><AppIcon name="refresh-cw" /></template>刷新
@@ -34,8 +35,8 @@ const { canView, loading, failed, monitor, columns, rowKey, refresh } = useApiMo
           <MonitorTrend v-for="metric in monitor.metrics" :key="metric.field"
             :title="metric.title" :unit="metric.unit" :points="metric.points" :secondary="metric.secondary" />
         </div>
-        <n-card v-else size="small"><n-empty description="正在建立采样基线" /></n-card>
-        <n-card title="慢接口排行 · 最近 5 分钟" size="small">
+        <n-card :theme-overrides="pageCardThemeOverrides" v-else size="small"><n-empty description="正在建立采样基线" /></n-card>
+        <n-card :theme-overrides="pageCardThemeOverrides" title="慢接口排行 · 最近 5 分钟" size="small">
           <p class="note"><n-text depth="3">{{ monitor.start }} 至 {{ monitor.end }} · 按平均耗时从高到低排列</n-text></p>
           <n-data-table v-if="monitor.endpoints.length" size="small" :bordered="false"
             :columns="columns" :data="monitor.endpoints" :row-key="rowKey" :scroll-x="640"

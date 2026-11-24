@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
 import MonitorTrend from '@/components/monitorTrend/MonitorTrend.vue'
 import { useServerMonitor } from './hooks/useServerMonitor'
@@ -9,9 +10,9 @@ const { canView, overview, trends, loading, failed, refresh } = useServerMonitor
 
 <template>
   <div class="server-monitor">
-    <n-card v-if="!canView"><n-empty description="暂无服务器监控查询权限" /></n-card>
+    <n-card :theme-overrides="pageCardThemeOverrides" v-if="!canView"><n-empty description="暂无服务器监控查询权限" /></n-card>
     <template v-else>
-      <n-card title="服务器概况">
+      <n-card :theme-overrides="pageCardThemeOverrides" title="服务器概况">
         <template #header-extra>
           <n-button secondary type="info" :loading="loading" @click="refresh">
             <template #icon><AppIcon name="refresh-cw" /></template>刷新
@@ -33,7 +34,7 @@ const { canView, overview, trends, loading, failed, refresh } = useServerMonitor
           <MonitorTrend title="CPU 使用率" unit="%" :points="trends.cpu" :maximum="100" />
           <MonitorTrend title="内存使用率" unit="%" :points="trends.memory" :maximum="100" secondary />
         </div>
-        <n-card title="本地磁盘分区" size="small">
+        <n-card :theme-overrides="pageCardThemeOverrides" title="本地磁盘分区" size="small">
           <div v-if="overview.disks.length" class="table-scroll">
             <n-table size="small" :bordered="false" :single-line="true">
               <thead><tr><th>挂载点</th><th>文件系统</th><th>总容量</th><th>可用空间</th><th>使用率</th></tr></thead>
@@ -50,7 +51,7 @@ const { canView, overview, trends, loading, failed, refresh } = useServerMonitor
           </div>
           <n-empty v-else description="当前环境未提供本地磁盘分区" />
         </n-card>
-        <n-card title="网卡流量" size="small">
+        <n-card :theme-overrides="pageCardThemeOverrides" title="网卡流量" size="small">
           <div v-if="overview.networks.length" class="table-scroll">
             <n-table size="small" :bordered="false">
               <thead><tr><th>网卡</th><th>接收速率</th><th>发送速率</th><th>累计接收</th><th>累计发送</th></tr></thead>

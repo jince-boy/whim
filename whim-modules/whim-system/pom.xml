@@ -13,6 +13,11 @@
     <description>系统业务模块</description>
 
     <dependencies>
+        <!-- 慢 SQL 使用 MVC 已匹配的路由模板和控制器方法定位请求来源 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
         <!-- 接口监控直接读取 Actuator 已注册的请求计时器 -->
         <dependency>
             <groupId>io.micrometer</groupId>
