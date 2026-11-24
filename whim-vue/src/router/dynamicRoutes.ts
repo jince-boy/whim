@@ -1,6 +1,6 @@
 import { defineComponent, h, type Component } from 'vue'
 import type { LocationQueryRaw, RouteLocationRaw, RouteRecordRaw } from 'vue-router'
-import { MenuType, type UserMenu } from '@/stores/modules/permission/types'
+import { MenuType, type HomeRoute, type UserMenu } from '@/stores/modules/permission/types'
 import type { BreadcrumbItem, NavigationNode } from '@/types/navigation'
 
 // 按菜单填写的文件路径加载业务页面，账号入口和异常页由固定路由加载。
@@ -37,23 +37,26 @@ function createPageComponent(
   }
 }
 
-/** 入口只从可见、组件已实现的内部页面中选择；以后独立首页配置也使用此授权范围。 */
-export function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw | undefined {
-  for (const node of nodes) {
-    if (!node.visible || node.disabled || node.external) continue
-    if (!node.directory) return node.target
-    const target = firstNavigationTarget(node.children)
-    if (target) return target
-  }
+/** 目录跳转和未配置首页的账号使用首个可访问页面。 */
+function firstNavigationTarget(nodes: NavigationNode[]): RouteLocationRaw | undefined {
+  return nodes.find((node) => node.visible && !node.disabled && node.target)?.target
 }
 
 /** 一次解析授权树，统一路由元数据、菜单目标和目录跳转，不在各组件重复解释后端字段。 */
-export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] = []) {
+export function buildNavigation(
+  menus: UserMenu[],
+  homeRoutes: HomeRoute[],
+  previousByName: ReadonlyMap<string, MenuRoute>,
+) {
   const routes: MenuRoute[] = []
-  const previousByName = new Map(previousRoutes.map((route) => [route.name, route]))
   const names = new Set<string>()
   const paths = new Set<string>()
   const ids = new Set<string>()
+  let homeMenu: NavigationNode | undefined
+  const menusByPath = new Map<
+    string,
+    { id: string; path: string; viewPath?: string; target?: RouteLocationRaw }
+  >()
   /** 逐层建立导航；隐藏节点保留路由，按钮与停用分支不参与解析。 */
   function resolveNodes(
     nodes: UserMenu[],
@@ -87,7 +90,8 @@ export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] =
           : []
         // 兼容数据库已有的首页组件标识。
         const configuredPath = menu.component?.replace(/\.vue$/, '')
-        const componentPath = configuredPath === 'layout/default/index' ? 'home/index' : configuredPath
+        const componentPath =
+          configuredPath === 'layout/default/index' ? 'home/index' : configuredPath
         const loader = componentPath ? pageLoaders[`/src/views/${componentPath}.vue`] : undefined
         const query: LocationQueryRaw = Object.create(null)
         new URLSearchParams(menu.param || '').forEach((value, name) => {
@@ -121,13 +125,18 @@ export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] =
           icon: menu.icon || undefined,
           keepAlive: menu.isCache === 1,
           isTab: !directory,
+          isHomeEntry: menu.builtIn === 1 && menu.perms === 'system:home:view',
           breadcrumbs,
           menuKey: visible ? key : visibleParentKey,
         }
+        if (meta.isHomeEntry) homeMenu = node
         if (external) return [node]
 
         // 路由定义没有变化时保留匹配记录，菜单排序及页面默认参数仍可独立更新。
         const viewPath = loader ? (componentPath ?? undefined) : undefined
+        const pathKey = path.toLowerCase()
+        if (!menusByPath.has(pathKey))
+          menusByPath.set(pathKey, { id, path, viewPath: directory ? undefined : viewPath, target })
         const signature = JSON.stringify([path, meta, directory, directory ? target : viewPath])
         const previous = previousByName.get(key)
         const sameMenu = previous?.menuId === id ? previous : undefined
@@ -163,5 +172,65 @@ export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] =
       })
   }
   const tree = resolveNodes(menus)
-  return { routes, tree, entryTarget: firstNavigationTarget(tree) }
+  let entryTarget: RouteLocationRaw | undefined
+  for (const home of homeRoutes) {
+    const existing = menusByPath.get(home.path.toLowerCase())
+    if (existing) {
+      // 不可访问、已换址或已更换组件的菜单不能转为独立首页。
+      if (
+        existing.id !== String(home.menuId) ||
+        existing.path !== home.path ||
+        existing.viewPath !== home.component
+      )
+        continue
+      entryTarget = existing.target
+    } else {
+      const name = 'Configured-Home'
+      const loader = pageLoaders[`/src/views/${home.component}.vue`]
+      if (home.menuId != null || !loader || names.has(name)) continue
+      const previous = previousByName.get(name)
+      const menuKey = homeMenu?.key ?? name
+      const signature = JSON.stringify([home.path, home.component, menuKey])
+      routes.push(
+        previous?.signature === signature
+          ? previous
+          : {
+              path: home.path,
+              name,
+              menuId: name,
+              viewPath: home.component,
+              signature,
+              component: createPageComponent(name, loader),
+              meta: {
+                title: '首页',
+                icon: 'house',
+                menuKey,
+                isTab: true,
+                breadcrumbs: [{ title: '首页', path: home.path, name }],
+              },
+            },
+      )
+      entryTarget = { path: home.path }
+    }
+    if (!homeMenu) {
+      tree.unshift({
+        key: existing ? 'Home-Shortcut' : 'Configured-Home',
+        name: '首页',
+        icon: 'house',
+        target: entryTarget,
+        visible: true,
+        disabled: false,
+        external: false,
+        directory: false,
+        children: [],
+      })
+    }
+    break
+  }
+  entryTarget ??= firstNavigationTarget(tree)
+  if (homeMenu && entryTarget) {
+    homeMenu.target = entryTarget
+    homeMenu.disabled = false
+  }
+  return { routes, tree, entryTarget }
 }

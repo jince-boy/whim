@@ -96,7 +96,7 @@ export function useLayout() {
   }
   return {
     themeStore,
-    homePath: computed(() => permissionStore.homePath),
+    homePath: computed(() => permissionStore.homeRoute.fullPath),
     layoutMode,
     collapsed,
     sidebarWidth,

@@ -12,7 +12,7 @@ function routeTab(route: Pick<RouteLocationResolved, 'name' | 'fullPath' | 'meta
     title: route.meta.title || '页面',
     path: route.fullPath,
     icon: route.meta.icon || '',
-    closeable: route.name !== usePermissionStore().homeName,
+    closeable: route.name !== usePermissionStore().homeRoute.name,
   }
 }
 
@@ -64,7 +64,7 @@ export const useTabStore = defineStore('tab', {
           retained.find((tab) => tab.name === preferredName) ??
           retained[Math.max(0, Math.min(index - 1, retained.length - 1))]
         if (!retained.some((tab) => tab.name === current)) {
-          const path = target?.path ?? navigation.homePath
+          const path = target?.path ?? navigation.homeRoute.fullPath
           const failure = await router.push(path)
           if (failure || router.currentRoute.value.fullPath !== router.resolve(path).fullPath)
             return
@@ -107,7 +107,7 @@ export const useTabStore = defineStore('tab', {
     /** 重新授权后更新标签并清理失效页面的缓存。 */
     syncRoutes(invalidatedCache: ReadonlySet<string>) {
       const navigation = usePermissionStore()
-      const entry = router.resolve(navigation.homePath)
+      const entry = navigation.homeRoute
       const retained = this.tabs.flatMap((tab) => {
         if (!router.hasRoute(tab.name)) return []
         const route = router.resolve(tab.path)

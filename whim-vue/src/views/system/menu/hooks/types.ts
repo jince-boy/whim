@@ -15,7 +15,7 @@ export interface MenuDictionaryOptions {
   visibilities: { label: string; value: number }[]
   cacheModes: { label: string; value: number }[]
 }
-export interface MenuSave extends Omit<UserMenu, 'id' | 'children'> {
+export interface MenuSave extends Omit<UserMenu, 'id' | 'children' | 'builtIn'> {
   perms: string | null
   remark: string | null
 }

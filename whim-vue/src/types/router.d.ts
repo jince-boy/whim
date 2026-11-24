@@ -9,6 +9,7 @@ declare module 'vue-router' {
     title?: string
     keepAlive?: boolean
     isTab?: boolean
+    isHomeEntry?: boolean
     icon?: string
     breadcrumbs?: BreadcrumbItem[]
     menuKey?: string

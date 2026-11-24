@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
-/** 固定路由只承载布局、账号入口和异常页，业务页面全部由后端授权菜单注册。 */
+/** 固定路由承载布局、账号入口和异常页，业务路由来自授权菜单和当前账号的首页配置。 */
 export const constantRouter: RouteRecordRaw[] = [
   {
     path: '/',

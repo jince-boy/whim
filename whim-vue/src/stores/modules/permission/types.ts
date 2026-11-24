@@ -18,6 +18,8 @@ export interface UserMenu {
   routeName: string | null
   path: string | null
   component: string | null
+  perms?: string | null
+  builtIn?: 0 | 1
   param: string | null
   isCache: 0 | 1
   sort: number
@@ -25,4 +27,11 @@ export interface UserMenu {
   visible: 0 | 1
   status: 0 | 1
   children?: UserMenu[]
+}
+
+/** 当前账号的首页候选按后端优先级排序，菜单首页还须匹配授权路由。 */
+export interface HomeRoute {
+  path: string
+  component: string
+  menuId: MenuId | null
 }

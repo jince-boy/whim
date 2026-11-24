@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whim.system.mapper.SysHomePageMapper">
+    <!-- 按关联类型联查实时名称，保留对象已删除的配置供管理员清理。 -->
+    <select id="getHomePageConfigPage" resultType="com.whim.system.model.vo.homepage.SysHomePageVO">
+        SELECT h.id, h.target_type, h.target_id, h.path, h.component, h.priority, h.status,
+               CASE h.target_type WHEN 1 THEN u.username WHEN 2 THEN r.role_name WHEN 3 THEN d.dept_name END AS target_name
+        FROM sys_home_page h
+        LEFT JOIN sys_user u ON h.target_type = 1 AND h.target_id = u.id AND u.deleted = 0
+        LEFT JOIN sys_role r ON h.target_type = 2 AND h.target_id = r.id AND r.deleted = 0
+        LEFT JOIN sys_dept d ON h.target_type = 3 AND h.target_id = d.id AND d.deleted = 0
+        WHERE h.deleted = 0
+        <if test="query.targetType != null">AND h.target_type = #{query.targetType}</if>
+        <if test="query.status != null">AND h.status = #{query.status}</if>
+        ORDER BY h.target_type, h.priority, h.id
+    </select>
+
+    <!-- 绑定过的菜单须保持身份一致；原独立路径后来成为菜单时也须遵守新菜单授权。 -->
+    <select id="getCurrentHomeRoutes" resultType="com.whim.system.model.vo.homepage.HomeRouteVO">
+        SELECT h.path, h.component, m.id AS menu_id
+        FROM sys_home_page h
+        LEFT JOIN sys_permission m ON m.path IN (h.path, SUBSTRING(h.path, 2)) AND m.deleted = 0
+        WHERE h.deleted = 0 AND h.status = 0
+          AND (h.menu_id IS NULL OR h.menu_id = m.id)
+          AND (m.id IS NULL OR (m.menu_type = 2 AND m.status = 0))
+          AND ((h.target_type = 1 AND h.target_id = #{userId})
+            <if test="!roleIds.isEmpty()">
+                OR (h.target_type = 2 AND h.target_id IN
+                <foreach item="roleId" collection="roleIds" open="(" separator="," close=")">#{roleId}</foreach>)
+            </if>
+            <if test="departmentId != null">OR (h.target_type = 3 AND h.target_id = #{departmentId})</if>
+            OR (h.target_type = 4 AND h.target_id = 0))
+        ORDER BY h.target_type, h.priority, h.id
+    </select>
+</mapper>

@@ -55,7 +55,7 @@ Copy-Item -LiteralPath .env.example -Destination .env
 - 进入登录页请求 `GET /system/auth/captcha`，展示 GIF 验证码，并按响应的 `expiresIn` 判断到期时间。到期后自动刷新并清空旧输入；切回标签页时再次检查有效期，也可点击验证码区域主动刷新。
 - 提交 `POST /system/auth/login` 时仅发送 `username`、`password`、`uuid` 和 `captchaCode`。用户名为 3～32 位，密码为 8～72 位，验证码为 4 位字母或数字；登录失败后重新获取验证码。
 - 使用返回的 `tokenType` 和 `accessToken` 组成 `Authorization` 请求头。勾选“保持登录”时保存到 `localStorage`，否则保存在当前标签页的 `sessionStorage`；密码不落盘，服务端控制会话有效期。
-- 登录后由导航守卫获取 `GET /system/auth/userInfo` 和 `GET /system/permission/userMenus`，保存用户授权并注册动态路由，再返回登录前的页面。默认进入授权菜单中第一个可见且组件可用的内部页面；没有可访问页面时进入 `/noAccess`，仍可访问个人信息设置。
+- 登录后由导航守卫获取用户信息、授权菜单和 `GET /system/homePage/current` 返回的首页候选，并恢复登录前访问的业务地址。首页按用户、角色、有效主部门、全局默认的顺序匹配，匹配多个角色时按优先级和配置 ID 升序选择。缺少组件或无菜单访问权时继续尝试下一项。全部未命中时进入首个可访问的菜单页面，再无可用菜单时进入 `/noAccess`。
 - 刷新业务地址时会重新初始化用户和菜单，并在路由注册完成后重新匹配原地址，保留查询参数和 hash。隐藏菜单保留授权路由，按钮和停用分支不生成导航，外链只生成外部链接。初始化失败时清理本地会话，避免进入缺少权限数据的页面。
 - 退出时请求 `POST /system/auth/logout`，成功后清理令牌、用户资料、菜单、标签页和页面缓存。会话失效返回 401 时回到登录页。
 

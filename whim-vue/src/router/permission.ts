@@ -51,8 +51,8 @@ router.beforeEach(async (to) => {
       message.error(error instanceof Error ? error.message : '字典加载失败，请重试')
     return false
   }
-  if (to.path === '/login' || to.path === '/') {
-    const home = router.resolve(permission.homePath)
+  const home = permission.homeRoute
+  if (to.path === '/login' || to.path === '/' || (to.meta.isHomeEntry && to.name !== home.name)) {
     return { path: home.path, query: home.query, hash: home.hash, replace: true }
   }
   // 初次刷新时可能已匹配到 404；按地址重新匹配，不携带旧路由名称。

@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
-import type { RouteLocationRaw } from 'vue-router'
+import { ref, shallowRef } from 'vue'
 import router from '@/router'
-import type { UserMenu } from './permission/types'
-import { fetchUserMenus } from './permission/api'
+import { fetchCurrentHomeRoutes, fetchUserMenus } from './permission/api'
 import { useAuthStore } from './auth'
 import { useTabStore } from './tab'
 import { buildNavigation, type MenuRoute } from '@/router/dynamicRoutes'
@@ -11,15 +9,11 @@ import { buildNavigationMenus, type SafeMenuOption } from '@/utils/menu'
 
 /** 菜单请求、路由注册和首页入口由同一实例管理；退出后旧请求不能恢复旧权限。 */
 export const usePermissionStore = defineStore('permission', () => {
-  const sourceMenus = shallowRef<UserMenu[]>([])
   const dynamicRoutes = shallowRef<MenuRoute[]>([])
   const menus = shallowRef<SafeMenuOption[]>([])
   const initialized = ref(false)
-  const entryTarget = shallowRef<RouteLocationRaw>()
-  // 首页、品牌入口和固定标签共用当前授权菜单中的第一个可访问页面。
-  const homePath = computed(() => router.resolve(entryTarget.value ?? '/noAccess').fullPath)
-  const homeName = computed(() => router.resolve(entryTarget.value ?? '/noAccess').name)
-  const getMenus = computed(() => menus.value)
+  // 登录、品牌入口和固定标签共享同一个生效首页。
+  const homeRoute = shallowRef(router.resolve('/noAccess'))
   let revision = 0
   let pending: Promise<void> | undefined
 
@@ -30,12 +24,13 @@ export const usePermissionStore = defineStore('permission', () => {
     const version = revision
     const token = useAuthStore().getToken
     const request = (async () => {
-      const response = await fetchUserMenus()
+      const [response, home] = await Promise.all([fetchUserMenus(), fetchCurrentHomeRoutes()])
       if (version !== revision || token !== useAuthStore().getToken) return
       if (response.code !== 200) throw new Error(response.message || '菜单获取失败')
+      if (home.code !== 200) throw new Error(home.message || '首页获取失败')
       const previousRoutes = dynamicRoutes.value
-      const navigation = buildNavigation(response.data, previousRoutes)
       const previousByName = new Map(previousRoutes.map((route) => [route.name, route]))
+      const navigation = buildNavigation(response.data, home.data, previousByName)
       const nextByName = new Map(navigation.routes.map((route) => [route.name, route]))
       const staticRoutes = router
         .getRoutes()
@@ -69,9 +64,8 @@ export const usePermissionStore = defineStore('permission', () => {
           invalidatedCache.add(route.name)
       }
       dynamicRoutes.value = navigation.routes
-      sourceMenus.value = response.data
       menus.value = nextMenus
-      entryTarget.value = navigation.entryTarget
+      homeRoute.value = router.resolve(navigation.entryTarget ?? '/noAccess')
       initialized.value = true
       useTabStore().syncRoutes(invalidatedCache)
     })()
@@ -88,10 +82,9 @@ export const usePermissionStore = defineStore('permission', () => {
     revision++
     pending = undefined
     for (const route of dynamicRoutes.value) router.removeRoute(route.name)
-    sourceMenus.value = []
     dynamicRoutes.value = []
     menus.value = []
-    entryTarget.value = undefined
+    homeRoute.value = router.resolve('/noAccess')
     initialized.value = false
   }
 
@@ -104,19 +97,18 @@ export const usePermissionStore = defineStore('permission', () => {
     const current = router.currentRoute.value
     const matched = router.resolve(current.fullPath)
     const target =
-      matched.name === 'NotFound' || matched.name === 'NoAccess' ? homePath.value : current.fullPath
+      matched.name === 'NotFound' || matched.name === 'NoAccess'
+        ? homeRoute.value.fullPath
+        : current.fullPath
     if (target !== current.fullPath || matched.matched.at(-1) !== current.matched.at(-1))
       await router.replace(target)
   }
 
   return {
-    sourceMenus,
     dynamicRoutes,
     menus,
     initialized,
-    getMenus,
-    homePath,
-    homeName,
+    homeRoute,
     loadMenus,
     resetRouter,
     reloadMenus,

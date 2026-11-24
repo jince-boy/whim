@@ -53,7 +53,7 @@ watch(
       'sidebar--with-logo': props.showLogo && themeStore.getShowLogo,
     }">
     <n-layout-header v-if="props.showLogo && themeStore.getShowLogo" bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
-      <RouterLink :to="navigation.homePath">
+      <RouterLink :to="navigation.homeRoute.fullPath">
         <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
           <SiteLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
           <n-text v-if="!props.collapsed" strong class="sidebar-title">
