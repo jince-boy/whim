@@ -1,7 +1,6 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst, TreeSelectOption } from 'naive-ui'
 import { MenuType, type MenuFormProps, type MenuSave, type MenuItem } from './types'
-import { pageComponentPaths } from '@/router/dynamicRoutes'
 import { createMenuRules } from './rule'
 
 /** 维护独立草稿，父级选择与类型联动遵循后端的层级和内置菜单约束。 */
@@ -75,14 +74,6 @@ export function useMenuForm(props: MenuFormProps) {
     }
     return includes(parentOptions.value)
   })
-  const componentOptions = computed(() => {
-    const options = pageComponentPaths.map((path) => ({ label: path, value: path }))
-    const current = formModel.value.component
-    if (current && !pageComponentPaths.includes(current)) {
-      options.unshift({ label: `${current}（当前配置）`, value: current })
-    }
-    return options
-  })
 
   /** 切换类型时保留仍然适用的路由和父级，只清理不适用字段。 */
   function changeType(type: MenuType) {
@@ -133,7 +124,6 @@ export function useMenuForm(props: MenuFormProps) {
     formModel,
     rules: createMenuRules(formModel, parentValid),
     parentOptions,
-    componentOptions,
     semanticsLocked,
     typeLockReason,
     statusLockReason,

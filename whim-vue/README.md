@@ -129,7 +129,7 @@ pnpm lint
 ### 动态导航与应用 API
 
 - `src/router/index.ts` 定义固定路由；`permission.ts` 负责登录守卫；`dynamicRoutes.ts` 将授权菜单转换为菜单树与 Layout 下的业务路由。
-- `src/router/dynamicRoutes.ts` 使用 `import.meta.glob` 收集 `views/**/index.vue` 页面入口，并将后端组件标识映射为路由懒加载函数。后端 `component` 使用相对 `views/` 且不带 `.vue` 的标识，例如 `system/dictType/index`。首页位于 `views/home/index.vue`，保留对数据库既有 `layout/default/index` 标识的解析兼容。
+- 在菜单管理的“页面组件”中手动填写相对于 `src/views/` 的业务页面路径，例如 `system/dictType/index` 或 `system/user/UserList.vue`。`.vue` 后缀可省略。`src/router/dynamicRoutes.ts` 按菜单的 `component` 路径懒加载对应文件，并将已有的首页标识 `layout/default/index` 映射到 `home/index.vue`。
 - 菜单 `path` 按完整站内地址解释；未带开头 `/` 时补齐，不按父目录重复拼接。`param` 使用查询字符串格式，例如 `tab=basic`。
 - 消息和加载条统一从 `@/plugins` 导入 `message`、`loadingBar`，由 Naive UI `createDiscreteApi` 创建并同步主题，不挂载到 `window`。弹窗继续通过 Provider 和 `useModal()` 使用。
 - 组件及其 hooks 使用 `useRouter()`、`useRoute()`；组件外代码导入路由实例。会话清理使用 `clearUserInfo()`、`clearTabs()`、`resetRouter()` 等明确动作，不调用 `$reset()`。

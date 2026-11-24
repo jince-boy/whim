@@ -5,7 +5,7 @@ import IconPicker from '@/components/iconPicker/IconPicker.vue'
 
 const props = defineProps<MenuFormProps>()
 const {
-  formRef, formModel, rules, parentOptions, componentOptions,
+  formRef, formModel, rules, parentOptions,
   semanticsLocked, typeLockReason, statusLockReason, isPage, isButton, isExternal,
   changeType,
 } = useMenuForm(props)
@@ -51,7 +51,7 @@ defineExpose({ formRef, formModel })
         <n-input v-model:value="formModel.path" :placeholder="isExternal ? 'https://example.com' : '例如 /system/menu'" :maxlength="255" />
       </n-form-item-gi>
       <n-form-item-gi v-if="isPage" label="页面组件" path="component" :span="24">
-        <n-select v-model:value="formModel.component" :options="componentOptions" filterable clearable placeholder="搜索并选择页面组件" />
+        <n-input v-model:value="formModel.component" placeholder="相对于 src/views 的路径，例如 system/user/UserList" :maxlength="255" clearable />
       </n-form-item-gi>
       <n-form-item-gi v-if="isPage || isButton" label="权限标识" path="perms" :span="isButton ? 24 : '24 560:12'">
         <n-input v-model:value="formModel.perms" :disabled="semanticsLocked" placeholder="可留空，例如 system:menu:list" :maxlength="128" clearable />

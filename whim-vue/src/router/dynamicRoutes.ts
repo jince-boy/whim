@@ -3,13 +3,11 @@ import type { LocationQueryRaw, RouteLocationRaw, RouteRecordRaw } from 'vue-rou
 import { MenuType, type UserMenu } from '@/stores/modules/permission/types'
 import type { BreadcrumbItem, NavigationNode } from '@/types/navigation'
 
-// 构建期收集页面入口；账号入口和异常页只由固定路由加载。
-const modules = import.meta.glob<{ default: Component }>('/src/views/**/index.vue')
-const pageLoaders = new Map(
-  Object.entries(modules)
-    .filter(([path]) => !/^\/src\/views\/(login|profile|error|unavailable)\//.test(path))
-    .map(([path, loader]) => [path.slice('/src/views/'.length, -4), loader]),
-)
+// 按菜单填写的文件路径加载业务页面，账号入口和异常页由固定路由加载。
+const pageLoaders = import.meta.glob<{ default: Component }>([
+  '/src/views/**/*.vue',
+  '!/src/views/{login,profile,error,unavailable}/**',
+])
 
 export type MenuRoute = RouteRecordRaw & {
   name: string
@@ -17,9 +15,6 @@ export type MenuRoute = RouteRecordRaw & {
   signature: string
   viewPath?: string
 }
-
-/** 可供菜单配置使用的页面组件标识。 */
-export const pageComponentPaths = [...pageLoaders.keys()]
 
 /** 同一菜单重新匹配时复用已加载的组件，保留正在使用的页面实例。 */
 function createPageComponent(
@@ -91,9 +86,9 @@ export function buildNavigation(menus: UserMenu[], previousRoutes: MenuRoute[] =
           ? resolveNodes(menu.children ?? [], breadcrumbs, visible ? key : visibleParentKey)
           : []
         // 兼容数据库已有的首页组件标识。
-        const componentPath =
-          menu.component === 'layout/default/index' ? 'home/index' : menu.component
-        const loader = componentPath ? pageLoaders.get(componentPath) : undefined
+        const configuredPath = menu.component?.replace(/\.vue$/, '')
+        const componentPath = configuredPath === 'layout/default/index' ? 'home/index' : configuredPath
+        const loader = componentPath ? pageLoaders[`/src/views/${componentPath}.vue`] : undefined
         const query: LocationQueryRaw = Object.create(null)
         new URLSearchParams(menu.param || '').forEach((value, name) => {
           const previous = query[name]

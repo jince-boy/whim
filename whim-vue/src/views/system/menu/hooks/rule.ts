@@ -80,9 +80,9 @@ export function createMenuRules(
     component: [
       {
         required: true,
-        validator: () => model.value.menuType !== MenuType.MENU || !!model.value.component,
-        message: '请选择页面组件',
-        trigger: 'change',
+        validator: () => model.value.menuType !== MenuType.MENU || !!model.value.component?.trim(),
+        message: '请输入页面组件路径',
+        trigger: 'blur',
       },
     ],
     sort: [

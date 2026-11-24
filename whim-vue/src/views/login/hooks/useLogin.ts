@@ -25,7 +25,7 @@ export function useLogin() {
     password: '',
     uuid: '',
     captchaCode: '',
-    rememberMe: false,
+    rememberMe: true,
   })
   const challengeId = ref('')
   const secondCode = ref('')
