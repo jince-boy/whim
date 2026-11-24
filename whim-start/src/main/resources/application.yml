@@ -177,6 +177,10 @@ sa-token:
 
 # 请求加密：首次启动自动生成私钥并持久保存，前端运行时自动获取公钥。
 whim:
+  monitor:
+    database:
+      # SQL 执行达到此耗时后计入本实例的慢 SQL 统计，单位毫秒。
+      slow-sql-threshold-millis: 500
   sse:
     enabled: true
     # 多实例共享 Redis 时启用，所有实例须配置相同的主题命名空间。

@@ -20,17 +20,19 @@ const props = defineProps<{
   scale?: boolean
   maximum?: number
   minInterval?: number
+  sampleInterval?: number
 }>()
 const theme = useThemeVars()
 const numberFormat = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 })
 const option = computed<EChartsOption>(() => {
   const colors = theme.value
+  const interval = props.sampleInterval ?? monitorSampleInterval
   const data: [number, number | null][] = []
   let previous: number | undefined
   for (const point of props.points) {
     // 让图中断线，避免跨越页面休眠或采集失败的时间段。
-    if (previous !== undefined && point[0] - previous > monitorSampleInterval * 3) {
-      data.push([previous + monitorSampleInterval, null])
+    if (previous !== undefined && point[0] - previous > interval * 3) {
+      data.push([previous + interval, null])
     }
     data.push(point)
     previous = point[0]
@@ -56,7 +58,7 @@ const option = computed<EChartsOption>(() => {
 <template>
   <n-card :title="props.title" size="small">
     <template #header-extra><n-text depth="3">{{ props.unit }}</n-text></template>
-    <VChart class="trend" :option="option" autoresize role="img" :aria-label="`最近五分钟的${props.title}`" />
+    <VChart class="trend" :option="option" autoresize role="img" :aria-label="props.title" />
   </n-card>
 </template>
 

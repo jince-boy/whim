@@ -28,6 +28,7 @@ export function useMonitorSampling<T extends MonitorSample, H extends MonitorSam
   permission: string,
   request: (signal: AbortSignal) => Promise<ApiResponse<T>>,
   toHistory?: ((sample: T) => H) | false,
+  queryKey?: () => unknown,
 ) {
   const user = useUserStore()
   const canView = computed(() => user.hasPermission(permission))
@@ -44,9 +45,10 @@ export function useMonitorSampling<T extends MonitorSample, H extends MonitorSam
   }
 
   watch(
-    [canView, active, visible, refreshKey],
-    async ([allowed, pageActive, tabVisible], _, onCleanup) => {
-      if (!allowed) {
+    [canView, active, visible, refreshKey, () => queryKey?.()],
+    async ([allowed, pageActive, tabVisible, , key], previous, onCleanup) => {
+      // 切换查询时段后丢弃旧快照，原请求由 watcher 清理并取消。
+      if (!allowed || key !== previous[4]) {
         samples.value = []
         history.value = []
         failed.value = false
