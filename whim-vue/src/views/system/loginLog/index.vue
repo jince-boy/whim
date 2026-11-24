@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
+import { DataTable } from '@/components/dataTable'
 import { useLoginLog } from '@/views/system/loginLog/hooks/useLoginLog.ts'
-import { useIcon } from '@/components/icon/useIcon.ts'
+import { useIcon } from '@/components/appIcon/hooks/useIcon.ts'
 
 const { createIcon } = useIcon()
 
@@ -19,7 +19,7 @@ const {
 
 <template>
   <div>
-    <WhimTable
+    <DataTable
       v-if="canView"
       @register="registerTable"
       @delete="removeLoginLogs"
@@ -60,7 +60,7 @@ const {
           >清空</n-button
         >
       </template>
-    </WhimTable>
+    </DataTable>
     <n-card v-else><n-empty description="暂无登录日志查询权限" /></n-card>
   </div>
 </template>

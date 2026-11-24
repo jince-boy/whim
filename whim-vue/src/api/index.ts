@@ -159,6 +159,8 @@ export async function subscribeSystemEvents(
       `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/system/sse/subscribe`,
       {
         signal,
+        // 后台标签也需要接收撤销事件，浏览器休眠或断网时由重连鉴权兜底。
+        openWhenHidden: true,
         headers: { Authorization: authorization, Accept: 'text/event-stream, application/json' },
         async onopen(response) {
           if (
@@ -176,7 +178,13 @@ export async function subscribeSystemEvents(
           throw new Error('实时连接未建立')
         },
         onmessage(event) {
-          if (event.event && !signal.aborted) onEvent(event.event)
+          if (signal.aborted) return
+          if (event.event === 'sessionInvalidated') {
+            stop = true
+            void handleUnauthorized('登录会话已失效，请重新登录', authorization)
+            return
+          }
+          if (event.event) onEvent(event.event)
         },
         onclose() {
           throw new Error('实时连接已结束')

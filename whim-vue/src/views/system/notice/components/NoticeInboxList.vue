@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useThemeVars } from 'naive-ui'
 import { computed } from 'vue'
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useDictStore } from '@/stores/modules/dict'
 import type { NoticeBox, NoticeId, NoticeItem } from '../hooks/types'
 
@@ -47,19 +47,19 @@ const categories = computed(() => {
         <li v-for="item in items" :key="item.id">
           <button type="button" class="message" :class="{ unread: !item.readFlag }" @click="$emit('open', item.id)">
             <span class="mark" :class="{ announcement: item.noticeType === 2 }">
-              <Icon :name="item.noticeType === 3 ? 'shield-check' : item.noticeType === 2 ? 'megaphone' : 'mail'" :size="18" />
+              <AppIcon :name="item.noticeType === 3 ? 'shield-check' : item.noticeType === 2 ? 'megaphone' : 'mail'" :size="18" />
             </span>
             <span class="summary">
               <span class="title">{{ item.title }}</span>
               <time :datetime="item.publishTime.replace(' ', 'T')">{{ item.publishTime.slice(0, 16) }}</time>
             </span>
             <span v-if="!item.readFlag" class="dot" role="img" aria-label="未读"></span>
-            <Icon v-else name="chevron-right" :size="15" class="arrow" />
+            <AppIcon v-else name="chevron-right" :size="15" class="arrow" />
           </button>
         </li>
       </ul>
       <div v-else class="empty" role="status">
-        <Icon :name="category === 3 ? 'shield-check' : category === 2 ? 'megaphone' : 'mail-open'" :size="26" />
+        <AppIcon :name="category === 3 ? 'shield-check' : category === 2 ? 'megaphone' : 'mail-open'" :size="26" />
         <span>暂无{{ label }}</span>
       </div>
     </div>

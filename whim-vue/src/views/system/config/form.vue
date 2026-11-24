@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Icon from '@/components/icon/Icon.vue'
-import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
+import ImageCropper from '@/components/imageCropper/ImageCropper.vue'
 import type { ConfigFormProps } from './hooks/types'
 import ConfigImage from './components/ConfigImage.vue'
 import ConfigJsonEditor from './components/ConfigJsonEditor.vue'
@@ -56,12 +56,12 @@ defineExpose({ formRef, formModel })
         <n-upload accept="image/png,image/jpeg,image/gif" :default-upload="false" :file-list="[]" :show-file-list="false"
           style="width: auto" @change="selectImage">
           <n-button secondary type="primary">
-            <template #icon><Icon name="upload" /></template>
+            <template #icon><AppIcon name="upload" /></template>
             {{ isSiteLogo ? '更换 Logo' : '选择图片' }}
           </n-button>
         </n-upload>
         <n-button v-if="formModel.configValue || formModel.imageFile" secondary type="error" @click="clearImage">
-          <template #icon><Icon name="trash" /></template>
+          <template #icon><AppIcon name="trash" /></template>
           {{ isSiteLogo ? '恢复默认 Logo' : '清空' }}
         </n-button>
       </n-flex>
@@ -73,7 +73,7 @@ defineExpose({ formRef, formModel })
     <n-form-item label="备注" path="remark">
       <n-input v-model:value="formModel.remark" :disabled="props.initialModel?.builtIn" :maxlength="255" placeholder="请输入备注" />
     </n-form-item>
-    <WhimImageCropper v-if="isSiteLogo" :show="logoCropFile !== null" :file="logoCropFile" title="裁剪系统 Logo"
+    <ImageCropper v-if="isSiteLogo" :show="logoCropFile !== null" :file="logoCropFile" title="裁剪系统 Logo"
       @update:show="logoCropFile = null" @confirm="formModel.imageFile = $event" />
   </n-form>
 </template>

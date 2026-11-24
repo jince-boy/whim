@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import systemSetting from '@/config/SystemSetting.ts'
-import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
+import SiteLogo from '@/components/siteLogo/SiteLogo.vue'
 import {computed, useTemplateRef, watch} from 'vue'
 import {RouterLink, useRoute} from 'vue-router'
 import {darkTheme, type MenuInst} from 'naive-ui'
@@ -55,7 +55,7 @@ watch(
     <n-layout-header v-if="props.showLogo && themeStore.getShowLogo" bordered position="absolute" :inverted="themeStore.getMenuInverted" class="sidebar-bar">
       <RouterLink :to="navigation.homePath">
         <n-flex justify="center" align="center" :wrap="false" :size="12" class="sidebar-row">
-          <SystemLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
+          <SiteLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
           <n-text v-if="!props.collapsed" strong class="sidebar-title">
             {{ systemSetting.title }}
           </n-text>

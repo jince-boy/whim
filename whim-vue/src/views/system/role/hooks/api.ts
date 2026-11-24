@@ -1,5 +1,5 @@
 import { request, RequestMethod } from '@/api'
-import type { TablePage } from '@/components/table'
+import type { TablePage } from '@/components/dataTable'
 import type {
   RoleDataScope,
   RoleId,

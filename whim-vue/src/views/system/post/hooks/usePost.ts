@@ -1,7 +1,7 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
 import { NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDeptOptions } from '@/views/system/dept/hooks/useDeptOptions'
 import { useDictStore } from '@/stores/modules/dict'
@@ -98,7 +98,7 @@ export function usePost() {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<
+  const [registerTable, table] = useDataTable<
     PostItem,
     Omit<PostQuery, 'deptId' | 'organizationWide'>
   >(() => ({

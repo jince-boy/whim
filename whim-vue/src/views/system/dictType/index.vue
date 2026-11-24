@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
-import { useIcon } from '@/components/icon/useIcon'
+import { DataTable } from '@/components/dataTable'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import DictDataPanel from './components/DictDataPanel.vue'
 import { useDictType } from './hooks/useDictType'
 
@@ -15,7 +15,7 @@ const {
 
 <template>
   <div>
-    <WhimTable
+    <DataTable
       v-if="canViewTypes"
       @register="registerTable"
       @add="openAddDialog"
@@ -51,7 +51,7 @@ const {
       <template #empty>
         <n-empty description="暂无字典，请新增或调整查询条件" />
       </template>
-    </WhimTable>
+    </DataTable>
     <n-empty v-else description="暂无字典查询权限" />
 
     <n-drawer

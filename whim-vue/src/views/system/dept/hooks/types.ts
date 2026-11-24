@@ -1,5 +1,5 @@
 import type { TreeSelectOption } from 'naive-ui'
-import type { TablePageQuery } from '@/components/table'
+import type { TablePageQuery } from '@/components/dataTable'
 
 export type DeptId = string | number
 export type OrganizationStatus = 0 | 1

@@ -15,6 +15,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 class SseEvent {
+    /** 仅在服务节点间传递，用于唤醒目标用户的连接校验。 */
+    static final String CHECK_SESSION = "checkSessionValidity";
+
     private Long userId;
     private String name;
     private String jsonData;

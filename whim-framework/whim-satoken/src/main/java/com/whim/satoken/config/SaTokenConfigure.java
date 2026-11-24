@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -151,12 +152,13 @@ public class SaTokenConfigure implements WebMvcConfigurer {
      * 注册账号登录、在线会话查询及下线的统一入口。
      *
      * @param sessionIndex 在线会话索引
+     * @param events 会话变更事件发布器
      * @return Sa-Token 认证会话实现
      */
     @Bean
     @ConditionalOnMissingBean(AuthenticationSession.class)
-    public AuthenticationSession authenticationSession(OnlineSessionIndex sessionIndex) {
-        return new SaTokenAuthenticationSession(sessionIndex);
+    public AuthenticationSession authenticationSession(OnlineSessionIndex sessionIndex, ApplicationEventPublisher events) {
+        return new SaTokenAuthenticationSession(sessionIndex, events);
     }
 
     /**

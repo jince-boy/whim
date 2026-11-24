@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { isAxiosError } from 'axios'
 import { useRouter } from 'vue-router'
-import { useFormDialog } from '@/components/dialog'
+import { useFormDialog } from '@/components/formDialog'
 import { message } from '@/plugins'
 import { useUserStore } from '@/stores/modules/user'
 import { useAuthStore } from '@/stores/modules/auth'
@@ -14,6 +14,7 @@ export function useProfile() {
   const userStore = useUserStore()
   const auth = useAuthStore()
   const saving = ref(false)
+  const section = ref<'profile' | 'sessions'>('profile')
   const router = useRouter()
   const { openFormDialog } = useFormDialog()
   const passwordDialogOpen = ref(false)
@@ -88,5 +89,5 @@ export function useProfile() {
     })
   }
 
-  return { user: computed(() => userStore.user), saving, saveProfile, openPasswordDialog }
+  return { user: computed(() => userStore.user), section, saving, saveProfile, openPasswordDialog }
 }

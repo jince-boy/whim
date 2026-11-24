@@ -2,7 +2,7 @@
 import { useLogin } from '@/views/login/hooks/useLogin.ts'
 import { loginRules } from '@/views/login/hooks/rule.ts'
 import systemSetting from '@/config/SystemSetting.ts'
-import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
+import SiteLogo from '@/components/siteLogo/SiteLogo.vue'
 import { useThemeVars } from 'naive-ui'
 import { useThemeStore } from '@/stores/modules/theme'
 
@@ -32,7 +32,7 @@ const {
     <div class="login-container">
       <header class="login-header">
         <div class="login-brand">
-          <SystemLogo :inverted="themeStore.getTheme.name === 'dark'" />
+          <SiteLogo :inverted="themeStore.getTheme.name === 'dark'" />
           <span>{{ systemSetting.title }}</span>
         </div>
         <span class="login-header-caption">工作，从这里开始</span>

@@ -1,7 +1,7 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref } from 'vue'
 import { NAvatar, NButton, NSpace, NTag, type DataTableColumns, type TreeOption } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog, type DialogController } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog, type DialogController } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { useAvatarImages } from '@/hooks/useAvatarImages'
@@ -191,7 +191,7 @@ export function useUser() {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<UserItem, Omit<UserQuery, 'deptId' | 'unassigned'>>(
+  const [registerTable, table] = useDataTable<UserItem, Omit<UserQuery, 'deptId' | 'unassigned'>>(
     () => ({
       title:
         selectedDepartmentKey.value === 'all'

@@ -1,12 +1,17 @@
 package com.whim.sse;
 
+import com.whim.core.auth.constants.AuthUserType;
+import com.whim.core.auth.event.UserSessionRevokedEvent;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.redisson.api.RTopic;
+import org.springframework.context.event.EventListener;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -16,6 +21,7 @@ import java.util.regex.Pattern;
  * @description 发布仅面向当前在线系统用户的实时事件，事务业务应在提交成功后调用。
  */
 @RequiredArgsConstructor
+@Slf4j
 public class SseEventPublisher {
 
     private static final Pattern EVENT_NAME = Pattern.compile("[a-zA-Z][a-zA-Z0-9._-]{0,63}");
@@ -43,6 +49,23 @@ public class SseEventPublisher {
     void unsubscribe() {
         if (topic != null && listenerId != null) {
             topic.removeListener(listenerId);
+        }
+    }
+
+    /**
+     * 在认证层完成撤销后唤醒本地或集群上的对应账号订阅。
+     *
+     * @param event 已完成撤销的账号
+     */
+    @EventListener
+    public void checkUserSessions(UserSessionRevokedEvent event) {
+        if (AuthUserType.SYSTEM.equals(event.getLoginType())) {
+            try {
+                sendToUser(event.getUserId(), SseEvent.CHECK_SESSION, Map.of());
+            } catch (RuntimeException exception) {
+                // 撤销已经生效，推送失败仍由后续投递、心跳及重连鉴权发现。
+                log.warn("会话撤销后的实时通知失败，用户ID={}", event.getUserId(), exception);
+            }
         }
     }
 

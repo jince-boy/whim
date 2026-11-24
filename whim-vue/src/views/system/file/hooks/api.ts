@@ -1,5 +1,5 @@
 import axiosInstance, { request, downloadFile, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type {
   FileItem,
   FilePageQuery,

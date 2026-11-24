@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MenuFormProps } from './hooks/types'
 import { useMenuForm } from './hooks/useMenuForm'
-import { WhimSelectIcon } from '@/components/icon'
+import IconPicker from '@/components/iconPicker/IconPicker.vue'
 
 const props = defineProps<MenuFormProps>()
 const {
@@ -42,7 +42,7 @@ defineExpose({ formRef, formModel })
         <n-input-number v-model:value="formModel.sort" :min="0" :max="2147483647" :precision="0" placeholder="数值越小越靠前" style="width: 100%" />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isButton" label="菜单图标" path="icon" :span="24">
-        <WhimSelectIcon v-model="formModel.icon" />
+        <IconPicker v-model="formModel.icon" />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isButton && !isExternal" label="路由名称" path="routeName" span="24 560:12">
         <n-input v-model:value="formModel.routeName" placeholder="例如 SysMenu，须以字母开头" :maxlength="128" />

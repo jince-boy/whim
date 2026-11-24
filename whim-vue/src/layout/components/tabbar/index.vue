@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useTabBar} from './hooks/useTabBar'
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 
 defineOptions({name: 'LayoutTabBar'})
 const emit = defineEmits<{ fullScreen: []; refresh: [] }>()
@@ -38,7 +38,7 @@ const {
           <n-button v-for="item in tabStore.getAllTabs" :key="item.name" class="button-tab" :class="{ 'tab-dragging': item.name === draggingName, 'tab-drop-before': item.name === dropTargetName && !dropAfter, 'tab-drop-after': item.name === dropTargetName && dropAfter }" :data-tab-name="item.name" :data-tab-draggable="item.closeable ? '' : undefined" :title="item.closeable ? `${item.title}（按住拖动排序）` : item.title" :type="item.focused ? 'primary' : 'default'" size="small" :secondary="!item.focused" :focusable="false" icon-placement="left" :render-icon="themeStore.getShowTabIcon ? createIcon(item.icon) : null" :aria-current="item.focused ? 'page' : undefined" @click="handleTabClick(item.path)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, item)">
             {{ item.title }}
             <span v-if="item.closeable" class="button-tab-close" :title="`关闭${item.title}`" @click.stop="handleCloseTab(item.name)">
-              <Icon name="x" :size="12" />
+              <AppIcon name="x" :size="12" />
             </span>
           </n-button>
         </n-flex>
@@ -50,7 +50,7 @@ const {
               <span class="tab-title">{{ item.title }}</span>
             </button>
             <button v-if="item.closeable" type="button" class="tab-close" :aria-label="`关闭${item.title}`" :title="`关闭${item.title}`" @click.stop="handleCloseTab(item.name)">
-              <Icon name="x" :size="12" />
+              <AppIcon name="x" :size="12" />
             </button>
           </div>
         </div>

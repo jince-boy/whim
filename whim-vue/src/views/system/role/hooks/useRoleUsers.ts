@@ -1,9 +1,9 @@
 import { computed, h, shallowRef, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
-import type { DialogController } from '@/components/dialog/types'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
+import type { DialogController } from '@/components/formDialog/types'
 import { useUserStore } from '@/stores/modules/user'
 import { useAuthStore } from '@/stores/modules/auth'
 import RoleUserForm from '../components/RoleUserForm.vue'
@@ -56,7 +56,7 @@ export function useRoleUsers(props: RoleContextProps, show: Ref<boolean>) {
         ]
       : []),
   ])
-  const [registerMembers, members] = useWhimTable<
+  const [registerMembers, members] = useDataTable<
     RoleUserItem,
     Omit<RoleUserQuery, 'roleId' | 'pageNum' | 'pageSize'>
   >({

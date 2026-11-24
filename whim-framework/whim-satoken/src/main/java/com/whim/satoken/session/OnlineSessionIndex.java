@@ -168,7 +168,7 @@ public class OnlineSessionIndex extends SaTokenListenerForSimple {
      * @param currentToken 当前操作者的令牌
      * @return 具有有效身份快照的会话
      */
-    private List<OnlineSessionInfo> getSessionBatch(StpLogic logic, List<String> tokens, String currentToken) {
+    List<OnlineSessionInfo> getSessionBatch(StpLogic logic, List<String> tokens, String currentToken) {
         List<String> keys = new ArrayList<>(tokens.size() * 3);
         for (String token : tokens) {
             keys.add(logic.splicingKeyTokenSession(token));

@@ -1,4 +1,4 @@
-import type { TablePageQuery } from '@/components/table'
+import type { TablePageQuery } from '@/components/dataTable'
 import type { TreeOption } from 'naive-ui'
 
 export type RoleId = string | number

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useNoticeInbox } from '../hooks/useNoticeInbox'
 import NoticeInboxList from './NoticeInboxList.vue'
 import NoticeDetail from './NoticeDetail.vue'
@@ -20,7 +20,7 @@ const {
     <template #trigger>
       <n-button quaternary native-focus-behavior size="small" style="width: 32px; height: 32px"
         :aria-label="hasUnread ? '消息中心，' + box.unreadCount + '条未读' : '消息中心'" @mousedown.prevent>
-        <n-badge :value="Number(box.unreadCount)" :max="99"><Icon name="bell" :size="18" /></n-badge>
+        <n-badge :value="Number(box.unreadCount)" :max="99"><AppIcon name="bell" :size="18" /></n-badge>
       </n-button>
     </template>
     <div class="box-heading">
@@ -34,12 +34,12 @@ const {
       <n-flex class="box-footer" justify="space-between" align="center" :wrap="false">
         <n-button text type="info" size="tiny" class="footer-action" icon-placement="right" @click="openHistory">
           查看列表
-          <template #icon><Icon name="chevron-right" :size="12" /></template>
+          <template #icon><AppIcon name="chevron-right" :size="12" /></template>
         </n-button>
         <n-button v-if="hasUnread || markingAllRead" text size="tiny" class="footer-action"
           :loading="markingAllRead" :disabled="markingAllRead"
           title="将系统、通知和公告全部标为已读" @click="markAllRead">
-          <template #icon><Icon name="check" :size="13" /></template>
+          <template #icon><AppIcon name="check" :size="13" /></template>
           全部已读
         </n-button>
       </n-flex>
@@ -55,7 +55,7 @@ const {
     <template v-if="canClearSystemMessages || pageCount > 1" #footer>
       <n-flex align="center" :size="8">
         <n-button v-if="canClearSystemMessages" quaternary size="small" :disabled="historyLoading" @click="confirmClearSystemMessages">
-          <template #icon><Icon name="trash-2" :size="14" /></template>
+          <template #icon><AppIcon name="trash-2" :size="14" /></template>
           清空系统消息
         </n-button>
         <n-pagination v-if="pageCount > 1" class="history-pages" :page="page" :page-count="pageCount"

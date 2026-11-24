@@ -3,7 +3,7 @@ import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import type { DropdownOption } from 'naive-ui'
 import { message } from '@/plugins'
 import screenfull from 'screenfull'
-import { useIcon } from '@/components/icon/useIcon'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { findMenuPath, getVisibleMenus, type SafeMenuOption } from '@/utils/menu'
 /** 面包屑使用已解析路由的菜单祖先，工具栏状态独立于导航权限。 */

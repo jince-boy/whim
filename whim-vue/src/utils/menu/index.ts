@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import { type MenuOption, NIcon } from 'naive-ui'
-import { useIcon } from '@/components/icon/useIcon'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import type { NavigationNode } from '@/types/navigation'
 
 export type SafeMenuOption = Omit<MenuOption, 'children'> & {

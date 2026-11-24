@@ -1,6 +1,6 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { useDataTable } from '@/components/dataTable'
 import { fetchAvailableRoleUserPage } from './api'
 import { roleUserRules } from './rule'
 import { useRoleUserColumns } from './useRoleUserColumns'
@@ -11,7 +11,7 @@ export function useRoleUserForm(props: RoleContextProps) {
   const formRef = useTemplateRef<FormInst>('formRef')
   const formModel = ref<RoleUserAssignment>({ roleId: props.role.id, userIds: [] })
   const columns = useRoleUserColumns()
-  const [registerTable, table] = useWhimTable<
+  const [registerTable, table] = useDataTable<
     RoleUserItem,
     Omit<RoleUserQuery, 'roleId' | 'pageNum' | 'pageSize'>
   >({

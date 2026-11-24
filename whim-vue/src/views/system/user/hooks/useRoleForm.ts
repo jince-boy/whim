@@ -1,6 +1,6 @@
 import { computed, h, ref, useTemplateRef, watch } from 'vue'
 import { NTag, NText, type DataTableColumns, type FormInst } from 'naive-ui'
-import { useWhimTable } from '@/components/table'
+import { useDataTable } from '@/components/dataTable'
 import { useDictStore } from '@/stores/modules/dict'
 import { roleRules } from './rule'
 import type { RoleFormModel, RoleFormProps, UserRoleOption, UserRoleQuery } from './types'
@@ -31,7 +31,7 @@ export function useRoleForm(props: RoleFormProps) {
       },
     },
   ]
-  const [registerTable, table] = useWhimTable<UserRoleOption, UserRoleQuery>({
+  const [registerTable, table] = useDataTable<UserRoleOption, UserRoleQuery>({
     title: '可分配角色',
     columns,
     rowKey: (row) => String(row.id),

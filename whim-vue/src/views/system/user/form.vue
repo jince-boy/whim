@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import WhimPassword from '@/components/password/WhimPassword.vue'
-import Icon from '@/components/icon/Icon.vue'
-import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
+import PasswordInput from '@/components/passwordInput/PasswordInput.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
+import ImageCropper from '@/components/imageCropper/ImageCropper.vue'
 import type { UserFormProps } from './hooks/types'
 import { useUserForm } from './hooks/useUserForm'
 
@@ -32,16 +32,16 @@ defineExpose({ formRef, formModel })
               <template v-if="!avatarUrl" #default>{{ avatarText }}</template>
               <template #fallback>{{ avatarText }}</template>
             </n-avatar>
-            <span v-if="avatarUrl" class="user-avatar__zoom"><Icon name="maximize" :size="14" /></span>
+            <span v-if="avatarUrl" class="user-avatar__zoom"><AppIcon name="maximize" :size="14" /></span>
           </n-button>
           <div class="user-avatar__details">
             <n-flex align="center" :size="8">
               <n-button type="primary" secondary @click="selectAvatar">
-                <template #icon><Icon name="upload" /></template>
+                <template #icon><AppIcon name="upload" /></template>
                 {{ formModel.avatar || formModel.avatarFile ? '更换头像' : '上传头像' }}
               </n-button>
               <n-button v-if="formModel.avatar || formModel.avatarFile" type="error" secondary @click="removeAvatar">
-                <template #icon><Icon name="trash" /></template>
+                <template #icon><AppIcon name="trash" /></template>
                 移除
               </n-button>
             </n-flex>
@@ -57,7 +57,7 @@ defineExpose({ formRef, formModel })
         <n-input v-model:value="formModel.name" :maxlength="24" :input-props="{ autocomplete: 'off', name: 'managedName' }" placeholder="请输入姓名" clearable />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isEdit" label="密码" path="password" span="2 560:1">
-        <WhimPassword v-model:value="formModel.password" :user-inputs="[formModel.username, formModel.name, formModel.email ?? '']" :input-props="{ name: 'managedPassword' }" :maxlength="72" placeholder="请输入8～72位密码" />
+        <PasswordInput v-model:value="formModel.password" :user-inputs="[formModel.username, formModel.name, formModel.email ?? '']" :input-props="{ name: 'managedPassword' }" :maxlength="72" placeholder="请输入8～72位密码" />
       </n-form-item-gi>
       <n-form-item-gi v-if="!isEdit" label="确认密码" path="confirmPassword" span="2 560:1">
         <n-input v-model:value="formModel.confirmPassword" type="password" show-password-on="click" :input-props="{ autocomplete: 'new-password', name: 'managedPasswordConfirmation' }" :maxlength="72" placeholder="请再次输入密码" />
@@ -91,7 +91,7 @@ defineExpose({ formRef, formModel })
         <n-input v-model:value="formModel.remark" type="textarea" :maxlength="255" show-count :autosize="{ minRows: 3, maxRows: 5 }" placeholder="请输入备注" />
       </n-form-item-gi>
     </n-grid>
-    <WhimImageCropper v-model:show="avatarCropVisible" :file="avatarCropFile" title="裁剪头像" @confirm="confirmAvatarCrop" />
+    <ImageCropper v-model:show="avatarCropVisible" :file="avatarCropFile" title="裁剪头像" @confirm="confirmAvatarCrop" />
     <n-image-preview v-model:show="avatarPreviewShown" :src="avatarPreviewUrl" show-toolbar-tooltip />
   </n-form>
 </template>

@@ -1,5 +1,5 @@
 import { ref, watch, type Ref } from 'vue'
-import { createRichImageSession, sanitizeRichHtml } from '@/components/richEditor/richText'
+import { createRichImageSession, sanitizeRichHtml } from '@/components/richTextEditor/richTextHtml'
 import { fetchNoticeImage } from './api'
 import type { NoticeDetail } from './types'
 

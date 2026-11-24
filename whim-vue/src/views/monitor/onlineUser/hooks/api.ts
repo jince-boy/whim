@@ -1,5 +1,5 @@
 import { request, RequestMethod } from '@/api'
-import type { TablePageQuery } from '@/components/table'
+import type { TablePageQuery } from '@/components/dataTable'
 import type { OnlineUserPage, OnlineUserQuery, OnlineUserSession } from './types'
 
 /** 分页查询授权范围内的在线会话。 */

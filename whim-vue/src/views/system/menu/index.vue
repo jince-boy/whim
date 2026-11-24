@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
+import { DataTable } from '@/components/dataTable'
 import { useMenu } from '@/views/system/menu/hooks/useMenu'
-import { useIcon } from '@/components/icon/useIcon'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 
 defineOptions({ name: 'SysMenu' })
 const { createIcon } = useIcon()
@@ -12,7 +12,7 @@ const {
 </script>
 
 <template>
-  <WhimTable v-if="canView" @register="registerTable" @add="openAddDialog()">
+  <DataTable v-if="canView" @register="registerTable" @add="openAddDialog()">
     <template #search>
       <n-form-item-gi label="菜单名称" path="menuName">
         <n-input v-model:value="form.menuName" placeholder="请输入菜单名称" :maxlength="64" clearable />
@@ -30,6 +30,6 @@ const {
       </n-button>
     </template>
     <template #empty><n-empty description="暂无菜单，请新增或调整查询条件" /></template>
-  </WhimTable>
+  </DataTable>
   <n-empty v-else description="暂无菜单查询权限" />
 </template>

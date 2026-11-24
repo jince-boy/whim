@@ -1,8 +1,8 @@
 import { computed, h, onDeactivated, onScopeDispose, reactive, ref, watch } from 'vue'
 import { NEllipsis, NFlex, NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
-import { useIcon } from '@/components/icon/useIcon'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import { useUserStore } from '@/stores/modules/user'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { message } from '@/plugins'
@@ -162,7 +162,7 @@ export function useMenu() {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<MenuItem, MenuQuery>(() => ({
+  const [registerTable, table] = useDataTable<MenuItem, MenuQuery>(() => ({
     title: '菜单管理',
     columns,
     rowKey: (row) => row.id,

@@ -11,6 +11,7 @@ import com.whim.core.auth.AuthenticationContext;
 import com.whim.core.auth.AuthenticationSession;
 import com.whim.core.auth.constants.AuthUserType;
 import com.whim.core.auth.model.DepartmentInfo;
+import com.whim.core.auth.model.OnlineSessionInfo;
 import com.whim.core.auth.model.PostInfo;
 import com.whim.core.auth.model.RoleInfo;
 import com.whim.core.auth.model.UserInfo;
@@ -46,6 +47,7 @@ import com.whim.system.model.enums.SysUserStatus;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.model.vo.auth.LoginResultVO;
+import com.whim.system.model.vo.auth.LoginSessionVO;
 import com.whim.system.model.vo.auth.TwoFactorSetupVO;
 import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysConfigService;
@@ -65,6 +67,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -138,6 +141,40 @@ public class AuthServiceImpl implements IAuthService {
         result.setDeptName(userInfo.getDepartmentInfo() == null ? null : userInfo.getDepartmentInfo().getDeptName());
         result.setPostNames(userInfo.getPostInfoList().stream().map(PostInfo::getPostName).toList());
         return result;
+    }
+
+    /**
+     * 将本人当前会话置顶，其余会话按最近活动时间排列。
+     *
+     * @return 个人登录会话列表
+     */
+    @Override
+    public List<LoginSessionVO> getLoginSessions() {
+        List<OnlineSessionInfo> sessions = authenticationSession.getCurrentUserSessions().stream()
+                .sorted(Comparator.comparing(OnlineSessionInfo::isCurrent).reversed()
+                        .thenComparing(OnlineSessionInfo::getLastActiveTime, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(OnlineSessionInfo::getSessionId))
+                .toList();
+        return BeanConvertUtils.convertList(sessions, LoginSessionVO.class);
+    }
+
+    /**
+     * 撤销当前账号在其他终端的指定会话。
+     *
+     * @param sessionId 公开会话标识
+     */
+    @Override
+    public void revokeLoginSession(String sessionId) {
+        // 目标账号由登录上下文确定，底层仅在该账号的令牌中匹配标识。
+        authenticationSession.kickoutSession(AuthUserType.SYSTEM, authenticationContext.getUserId(), sessionId);
+    }
+
+    /**
+     * 使当前账号的所有终端一并退出。
+     */
+    @Override
+    public void logoutAllSessions() {
+        authenticationSession.kickout(AuthUserType.SYSTEM, Set.of(authenticationContext.getUserId()));
     }
 
     /**

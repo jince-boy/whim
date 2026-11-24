@@ -1,11 +1,11 @@
 # 图片裁剪
 
-`WhimImageCropper` 使用 Cropper.js 2，提供固定比例裁剪框、拖动图片、滚轮或按钮缩放、重置及图片导出。组件按需加载裁剪依赖，不发送上传请求；调用方在确认后自行保存文件。
+`ImageCropper` 使用 Cropper.js 2，提供固定比例裁剪框、拖动图片、滚轮或按钮缩放、重置及图片导出。组件按需加载裁剪依赖，不发送上传请求；调用方在确认后自行保存文件。
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
+import ImageCropper from '@/components/imageCropper/ImageCropper.vue'
 
 const cropVisible = ref(false)
 const sourceFile = ref<File | null>(null)
@@ -22,7 +22,7 @@ function acceptCrop(file: File) {
 </script>
 
 <template>
-  <WhimImageCropper
+  <ImageCropper
     v-model:show="cropVisible"
     :file="sourceFile"
     title="裁剪封面"

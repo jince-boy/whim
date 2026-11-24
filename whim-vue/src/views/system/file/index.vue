@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
-import Icon from '@/components/icon/Icon.vue'
+import { DataTable } from '@/components/dataTable'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { pageTabThemeOverrides } from '@/config/NaiveTheme'
 import FileUploadProgress from './components/FileUploadProgress.vue'
 import { useFile } from './hooks/useFile'
@@ -19,9 +19,9 @@ const { canView, canStorage, canUpload, canDelete, activeTab, registerFiles, reg
       :theme-overrides="pageTabThemeOverrides">
       <n-tab-pane v-if="canView" name="files" tab="文件列表" display-directive="show">
         <template #tab>
-          <Icon name="folder-open" />文件列表
+          <AppIcon name="folder-open" />文件列表
         </template>
-        <WhimTable @register="registerFiles">
+        <DataTable @register="registerFiles">
           <template #search>
             <n-form-item-gi label="文件名称" path="fileName">
               <n-input v-model:value="form.fileName" :maxlength="512" clearable placeholder="搜索存储文件名称" />
@@ -48,32 +48,32 @@ const { canView, canStorage, canUpload, canDelete, activeTab, registerFiles, reg
           </template>
           <template #toolbarBefore>
             <n-button v-if="canUpload" key="upload" type="primary" :disabled="!uploadLimit" @click="selectUploadFiles">
-              <template #icon><Icon name="upload" /></template>上传文件
+              <template #icon><AppIcon name="upload" /></template>上传文件
             </n-button>
             <FileUploadProgress v-if="canUpload" key="uploadProgress" :uploads="uploads" :summary="uploadSummary"
               @pause="pauseUpload" @resume="resumeUpload" @cancel="cancelUpload"
               @pause-all="pauseAllUploads" @resume-all="resumeAllUploads" @clear-finished="clearFinishedUploads" />
             <n-button v-if="canUpload && !uploadLimit" key="uploadLimit" secondary type="info" @click="loadUploadLimit">
-              <template #icon><Icon name="refresh-cw" /></template>重新获取上传限制
+              <template #icon><AppIcon name="refresh-cw" /></template>重新获取上传限制
             </n-button>
             <n-button v-if="canDelete" key="delete" class="whim-button--with-icon" secondary type="error" :loading="deleting"
               :disabled="!selectedFiles.length || deleting || !!downloadingId" @click="removeSelectedFiles">
-              <template #icon><Icon name="trash-2" /></template>删除
+              <template #icon><AppIcon name="trash-2" /></template>删除
             </n-button>
           </template>
           <template #toolbarExtra>
             <n-text v-if="canUpload && uploadLimit" depth="3">单文件不超过 {{ formatSize(uploadLimit) }}</n-text>
           </template>
           <template #empty><n-empty description="暂无文件，可上传文件或调整筛选条件" /></template>
-        </WhimTable>
+        </DataTable>
       </n-tab-pane>
       <n-tab-pane v-if="canStorage" name="storage" tab="存储配置" display-directive="show">
         <template #tab>
-          <Icon name="database" />存储配置
+          <AppIcon name="database" />存储配置
         </template>
-        <WhimTable @register="registerStorage" @add="addStorage">
+        <DataTable @register="registerStorage" @add="addStorage">
           <template #empty><n-empty description="尚未配置存储，请新增本地或对象存储配置" /></template>
-        </WhimTable>
+        </DataTable>
       </n-tab-pane>
     </n-tabs>
     <n-empty v-if="!canView && !canStorage" description="暂无文件管理权限" />

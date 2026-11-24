@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WhimPassword from '@/components/password/WhimPassword.vue'
+import PasswordInput from '@/components/passwordInput/PasswordInput.vue'
 import { twoFactorResetRules } from './hooks/rule'
 import type { AccountSecurityFormProps } from './hooks/types'
 import { useAccountSecurityForm } from './hooks/useAccountSecurityForm'
@@ -17,7 +17,7 @@ defineExpose({ formRef, formModel })
         label-placement="top" require-mark-placement="left" @submit.prevent="emit('save')">
         <n-alert type="info" class="security-notice">保存新密码后，该用户需要重新登录。</n-alert>
         <n-form-item label="新密码" path="password">
-          <WhimPassword v-model:value="passwordModel.password" :user-inputs="[user.username, user.name, user.email ?? '']"
+          <PasswordInput v-model:value="passwordModel.password" :user-inputs="[user.username, user.name, user.email ?? '']"
             :input-props="{ name: 'managedPassword' }" :maxlength="72" placeholder="请输入新密码" />
         </n-form-item>
         <n-form-item label="确认密码" path="confirmPassword">

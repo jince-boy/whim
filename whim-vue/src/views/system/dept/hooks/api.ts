@@ -7,7 +7,7 @@ import type {
   DeptQuery,
   DeptSave,
 } from './types'
-import type { TablePage } from '@/components/table'
+import type { TablePage } from '@/components/dataTable'
 
 /** 查询当前用户可见的部门树。 */
 export const fetchDeptTree = (params?: Partial<DeptQuery>) =>

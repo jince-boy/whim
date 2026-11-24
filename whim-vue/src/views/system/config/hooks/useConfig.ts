@@ -1,8 +1,8 @@
 import { computed, h } from 'vue'
 import { NCode, NSpace, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import type { SearchFormField } from '@/components/form'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import type { SearchFormField } from '@/components/searchForm'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import ConfigForm from '../form.vue'
 import ConfigImage from '../components/ConfigImage.vue'
@@ -58,7 +58,7 @@ export function useConfig(builtIn: boolean) {
     }
     return items
   })
-  const [registerTable, table] = useWhimTable<ConfigItem, ConfigQuery>({
+  const [registerTable, table] = useDataTable<ConfigItem, ConfigQuery>({
     title: builtIn ? '系统配置' : '自定义配置',
     columns,
     rowKey: (row) => String(row.id),

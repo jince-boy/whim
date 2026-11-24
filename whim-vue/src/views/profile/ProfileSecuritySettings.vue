@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import ProfileSecurityRow from './ProfileSecurityRow.vue'
 import { useTwoFactorSettings } from './hooks/useTwoFactorSettings'
 
@@ -14,13 +14,13 @@ const { enabled, loading, statusDescription, dialog, uri, canSubmit, open, close
   <div class="profile-security-list">
     <ProfileSecurityRow title="登录密码" description="验证原密码后修改，修改成功需重新登录">
       <n-button secondary type="warning" :disabled="props.disabled" @click="emit('changePassword')">
-        <template #icon><Icon name="key-round" /></template>修改密码
+        <template #icon><AppIcon name="key-round" /></template>修改密码
       </n-button>
     </ProfileSecurityRow>
     <ProfileSecurityRow title="两步验证" :description="statusDescription">
       <n-button v-if="enabled === null" secondary :loading="loading" @click="refresh">{{ loading ? '查询中' : '重新查询' }}</n-button>
       <n-button v-else secondary :disabled="props.disabled || loading" :type="enabled ? 'warning' : 'success'" @click="open">
-        <template #icon><Icon name="shield-check" /></template>{{ enabled ? '关闭验证' : '开启验证' }}
+        <template #icon><AppIcon name="shield-check" /></template>{{ enabled ? '关闭验证' : '开启验证' }}
       </n-button>
     </ProfileSecurityRow>
     <n-modal :show="!!dialog" preset="card" class="factor-dialog" :class="{ 'factor-dialog-binding': dialog?.setup }"
@@ -50,7 +50,7 @@ const { enabled, loading, statusDescription, dialog, uri, canSubmit, open, close
               <div class="recovery-code">
                 <code ref="recoveryDisplay">{{ dialog.setup.recoveryCode }}</code>
                 <n-button size="small" quaternary :disabled="dialog.submitting" @click="copyRecoveryCode">
-                  <template #icon><Icon name="copy" /></template>复制
+                  <template #icon><AppIcon name="copy" /></template>复制
                 </n-button>
               </div>
               <n-checkbox v-model:checked="dialog.savedRecovery">我已保存恢复码</n-checkbox>

@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { DropdownOption } from 'naive-ui'
-import { createIcon } from '@/components/icon/useIcon'
+import { createIcon } from '@/components/appIcon/hooks/useIcon'
 import { message } from '@/plugins'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useUserStore } from '@/stores/modules/user'
@@ -47,9 +47,12 @@ export function useUserMenu() {
       return
     }
     if (key !== 'logout') return
+    const token = authStore.getToken
     signingOut.value = true
     try {
       const res = await logout()
+      // 实时失效通知可能先于退出响应到达，丢弃原会话的迟到响应。
+      if (authStore.getToken !== token) return
       if (res.code !== 200) {
         message.error(res.message)
         return

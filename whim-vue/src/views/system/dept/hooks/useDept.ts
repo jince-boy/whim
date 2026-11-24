@@ -1,7 +1,7 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, watch } from 'vue'
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { message } from '@/plugins'
 import { addDept, deleteDept, fetchDeptDetail, fetchDeptTree, updateDept } from './api'
@@ -70,7 +70,7 @@ export function useDept() {
     },
   ])
 
-  const [registerTable, table] = useWhimTable<DeptItem, DeptQuery>(() => ({
+  const [registerTable, table] = useDataTable<DeptItem, DeptQuery>(() => ({
     title: '部门管理',
     columns,
     rowKey: (row) => String(row.id),

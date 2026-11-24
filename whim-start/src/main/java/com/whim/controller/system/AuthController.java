@@ -17,6 +17,7 @@ import com.whim.system.model.dto.user.SysUserAvatarUploadDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.model.vo.auth.LoginResultVO;
+import com.whim.system.model.vo.auth.LoginSessionVO;
 import com.whim.system.model.vo.auth.TwoFactorSetupVO;
 import com.whim.system.service.IAuthService;
 import com.whim.system.service.ISysUserService;
@@ -24,16 +25,21 @@ import com.whim.web.annotation.XssIgnore;
 import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @author Jince
@@ -161,6 +167,46 @@ public class AuthController {
     public Result<Void> disableTwoFactor(@RequestBody @Valid TwoFactorDisableDTO parameter) {
         authService.disableTwoFactor(parameter);
         return Result.success("两步验证已关闭，请重新登录");
+    }
+
+    /**
+     * 获取本人的有效登录会话。
+     *
+     * @param response 禁止缓存终端信息的响应
+     * @return 个人登录会话列表
+     */
+    @SystemCheckLogin
+    @GetMapping("/sessions")
+    public Result<List<LoginSessionVO>> getLoginSessions(HttpServletResponse response) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        return Result.success("登录会话获取成功", authService.getLoginSessions());
+    }
+
+    /**
+     * 撤销本人的一个其他终端会话。
+     *
+     * @param sessionId 公开会话标识
+     * @return 撤销结果
+     */
+    @SystemCheckLogin
+    @Log(title = "撤销本人登录会话", type = LogType.OTHER)
+    @DeleteMapping("/sessions/{sessionId}")
+    public Result<Void> revokeLoginSession(@PathVariable @Pattern(regexp = "[0-9a-f]{64}", message = "会话标识格式不正确") String sessionId) {
+        authService.revokeLoginSession(sessionId);
+        return Result.success("已撤销登录会话");
+    }
+
+    /**
+     * 退出本人的全部登录会话，包括当前会话。
+     *
+     * @return 注销结果
+     */
+    @SystemCheckLogin
+    @Log(title = "退出本人全部会话", type = LogType.OTHER)
+    @PostMapping("/logoutAll")
+    public Result<Void> logoutAllSessions() {
+        authService.logoutAllSessions();
+        return Result.success("已退出全部会话");
     }
 
     /**

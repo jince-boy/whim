@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
-import { useIcon } from '@/components/icon/useIcon'
+import { DataTable } from '@/components/dataTable'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import { useDictData } from '@/views/system/dictData/hooks/useDictData'
 import type { DictDataProps } from '@/views/system/dictData/hooks/types'
 
@@ -10,7 +10,7 @@ const { registerTable, form, canAdd, canExport, exporting, openAddDialog, remove
 </script>
 
 <template>
-  <WhimTable @register="registerTable" @delete="removeDictData">
+  <DataTable @register="registerTable" @delete="removeDictData">
     <template #search>
       <n-form-item-gi label="字典标签" path="label">
         <n-input v-model:value="form.label" placeholder="输入完整字典标签" :maxlength="128" clearable />
@@ -23,5 +23,5 @@ const { registerTable, form, canAdd, canExport, exporting, openAddDialog, remove
       <n-button v-if="canExport" class="whim-button--with-icon" type="info" secondary :loading="exporting" :render-icon="createIcon('download')" @click="handleExport">导出数据</n-button>
     </template>
     <template #empty><n-empty description="暂无字典数据，请新增或调整查询条件" /></template>
-  </WhimTable>
+  </DataTable>
 </template>

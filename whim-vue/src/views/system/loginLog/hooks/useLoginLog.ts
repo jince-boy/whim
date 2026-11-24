@@ -1,8 +1,8 @@
 import { computed, h, ref } from 'vue'
 import { NTag, type DataTableColumns } from 'naive-ui'
 import dayjs from 'dayjs'
-import { useFormDialog } from '@/components/dialog'
-import { TableAction, useWhimTable } from '@/components/table'
+import { useFormDialog } from '@/components/formDialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
 import { useDictStore } from '@/stores/modules/dict'
 import { useUserStore } from '@/stores/modules/user'
 import { cleanLoginLog, deleteLoginLog, exportLoginLog, fetchLoginLogPage } from './api'
@@ -68,7 +68,7 @@ export function useLoginLog() {
     return result
   })
 
-  const [registerTable, table] = useWhimTable<LoginLog, LoginLogQuery>(() => ({
+  const [registerTable, table] = useDataTable<LoginLog, LoginLogQuery>(() => ({
     title: '登录日志',
     columns,
     scrollX: 1320,

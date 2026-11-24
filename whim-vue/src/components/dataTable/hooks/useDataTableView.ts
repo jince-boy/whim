@@ -1,0 +1,209 @@
+import {
+  computed,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  shallowRef,
+  useTemplateRef,
+} from 'vue'
+import { useThemeVars, type ConfigProviderProps, type DataTableInst } from 'naive-ui'
+import { message } from '@/plugins'
+import screenfull from 'screenfull'
+import { useUserStore } from '@/stores/modules/user'
+import type { TableButton, DataTableBinding, DataTableEmits, DataTableRegistration } from '../types'
+
+/** 表格视图只连接状态、呈现工具栏和发出业务事件。 */
+export function useDataTableView(
+  emit: <Event extends keyof DataTableEmits>(event: Event, ...args: DataTableEmits[Event]) => void,
+) {
+  const binding = shallowRef<DataTableBinding>()
+  const tableRef = useTemplateRef<DataTableInst>('tableRef')
+  const tableContainer = useTemplateRef<HTMLElement>('tableContainer')
+  const themeVars = useThemeVars()
+  const tableComponentOptions: ConfigProviderProps['componentOptions'] = {
+    Button: { size: 'small' },
+    Checkbox: { size: 'small' },
+    DataTable: { size: 'small' },
+    DatePicker: { size: 'small', timePickerSize: 'small' },
+    Form: { size: 'small' },
+    Input: { size: 'small' },
+    InputNumber: { size: 'small' },
+    // 分页内部控件由 Naive UI 自动匹配尺寸，强制 small 会比页码按钮更高。
+    Pagination: { size: 'small' },
+    Select: { size: 'small' },
+    Switch: { size: 'small' },
+    Tag: { size: 'small' },
+    TimePicker: { size: 'small' },
+    TreeSelect: { size: 'small' },
+  }
+  const fullscreenEnabled = screenfull.isEnabled
+  const isFullscreen = ref(false)
+  const settingsVisible = ref(false)
+  const refreshing = ref(false)
+  const searchAction = ref<'submit' | 'reset' | 'filter'>()
+  let searchVersion = 0
+  const userStore = useUserStore()
+  const title = computed(() => binding.value?.title.value ?? '数据列表')
+  const tableProps = computed(() => binding.value?.tableProps.value)
+  const toolbar = computed(() => binding.value?.toolbar.value ?? {})
+  const showSettings = computed(
+    () => toolbar.value.showColumns !== false || toolbar.value.showStriped !== false,
+  )
+  const showTools = computed(
+    () =>
+      toolbar.value.showRefresh !== false ||
+      showSettings.value ||
+      toolbar.value.showFullscreen !== false,
+  )
+  const buttons = computed(() => {
+    const config = toolbar.value
+    return (config.buttons ?? []).filter((button) => {
+      const permissions = config.permissions?.[button]
+      const roles = config.roles?.[button]
+      const permitted = !permissions || permissions.some((code) => userStore.hasPermission(code))
+      const hasRole =
+        userStore.superAdministrator ||
+        !roles ||
+        roles.some((role) => userStore.roleCode.includes(role))
+      return permitted && hasRole
+    })
+  })
+  const buttonOptions = {
+    add: { label: '新增', type: 'primary', icon: 'plus' },
+    edit: { label: '修改', type: 'warning', icon: 'pencil' },
+    delete: { label: '删除', type: 'error', icon: 'trash-2' },
+    export: { label: '导出', type: 'info', icon: 'download' },
+  } as const
+
+  /** 编辑要求唯一选择，删除要求至少选择一行。 */
+  function isDisabled(button: TableButton) {
+    const count = binding.value?.checkedRowKeys.value.length ?? 0
+    return (
+      !!toolbar.value.loading?.[button] ||
+      !!binding.value?.loading.value ||
+      (button === 'edit' && count !== 1) ||
+      (button === 'delete' && count === 0)
+    )
+  }
+
+  /** 事件使用独立的主键快照，业务逻辑留给页面。 */
+  function handleAction(button: TableButton) {
+    if (isDisabled(button)) return
+    const keys = [...(binding.value?.checkedRowKeys.value ?? [])]
+    if (button === 'add') emit('add')
+    else if (button === 'edit' && keys[0] !== undefined) emit('edit', keys[0])
+    else if (button === 'delete') emit('delete', keys)
+    else if (button === 'export') emit('export', keys)
+  }
+
+  /** 请求由表格等待，查询与重置分别在自己的按钮内反馈进度。 */
+  async function applySearch(action: 'submit' | 'reset' | 'filter') {
+    if (!binding.value) return
+    const version = ++searchVersion
+    searchAction.value = action
+    try {
+      await binding.value.applySearch()
+    } finally {
+      if (version === searchVersion) searchAction.value = undefined
+    }
+  }
+
+  /** 刷新数据并启动箭头旋转，刷新期间不重复发起请求。 */
+  function refresh() {
+    if (!binding.value || binding.value.loading.value || refreshing.value) return
+    refreshing.value = true
+    void binding.value.reload()
+    emit('refresh')
+  }
+
+  /** 请求结束后在完整一圈的边界停止动画，避免快速请求导致图标闪烁。 */
+  function finishRefreshRotation() {
+    if (!binding.value?.loading.value) refreshing.value = false
+  }
+
+  /** 命令式刷新返回请求是否成功。 */
+  function reload() {
+    if (!binding.value) throw new Error('表格尚未注册')
+    return binding.value.reload()
+  }
+
+  /** 返回挂载后的原生表格实例。 */
+  function getTableInstance() {
+    if (!tableRef.value) throw new Error('表格尚未挂载')
+    return tableRef.value
+  }
+
+  /** 同步当前表格的全屏状态，包括 Esc 退出。 */
+  function syncFullscreen() {
+    isFullscreen.value = screenfull.isFullscreen && screenfull.element === tableContainer.value
+  }
+
+  /** 全屏展示当前查询表单和表格，保留原有数据与选择状态。 */
+  async function toggleFullscreen() {
+    if (!fullscreenEnabled || !tableContainer.value) return
+    settingsVisible.value = false
+    try {
+      if (isFullscreen.value) await screenfull.exit()
+      else await screenfull.request(tableContainer.value)
+    } catch {
+      message.error('切换表格全屏失败')
+    }
+  }
+
+  /** 离开缓存页面或卸载时释放当前表格占用的全屏。 */
+  function exitFullscreen() {
+    settingsVisible.value = false
+    if (fullscreenEnabled && screenfull.element === tableContainer.value) {
+      void screenfull.exit().catch(() => message.error('退出表格全屏失败'))
+    }
+  }
+
+  const registration: DataTableRegistration = {
+    /** 接入 hook 持有的响应式视图。 */
+    connect: (value) => {
+      binding.value = value
+    },
+    /** 注册接口允许在挂载前读取为空。 */
+    getInstance: () => tableRef.value ?? undefined,
+  }
+  onMounted(() => {
+    emit('register', registration)
+    if (fullscreenEnabled) screenfull.on('change', syncFullscreen)
+  })
+  onDeactivated(() => {
+    refreshing.value = false
+    exitFullscreen()
+  })
+  onBeforeUnmount(() => {
+    exitFullscreen()
+    if (fullscreenEnabled) screenfull.off('change', syncFullscreen)
+    emit('register', undefined)
+  })
+  return {
+    tableContainer,
+    themeVars,
+    tableComponentOptions,
+    fullscreenEnabled,
+    isFullscreen,
+    toggleFullscreen,
+    binding,
+    title,
+    tableProps,
+    toolbar,
+    showSettings,
+    showTools,
+    settingsVisible,
+    buttons,
+    buttonOptions,
+    isDisabled,
+    handleAction,
+    searchAction,
+    applySearch,
+    refreshing,
+    finishRefreshRotation,
+    refresh,
+    reload,
+    getTableInstance,
+  }
+}

@@ -142,18 +142,25 @@ public class SseConnectionRegistry implements AutoCloseable {
         private void write() {
             boolean writeFailed = false;
             try {
-                emitter.send(SseEmitter.event().comment("connected"));
+                // 先复核再等待，覆盖 MVC 鉴权通过后、连接注册前恰好发生撤销的窗口。
+                SseEvent event = null;
+                boolean connected = false;
                 while (!stopped) {
-                    SseEvent event = pending.poll(properties.getHeartbeatSeconds(), TimeUnit.SECONDS);
                     // 长连接只在建立时经过 MVC 认证；后续投递也必须服从退出、踢下线和过期。
-                    if (!sessionValid.getAsBoolean() || stopped) {
+                    if (!sessionValid.getAsBoolean()) {
+                        emitter.send(SseEmitter.event().name("sessionInvalidated").data("{}", UTF8_TEXT));
+                        break;
+                    }
+                    if (stopped) {
                         break;
                     }
                     if (event == null) {
-                        emitter.send(SseEmitter.event().comment("heartbeat"));
-                    } else {
+                        emitter.send(SseEmitter.event().comment(connected ? "heartbeat" : "connected"));
+                        connected = true;
+                    } else if (!SseEvent.CHECK_SESSION.equals(event.getName())) {
                         emitter.send(SseEmitter.event().name(event.getName()).data(event.getJsonData(), UTF8_TEXT));
                     }
+                    event = pending.poll(properties.getHeartbeatSeconds(), TimeUnit.SECONDS);
                 }
             } catch (InterruptedException ignored) {
                 // 容器结束请求、队列溢出和应用停机都会唤醒等待中的连接。

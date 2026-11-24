@@ -1,5 +1,16 @@
 import type { UserInfoResult } from '@/stores/modules/user/types'
 
+export interface LoginSession {
+  sessionId: string
+  deviceType: string | null
+  browser: string | null
+  os: string | null
+  ipAddress: string | null
+  loginTime: string
+  lastActiveTime: string | null
+  current: boolean
+}
+
 export interface ProfileUpdate {
   name: string
   avatar: string | null

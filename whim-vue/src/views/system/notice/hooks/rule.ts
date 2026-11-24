@@ -1,5 +1,5 @@
 import type { FormRules } from 'naive-ui'
-import { getRichText, hasRichImage } from '@/components/richEditor/richText'
+import { getRichText, hasRichImage } from '@/components/richTextEditor/richTextHtml'
 
 export const createNoticeRules = (isBusy: () => boolean): FormRules => ({
   title: [

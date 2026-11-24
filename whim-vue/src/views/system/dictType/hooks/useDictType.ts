@@ -11,8 +11,8 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { NSpace, useThemeVars, type DataTableColumns, type DataTableRowKey } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
@@ -105,7 +105,7 @@ export function useDictType() {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<DictTypeResult, DictTypeQuery>(() => ({
+  const [registerTable, table] = useDataTable<DictTypeResult, DictTypeQuery>(() => ({
     title: '字典管理',
     columns,
     rowKey: (row) => row.id,

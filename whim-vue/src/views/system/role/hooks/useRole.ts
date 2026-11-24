@@ -1,8 +1,8 @@
 import { computed, h, onActivated, onDeactivated, onScopeDispose, ref, shallowRef } from 'vue'
 import { NSpace, NSwitch, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
-import type { DialogController } from '@/components/dialog/types'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
+import type { DialogController } from '@/components/formDialog/types'
 import { useUserStore } from '@/stores/modules/user'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useDictStore } from '@/stores/modules/dict'
@@ -140,7 +140,7 @@ export function useRole() {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<RoleItem, Omit<RoleQuery, 'pageNum' | 'pageSize'>>(
+  const [registerTable, table] = useDataTable<RoleItem, Omit<RoleQuery, 'pageNum' | 'pageSize'>>(
     () => ({
       title: '角色管理',
       columns,

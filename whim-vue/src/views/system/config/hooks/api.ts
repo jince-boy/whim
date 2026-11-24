@@ -1,5 +1,5 @@
 import axiosInstance, { request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { ConfigFormModel, ConfigId, ConfigItem, ConfigQuery, SiteSettings } from './types'
 
 export const fetchSiteSettings = () =>

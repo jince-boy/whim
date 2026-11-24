@@ -1,5 +1,5 @@
 import axiosInstance, { request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { PasswordFormModel, TwoFactorResetRequest, RoleFormModel, UserAvatarQuery, UserDetail, UserFormModel, UserId, UserItem, UserQuery, UserRoles } from './types'
 
 export const fetchUserPage = (params: UserQuery & TablePageQuery) =>

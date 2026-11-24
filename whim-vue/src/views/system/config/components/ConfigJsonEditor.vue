@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
 import { useThemeVars } from 'naive-ui'
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { message } from '@/plugins'
 import { isValidConfigJson } from '../hooks/rule'
 
@@ -60,7 +60,7 @@ function syncScroll(event: Event) {
       <template #trigger>
         <n-button class="format-button" circle size="small" aria-label="格式化"
           :disabled="composing || !value.trim()" @click="formatJson">
-          <template #icon><Icon name="braces" :size="16" /></template>
+          <template #icon><AppIcon name="braces" :size="16" /></template>
         </n-button>
       </template>
       格式化 JSON

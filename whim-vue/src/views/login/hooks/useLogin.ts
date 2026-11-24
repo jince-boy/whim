@@ -4,7 +4,7 @@ import { login, verifyLogin, fetchCaptcha } from './api'
 import { useAuthStore } from '@/stores/modules/auth.ts'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/plugins'
-import { useIcon } from '@/components/icon/useIcon.ts'
+import { useIcon } from '@/components/appIcon/hooks/useIcon.ts'
 import { authenticatorCodePattern, recoveryCodePattern } from '@/utils/authenticator'
 
 const CHALLENGE_LIFETIME_MS = 3 * 60 * 1000

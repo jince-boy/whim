@@ -1,4 +1,4 @@
-import type { TablePage } from '@/components/table'
+import type { TablePage } from '@/components/dataTable'
 
 export interface OnlineUserQuery {
   username: string

@@ -75,10 +75,21 @@ export const useAuthStore = defineStore('auth', {
     },
     /** 清理登录令牌、用户授权、动态路由、标签页和页面缓存名单。 */
     logout() {
+      const token = this.token
       this.token = null
       this.tokenType = 'Bearer'
       this.username = ''
       for (const storage of [localStorage, sessionStorage]) {
+        // 后台旧标签页收到失效通知时，其他标签页可能已经把新会话写入共享存储。
+        const saved = storage.getItem('token')
+        if (saved) {
+          try {
+            const storedToken = storage.getItem('tokenType') ? saved : JSON.parse(saved)?.token
+            if (typeof storedToken === 'string' && storedToken !== token) continue
+          } catch {
+            // 无效缓存随本次退出清除。
+          }
+        }
         for (const key of ['token', 'tokenType', 'username']) storage.removeItem(key)
       }
       usePermissionStore().resetRouter()

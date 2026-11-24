@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
-import { useIcon } from '@/components/icon/useIcon'
+import { DataTable } from '@/components/dataTable'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import { useDept } from './hooks/useDept'
 
 defineOptions({ name: 'Dept' })
@@ -10,7 +10,7 @@ const { registerTable, form, canView, statusOptions, expandableKeys, allExpanded
 
 <template>
   <div>
-    <WhimTable v-if="canView" @register="registerTable" @add="openAddDialog()">
+    <DataTable v-if="canView" @register="registerTable" @add="openAddDialog()">
       <template #search>
         <n-form-item-gi label="部门名称" path="deptName">
           <n-input v-model:value="form.deptName" :maxlength="64" placeholder="请输入部门名称" clearable />
@@ -25,7 +25,7 @@ const { registerTable, form, canView, statusOptions, expandableKeys, allExpanded
         </n-button>
       </template>
       <template #empty><n-empty description="暂无部门，请新增或调整查询条件" /></template>
-    </WhimTable>
+    </DataTable>
     <n-empty v-else description="暂无部门查询权限" />
   </div>
 </template>

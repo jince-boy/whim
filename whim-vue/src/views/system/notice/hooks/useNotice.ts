@@ -1,8 +1,8 @@
 import { computed, defineAsyncComponent, h, onScopeDispose, ref, shallowRef } from 'vue'
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
-import { plainTextToHtml } from '@/components/richEditor/richText'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
+import { plainTextToHtml } from '@/components/richTextEditor/richTextHtml'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { addNotice, deleteNotice, fetchNoticeDetail, fetchNoticePage, updateNotice } from './api'
@@ -85,7 +85,7 @@ export function useNotice() {
       })
     return result
   })
-  const [registerTable, table] = useWhimTable<NoticeSummary, NoticeFilters>(() => ({
+  const [registerTable, table] = useDataTable<NoticeSummary, NoticeFilters>(() => ({
     title: '通知公告',
     columns,
     rowKey: (row) => row.id,

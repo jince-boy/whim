@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
+import { DataTable } from '@/components/dataTable'
 import { useRole } from './hooks/useRole'
 import RoleAuthorizationDialog from './components/RoleAuthorizationDialog.vue'
 import RoleUsersDrawer from './components/RoleUsersDrawer.vue'
@@ -10,7 +10,7 @@ const { registerTable, form, canView, openAddDialog, statusOptions, authorizingR
 
 <template>
   <div class="role-page">
-    <WhimTable v-if="canView" @register="registerTable" @add="openAddDialog">
+    <DataTable v-if="canView" @register="registerTable" @add="openAddDialog">
       <template #search>
         <n-form-item-gi label="角色名称" path="roleName">
           <n-input v-model:value="form.roleName" :maxlength="32" placeholder="请输入角色名称" clearable />
@@ -23,7 +23,7 @@ const { registerTable, form, canView, openAddDialog, statusOptions, authorizingR
         </n-form-item-gi>
       </template>
       <template #empty><n-empty description="暂无角色，请新增或调整查询条件" /></template>
-    </WhimTable>
+    </DataTable>
     <n-card v-else :bordered="false"><n-empty description="暂无角色查询权限" /></n-card>
     <RoleAuthorizationDialog v-if="authorizingRole" v-model:show="showAuthorization" :role="authorizingRole" @saved="reloadRoles" />
     <RoleUsersDrawer v-if="usersRole" v-model:show="showUsers" :role="usersRole" />

@@ -1,4 +1,4 @@
-import type { TablePageQuery } from '@/components/table'
+import type { TablePageQuery } from '@/components/dataTable'
 
 export type NoticeId = string | number
 

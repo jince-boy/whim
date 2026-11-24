@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
-import Icon from '@/components/icon/Icon.vue'
+import { DataTable } from '@/components/dataTable'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useUser } from './hooks/useUser'
 
 defineOptions({
@@ -25,7 +25,7 @@ const {
             <template #trigger>
               <n-button quaternary native-focus-behavior size="small" aria-label="刷新部门" :aria-busy="departmentRefreshing || departmentLoading" :disabled="!canLoadDepartments || departmentRefreshing || departmentLoading" @mousedown.prevent @click="refreshDepartments">
                 <template #icon>
-                  <Icon name="refresh-cw" :class="{ 'refresh-icon--spinning': departmentRefreshing }" @animationiteration="finishDepartmentRefreshRotation" />
+                  <AppIcon name="refresh-cw" :class="{ 'refresh-icon--spinning': departmentRefreshing }" @animationiteration="finishDepartmentRefreshRotation" />
                 </template>
               </n-button>
             </template>
@@ -42,7 +42,7 @@ const {
         </n-space>
       </n-card>
       <div class="user-table">
-        <WhimTable @register="registerTable" @add="openAddDialog">
+        <DataTable @register="registerTable" @add="openAddDialog">
           <template #search>
             <n-form-item-gi label="用户名" path="username">
               <n-input v-model:value="form.username" :maxlength="32" placeholder="请输入用户名" clearable />
@@ -58,7 +58,7 @@ const {
             </n-form-item-gi>
           </template>
           <template #empty><n-empty description="暂无用户，请新增或调整查询条件" /></template>
-        </WhimTable>
+        </DataTable>
       </div>
     </div>
     <n-empty v-else description="暂无用户查询权限" />

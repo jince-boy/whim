@@ -81,14 +81,36 @@ TypeScript 7 用于检查 Node 配置文件；Vue 单文件组件和 ESLint 使�
 pnpm lint
 ```
 
+### 公共组件
+
+| `src/components/` 下的目录 | 用途 |
+| --- | --- |
+| `dataTable` | 数据表格、分页和行内操作 |
+| `searchForm` | 列表筛选表单、查询和重置 |
+| `formDialog` | 打开表单弹窗和操作确认框 |
+| `richTextEditor` | 编辑富文本、处理正文图片和清理 HTML |
+| `passwordInput` | 输入密码并显示强度 |
+| `imageCropper` | 裁剪头像和其他图片 |
+| `siteLogo` | 在登录页和导航中展示站点 Logo，加载失败时显示内置图片 |
+| `appIcon` | 按名称显示图标，为菜单和按钮提供图标 |
+| `iconPicker` | 在表单中搜索、预览和选择图标 |
+
+顶栏菜单搜索位于 `src/layout/components/menuSearch`，主题设置抽屉位于 `src/layout/components/themeSettings`。
+
+#### 富文本编辑器
+
+从 `@/components/richTextEditor/RichTextEditor.vue` 导入组件。只需编辑文字、链接或表格时，使用 `<RichTextEditor v-model="contentHtml" />` 即可。页面可传入 `placeholder` 和 `aria-label`，传入 `maxlength` 会显示字数和超限提示，提交时的校验由表单负责。
+
+需要插图时，传入 `:image-handlers="{ upload, load }"`。上传函数接收文件和 `AbortSignal`，返回正整数文件 ID 字符串；读取函数接收文件 ID 和 `AbortSignal`，返回图片 Blob。保存的 HTML 通过 `data-file-id` 引用图片。表单可以绑定 `v-model:busy`，在图片读取或上传期间阻止提交。
+
 ### 图标组件
 
 图标统一使用 `@lucide/vue` 提供的 Vue 组件，不依赖图标字体、远程图标服务或手工下载的图标资源。
 
-- 页面通过 `src/components/icon/Icon.vue` 使用图标，例如 `<Icon name="search" :size="20" />`。按钮和菜单的渲染函数继续使用 `createIcon('search')`。
-- `src/components/icon/catalog.ts` 提供统一图标入口。`commonIcons.ts` 直接引用页面常用组件；首次打开选择器或使用其他图标时，才加载 `lucideCatalog.ts` 中的完整目录，随后按名称加载单个组件并缓存。目录通过 Vite 懒加载 glob 从安装的 Lucide 包生成，升级依赖即可更新，无需逐个注册。不要导入整个图标库命名空间。`iconLabels.ts` 维护常用中文搜索词，其余图标可按完整英文名称搜索。
-- `Icon` 默认尺寸为 `1em`、描边宽度为 `2`，颜色继承当前文字颜色。需要指定尺寸时使用 `size`，不要通过页面样式单独拉伸图形或补偿偏移。
-- `WhimSelectIcon` 默认展示完整目录，使用与 Lucide 官网相同的 Fuse.js 搜索阈值及英文元数据权重，匹配名称、官方别名、标签、分类，并保留常用中文关键词和组合词搜索；例如 `home` 可以找到正式名称为 `house` 的图标。输入防抖为 150ms，搜索索引只在目录变化时重建。八列网格使用 `NVirtualList` 按行虚拟化，仅挂载可见行及缓冲行；滚动时卸载离屏行，关闭后卸载列表，图标组件只在需要显示时加载。保留清空、方向键、Home/End、禁用及表单校验。`iconData` 如需限制选项，传入 `IconOption` 数组，可提供 `keywords`、`aliases`、`tags` 和 `categories`；`name` 必须属于统一目录。
+- 页面通过 `src/components/appIcon/AppIcon.vue` 使用图标，例如 `<AppIcon name="search" :size="20" />`。按钮和菜单的渲染函数继续使用 `createIcon('search')`。
+- `src/components/appIcon/iconCatalog.ts` 提供统一图标入口。`commonIcons.ts` 直接引用页面常用组件；首次打开选择器或使用其他图标时，才加载 `lucideCatalog.ts` 中的完整目录，随后按名称加载单个组件并缓存。目录通过 Vite 懒加载 glob 从安装的 Lucide 包生成，升级依赖即可更新，无需逐个注册。不要导入整个图标库命名空间。`iconLabels.ts` 维护常用中文搜索词，其余图标可按完整英文名称搜索。
+- `AppIcon` 默认尺寸为 `1em`、描边宽度为 `2`，颜色继承当前文字颜色。需要指定尺寸时使用 `size`，不要通过页面样式单独拉伸图形或补偿偏移。
+- `IconPicker` 默认展示完整目录，使用与 Lucide 官网相同的 Fuse.js 搜索阈值及英文元数据权重，匹配名称、官方别名、标签、分类，并保留常用中文关键词和组合词搜索；例如 `home` 可以找到正式名称为 `house` 的图标。输入防抖为 150ms，搜索索引只在目录变化时重建。八列网格使用 `NVirtualList` 按行虚拟化，仅挂载可见行及缓冲行；滚动时卸载离屏行，关闭后卸载列表，图标组件只在需要显示时加载。保留清空、方向键、Home/End、禁用及表单校验。`iconData` 如需限制选项，传入 `IconOption` 数组，可提供 `keywords`、`aliases`、`tags` 和 `categories`；`name` 必须属于统一目录。
 - `iconSearchMetadata.json` 保存与当前 `@lucide/vue` 版本对应的官方搜索数据，随完整目录延迟加载，搜索时无需访问外部网站。升级 Lucide 依赖后运行 `pnpm sync:icon-metadata`：脚本从官方版本归档同步全部图标元数据，并保留上游许可证 `lucide.LICENSE`；需要 Node.js 和系统 `tar` 命令，下载和解压各有 30 秒超时。正常构建不联网同步。官网可能使用更新版本及不同的默认排序，因此不保证结果数量、顺序完全相同。
 - 菜单仍保存字符串图标名称。空值不渲染，未知名称显示问号占位。Flyway `V3__migrate_menu_icons_to_lucide.sql` 在后端下次启动时转换原目录中的历史菜单图标，部署时应先完成该迁移，再发布新前端；已有页面需刷新以重新获取菜单。
 

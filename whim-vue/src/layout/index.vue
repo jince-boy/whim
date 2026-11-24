@@ -7,7 +7,7 @@ import LayoutHeader from '@/layout/components/header/index.vue'
 import LayoutFooter from '@/layout/components/footer/index.vue'
 import LayoutUserMenu from '@/layout/components/userMenu/index.vue'
 import systemSetting from '@/config/SystemSetting'
-import SystemLogo from '@/components/systemLogo/SystemLogo.vue'
+import SiteLogo from '@/components/siteLogo/SiteLogo.vue'
 import { useLayout } from './hooks/useLayout'
 defineOptions({ name: 'LayoutIndex' })
 const {
@@ -80,7 +80,7 @@ const {
         >
           <template v-if="layoutMode !== 'side' && themeStore.getShowLogo" #brand>
             <RouterLink :to="homePath" class="layout-brand" :title="systemSetting.title">
-              <SystemLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
+              <SiteLogo width="28" height="28" :inverted="themeStore.getMenuInverted" />
               <n-text v-if="layoutMode !== 'mixed' || !collapsed" strong class="layout-title">{{
                 systemSetting.title
               }}</n-text>

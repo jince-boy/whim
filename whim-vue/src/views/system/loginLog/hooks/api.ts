@@ -1,5 +1,5 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { LoginLog, LoginLogFilters } from './types'
 
 /** 分页查询登录日志。 */

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ProfileSecuritySettings from './ProfileSecuritySettings.vue'
-import Icon from '@/components/icon/Icon.vue'
-import WhimImageCropper from '@/components/imageCropper/WhimImageCropper.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
+import ImageCropper from '@/components/imageCropper/ImageCropper.vue'
 import type { ProfileFormModel, ProfileFormProps } from './hooks/types'
 import { profileRules } from '@/views/system/user/hooks/rule'
 import { useProfileForm } from './hooks/useProfileForm'
@@ -26,7 +26,7 @@ const {
             <n-avatar :round="false" :size="96" :src="avatarUrl" :img-props="{ alt: displayName }" object-fit="cover">
               <template #fallback>{{ avatarText }}</template>
             </n-avatar>
-            <span class="profile-avatar-zoom"><Icon name="maximize" :size="14" /></span>
+            <span class="profile-avatar-zoom"><AppIcon name="maximize" :size="14" /></span>
           </n-button>
           <n-avatar v-else class="profile-avatar-placeholder" :round="false" :size="96" :theme-overrides="{ fontSize: '30px' }">{{ avatarText }}</n-avatar>
           <div class="profile-identity-text">
@@ -36,11 +36,11 @@ const {
         </div>
         <div class="profile-photo-actions">
           <n-button secondary :type="formModel.avatar || formModel.avatarFile ? 'warning' : 'primary'" :disabled="disabled" @click="selectAvatar">
-            <template #icon><Icon name="upload" /></template>
+            <template #icon><AppIcon name="upload" /></template>
             {{ formModel.avatar || formModel.avatarFile ? '更换头像' : '上传头像' }}
           </n-button>
           <n-button v-if="formModel.avatar || formModel.avatarFile" secondary type="error" :disabled="disabled" @click="removeAvatar">
-            <template #icon><Icon name="trash" /></template>移除
+            <template #icon><AppIcon name="trash" /></template>移除
           </n-button>
         </div>
         <p class="profile-photo-hint">JPG、PNG、GIF，最大 5MB<br />选择图片后可裁剪</p>
@@ -59,7 +59,7 @@ const {
 
       <div class="profile-details">
         <n-card :bordered="false" content-style="padding: 24px">
-          <div class="profile-section-heading"><Icon name="user-round" :size="20" /><h2>基本资料</h2></div>
+          <div class="profile-section-heading"><AppIcon name="user-round" :size="20" /><h2>基本资料</h2></div>
           <div class="profile-form-fields">
             <n-grid :cols="2" :x-gap="20" item-responsive>
               <n-form-item-gi label="姓名" path="name" span="2 560:1">
@@ -83,13 +83,13 @@ const {
             <n-space :size="8">
               <n-button secondary :disabled="disabled || !isDirty" @click="resetProfile">重置</n-button>
               <n-button type="warning" attr-type="submit" :loading="props.saving" :disabled="disabled || !isDirty || avatarCropShown">
-                <template #icon><Icon name="save" /></template>保存修改
+                <template #icon><AppIcon name="save" /></template>保存修改
               </n-button>
             </n-space>
           </footer>
         </n-card>
         <n-card :bordered="false" content-style="padding: 24px">
-          <div class="profile-section-heading"><Icon name="network" :size="20" /><h2>组织信息</h2></div>
+          <div class="profile-section-heading"><AppIcon name="network" :size="20" /><h2>组织信息</h2></div>
           <dl class="profile-organization-fields">
             <div><dt>所属部门</dt><dd>{{ department }}</dd></div>
             <div><dt>任职岗位</dt><dd class="profile-tags">
@@ -99,12 +99,12 @@ const {
           </dl>
         </n-card>
         <n-card :bordered="false" content-style="padding: 24px">
-          <div class="profile-section-heading"><Icon name="shield-check" :size="20" /><h2>账号安全</h2></div>
+          <div class="profile-section-heading"><AppIcon name="shield-check" :size="20" /><h2>账号安全</h2></div>
           <ProfileSecuritySettings :username="props.initialModel.username" :disabled="disabled" @change-password="emit('changePassword')" />
         </n-card>
       </div>
     </div>
-    <WhimImageCropper v-model:show="avatarCropShown" :file="avatarCropFile" title="裁剪头像" @confirm="confirmAvatarCrop" />
+    <ImageCropper v-model:show="avatarCropShown" :file="avatarCropFile" title="裁剪头像" @confirm="confirmAvatarCrop" />
     <n-image-preview v-model:show="avatarPreviewShown" :src="avatarPreviewUrl" show-toolbar-tooltip />
   </n-form>
 </template>

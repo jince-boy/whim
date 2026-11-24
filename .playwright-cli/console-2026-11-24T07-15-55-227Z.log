@@ -1,0 +1,21 @@
+[   53041ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:896
+[   53044ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:906
+[   53044ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3000/ <--[HTTP]--> localhost:3000/ (server)
+  (browser) localhost:3000/ <--[WebSocket (failing)]--> localhost:3000/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3000/@vite/client:916
+[  136025ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:896
+[  136031ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:906
+[  136031ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3000/ <--[HTTP]--> localhost:3000/ (server)
+  (browser) localhost:3000/ <--[WebSocket (failing)]--> localhost:3000/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3000/@vite/client:916
+[  136710ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:896
+[  136712ms] [ERROR] WebSocket connection to 'ws://localhost:3000/?token=2Qr3MISXw1OH' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS @ http://localhost:3000/@vite/client:906
+[  136712ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:3000/ <--[HTTP]--> localhost:3000/ (server)
+  (browser) localhost:3000/ <--[WebSocket (failing)]--> localhost:3000/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:3000/@vite/client:916

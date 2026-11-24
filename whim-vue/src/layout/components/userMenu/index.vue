@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useUserMenu } from './hooks/useUserMenu'
 
 defineOptions({ name: 'LayoutUserMenu' })
@@ -27,7 +27,7 @@ const { username, displayName, avatar, avatarText, signingOut, menuShown, option
           <n-ellipsis :tooltip="false" class="user-menu-name">{{ displayName }}</n-ellipsis>
           <n-ellipsis :tooltip="false" class="user-menu-username">{{ username }}</n-ellipsis>
         </span>
-        <Icon v-if="!props.collapsed" class="user-menu-chevron" name="chevrons-up-down" :size="14" />
+        <AppIcon v-if="!props.collapsed" class="user-menu-chevron" name="chevrons-up-down" :size="14" />
       </n-button>
     </n-dropdown>
   </n-el>

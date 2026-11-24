@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import type { FileUploadView, FileUploadSummary } from '../hooks/types'
 
 const props = defineProps<{ uploads: FileUploadView[]; summary: FileUploadSummary }>()
@@ -18,7 +18,7 @@ const emit = defineEmits<{
     :style="{ padding: '0', width: '440px', maxWidth: 'calc(100vw - 32px)' }">
     <template #trigger>
       <n-button secondary type="info">
-        <template #icon><Icon name="list" /></template>
+        <template #icon><AppIcon name="list" /></template>
         上传进度
         <n-badge v-if="props.summary.active > 0" :value="props.summary.active" :max="99" class="upload-count" />
       </n-button>
@@ -34,10 +34,10 @@ const emit = defineEmits<{
         </div>
         <div class="upload-panel-actions">
           <n-button v-if="props.summary.pausable" text size="small" @click="emit('pauseAll')">
-            <template #icon><Icon name="pause" /></template>全部暂停
+            <template #icon><AppIcon name="pause" /></template>全部暂停
           </n-button>
           <n-button v-if="props.summary.resumable" text size="small" type="info" @click="emit('resumeAll')">
-            <template #icon><Icon name="play" /></template>全部继续
+            <template #icon><AppIcon name="play" /></template>全部继续
           </n-button>
         </div>
       </div>
@@ -45,29 +45,29 @@ const emit = defineEmits<{
       <div class="upload-task-list">
         <article v-for="task in props.uploads" :key="task.id" class="upload-task">
           <div class="upload-task-heading">
-            <n-icon size="22" class="upload-file-icon"><Icon name="file" /></n-icon>
+            <n-icon size="22" class="upload-file-icon"><AppIcon name="file" /></n-icon>
             <n-text class="upload-file-name" :title="task.name">{{ task.name }}</n-text>
             <div class="upload-task-actions">
               <n-button v-if="task.state === 'uploading' || task.state === 'waiting'" text size="small"
                 :aria-label="`暂停上传 ${task.name}`" @click="emit('pause', task.id)">
-                <template #icon><Icon name="pause" /></template>暂停
+                <template #icon><AppIcon name="pause" /></template>暂停
               </n-button>
               <n-button v-if="task.state === 'paused'" text size="small" type="info"
                 :aria-label="`继续上传 ${task.name}`" @click="emit('resume', task.id)">
-                <template #icon><Icon name="play" /></template>继续
+                <template #icon><AppIcon name="play" /></template>继续
               </n-button>
               <n-button v-if="task.state === 'error'" text size="small" type="info"
                 :aria-label="`重试上传 ${task.name}`" @click="emit('resume', task.id)">
-                <template #icon><Icon name="rotate-cw" /></template>重试
+                <template #icon><AppIcon name="rotate-cw" /></template>重试
               </n-button>
               <n-button v-if="task.state === 'cancelFailed'" text size="small" type="error"
                 @click="emit('cancel', task.id)">重试取消</n-button>
               <n-button v-else-if="['waiting', 'uploading', 'paused', 'error'].includes(task.state)"
                 text size="small" type="error" :aria-label="`取消上传 ${task.name}`"
                 @click="emit('cancel', task.id)">
-                <template #icon><Icon name="x" /></template>
+                <template #icon><AppIcon name="x" /></template>
               </n-button>
-              <n-text v-if="task.state === 'success'" type="success"><n-icon size="18"><Icon name="check" /></n-icon></n-text>
+              <n-text v-if="task.state === 'success'" type="success"><n-icon size="18"><AppIcon name="check" /></n-icon></n-text>
             </div>
           </div>
           <n-progress type="line" :percentage="task.progress" :status="task.progressStatus"

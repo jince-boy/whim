@@ -11,7 +11,10 @@ import com.whim.system.model.dto.user.SysUserTwoFactorResetDTO;
 import com.whim.system.model.vo.auth.AuthUserVO;
 import com.whim.system.model.vo.auth.LoginCaptchaVO;
 import com.whim.system.model.vo.auth.LoginResultVO;
+import com.whim.system.model.vo.auth.LoginSessionVO;
 import com.whim.system.model.vo.auth.TwoFactorSetupVO;
+
+import java.util.List;
 
 /**
  * @author Jince
@@ -25,6 +28,25 @@ public interface IAuthService {
      * @return 当前登录用户信息
      */
     AuthUserVO getUserInfo();
+
+    /**
+     * 获取本人的有效登录会话，当前会话优先展示。
+     *
+     * @return 个人登录会话列表
+     */
+    List<LoginSessionVO> getLoginSessions();
+
+    /**
+     * 撤销本人其他终端的指定会话。
+     *
+     * @param sessionId 公开会话标识
+     */
+    void revokeLoginSession(String sessionId);
+
+    /**
+     * 退出本人的全部会话，包括当前终端。
+     */
+    void logoutAllSessions();
 
     /**
      * 修改当前登录用户的个人资料，并返回更新后的资料与当前会话信息。

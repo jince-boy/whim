@@ -1,7 +1,7 @@
 import { computed, h, ref } from 'vue'
 import { NTag, type DataTableColumns } from 'naive-ui'
-import { useFormDialog } from '@/components/dialog'
-import { TableAction, useWhimTable } from '@/components/table'
+import { useFormDialog } from '@/components/formDialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
 import { useUserStore } from '@/stores/modules/user'
 import { fetchOnlineUserPage, kickoutOnlineUser } from './api'
 import type { OnlineUserQuery, OnlineUserSession } from './types'
@@ -44,7 +44,7 @@ export function useOnlineUser() {
       },
     },
   ]
-  const [registerTable, table] = useWhimTable<OnlineUserSession, OnlineUserQuery>(() => ({
+  const [registerTable, table] = useDataTable<OnlineUserSession, OnlineUserQuery>(() => ({
     title: '在线用户',
     columns,
     scrollX: 1280,

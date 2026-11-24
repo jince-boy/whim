@@ -1,6 +1,6 @@
 import axiosInstance, { request, RequestMethod } from '@/api'
 import { message } from '@/plugins'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type {
   NoticeBox,
   NoticeDetail,

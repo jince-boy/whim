@@ -1,5 +1,5 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { DictData, DictDataQuery, DictDataResult } from './types'
 
 /** 分页查询字典数据。 */

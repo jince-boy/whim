@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WhimPassword from '@/components/password/WhimPassword.vue'
+import PasswordInput from '@/components/passwordInput/PasswordInput.vue'
 import type { ProfilePasswordFormProps } from './hooks/types'
 import { useProfilePasswordForm } from './hooks/useProfilePasswordForm'
 
@@ -16,7 +16,7 @@ defineExpose({ formRef, formModel })
       <n-input v-model:value="formModel.oldPassword" type="password" show-password-on="click" :maxlength="72" placeholder="请输入原密码" :input-props="{ autocomplete: 'current-password', name: 'currentPassword' }" />
     </n-form-item>
     <n-form-item label="新密码" path="password">
-      <WhimPassword v-model:value="formModel.password" :user-inputs="[props.user.username, props.user.name ?? '', props.user.email ?? '']" :maxlength="72" placeholder="请输入8～72位新密码" :input-props="{ name: 'profileNewPassword' }" />
+      <PasswordInput v-model:value="formModel.password" :user-inputs="[props.user.username, props.user.name ?? '', props.user.email ?? '']" :maxlength="72" placeholder="请输入8～72位新密码" :input-props="{ name: 'profileNewPassword' }" />
     </n-form-item>
     <n-form-item label="确认新密码" path="confirmPassword">
       <n-input v-model:value="formModel.confirmPassword" type="password" show-password-on="click" :maxlength="72" placeholder="请再次输入新密码" :input-props="{ autocomplete: 'new-password', name: 'profilePasswordConfirmation' }" />

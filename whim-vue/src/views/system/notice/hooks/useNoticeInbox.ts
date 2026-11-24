@@ -1,6 +1,6 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { subscribeSystemEvents } from '@/api'
-import { useFormDialog } from '@/components/dialog'
+import { useFormDialog } from '@/components/formDialog'
 import { message } from '@/plugins'
 import { useAuthStore } from '@/stores/modules/auth'
 import { useDictStore } from '@/stores/modules/dict'

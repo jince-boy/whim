@@ -1,8 +1,8 @@
 import { computed, h, ref } from 'vue'
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import dayjs from 'dayjs'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useDictStore } from '@/stores/modules/dict'
 import { useUserStore } from '@/stores/modules/user'
 import {
@@ -119,7 +119,7 @@ export function useOperLog() {
     return result
   })
 
-  const [registerTable, table] = useWhimTable<OperLog, OperLogQuery>(() => ({
+  const [registerTable, table] = useDataTable<OperLog, OperLogQuery>(() => ({
     title: '操作日志',
     columns,
     scrollX: 1180,

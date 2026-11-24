@@ -9,7 +9,7 @@ import { promisify } from 'node:util'
 const require = createRequire(import.meta.url)
 const packageDirectory = dirname(require.resolve('@lucide/vue/package.json'))
 const { version } = JSON.parse(await readFile(join(packageDirectory, 'package.json'), 'utf8'))
-const targetDirectory = fileURLToPath(new URL('../src/components/icon/', import.meta.url))
+const targetDirectory = fileURLToPath(new URL('../src/components/appIcon/', import.meta.url))
 const temporaryRoot = await realpath(tmpdir())
 const temporaryDirectory = await mkdtemp(join(temporaryRoot, 'whim-lucide-metadata-'))
 const archiveRoot = `lucide-${version}`

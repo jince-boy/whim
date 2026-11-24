@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
+import { DataTable } from '@/components/dataTable'
 import NoticeDetail from './components/NoticeDetail.vue'
 import { useNotice } from './hooks/useNotice'
 
@@ -9,7 +9,7 @@ const { registerTable, form, canView, types, statuses, openNoticeForm, detail, s
 
 <template>
   <div>
-    <WhimTable v-if="canView" @register="registerTable" @add="openNoticeForm()">
+    <DataTable v-if="canView" @register="registerTable" @add="openNoticeForm()">
       <template #search>
         <n-form-item-gi label="标题" path="title">
           <n-input v-model:value="form.title" :maxlength="100" placeholder="搜索公告标题" clearable />
@@ -22,7 +22,7 @@ const { registerTable, form, canView, types, statuses, openNoticeForm, detail, s
         </n-form-item-gi>
       </template>
       <template #empty><n-empty description="暂无符合条件的公告" /></template>
-    </WhimTable>
+    </DataTable>
     <n-card v-else><n-empty description="暂无公告管理权限" /></n-card>
     <NoticeDetail v-model:show="showDetail" :notice="detail" />
   </div>

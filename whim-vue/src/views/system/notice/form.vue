@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useNoticeForm } from './hooks/useNoticeForm'
-import WhimRichEditor from '@/components/richEditor/WhimRichEditor.vue'
+import RichTextEditor from '@/components/richTextEditor/RichTextEditor.vue'
 import type { NoticeDetail } from './hooks/types'
 
 const props = defineProps<{ initialModel?: NoticeDetail }>()
-const { formRef, formModel, types, statuses, busy, noticeRules, loadImage, uploadNoticeImage } = useNoticeForm(props)
+const { formRef, formModel, types, statuses, busy, noticeRules, imageHandlers } = useNoticeForm(props)
 defineExpose({ formRef, formModel })
 </script>
 
@@ -34,8 +34,8 @@ defineExpose({ formRef, formModel })
       </n-form-item>
     </div>
     <n-form-item label="正文" path="contentHtml" required>
-      <WhimRichEditor :key="initialModel?.id" v-model="formModel.contentHtml" v-model:busy="busy"
-        :maxlength="10000" :upload-image="uploadNoticeImage" :load-image="loadImage" />
+      <RichTextEditor :key="initialModel?.id" v-model="formModel.contentHtml" v-model:busy="busy"
+        aria-label="公告正文" placeholder="输入公告正文，或插入图片…" :maxlength="10000" :image-handlers="imageHandlers" />
     </n-form-item>
   </n-form>
 </template>

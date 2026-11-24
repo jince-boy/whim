@@ -1,7 +1,7 @@
 import { computed, h, onDeactivated, onScopeDispose, ref } from 'vue'
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
@@ -95,7 +95,7 @@ export function useDictData(props: DictDataProps) {
     return columns
   })
 
-  const [registerTable, table] = useWhimTable<DictDataResult, DictDataQuery>(() => ({
+  const [registerTable, table] = useDataTable<DictDataResult, DictDataQuery>(() => ({
     title: '字典数据',
     columns,
     rowKey: (row) => row.id,

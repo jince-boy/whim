@@ -1,5 +1,5 @@
 import { request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { PostId, PostItem, PostQuery, PostSave } from './types'
 
 export const fetchPostPage = (params: PostQuery & TablePageQuery) =>

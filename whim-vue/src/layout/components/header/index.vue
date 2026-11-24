@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {darkTheme} from 'naive-ui'
-import SearchComponent from '@/components/search/index.vue'
-import ThemeComponent from '@/components/theme/index.vue'
+import MenuSearch from '../menuSearch/MenuSearch.vue'
+import ThemeSettings from '../themeSettings/ThemeSettings.vue'
 import NoticeBell from '@/views/system/notice/components/NoticeBell.vue'
 import {useHeader} from './hooks/useHeader'
 
@@ -76,8 +76,8 @@ const {
         </n-flex>
       </n-flex>
     </n-config-provider>
-    <search-component v-model="searchShowModal"></search-component>
-    <theme-component v-model="themeShowModal"></theme-component>
+    <MenuSearch v-model="searchShowModal" />
+    <ThemeSettings v-model="themeShowModal" />
   </n-el>
 </template>
 

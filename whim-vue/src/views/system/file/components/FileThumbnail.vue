@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NButton, NImage, NImagePreview, NSkeleton, NText } from 'naive-ui'
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useFileThumbnail } from '../hooks/useFileThumbnail'
 import type { FileThumbnailProps } from '../hooks/types'
 
@@ -23,7 +23,7 @@ const {
     </n-button>
     <n-skeleton v-else-if="loading" :width="32" :height="32" />
     <n-text v-else depth="3" :title="isImage ? '暂无图片预览' : undefined">
-      <Icon :name="isImage ? 'image' : 'file'" :size="22" />
+      <AppIcon :name="isImage ? 'image' : 'file'" :size="22" />
     </n-text>
     <n-image-preview v-model:show="previewShown" :src="previewUrl" show-toolbar-tooltip />
   </span>

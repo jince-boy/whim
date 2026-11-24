@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WhimTable } from '@/components/table'
+import { DataTable } from '@/components/dataTable'
 import { useOnlineUser } from './hooks/useOnlineUser'
 
 const { registerTable, form, canView, totals } = useOnlineUser()
@@ -7,7 +7,7 @@ const { registerTable, form, canView, totals } = useOnlineUser()
 
 <template>
   <div>
-    <WhimTable v-if="canView" @register="registerTable">
+    <DataTable v-if="canView" @register="registerTable">
       <template #search>
         <n-form-item-gi label="用户名" path="username">
           <n-input v-model:value="form.username" placeholder="请输入用户名" :maxlength="64" clearable />
@@ -22,7 +22,7 @@ const { registerTable, form, canView, totals } = useOnlineUser()
           {{ totals.accounts }} 个账号 · {{ totals.sessions }} 个有效会话
         </n-text>
       </template>
-    </WhimTable>
+    </DataTable>
     <n-card v-else><n-empty description="暂无在线用户查询权限" /></n-card>
   </div>
 </template>

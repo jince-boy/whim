@@ -1,7 +1,7 @@
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { ScrollbarInst, DropdownOption } from 'naive-ui'
-import { useIcon } from '@/components/icon/useIcon'
+import { useIcon } from '@/components/appIcon/hooks/useIcon'
 import { useTabStore } from '@/stores/modules/tab'
 import type { TabState } from '@/stores/type'
 import { useThemeStore } from '@/stores/modules/theme'

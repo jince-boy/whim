@@ -1,5 +1,5 @@
 import { downloadFile, request, RequestMethod } from '@/api'
-import type { TablePage, TablePageQuery } from '@/components/table'
+import type { TablePage, TablePageQuery } from '@/components/dataTable'
 import type { OperLog, OperLogDetail, OperLogFilters } from './types'
 
 /** 分页查询操作日志。 */

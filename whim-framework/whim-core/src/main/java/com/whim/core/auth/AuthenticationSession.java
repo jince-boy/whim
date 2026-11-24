@@ -5,6 +5,7 @@ import com.whim.core.auth.model.OnlineSessionInfo;
 import com.whim.core.auth.model.UserInfo;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -21,6 +22,13 @@ public interface AuthenticationSession {
      * @return 只读会话流，由调用方关闭
      */
     Stream<OnlineSessionInfo> getOnlineSessions(String loginType);
+
+    /**
+     * 获取当前账号仍然有效的登录会话。
+     *
+     * @return 本人的会话列表
+     */
+    List<OnlineSessionInfo> getCurrentUserSessions();
 
     /**
      * 创建用户登录会话。

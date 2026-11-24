@@ -1,8 +1,8 @@
 import { computed, h, ref } from 'vue'
 import dayjs from 'dayjs'
 import { NSpace, NTag, type DataTableColumns } from 'naive-ui'
-import { TableAction, useWhimTable } from '@/components/table'
-import { useFormDialog } from '@/components/dialog'
+import { TableAction, useDataTable } from '@/components/dataTable'
+import { useFormDialog } from '@/components/formDialog'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictStore } from '@/stores/modules/dict'
 import { message } from '@/plugins'
@@ -111,7 +111,7 @@ export function useFile() {
         ]),
     },
   ])
-  const [registerFiles, files] = useWhimTable<FileItem, FileQuery>(() => ({
+  const [registerFiles, files] = useDataTable<FileItem, FileQuery>(() => ({
     title: '文件列表',
     columns: fileColumns,
     rowKey: (row) => row.id,
@@ -252,7 +252,7 @@ export function useFile() {
         ]),
     },
   ])
-  const [registerStorage, storages] = useWhimTable<StorageItem, Record<string, never>>(() => ({
+  const [registerStorage, storages] = useDataTable<StorageItem, Record<string, never>>(() => ({
     title: '存储配置',
     columns: storageColumns,
     rowKey: (row) => row.id,

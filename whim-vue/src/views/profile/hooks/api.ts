@@ -1,6 +1,21 @@
 import { request, RequestMethod } from '@/api'
 import type { UserInfoResult } from '@/stores/modules/user/types'
-import type { ProfilePasswordUpdate, ProfileUpdate, TwoFactorSetup, TwoFactorConfirm, TwoFactorDisable } from './types'
+import type { LoginSession, ProfilePasswordUpdate, ProfileUpdate, TwoFactorSetup, TwoFactorConfirm, TwoFactorDisable } from './types'
+
+/** 读取本人当前有效的登录会话。 */
+export function getLoginSessions(signal: AbortSignal) {
+  return request<LoginSession[]>('/system/auth/sessions', RequestMethod.GET, { signal })
+}
+
+/** 仅撤销选中的其他终端。 */
+export function revokeLoginSession(sessionId: string) {
+  return request<void>(`/system/auth/sessions/${encodeURIComponent(sessionId)}`, RequestMethod.DELETE)
+}
+
+/** 退出本人所有终端，包括当前浏览器。 */
+export function logoutAllSessions() {
+  return request<void>('/system/auth/logoutAll', RequestMethod.POST)
+}
 
 /** 上传本人的头像文件，不要求用户管理权限。 */
 export function uploadProfileAvatar(file: File) {

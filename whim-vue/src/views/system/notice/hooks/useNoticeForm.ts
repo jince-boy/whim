@@ -1,7 +1,7 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { FormInst } from 'naive-ui'
 import { useDictStore } from '@/stores/modules/dict'
-import { plainTextToHtml } from '@/components/richEditor/richText'
+import { plainTextToHtml } from '@/components/richTextEditor/richTextHtml'
 import { createNoticeRules } from './rule'
 import { fetchNoticeImage, uploadNoticeImage } from './api'
 import type { NoticeDetail, NoticeForm } from './types'
@@ -33,5 +33,6 @@ export function useNoticeForm(props: { initialModel?: NoticeDetail }) {
   const types = computed(() => dictionary.getDictNumberOptions('sys_notice_type')
     .filter(option => option.value === 1 || option.value === 2))
   const statuses = computed(() => dictionary.getDictNumberOptions('sys_notice_status'))
-  return { formRef, formModel, types, statuses, busy, noticeRules, loadImage, uploadNoticeImage }
+  const imageHandlers = { load: loadImage, upload: uploadNoticeImage }
+  return { formRef, formModel, types, statuses, busy, noticeRules, imageHandlers }
 }

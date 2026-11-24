@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
-import Icon from '@/components/icon/Icon.vue'
+import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { useDictStore } from '@/stores/modules/dict'
 import { useNoticeDetailImages } from '../hooks/useNoticeDetailImages'
-import '@/components/richEditor/richText.css'
+import '@/components/richTextEditor/richTextContent.css'
 import type { NoticeDetail, NoticeId } from '../hooks/types'
 
 const props = defineProps<{ notice: NoticeDetail | null; loading?: boolean; backLabel?: string; updatedId?: NoticeId }>()
@@ -26,13 +26,13 @@ const { safeHtml, imageError, attempt } = useNoticeDetailImages(show, () => prop
         <n-flex class="reader-tools" align="center" :wrap="false" :size="10">
           <template v-if="backLabel">
             <n-button class="back-button" quaternary size="small" @click="show = false">
-              <template #icon><Icon name="arrow-left" :size="15" /></template>
+              <template #icon><AppIcon name="arrow-left" :size="15" /></template>
               {{ backLabel }}
             </n-button>
             <span class="tool-separator" aria-hidden="true"></span>
           </template>
           <n-tag v-if="notice && category" :type="category.listClass" :bordered="false" size="small">
-            <template #icon><Icon :name="notice.noticeType === 3 ? 'shield-check' : notice.noticeType === 2 ? 'megaphone' : 'mail'" :size="14" /></template>
+            <template #icon><AppIcon :name="notice.noticeType === 3 ? 'shield-check' : notice.noticeType === 2 ? 'megaphone' : 'mail'" :size="14" /></template>
             {{ category.label }}
           </n-tag>
           <n-text v-else depth="2">消息详情</n-text>
@@ -43,7 +43,7 @@ const { safeHtml, imageError, attempt } = useNoticeDetailImages(show, () => prop
         <header class="article-heading">
           <h2 :id="titleId">{{ notice.title }}</h2>
           <n-text class="publication" depth="3">
-            <Icon name="clock" :size="13" />
+            <AppIcon name="clock" :size="13" />
             <time v-if="notice.publishTime" :datetime="notice.publishTime.replace(' ', 'T')"
               :title="'发布时间 ' + notice.publishTime" :aria-label="'发布时间 ' + notice.publishTime">
               {{ notice.publishTime.slice(0, 16) }}

@@ -3,6 +3,7 @@ package com.whim.satoken.session;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpLogic;
 import com.whim.core.auth.AuthenticationSession;
+import com.whim.core.auth.event.UserSessionRevokedEvent;
 import com.whim.core.auth.model.AuthenticationToken;
 import com.whim.core.auth.model.OnlineSessionInfo;
 import com.whim.core.auth.model.UserInfo;
@@ -14,10 +15,12 @@ import com.whim.satoken.security.StpAuthManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -31,6 +34,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class SaTokenAuthenticationSession implements AuthenticationSession {
     private final OnlineSessionIndex sessionIndex;
+    private final ApplicationEventPublisher events;
 
     /**
      * 按账号体系查询仍可通过登录校验的在线会话。
@@ -41,6 +45,25 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
     @Override
     public Stream<OnlineSessionInfo> getOnlineSessions(String loginType) {
         return sessionIndex.getOnlineSessions(StpAuthManager.getStpLogic(loginType));
+    }
+
+    /**
+     * 从本人账号的终端列表读取有效会话。
+     *
+     * @return 本人的会话列表
+     */
+    @Override
+    public List<OnlineSessionInfo> getCurrentUserSessions() {
+        StpLogic logic = getRequiredCurrentStpLogic();
+        Long userId = logic.getLoginIdAsLong();
+        List<String> tokens = logic.getTokenValueListByLoginId(userId);
+        if (tokens.isEmpty()) {
+            return List.of();
+        }
+        // 从当前账号取令牌，再按有效快照复核归属，个人查询无须扫描全站索引。
+        return sessionIndex.getSessionBatch(logic, tokens, logic.getTokenValue()).stream()
+                .filter(session -> userId.equals(session.getUserId()))
+                .toList();
     }
 
     /**
@@ -117,7 +140,10 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
      */
     @Override
     public void logout() {
-        getRequiredCurrentStpLogic().logout();
+        StpLogic logic = getRequiredCurrentStpLogic();
+        Long userId = logic.getLoginIdAsLong();
+        logic.logout();
+        events.publishEvent(new UserSessionRevokedEvent(logic.getLoginType(), userId));
     }
 
     /**
@@ -129,7 +155,11 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
     @Override
     public void kickout(String loginType, Collection<Long> userIds) {
         StpLogic stpLogic = StpAuthManager.getStpLogic(loginType);
-        userIds.forEach(stpLogic::kickout);
+        for (Long userId : userIds) {
+            stpLogic.kickout(userId);
+            // 该账号的全部令牌失效后再通知，一次唤醒覆盖全部终端。
+            events.publishEvent(new UserSessionRevokedEvent(loginType, userId));
+        }
         log.info("已强制用户会话失效，loginType={}，userCount={}", loginType, userIds.size());
     }
 
@@ -153,6 +183,8 @@ public class SaTokenAuthenticationSession implements AuthenticationSession {
             }
             if (userId.toString().equals(String.valueOf(logic.getLoginIdByToken(token)))) {
                 logic.kickoutByTokenValue(token);
+                // 唤醒该用户的订阅，由连接按建立时绑定的令牌分别复核。
+                events.publishEvent(new UserSessionRevokedEvent(loginType, userId));
             }
             return;
         }
