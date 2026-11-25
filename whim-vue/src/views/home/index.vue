@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { NButton, NCard, NCollapse, NCollapseItem, NEl, NGi, NGrid, NTag, NText } from 'naive-ui'
+import { NCard, NEl, NGi, NGrid, NTag, NText } from 'naive-ui'
 import AppIcon from '@/components/appIcon/AppIcon.vue'
 import { pageCardThemeOverrides } from '@/config/NaiveTheme'
 import systemSetting from '@/config/SystemSetting'
-import { capabilities, guides, projectDirectories, technologyGroups } from './homeContent'
+import { capabilities, technologyGroups } from './homeContent'
 
 defineOptions({ name: 'HomePage' })
 </script>
@@ -50,39 +50,6 @@ defineOptions({ name: 'HomePage' })
               </n-gi>
             </n-grid>
           </section>
-
-          <div class="resources">
-            <section>
-              <h2>工程目录</h2>
-              <n-collapse arrow-placement="right">
-                <n-collapse-item v-for="directory in projectDirectories" :key="directory.name" :name="directory.name">
-                  <template #header="{ collapsed }">
-                    <n-button text :aria-expanded="!collapsed">
-                      <template #icon><AppIcon name="folder" /></template>
-                      <code>{{ directory.name }}</code>
-                    </n-button>
-                  </template>
-                  <template #header-extra><n-text depth="3" class="directory-purpose">{{ directory.purpose }}</n-text></template>
-                  <n-text depth="2">{{ directory.detail }}</n-text>
-                </n-collapse-item>
-              </n-collapse>
-            </section>
-            <section>
-              <h2>开发指南</h2>
-              <n-collapse arrow-placement="right">
-                <n-collapse-item v-for="guide in guides" :key="guide.file" :name="guide.file">
-                  <template #header="{ collapsed }">
-                    <n-button text :aria-expanded="!collapsed">
-                      <template #icon><AppIcon name="file-text" /></template>
-                      {{ guide.title }}
-                    </n-button>
-                  </template>
-                  <p><n-text depth="2">{{ guide.summary }}</n-text></p>
-                  <code class="guide-path">docs/{{ guide.file }}</code>
-                </n-collapse-item>
-              </n-collapse>
-            </section>
-          </div>
         </article>
       </n-card>
     </n-el>
@@ -173,7 +140,7 @@ defineOptions({ name: 'HomePage' })
   font-weight: 600;
 }
 
-.technologies dd, .directory-purpose, .guide-path {
+.technologies dd {
   font-size: 12px;
 }
 
@@ -182,7 +149,7 @@ defineOptions({ name: 'HomePage' })
   padding-top: 18px;
 }
 
-.capabilities h2, .resources h2 {
+.capabilities h2 {
   margin-bottom: 12px;
 }
 
@@ -207,22 +174,8 @@ defineOptions({ name: 'HomePage' })
   font-size: 13px;
 }
 
-.resources {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 26px;
-  margin-top: 22px;
-}
-
-.guide-path {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-color-3);
-}
-
 @container (max-width: 760px) {
   .technologies { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .resources { grid-template-columns: minmax(0, 1fr); gap: 20px; }
 }
 
 @container (max-width: 540px) {
