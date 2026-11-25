@@ -14,7 +14,7 @@ const { canView, loading, failed, monitor, columns, rowKey, refresh } = useApiMo
     <template v-else>
       <n-card :theme-overrides="pageCardThemeOverrides" title="接口运行概况">
         <template #header-extra>
-          <n-button secondary type="info" :loading="loading" @click="refresh">
+          <n-button secondary type="info" size="small" :loading="loading" @click="refresh">
             <template #icon><AppIcon name="refresh-cw" /></template>刷新
           </n-button>
         </template>

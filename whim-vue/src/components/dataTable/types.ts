@@ -31,6 +31,7 @@ export interface TableToolbarOptions {
   showStriped?: boolean
   showColumns?: boolean
   showRefresh?: boolean
+  refreshButtonType?: ButtonProps['type']
   showFullscreen?: boolean
 }
 

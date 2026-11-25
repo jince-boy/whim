@@ -7,18 +7,25 @@ const { sessions, loading, loadFailed, refresh, confirmLogout, deviceIcon } = us
 </script>
 
 <template>
-  <n-card :bordered="false" content-style="padding: 14px 16px">
+  <n-card :bordered="false" content-style="padding: clamp(16px, 3cqi, 24px)">
     <section class="session-list" aria-label="登录会话">
       <header class="session-toolbar">
-        <h2>登录会话<span v-if="sessions.length">（{{ sessions.length }}）</span></h2>
-        <n-space :size="8">
-          <n-button secondary size="small" :loading="loading" @click="refresh">
-            <template #icon><AppIcon name="refresh-cw" /></template>刷新
+        <div class="session-heading">
+          <h2>登录会话</h2>
+          <n-tag v-if="sessions.length" size="small" round :bordered="false">{{ sessions.length }}</n-tag>
+        </div>
+        <div class="session-actions">
+          <n-button secondary type="info" size="small" class="session-refresh"
+            aria-label="刷新登录会话" :aria-busy="loading" :disabled="loading" @click="refresh">
+            <template #icon>
+              <AppIcon name="refresh-cw" :size="16" :class="{ 'refresh-spinning': loading && sessions.length > 0 }" />
+            </template>
+            刷新
           </n-button>
           <n-button secondary type="error" size="small" @click="confirmLogout()">
             <template #icon><AppIcon name="log-out" /></template>退出全部会话
           </n-button>
-        </n-space>
+        </div>
       </header>
 
       <div v-if="loading && !sessions.length" class="session-feedback" role="status">
@@ -41,9 +48,11 @@ const { sessions, loading, loadFailed, refresh, confirmLogout, deviceIcon } = us
             <td>
               <div class="device">
                 <AppIcon :name="deviceIcon(session.deviceType)" :size="16" />
-                <span>{{ session.os || session.deviceType || '未知设备' }}</span>
-                <span class="browser">{{ session.browser || '未知浏览器' }}</span>
-                <span v-if="session.current" class="current">当前会话</span>
+                <div class="device-info">
+                  <span>{{ session.os || session.deviceType || '未知设备' }}</span>
+                  <span class="browser">{{ session.browser || '未知浏览器' }}</span>
+                </div>
+                <n-tag v-if="session.current" size="small" type="success" :bordered="false">当前会话</n-tag>
               </div>
               <details class="mobile-details">
                 <summary :aria-label="`登录 IP ${session.ipAddress || '未知'}，查看登录时间和最近活动`">
@@ -73,15 +82,19 @@ const { sessions, loading, loadFailed, refresh, confirmLogout, deviceIcon } = us
 .session-list {
   container: sessions / inline-size;
 }
-.session-toolbar, .device, .session-feedback {
+.session-toolbar, .session-heading, .session-actions, .device, .session-feedback {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .session-toolbar {
   flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--divider-color);
+}
+.session-actions {
+  margin-inline-start: auto;
 }
 .session-toolbar h2 {
   margin: 0;
@@ -89,21 +102,33 @@ const { sessions, loading, loadFailed, refresh, confirmLogout, deviceIcon } = us
   font-size: 16px;
   font-weight: 600;
 }
-.session-toolbar h2 span, .device > .whim-icon, .browser {
-  color: var(--text-color-3);
+.session-refresh:focus-visible {
+  outline: 2px solid var(--info-color);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .refresh-spinning {
+    animation: session-refresh 1s linear infinite;
+  }
+}
+@keyframes session-refresh {
+  to { transform: rotate(1turn); }
 }
 .device {
   flex-wrap: wrap;
-  gap: 2px 6px;
+  gap: 6px 8px;
   overflow-wrap: anywhere;
 }
 .device > .whim-icon {
-  margin-right: 2px;
+  color: var(--text-color-3);
 }
-.current {
-  color: var(--success-color);
+.device-info {
+  display: grid;
+  min-width: 0;
+}
+.browser {
+  color: var(--text-color-2);
   font-size: 12px;
-  white-space: nowrap;
 }
 .sessions td {
   padding-block: 7px;
@@ -121,7 +146,7 @@ const { sessions, loading, loadFailed, refresh, confirmLogout, deviceIcon } = us
 }
 .session-feedback {
   justify-content: center;
-  padding: 16px 0;
+  padding: 24px 0;
 }
 .mobile-details {
   display: none;

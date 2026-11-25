@@ -46,6 +46,7 @@ export function useOnlineUser() {
   ]
   const [registerTable, table] = useDataTable<OnlineUserSession, OnlineUserQuery>(() => ({
     title: '在线用户',
+    toolbar: { refreshButtonType: 'info' },
     columns,
     scrollX: 1280,
     renderCell: (value) => value || '—',

@@ -4,6 +4,13 @@ HELP.md
 .env.*
 !.env.example
 
+# 本地工具生成的快照、日志和索引
+/output/
+/.playwright-cli/
+/.codegraph/
+/.codex/artifacts/
+/.codex/diagnostics/
+
 **/data/files/
 **/data/keys/
 target/

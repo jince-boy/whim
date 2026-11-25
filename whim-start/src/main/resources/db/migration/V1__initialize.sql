@@ -57,6 +57,23 @@ CREATE TABLE sys_user (
     CONSTRAINT fk_user_dept FOREIGN KEY (dept_id) REFERENCES sys_dept (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
 
+CREATE TABLE sys_user_two_factor (
+    id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    encrypted_secret VARCHAR(512) NOT NULL COMMENT '加密的验证器密钥',
+    last_step BIGINT NOT NULL COMMENT '已接受的最近动态码时间步',
+    recovery_hash CHAR(64) NOT NULL COMMENT '一次性恢复码的 SHA-256 摘要',
+    create_by BIGINT NULL,
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    update_by BIGINT NULL,
+    update_time DATETIME(3) NULL,
+    delete_by BIGINT NULL,
+    delete_time DATETIME(3) NULL,
+    deleted BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_two_factor (user_id, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户自行绑定的两步验证凭据';
+
 CREATE TABLE sys_role (
     id BIGINT NOT NULL COMMENT '主键ID',
     role_name VARCHAR(32) NOT NULL COMMENT '角色名称',
@@ -137,7 +154,7 @@ CREATE TABLE sys_config (
     id BIGINT NOT NULL COMMENT '主键ID',
     config_name VARCHAR(128) NOT NULL COMMENT '配置名称',
     config_key VARCHAR(128) NOT NULL COMMENT '配置键',
-    value_type ENUM('TEXT', 'RADIO', 'JSON') NOT NULL DEFAULT 'TEXT' COMMENT '值类型',
+    value_type ENUM('TEXT', 'RADIO', 'JSON', 'IMAGE') NOT NULL DEFAULT 'TEXT' COMMENT '值类型',
     value_options JSON NULL COMMENT '单选项名称及存储值',
     config_value LONGTEXT NULL COMMENT '配置值',
     remark VARCHAR(255) NULL COMMENT '备注',
@@ -342,6 +359,72 @@ CREATE TABLE sys_file_upload_task (
     CONSTRAINT fk_file_upload_storage FOREIGN KEY (storage_id) REFERENCES sys_file_storage (id),
     CONSTRAINT chk_file_upload_size CHECK (file_size > 0 AND part_size > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='可恢复文件上传任务';
+
+CREATE TABLE sys_notice (
+    id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL COMMENT '标题',
+    notice_type TINYINT NOT NULL COMMENT '1通知，2公告，3系统',
+    recipient_user_id BIGINT NULL COMMENT '系统消息收件人',
+    content TEXT NOT NULL COMMENT '纯文本正文',
+    content_html MEDIUMTEXT NULL COMMENT '清洗后的公告富文本，纯文本公告为空',
+    status TINYINT NOT NULL COMMENT '0正常，1关闭',
+    publish_time DATETIME(3) NULL COMMENT '最近一次发布时间',
+    version INT NOT NULL DEFAULT 0 COMMENT '编辑版本',
+    create_by BIGINT NULL,
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    update_by BIGINT NULL,
+    update_time DATETIME(3) NULL,
+    delete_by BIGINT NULL,
+    delete_time DATETIME(3) NULL,
+    deleted BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    KEY idx_notice_inbox (deleted, status, publish_time DESC, id DESC),
+    KEY idx_notice_management (deleted, create_time DESC, id DESC),
+    KEY idx_notice_category_inbox (deleted, status, notice_type, publish_time DESC, id DESC),
+    KEY idx_notice_recipient_inbox (recipient_user_id, deleted, status, publish_time DESC, id DESC),
+    KEY idx_notice_public_management (recipient_user_id, deleted, create_time DESC, id DESC),
+    CONSTRAINT chk_notice_recipient CHECK (
+        (notice_type IN (1, 2) AND recipient_user_id IS NULL) OR
+        (notice_type = 3 AND recipient_user_id IS NOT NULL)
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统通知公告';
+
+CREATE TABLE sys_notice_read (
+    id BIGINT NOT NULL,
+    notice_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    read_version INT NOT NULL DEFAULT 0 COMMENT '用户已读的最新公告版本',
+    create_by BIGINT NULL,
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '首次阅读时间',
+    update_by BIGINT NULL,
+    update_time DATETIME(3) NULL,
+    delete_by BIGINT NULL,
+    delete_time DATETIME(3) NULL,
+    deleted BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_notice_read_user (user_id, notice_id, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户公告阅读记录';
+
+CREATE TABLE sys_home_page (
+    id BIGINT NOT NULL,
+    target_type TINYINT NOT NULL COMMENT '1用户，2角色，3部门，4全局',
+    target_id BIGINT NOT NULL COMMENT '全局使用0',
+    path VARCHAR(255) NOT NULL,
+    component VARCHAR(255) NOT NULL,
+    menu_id BIGINT NULL COMMENT '复用的菜单ID',
+    priority INT NOT NULL DEFAULT 0 COMMENT '数值越小越优先',
+    status TINYINT NOT NULL DEFAULT 0,
+    create_by BIGINT NULL,
+    create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    update_by BIGINT NULL,
+    update_time DATETIME(3) NULL,
+    delete_by BIGINT NULL,
+    delete_time DATETIME(3) NULL,
+    deleted BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_home_target (target_type, target_id, deleted),
+    KEY idx_home_path (path, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='首页配置';
 
 CREATE TABLE sys_login_log (
     id BIGINT NOT NULL,
@@ -561,6 +644,26 @@ BEGIN
     END IF;
 END$$
 
+-- 新增通知时校验接收范围，兼容忽略 CHECK 约束的 MySQL 版本。
+CREATE TRIGGER trg_sys_notice_validate_insert BEFORE INSERT ON sys_notice
+FOR EACH ROW
+BEGIN
+    IF NOT ((NEW.notice_type IN (1, 2) AND NEW.recipient_user_id IS NULL)
+            OR (NEW.notice_type = 3 AND NEW.recipient_user_id IS NOT NULL)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '通知和公告面向全员，系统消息必须指定收件人';
+    END IF;
+END$$
+
+-- 修改通知时校验接收范围，兼容忽略 CHECK 约束的 MySQL 版本。
+CREATE TRIGGER trg_sys_notice_validate_update BEFORE UPDATE ON sys_notice
+FOR EACH ROW
+BEGIN
+    IF NOT ((NEW.notice_type IN (1, 2) AND NEW.recipient_user_id IS NULL)
+            OR (NEW.notice_type = 3 AND NEW.recipient_user_id IS NOT NULL)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '通知和公告面向全员，系统消息必须指定收件人';
+    END IF;
+END$$
+
 DELIMITER ;
 
 START TRANSACTION;
@@ -581,7 +684,8 @@ VALUES
      'true', '登录验证码开关', 1, 1),
     (2, '网站标题', 'system.site.title', 'TEXT', NULL, NULL, '登录页、导航及浏览器标签页使用的标题，留空沿用部署配置', 1, NULL),
     (3, '网站介绍', 'system.site.description', 'TEXT', NULL, NULL, '登录页和首页的网站介绍，留空沿用部署配置', 1, NULL),
-    (4, '版权信息', 'system.site.copyright', 'TEXT', NULL, NULL, '登录页与后台页脚的版权信息，留空沿用部署配置', 1, NULL);
+    (4, '版权信息', 'system.site.copyright', 'TEXT', NULL, NULL, '登录页与后台页脚的版权信息，留空沿用部署配置', 1, NULL),
+    (5, '系统 Logo', 'system.site.logo', 'IMAGE', NULL, NULL, '登录页与导航使用的标志，清空后恢复默认 Logo', 1, NULL);
 
 -- 先建立导航树，再在对应页面下注册可以单独授予的操作。
 INSERT INTO sys_permission
@@ -590,18 +694,26 @@ INSERT INTO sys_permission
 VALUES
     (90, 0, 'home', '首页', 'system:home:view', 2, '/index', 'layout/default/index', 1, 0, 0, 'house', 1, '默认首页组件', 1),
     (100, 0, 'System', '系统管理', NULL, 1, '/system', NULL, 0, 0, 0, 'settings', 1, NULL, 1),
-    (200, 100, 'LogManagement', '日志管理', NULL, 1, '/logs', NULL, 0, 0, 20, 'scroll-text', 1, NULL, NULL),
-    (1000, 100, 'User', '用户管理', 'system:user:list', 2, '/system/user', 'system/user/index', 0, 0, 0, 'users', 1, NULL, 1),
-    (1100, 100, 'Role', '角色管理', 'system:role:list', 2, '/system/role', 'system/role/index', 0, 0, 0, 'shield-check', 1, NULL, 1),
-    (1200, 100, 'Dept', '部门管理', 'system:dept:list', 2, '/system/dept', 'system/dept/index', 0, 0, 0, 'network', 1, NULL, 1),
-    (1300, 100, 'Post', '岗位管理', 'system:post:list', 2, '/system/post', 'system/post/index', 0, 0, 0, 'briefcase-business', 1, NULL, 1),
+    (1000, 100, 'User', '用户管理', 'system:user:list', 2, '/system/user', 'system/user/index', 0, 0, 10, 'users', 1, NULL, 1),
+    (1100, 100, 'Role', '角色管理', 'system:role:list', 2, '/system/role', 'system/role/index', 0, 0, 20, 'shield-check', 1, NULL, 1),
+    (1200, 100, 'Dept', '部门管理', 'system:dept:list', 2, '/system/dept', 'system/dept/index', 0, 0, 30, 'network', 1, NULL, 1),
+    (1300, 100, 'Post', '岗位管理', 'system:post:list', 2, '/system/post', 'system/post/index', 0, 0, 40, 'briefcase-business', 1, NULL, 1),
     (1500, 100, 'SysMenu', '菜单管理', 'system:menu:list', 2, '/system/menu', 'system/menu/index', 0, 0, 50, 'menu', 1, NULL, NULL),
-    (1600, 100, 'SysDictType', '字典管理', 'system:dictType:page', 2, '/system/dictType', 'system/dictType/index', 0, 0, 60, 'book-open', 1, NULL, 1),
-    (1700, 100, 'SysDictData', '字典数据', 'system:dictData:page', 2, '/system/dictData/:type', 'system/dictData/index', 0, 1, 61, 'database', 1, NULL, 1),
-    (1800, 100, 'SysFile', '文件管理', 'system:file:page', 2, '/system/file', 'system/file/index', 0, 0, 70, 'folder-open', 1, NULL, 1),
-    (1900, 100, 'SysConfig', '系统配置', 'system:config:page', 2, '/system/config', 'system/config/index', 0, 0, 80, 'sliders-horizontal', 1, NULL, NULL),
+    (2300, 100, 'HomePageManagement', '首页管理', 'system:homePage:page', 2, '/system/homePage', 'system/homePage/index', 0, 0, 60, 'house', 1, NULL, NULL),
+    (1600, 100, 'SysDictType', '字典管理', 'system:dictType:page', 2, '/system/dictType', 'system/dictType/index', 0, 0, 70, 'book-open', 1, NULL, 1),
+    (1700, 100, 'SysDictData', '字典数据', 'system:dictData:page', 2, '/system/dictData/:type', 'system/dictData/index', 0, 1, 71, 'database', 1, NULL, 1),
+    (1800, 100, 'SysFile', '文件管理', 'system:file:page', 2, '/system/file', 'system/file/index', 0, 0, 80, 'folder-open', 1, NULL, 1),
+    (1900, 100, 'SysConfig', '系统配置', 'system:config:page', 2, '/system/config', 'system/config/index', 0, 0, 90, 'sliders-horizontal', 1, NULL, NULL),
+    (2100, 100, 'SysNotice', '通知公告', 'system:notice:page', 2, '/system/notice', 'system/notice/index', 0, 0, 100, 'bell', 1, NULL, NULL),
+    (200, 100, 'LogManagement', '日志管理', NULL, 1, '/logs', NULL, 0, 0, 110, 'scroll-text', 1, NULL, NULL),
     (3100, 200, 'SysLoginLog', '登录日志', 'system:loginLog:page', 2, '/system/loginLog', 'system/loginLog/index', 0, 0, 0, 'log-in', 1, NULL, NULL),
-    (3200, 200, 'SysOperLog', '操作日志', 'system:operLog:page', 2, '/system/operLog', 'system/operLog/index', 0, 0, 1, 'list', 1, NULL, NULL);
+    (3200, 200, 'SysOperLog', '操作日志', 'system:operLog:page', 2, '/system/operLog', 'system/operLog/index', 0, 0, 1, 'list', 1, NULL, NULL),
+    (300, 0, 'Monitor', '系统监控', NULL, 1, '/monitor', NULL, 0, 0, 10, 'activity', 1, NULL, NULL),
+    (4100, 300, 'MonitorOnlineUser', '在线用户', 'monitor:onlineUser:page', 2, '/monitor/onlineUser', 'monitor/onlineUser/index', 0, 0, 0, 'users', 1, NULL, NULL),
+    (4200, 300, 'MonitorCache', '缓存监控', 'monitor:cache:query', 2, '/monitor/cache', 'monitor/cache/index', 0, 0, 1, 'database', 1, NULL, NULL),
+    (4300, 300, 'MonitorServer', '服务器监控', 'monitor:server:query', 2, '/monitor/server', 'monitor/server/index', 0, 0, 2, 'server', 1, NULL, NULL),
+    (4400, 300, 'MonitorApi', '接口监控', 'monitor:api:query', 2, '/monitor/api', 'monitor/api/index', 0, 0, 3, 'activity', 1, NULL, NULL),
+    (4500, 300, 'MonitorDatabase', '数据库监控', 'monitor:database:query', 2, '/monitor/database', 'monitor/database/index', 0, 0, 4, 'database', 1, NULL, NULL);
 
 INSERT INTO sys_permission
     (id, parent_id, menu_name, perms, menu_type, sort, built_in, create_by)
@@ -635,6 +747,9 @@ VALUES
     (1502, 1500, '新增菜单', 'system:menu:create', 3, 2, 1, NULL),
     (1503, 1500, '修改菜单', 'system:menu:update', 3, 3, 1, NULL),
     (1504, 1500, '删除菜单', 'system:menu:delete', 3, 4, 1, NULL),
+    (2301, 2300, '新增首页配置', 'system:homePage:add', 3, 1, 1, NULL),
+    (2302, 2300, '修改首页配置', 'system:homePage:update', 3, 2, 1, NULL),
+    (2303, 2300, '删除首页配置', 'system:homePage:delete', 3, 3, 1, NULL),
     (1601, 1600, '字典详情', 'system:dictType:detail', 3, 1, 1, 1),
     (1602, 1600, '新增字典', 'system:dictType:add', 3, 2, 1, 1),
     (1603, 1600, '修改字典', 'system:dictType:update', 3, 3, 1, 1),
@@ -657,13 +772,22 @@ VALUES
     (1901, 1900, '新增自定义配置', 'system:config:create', 3, 1, 1, NULL),
     (1902, 1900, '修改配置', 'system:config:update', 3, 2, 1, NULL),
     (1903, 1900, '删除自定义配置', 'system:config:delete', 3, 3, 1, NULL),
+    (2101, 2100, '公告详情', 'system:notice:detail', 3, 1, 1, NULL),
+    (2102, 2100, '新增公告', 'system:notice:add', 3, 2, 1, NULL),
+    (2103, 2100, '修改公告', 'system:notice:update', 3, 3, 1, NULL),
+    (2104, 2100, '删除公告', 'system:notice:delete', 3, 4, 1, NULL),
     (3101, 3100, '导出登录日志', 'system:loginLog:export', 3, 1, 1, NULL),
     (3102, 3100, '删除登录日志', 'system:loginLog:delete', 3, 2, 1, NULL),
     (3103, 3100, '清空登录日志', 'system:loginLog:clean', 3, 3, 1, NULL),
     (3201, 3200, '操作日志详情', 'system:operLog:detail', 3, 1, 1, NULL),
     (3202, 3200, '导出操作日志', 'system:operLog:export', 3, 2, 1, NULL),
     (3203, 3200, '删除操作日志', 'system:operLog:delete', 3, 3, 1, NULL),
-    (3204, 3200, '清空操作日志', 'system:operLog:clean', 3, 4, 1, NULL);
+    (3204, 3200, '清空操作日志', 'system:operLog:clean', 3, 4, 1, NULL),
+    (4101, 4100, '强制下线', 'monitor:onlineUser:kickout', 3, 0, 1, NULL);
+
+-- 默认首页复用内置首页菜单，访问路径为 /index。
+INSERT INTO sys_home_page (id, target_type, target_id, path, component, menu_id, priority, status)
+VALUES (1, 4, 0, '/index', 'home/index', 90, 0, 0);
 
 INSERT INTO sys_dict_type
     (id, name, type, remark, create_by)
@@ -677,7 +801,11 @@ VALUES
     (2006, '文件上传途径', 'sys_file_upload_source', '文件所属业务上传入口，与存储平台和文件类型无关', 1),
     (2007, '角色数据范围', 'sys_role_data_scope', '每个角色的全部操作共用同一个数据范围', 1),
     (2008, '执行结果', 'sys_result_status', '0成功，1失败', 1),
-    (2009, '操作类型', 'sys_oper_type', '系统操作日志使用的业务操作类型', 1);
+    (2009, '操作类型', 'sys_oper_type', '系统操作日志使用的业务操作类型', 1),
+    (2010, '公告类型', 'sys_notice_type', NULL, NULL),
+    (2011, '公告状态', 'sys_notice_status', NULL, NULL),
+    (2012, '配置值类型', 'sys_config_value_type', NULL, NULL),
+    (2300, '首页关联类型', 'sys_home_target_type', NULL, NULL);
 
 INSERT INTO sys_dict_data
     (id, type, label, value, list_class, sort, create_by)
@@ -700,6 +828,8 @@ VALUES
     (20052, 'sys_file_storage_platform', '阿里云 OSS', 'aliyunOss', 'warning', 2, 1),
     (20060, 'sys_file_upload_source', '文件管理', 'fileManagement', 'default', 0, 1),
     (20061, 'sys_file_upload_source', '用户头像', 'userAvatar', 'default', 1, 1),
+    (20062, 'sys_file_upload_source', '公告图片', 'noticeImage', 'info', 2, NULL),
+    (20063, 'sys_file_upload_source', '配置图片', 'configImage', 'info', 3, NULL),
     (20070, 'sys_role_data_scope', '全部数据', '1', 'primary', 0, 1),
     (20071, 'sys_role_data_scope', '自定义部门', '2', 'info', 1, 1),
     (20072, 'sys_role_data_scope', '本部门', '3', 'default', 2, 1),
@@ -713,6 +843,19 @@ VALUES
     (20093, 'sys_oper_type', '导出', '3', 'primary', 3, 1),
     (20094, 'sys_oper_type', '导入', '4', 'primary', 4, 1),
     (20095, 'sys_oper_type', '其他', '5', 'default', 5, 1),
-    (20096, 'sys_oper_type', '清空', '6', 'warning', 6, 1);
+    (20096, 'sys_oper_type', '清空', '6', 'warning', 6, 1),
+    (20100, 'sys_notice_type', '通知', '1', 'info', 0, NULL),
+    (20101, 'sys_notice_type', '公告', '2', 'primary', 1, NULL),
+    (20102, 'sys_notice_type', '系统', '3', 'info', 2, NULL),
+    (20110, 'sys_notice_status', '正常', '0', 'success', 0, NULL),
+    (20111, 'sys_notice_status', '关闭', '1', 'default', 1, NULL),
+    (20120, 'sys_config_value_type', '文本', 'TEXT', 'default', 0, NULL),
+    (20121, 'sys_config_value_type', '单选', 'RADIO', 'info', 1, NULL),
+    (20122, 'sys_config_value_type', 'JSON', 'JSON', 'warning', 2, NULL),
+    (20123, 'sys_config_value_type', '图片', 'IMAGE', 'success', 3, NULL),
+    (23001, 'sys_home_target_type', '用户', '1', 'info', 1, NULL),
+    (23002, 'sys_home_target_type', '角色', '2', 'primary', 2, NULL),
+    (23003, 'sys_home_target_type', '部门', '3', 'success', 3, NULL),
+    (23004, 'sys_home_target_type', '全局默认', '4', 'default', 4, NULL);
 
 COMMIT;

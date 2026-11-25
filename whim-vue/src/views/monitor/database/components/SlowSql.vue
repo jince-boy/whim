@@ -11,7 +11,7 @@ const { minutes, periods, loading, failed, refresh, monitor, columns, rowKey } =
   <div class="slow-sql">
     <n-card :theme-overrides="pageCardThemeOverrides" title="慢 SQL 统计" size="small">
       <template #header-extra>
-        <n-button secondary type="info" :loading="loading" @click="refresh">
+        <n-button secondary type="info" size="small" :loading="loading" @click="refresh">
           <template #icon><AppIcon name="refresh-cw" /></template>刷新
         </n-button>
       </template>

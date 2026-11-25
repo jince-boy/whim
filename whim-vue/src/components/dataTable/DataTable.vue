@@ -125,6 +125,7 @@ defineExpose({ reload, getTableInstance })
                 native-focus-behavior
                 size="small"
                 aria-label="刷新表格"
+                :type="toolbar.refreshButtonType"
                 :aria-busy="refreshing || binding.loading.value"
                 :disabled="refreshing || binding.loading.value"
                 @mousedown.prevent

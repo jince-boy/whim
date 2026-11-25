@@ -11,7 +11,7 @@ const { loading, failed, refresh, monitor } = useConnectionPoolMonitor()
   <div class="connection-pools">
     <n-card :theme-overrides="pageCardThemeOverrides" title="HikariCP 连接池" size="small">
       <template #header-extra>
-        <n-button secondary type="info" :loading="loading" @click="refresh">
+        <n-button secondary type="info" size="small" :loading="loading" @click="refresh">
           <template #icon><AppIcon name="refresh-cw" /></template>刷新
         </n-button>
       </template>
