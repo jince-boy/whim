@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DB:whim}?useUnicode=true&characterEncoding=utf8&sslMode=${MYSQL_SSL_MODE:REQUIRED}&serverTimezone=UTC
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DB:0}
+
+sa-token:
+  jwt-secret-key: ${SATOKEN_JWTSECRETKEY}
+
+management:
+  server:
+    address: 127.0.0.1
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false

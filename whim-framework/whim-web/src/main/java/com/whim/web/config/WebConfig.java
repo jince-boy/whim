@@ -4,9 +4,11 @@ import com.whim.json.config.properties.DateTimeProperties;
 import com.whim.web.converter.StringToLocalDateTimeConverter;
 import com.whim.web.handler.GlobalExceptionHandler;
 import com.whim.web.handler.ResultResponseBodyAdvice;
+import com.whim.web.handler.WebOperationLogAdvice;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @description Web 模块通用配置。
  */
 @AutoConfiguration
+@Import(WebOperationLogAdvice.class)
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 

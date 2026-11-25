@@ -41,6 +41,12 @@
             <groupId>com.whim</groupId>
             <artifactId>whim-file</artifactId>
         </dependency>
+        <!-- 应用启用 SSE 时，在公告事务提交后推送更新提醒。 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-sse</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Excel 业务模型注解和导入导出能力 -->
         <dependency>
             <groupId>com.whim</groupId>

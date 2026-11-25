@@ -34,20 +34,13 @@ management:
       server:
         # 现有业务路由已超过默认的 100 个 URI 模板，保留有界的指标容量。
         max-uri-tags: 256
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
 
 spring:
   application:
     name: whim
-  # 开发环境
+  # Maven 提供默认环境，运行时可通过 SPRING_PROFILES_ACTIVE 切换。
   profiles:
-    active: @profiles_active@
+    active: '@profiles_active@'
   threads:
     virtual:
       # 是否启用虚拟线程，要求 JDK 21+
@@ -70,12 +63,8 @@ spring:
       enabled: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
+    # 两个环境的 JDBC 连接均默认要求 TLS，可通过 MYSQL_SSL_MODE=VERIFY_IDENTITY 校验服务器身份。
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 使用 TLS 完成 caching_sha2_password 认证，避免首次连接或认证缓存失效后公钥获取失败。
-    # 部署环境可通过 MYSQL_SSL_MODE=VERIFY_IDENTITY 启用服务器证书及主机名校验。
-    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:whim}?useUnicode=true&characterEncoding=utf8&sslMode=${MYSQL_SSL_MODE:REQUIRED}&serverTimezone=UTC
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:root}
     hikari:
       # 最大连接池数量
       maximum-pool-size: 20
@@ -108,10 +97,6 @@ spring:
       # 使用 Redisson 访问 Redis，无需扫描 Spring Data Redis Repository 接口。
       repositories:
         enabled: false
-      host: ${REDIS_HOST:127.0.0.1}
-      port: ${REDIS_PORT:6379}
-      #      password: ${REDIS_PASSWD:}
-      database: ${REDIS_DB:0}
 
 # 全局线程池相关配置
 thread-pool:
@@ -138,8 +123,6 @@ thread-pool:
 sa-token:
   # token 名称（同时也是 cookie 名称）
   token-name: Authorization
-  # jwt秘钥 （只有集成 sa-token-temp-jwt 模块时此参数才会生效）
-  jwt-secret-key: 3i8ztwg38p2GvMrFgp48fv9CWAXCI5oBCDO2Pqcutdd
   # Token 有效期（单位：秒），默认30天，-1代表永不过期
   timeout: 604800 # 7天
   # Token 最低活跃频率（单位：秒）
@@ -231,4 +214,3 @@ decorator:
     p6spy:
       logging: slf4j
       log-format: "SQL耗时：%(executionTime)ms | 执行语句：%(sqlSingleLine)"
-      enable-logging: true

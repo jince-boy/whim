@@ -24,6 +24,8 @@
 
 `whim-start` 是应用入口模块，通过 `com.whim.WhimApplication` 启动应用，并依赖 `whim-web` 和业务模块 `whim-system`。
 
+`whim-start` 的 Java 源码只放启动类和控制器。通用切面和 MVC 响应处理器放在对应的框架模块，业务事件监听器放在发布该业务事件的领域模块或负责消费该事件的业务模块。
+
 ## 总体架构
 
 大多数公共能力放在框架模块中，通过 Spring Boot 自动配置提供，避免在应用模块中手动装配。

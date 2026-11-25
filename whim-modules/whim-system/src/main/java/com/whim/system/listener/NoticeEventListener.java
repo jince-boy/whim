@@ -1,4 +1,4 @@
-package com.whim.listener;
+package com.whim.system.listener;
 
 import com.whim.sse.SseEventPublisher;
 import com.whim.system.event.NoticeChangedEvent;
@@ -6,6 +6,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -17,6 +19,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnClass(SseEventPublisher.class)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnBooleanProperty(prefix = "whim.sse", name = "enabled", matchIfMissing = true)
 public class NoticeEventListener {
     private final SseEventPublisher publisher;

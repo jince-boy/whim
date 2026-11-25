@@ -330,22 +330,6 @@
                 <artifactId>native-maven-plugin</artifactId>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <!-- 关闭过滤 -->
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <!-- 启用变量替换 -->
-                <filtering>true</filtering>
-                <includes>
-                    <include>application.yml</include>
-                    <include>application-${profiles_active}.yml</include>
-                </includes>
-            </resource>
-        </resources>
     </build>
     <repositories>
         <repository>

@@ -13,6 +13,12 @@
     <description>web模块</description>
 
     <dependencies>
+        <!-- 应用使用操作日志时，将统一响应摘要交给日志切面。 -->
+        <dependency>
+            <groupId>com.whim</groupId>
+            <artifactId>whim-log</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- RSA 请求解密的分布式限流 -->
         <dependency>
             <groupId>com.whim</groupId>

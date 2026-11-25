@@ -1,4 +1,4 @@
-package com.whim.config;
+package com.whim.web.handler;
 
 import com.whim.core.utils.IdUtils;
 import com.whim.core.utils.ServletUtils;
@@ -10,6 +10,7 @@ import com.whim.web.model.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -27,9 +28,10 @@ import java.util.function.Consumer;
 /**
  * @author Jince
  * @date 2026/11/20
- * @description 将本应用的统一响应接入操作日志。
+ * @description 将 Web 模块的统一响应接入操作日志。
  */
 @RestControllerAdvice
+@ConditionalOnClass(OperationLogResponseHandler.class)
 public class WebOperationLogAdvice implements OperationLogResponseHandler, ResponseBodyAdvice<Result<?>> {
     private static final String FAILURE_RESPONSE = WebOperationLogAdvice.class.getName() + ".failureResponse";
 
