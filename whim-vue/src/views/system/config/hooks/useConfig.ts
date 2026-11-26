@@ -1,13 +1,15 @@
-import { computed, h } from 'vue'
+import { computed, h, ref, useTemplateRef } from 'vue'
+import { isAxiosError } from 'axios'
 import { NCode, NSpace, type DataTableColumns } from 'naive-ui'
-import { TableAction, useDataTable } from '@/components/dataTable'
+import { type DataTable, TableAction, useDataTable } from '@/components/dataTable'
 import type { SearchFormField } from '@/components/searchForm'
 import { useFormDialog } from '@/components/formDialog'
+import { message } from '@/plugins'
 import { useUserStore } from '@/stores/modules/user'
 import ConfigForm from '../form.vue'
 import ConfigImage from '../components/ConfigImage.vue'
 import ConfigValueTypeTag from '../components/ConfigValueTypeTag.vue'
-import { addConfig, deleteConfig, fetchConfigPage, updateConfig, uploadConfigImage } from './api'
+import { addConfig, deleteConfig, fetchConfigPage, refreshConfigCache, updateConfig, uploadConfigImage } from './api'
 import { getEffectiveConfigValue, getSiteSettingField, refreshSiteSettings } from './useSiteSettings'
 import type { ConfigItem, ConfigQuery } from './types'
 
@@ -17,10 +19,42 @@ const searchFields: (SearchFormField<ConfigQuery> & { maxLength: number })[] = [
   { key: 'remark', label: '备注', maxLength: 255 },
 ]
 
-/** 两个分类各自维护分页与查询条件，写入完成后仅刷新所属列表。 */
-export function useConfig(builtIn: boolean) {
+/** 配置页统一刷新缓存，两个分类分别保留查询条件和分页。 */
+export function useConfig() {
+  const user = useUserStore()
+  const canViewConfigs = computed(() => user.hasPermission('system:config:page'))
+  const canRefreshCache = computed(() => user.hasPermission('system:config:refreshCache'))
+  const refreshingCache = ref(false)
+  const configTables = useTemplateRef<InstanceType<typeof DataTable>[]>('configTables')
+  const tabs = [createConfigTab(true), createConfigTab(false)]
+
+  async function handleRefreshCache() {
+    if (refreshingCache.value) return
+    refreshingCache.value = true
+    try {
+      const response = await refreshConfigCache()
+      if (response.code !== 200) {
+        message.error(response.message)
+        return
+      }
+      message.success(response.message)
+      // 尚未打开的页签会在首次挂载时查询，只重新加载已挂载的表格。
+      await Promise.all([refreshSiteSettings(), ...(configTables.value ?? []).map(table => table.reload())])
+    } catch (error) {
+      if (!isAxiosError(error)) message.error(error instanceof Error ? error.message : '刷新配置失败')
+    } finally {
+      refreshingCache.value = false
+    }
+  }
+
+  return { tabs, searchFields, canViewConfigs, canRefreshCache, refreshingCache, handleRefreshCache }
+}
+
+/** 为一个配置分类创建表格和编辑操作。 */
+function createConfigTab(builtIn: boolean) {
   const user = useUserStore()
   const { openFormDialog, openDeleteDialog } = useFormDialog()
+  const title = builtIn ? '系统配置' : '自定义配置'
   const canUpdate = computed(() => user.hasPermission('system:config:update'))
   const canDelete = computed(() => !builtIn && user.hasPermission('system:config:delete'))
   const columns = computed<DataTableColumns<ConfigItem>>(() => {
@@ -59,7 +93,7 @@ export function useConfig(builtIn: boolean) {
     return items
   })
   const [registerTable, table] = useDataTable<ConfigItem, ConfigQuery>({
-    title: builtIn ? '系统配置' : '自定义配置',
+    title,
     columns,
     rowKey: (row) => String(row.id),
     scrollX: 838,
@@ -68,7 +102,10 @@ export function useConfig(builtIn: boolean) {
       defaultValues: { configName: '', configKey: '', remark: '' },
       fields: searchFields,
     },
-    toolbar: { buttons: builtIn ? [] : ['add'], permissions: { add: ['system:config:create'] } },
+    toolbar: {
+      buttons: builtIn ? [] : ['add'],
+      permissions: { add: ['system:config:create'] },
+    },
   })
 
   function openAddDialog() {
@@ -112,5 +149,9 @@ export function useConfig(builtIn: boolean) {
     })
   }
 
-  return { registerTable, form: table.searchModel, searchFields, openAddDialog }
+  return {
+    name: builtIn ? 'system' : 'custom', title, builtIn,
+    icon: builtIn ? 'settings' : 'sliders-horizontal',
+    registerTable, form: table.searchModel, openAddDialog,
+  }
 }

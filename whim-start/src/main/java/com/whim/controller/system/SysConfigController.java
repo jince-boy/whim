@@ -140,6 +140,19 @@ public class SysConfigController {
     }
 
     /**
+     * 从数据库刷新内置配置和自定义配置的缓存。
+     *
+     * @return 刷新结果
+     */
+    @PostMapping("/refreshCache")
+    @SystemCheckPermission("system:config:refreshCache")
+    @Log(title = "刷新配置缓存", type = LogType.UPDATE)
+    public Result<Void> refreshConfigCache() {
+        configService.refreshConfigCache();
+        return Result.success("配置缓存已刷新");
+    }
+
+    /**
      * 输出文件模块重新编码的 PNG 图片。
      *
      * @param image 图片内容

@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public final class CacheKeys {
     /**
+     * 内置配置和自定义配置的业务值。
+     */
+    public static final String SYS_CONFIG = "sys_config_values";
+
+    /**
      * 系统字典缓存。
      */
     public static final String SYS_DICT = "sys_dict";

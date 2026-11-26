@@ -25,6 +25,14 @@ public interface ISysConfigService extends IService<SysConfig> {
     PageDataVO<SysConfigVO> getConfigPage(SysConfigQueryDTO query);
 
     /**
+     * 按配置键读取内置或自定义配置的业务值。
+     *
+     * @param configKey 保存时使用的配置键
+     * @return 配置值，键不存在或未设置值时为 null
+     */
+    String getConfigValueByKey(String configKey);
+
+    /**
      * 查询当前是否需要登录验证码。
      *
      * @return 是否启用验证码校验
@@ -82,4 +90,9 @@ public interface ISysConfigService extends IService<SysConfig> {
      * @param id 配置主键
      */
     void deleteConfigById(Long id);
+
+    /**
+     * 从数据库重新加载内置配置和自定义配置的缓存。
+     */
+    void refreshConfigCache();
 }

@@ -17,6 +17,9 @@ export const updateConfig = (data: { id: ConfigId; configValue: string } & Parti
 export const deleteConfig = (id: ConfigId) =>
   request('/system/config/delete', RequestMethod.DELETE, { params: { id } })
 
+export const refreshConfigCache = () =>
+  request<void>('/system/config/refreshCache', RequestMethod.POST)
+
 export async function uploadConfigImage(file: File): Promise<string> {
   const data = new FormData()
   data.append('file', file)
